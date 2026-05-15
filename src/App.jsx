@@ -1102,17 +1102,17 @@ function RangeControl({ value, min, max, step = 1, onChange, label }) {
   );
 }
 
-function ZoomControl({ value, onChange }) {
+function MapZoomControls({ value, onChange }) {
   const updateZoom = (nextValue) => {
     if (!Number.isFinite(Number(nextValue))) return;
     onChange(Number(clampNumber(nextValue, 0.5, 3).toFixed(2)));
   };
 
   return (
-    <div className="zoom-control">
+    <div className="map-zoom-controls" aria-label="Map zoom controls">
       <button
         type="button"
-        className="step-button"
+        className="step-button map-zoom-button"
         onClick={() => updateZoom(Number((value - 0.1).toFixed(2)))}
         aria-label="Zoom out"
         title="Zoom out"
@@ -1120,16 +1120,7 @@ function ZoomControl({ value, onChange }) {
         <ZoomOut size={15} />
       </button>
       <input
-        aria-label="Map zoom"
-        type="range"
-        min={0.5}
-        max={3}
-        step={0.05}
-        value={value}
-        onChange={(event) => updateZoom(event.target.value)}
-      />
-      <input
-        className="range-number"
+        className="map-zoom-input"
         aria-label="Map zoom value"
         type="number"
         inputMode="decimal"
@@ -1139,9 +1130,10 @@ function ZoomControl({ value, onChange }) {
         value={value}
         onChange={(event) => updateZoom(event.target.value)}
       />
+      <output>{Math.round(value * 100)}%</output>
       <button
         type="button"
-        className="step-button"
+        className="step-button map-zoom-button"
         onClick={() => updateZoom(Number((value + 0.1).toFixed(2)))}
         aria-label="Zoom in"
         title="Zoom in"
@@ -1283,8 +1275,6 @@ function ControlPanel({
   setBackground,
   transparent,
   setTransparent,
-  mapZoom,
-  setMapZoom,
   mapDepth,
   setMapDepth,
   tiltX,
@@ -1391,9 +1381,6 @@ function ControlPanel({
               {transparent ? "Transparent" : "Solid"}
             </button>
           </div>
-        </OptionRow>
-        <OptionRow label="Zoom" value={`${Math.round(mapZoom * 100)}%`}>
-          <ZoomControl value={mapZoom} onChange={setMapZoom} />
         </OptionRow>
         <OptionRow label="Tilt X" value={`${tiltX} deg`}>
           <TiltControl label="Tilt X" value={tiltX} onChange={setTiltX} />
@@ -2044,6 +2031,8 @@ function App() {
         exportSvg={exportSvg}
       />
 
+      <MapZoomControls value={mapZoom} onChange={setMapZoom} />
+
       {!panelCollapsed && (
         <section className="control-rail">
           <div className="panel-header">
@@ -2072,8 +2061,6 @@ function App() {
             setBackground={setBackground}
             transparent={transparent}
             setTransparent={setTransparent}
-            mapZoom={mapZoom}
-            setMapZoom={setMapZoom}
             mapDepth={mapDepth}
             setMapDepth={setMapDepth}
             tiltX={tiltX}
