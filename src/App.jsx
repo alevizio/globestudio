@@ -293,7 +293,20 @@ const areaOptions = [
 ];
 
 const areaOptionByValue = new Map(areaOptions.map((option) => [option.value, option]));
-const dotShapeOptions = ["Circle", "Hexagon", "Triangle", "Pentagon", "Square", "Voxel", "Diamond", "Star", "Plus", "Ring", "ASCII"];
+const dotShapeOptions = [
+  "Circle",
+  "Hexagon",
+  "Triangle",
+  "Pentagon",
+  "Square",
+  "Voxel",
+  "Particle Grid",
+  "Diamond",
+  "Star",
+  "Plus",
+  "Ring",
+  "ASCII",
+];
 
 const DEFAULT_SHADER_SETTINGS = {
   effect: "none",
@@ -496,6 +509,10 @@ function createPlusPointArray(x, y, radius) {
   ];
 }
 
+function createParticleGridOffsets(spacing) {
+  return [-1, 0, 1].flatMap((row) => [-1, 0, 1].map((column) => [column * spacing, row * spacing]));
+}
+
 function createBarShape(width, height, rotation = 0) {
   const halfWidth = width / 2;
   const halfHeight = height / 2;
@@ -538,6 +555,48 @@ function createVoxelGeometry() {
   const geometry = new THREE.BoxGeometry(1.08, 1.08, 1.08);
   geometry.translate(0, 0.34, 0);
   return geometry;
+}
+
+function mergeGeometries(geometries) {
+  const positions = [];
+  const normals = [];
+
+  geometries.forEach((geometry) => {
+    const source = geometry.index ? geometry.toNonIndexed() : geometry.clone();
+    const position = source.getAttribute("position");
+    const normal = source.getAttribute("normal");
+
+    for (let index = 0; index < position.count; index += 1) {
+      positions.push(position.getX(index), position.getY(index), position.getZ(index));
+      if (normal) normals.push(normal.getX(index), normal.getY(index), normal.getZ(index));
+    }
+
+    source.dispose();
+  });
+
+  const merged = new THREE.BufferGeometry();
+  merged.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  if (normals.length === positions.length) {
+    merged.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+  } else {
+    merged.computeVertexNormals();
+  }
+  merged.computeBoundingBox();
+  merged.computeBoundingSphere();
+  return merged;
+}
+
+function createParticleGridGeometry() {
+  const particle = new THREE.SphereGeometry(0.18, 7, 5);
+  const geometries = createParticleGridOffsets(0.52).map(([x, z]) => {
+    const geometry = particle.clone();
+    geometry.translate(x, 0.14, z);
+    return geometry;
+  });
+  const merged = mergeGeometries(geometries);
+  particle.dispose();
+  geometries.forEach((geometry) => geometry.dispose());
+  return merged;
 }
 
 function formatPointList(points) {
@@ -704,6 +763,7 @@ function getShapeBounds(point, radius, shape) {
     ASCII: 1.8,
     Diamond: 1.35,
     Plus: 1.38,
+    "Particle Grid": 1.12,
     Ring: 1.08,
     Star: 1.78,
     Voxel: 1.62,
@@ -747,6 +807,7 @@ function createGlobeDotGeometry(shape) {
   if (shape === "Hexagon") return new THREE.CylinderGeometry(1, 1, 0.36, 6, 1);
   if (shape === "Square") return new THREE.BoxGeometry(1.28, 0.32, 1.28);
   if (shape === "Voxel") return createVoxelGeometry();
+  if (shape === "Particle Grid") return createParticleGridGeometry();
   if (shape === "Diamond") return new THREE.OctahedronGeometry(1, 0);
   if (shape === "ASCII") return createAsciiAsteriskGeometry();
   if (shape === "Ring") {
@@ -1322,6 +1383,14 @@ function createDotMarkup(point, radius, shape, color, selectedDots) {
 <polygon points="${formatPointList(faces.right)}" fill="${fill}" fill-opacity="0.82" ${stroke} />
 <polygon points="${formatPointList(faces.top)}" fill="${fill}" fill-opacity="1" ${stroke} />
 </g>`;
+  }
+
+  if (shape === "Particle Grid") {
+    const particleRadius = Math.max(radius * 0.22, 0.025);
+    const particles = createParticleGridOffsets(radius * 0.68)
+      .map(([xOffset, yOffset]) => `<circle cx="${formatSvgNumber(point.x + xOffset)}" cy="${formatSvgNumber(point.y + yOffset)}" r="${formatSvgNumber(particleRadius)}" />`)
+      .join("");
+    return `<g ${data}>${particles}</g>`;
   }
 
   if (shape === "Triangle") {
