@@ -156,6 +156,19 @@ const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 620;
 const US_COUNTRY_ID = "USA";
 const CLICK_HIGHLIGHT = "#d6ff79";
+const TRACKPAD_ZOOM_IGNORE_SELECTOR = [
+  ".control-rail",
+  ".top-actions",
+  ".view-mode-switch",
+  ".map-zoom-controls",
+  "a",
+  "button",
+  "input",
+  "select",
+  "textarea",
+  "[role='button']",
+  "[role='switch']",
+].join(", ");
 const UNSUPPORTED_DOTTED_MAP_CODES = new Set([
   "ABW",
   "AIA",
@@ -3361,6 +3374,8 @@ function App() {
   const viewTransitionTimeoutRef = useRef(0);
   const [mapZoom, setMapZoom] = useState(1);
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
+  const mapZoomRef = useRef(mapZoom);
+  const viewModeRef = useRef(viewMode);
   const [mapDepth, setMapDepth] = useState(55);
   const [tiltX, setTiltX] = useState(0);
   const [tiltY, setTiltY] = useState(0);
@@ -3373,6 +3388,9 @@ function App() {
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [copyStatus, setCopyStatus] = useState("idle");
   const [selectedDots, setSelectedDots] = useState(new Set());
+
+  mapZoomRef.current = mapZoom;
+  viewModeRef.current = viewMode;
 
   const selected = useMemo(() => {
     const selectedCountryId = selection.startsWith("country:") ? selection.replace("country:", "") : "";
@@ -3490,6 +3508,81 @@ function App() {
       setViewTransition(null);
     }, GLOBE_MORPH_DURATION + 80);
   }, [viewMode]);
+
+  useEffect(() => {
+    const shouldIgnoreTrackpadZoom = (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest(TRACKPAD_ZOOM_IGNORE_SELECTOR)) return true;
+
+      const shell = document.querySelector(".app-shell");
+      return Boolean(target && shell && !shell.contains(target));
+    };
+
+    const applyTrackpadZoom = (event, nextZoom, currentZoom) => {
+      if (Math.abs(nextZoom - currentZoom) < 0.001) return;
+
+      const shell = document.querySelector(".app-shell");
+      if (viewModeRef.current === "flat" && shell) {
+        const rect = shell.getBoundingClientRect();
+        const pointerX = event.clientX - rect.left - rect.width / 2;
+        const pointerY = event.clientY - rect.top - rect.height / 2;
+        const zoomRatio = nextZoom / currentZoom;
+
+        setMapOffset((offset) => ({
+          x: pointerX - (pointerX - offset.x) * zoomRatio,
+          y: pointerY - (pointerY - offset.y) * zoomRatio,
+        }));
+      }
+
+      setMapZoom(Number(nextZoom.toFixed(3)));
+    };
+
+    const handleTrackpadWheel = (event) => {
+      if (event.defaultPrevented || shouldIgnoreTrackpadZoom(event)) return;
+
+      const deltaScale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+      const dominantDelta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+      const delta = dominantDelta * deltaScale;
+      if (!Number.isFinite(delta) || Math.abs(delta) < 0.01) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const currentZoom = clampNumber(mapZoomRef.current, 0.5, 3);
+      const intensity = event.ctrlKey || event.metaKey ? 0.01 : 0.0018;
+      const nextZoom = clampNumber(currentZoom * Math.exp(-delta * intensity), 0.5, 3);
+      applyTrackpadZoom(event, nextZoom, currentZoom);
+    };
+
+    const handleGestureStart = (event) => {
+      if (shouldIgnoreTrackpadZoom(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.__worldDotsGestureZoom = clampNumber(mapZoomRef.current, 0.5, 3);
+    };
+
+    const handleGestureChange = (event) => {
+      if (shouldIgnoreTrackpadZoom(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const currentZoom = clampNumber(mapZoomRef.current, 0.5, 3);
+      const startZoom = clampNumber(event.currentTarget.__worldDotsGestureZoom || currentZoom, 0.5, 3);
+      const scale = Number.isFinite(event.scale) ? event.scale : 1;
+      const nextZoom = clampNumber(startZoom * scale, 0.5, 3);
+      applyTrackpadZoom(event, nextZoom, currentZoom);
+    };
+
+    window.addEventListener("wheel", handleTrackpadWheel, { capture: true, passive: false });
+    window.addEventListener("gesturestart", handleGestureStart, { capture: true, passive: false });
+    window.addEventListener("gesturechange", handleGestureChange, { capture: true, passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleTrackpadWheel, { capture: true });
+      window.removeEventListener("gesturestart", handleGestureStart, { capture: true });
+      window.removeEventListener("gesturechange", handleGestureChange, { capture: true });
+    };
+  }, [setMapOffset, setMapZoom]);
 
   useEffect(() => () => window.clearTimeout(viewTransitionTimeoutRef.current), []);
 
