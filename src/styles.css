@@ -108,9 +108,9 @@ button {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 48%, rgba(214, 255, 121, 0.055), transparent 34%),
-    radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.055), transparent 52%);
-  opacity: 0.72;
+    radial-gradient(circle at 50% 48%, rgba(219, 232, 181, 0.028), transparent 34%),
+    radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.042), transparent 52%);
+  opacity: 0.54;
 }
 
 .globe-background canvas {

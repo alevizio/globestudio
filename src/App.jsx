@@ -205,6 +205,7 @@ const GLOBE_RADIUS = 2;
 const GLOBE_CAMERA_DISTANCE = 7.35;
 const GLOBE_INITIAL_ROTATION = { x: -0.14, y: -0.9 };
 const GLOBE_MORPH_DURATION = 1250;
+const GLOBE_DEFAULT_GLOW = "#dbe8b5";
 
 function makeFeatureCollection(features) {
   return {
@@ -493,13 +494,13 @@ function createAtmosphereMaterial() {
       uniform float intensity;
       varying vec3 vNormal;
       void main() {
-        float rim = pow(0.72 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
-        gl_FragColor = vec4(glowColor, clamp(rim * intensity, 0.0, 0.62));
+        float rim = pow(max(0.0, 0.66 - dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.25);
+        gl_FragColor = vec4(glowColor, clamp(rim * intensity, 0.0, 0.28));
       }
     `,
     uniforms: {
-      glowColor: { value: new THREE.Color(CLICK_HIGHLIGHT) },
-      intensity: { value: 0.9 },
+      glowColor: { value: new THREE.Color(GLOBE_DEFAULT_GLOW) },
+      intensity: { value: 0.42 },
     },
     blending: THREE.AdditiveBlending,
     side: THREE.BackSide,
@@ -2296,7 +2297,7 @@ function GlobeBackground({
 
     threeRef.current = {
       atmosphereMaterial,
-      atmosphereIntensity: 0.9,
+      atmosphereIntensity: 0.42,
       baseDistance: GLOBE_CAMERA_DISTANCE,
       baseMaterial,
       baseOpacity: 0.3,
@@ -2446,13 +2447,13 @@ function GlobeBackground({
 
     const bgColor = new THREE.Color(transparent ? "#151517" : background);
     const surfaceColor = bgColor.clone().lerp(new THREE.Color("#23262d"), transparent ? 0.52 : 0.36);
-    const glowColor = new THREE.Color(dotColor === "#ffffff" ? CLICK_HIGHLIGHT : dotColor);
+    const glowColor = new THREE.Color(dotColor === "#ffffff" ? GLOBE_DEFAULT_GLOW : dotColor);
     const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
 
     refs.baseMaterial.color.copy(surfaceColor);
     refs.baseOpacity = transparent ? 0.2 : 0.3;
     refs.atmosphereMaterial.uniforms.glowColor.value.copy(glowColor);
-    refs.atmosphereIntensity = 0.72 + intensity * 0.64;
+    refs.atmosphereIntensity = 0.32 + intensity * 0.24;
     refs.graticuleOpacity = 0.08 + intensity * 0.08;
     refs.graticule.children.forEach((line) => {
       line.material.color.copy(glowColor.clone().lerp(new THREE.Color("#ffffff"), 0.62));
