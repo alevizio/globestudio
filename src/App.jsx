@@ -204,7 +204,7 @@ const shaderEffectValue = {
 const GLOBE_RADIUS = 2;
 const GLOBE_CAMERA_DISTANCE = 7.35;
 const GLOBE_INITIAL_ROTATION = { x: -0.14, y: -0.9 };
-const GLOBE_MORPH_DURATION = 1150;
+const GLOBE_MORPH_DURATION = 1250;
 
 function makeFeatureCollection(features) {
   return {
@@ -280,19 +280,9 @@ function pointToFlatVector3(point, image, radiusOffset = 0) {
   );
 }
 
-function getFlatLongitudeRadius(image, radiusOffset = 0) {
-  const flatWidth = 5.35 + radiusOffset * 12;
-  const longitudeRange = image.region?.lng
-    ? image.region.lng.max - image.region.lng.min
-    : 360;
-  const rangeRadians = THREE.MathUtils.degToRad(clampNumber(longitudeRange, 28, 360));
-
-  return flatWidth / Math.max(rangeRadians, 0.01);
-}
-
-function easeInOutCubic(value) {
+function easeInOutSine(value) {
   const t = clampNumber(value, 0, 1);
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  return 0.5 - Math.cos(t * Math.PI) / 2;
 }
 
 function smoothStep(edge0, edge1, value) {
@@ -545,8 +535,8 @@ function applyDotInstances(mesh, points, image, scale, radiusOffset = 0, morphPr
   const cylinderQuaternion = new THREE.Quaternion();
   const flatQuaternion = new THREE.Quaternion();
   const globeQuaternion = new THREE.Quaternion();
+  const cylinderPosition = new THREE.Vector3();
   const cylinderNormal = new THREE.Vector3();
-  const curvedPosition = new THREE.Vector3();
   const normal = new THREE.Vector3();
   const position = new THREE.Vector3();
   const flatPosition = new THREE.Vector3();
@@ -554,35 +544,30 @@ function applyDotInstances(mesh, points, image, scale, radiusOffset = 0, morphPr
   const up = new THREE.Vector3(0, 1, 0);
   const depth = new THREE.Vector3(0, 0, 1);
   const size = new THREE.Vector3(scale, scale, scale);
-  const bendProgress = smoothStep(0, 0.74, morphProgress);
-  const settleProgress = smoothStep(0.58, 1, morphProgress);
-  const flatLongitudeRadius = getFlatLongitudeRadius(image, radiusOffset);
+  const wrapProgress = smoothStep(0, 0.62, morphProgress);
+  const sphereProgress = smoothStep(0.16, 1, morphProgress);
+  const targetRadius = GLOBE_RADIUS + radiusOffset;
 
   points.forEach((point, index) => {
     flatPosition.copy(pointToFlatVector3(point, image, radiusOffset));
     globePosition.copy(latLngToVector3(point.lat, point.lng, GLOBE_RADIUS + radiusOffset));
+    normal.copy(globePosition).normalize();
 
-    if (bendProgress < 0.001) {
-      curvedPosition.copy(flatPosition);
+    cylinderNormal.set(normal.x, 0, normal.z);
+    if (cylinderNormal.lengthSq() < 0.000001) {
       cylinderNormal.copy(depth);
     } else {
-      const localAngle = (flatPosition.x / flatLongitudeRadius) * bendProgress;
-      const curveRadius = flatLongitudeRadius / bendProgress;
-      curvedPosition.set(
-        curveRadius * Math.sin(localAngle),
-        flatPosition.y,
-        flatPosition.z + curveRadius * (Math.cos(localAngle) - 1),
-      );
-      cylinderNormal.set(Math.sin(localAngle), 0, Math.cos(localAngle)).normalize();
+      cylinderNormal.normalize();
     }
 
-    position.copy(curvedPosition).lerp(globePosition, settleProgress);
+    cylinderPosition.copy(cylinderNormal).multiplyScalar(targetRadius);
+    cylinderPosition.y = THREE.MathUtils.lerp(flatPosition.y, globePosition.y, sphereProgress * 0.72);
+    position.copy(flatPosition).lerp(cylinderPosition, wrapProgress).lerp(globePosition, sphereProgress);
 
-    normal.copy(globePosition).normalize();
     globeQuaternion.setFromUnitVectors(up, normal);
     flatQuaternion.setFromUnitVectors(up, depth);
     cylinderQuaternion.setFromUnitVectors(up, cylinderNormal);
-    quaternion.copy(flatQuaternion).slerp(cylinderQuaternion, bendProgress).slerp(globeQuaternion, settleProgress);
+    quaternion.copy(flatQuaternion).slerp(cylinderQuaternion, wrapProgress).slerp(globeQuaternion, sphereProgress);
 
     matrix.compose(position, quaternion, size);
     mesh.setMatrixAt(index, matrix);
@@ -2361,7 +2346,7 @@ function GlobeBackground({
       const morph = morphRef.current;
       if (morph.active) {
         const elapsed = now - morph.startTime;
-        const progress = easeInOutCubic(elapsed / GLOBE_MORPH_DURATION);
+        const progress = easeInOutSine(elapsed / GLOBE_MORPH_DURATION);
         morph.progress = morph.start + (morph.target - morph.start) * progress;
         if (progress >= 1) {
           morph.progress = morph.target;
@@ -2388,7 +2373,10 @@ function GlobeBackground({
       globeGroup.rotation.x = THREE.MathUtils.degToRad(transform.tiltX || 0) * flatProgress + state.currentX * rotationProgress;
       globeGroup.rotation.y = THREE.MathUtils.degToRad(transform.tiltY || 0) * flatProgress + state.currentY * rotationProgress;
 
-      if (threeRef.current.dotLayer) {
+      if (
+        threeRef.current.dotLayer
+        && Math.abs((threeRef.current.dotLayer.userData.morphProgress ?? -1) - morph.progress) > 0.0005
+      ) {
         applyDotLayerMorph(threeRef.current.dotLayer, morph.progress);
       }
       applyGlobeShellProgress(threeRef.current, morph.progress);
