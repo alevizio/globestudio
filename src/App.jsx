@@ -204,6 +204,7 @@ const shaderEffectValue = {
 const GLOBE_RADIUS = 2;
 const GLOBE_CAMERA_DISTANCE = 7.35;
 const GLOBE_INITIAL_ROTATION = { x: -0.14, y: -0.9 };
+const GLOBE_MORPH_DURATION = 1150;
 
 function makeFeatureCollection(features) {
   return {
@@ -243,6 +244,27 @@ function latLngToVector3(lat, lng, radius = GLOBE_RADIUS) {
     radius * Math.cos(phi),
     radius * Math.sin(phi) * Math.sin(theta),
   );
+}
+
+function pointToFlatVector3(point, image, radiusOffset = 0) {
+  const flatWidth = 5.35 + radiusOffset * 12;
+  const flatHeight = flatWidth * (image.height / image.width);
+
+  return new THREE.Vector3(
+    (point.x / image.width - 0.5) * flatWidth,
+    (0.5 - point.y / image.height) * flatHeight,
+    -0.18 + radiusOffset * 0.5,
+  );
+}
+
+function easeInOutCubic(value) {
+  const t = clampNumber(value, 0, 1);
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function smoothStep(edge0, edge1, value) {
+  const t = clampNumber((value - edge0) / (edge1 - edge0), 0, 1);
+  return t * t * (3 - 2 * t);
 }
 
 function formatSvgNumber(value, decimals = 3) {
@@ -484,17 +506,29 @@ function buildGlobePoints(mapData, selectedDots) {
     .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
 }
 
-function applyDotInstances(mesh, points, scale, radiusOffset = 0) {
+function applyDotInstances(mesh, points, image, scale, radiusOffset = 0, morphProgress = 1) {
   const matrix = new THREE.Matrix4();
   const quaternion = new THREE.Quaternion();
+  const flatQuaternion = new THREE.Quaternion();
+  const globeQuaternion = new THREE.Quaternion();
   const normal = new THREE.Vector3();
+  const position = new THREE.Vector3();
+  const flatPosition = new THREE.Vector3();
+  const globePosition = new THREE.Vector3();
   const up = new THREE.Vector3(0, 1, 0);
+  const depth = new THREE.Vector3(0, 0, 1);
   const size = new THREE.Vector3(scale, scale, scale);
 
   points.forEach((point, index) => {
-    const position = latLngToVector3(point.lat, point.lng, GLOBE_RADIUS + radiusOffset);
-    normal.copy(position).normalize();
-    quaternion.setFromUnitVectors(up, normal);
+    flatPosition.copy(pointToFlatVector3(point, image, radiusOffset));
+    globePosition.copy(latLngToVector3(point.lat, point.lng, GLOBE_RADIUS + radiusOffset));
+    position.copy(flatPosition).lerp(globePosition, morphProgress);
+
+    normal.copy(globePosition).normalize();
+    globeQuaternion.setFromUnitVectors(up, normal);
+    flatQuaternion.setFromUnitVectors(up, depth);
+    quaternion.copy(flatQuaternion).slerp(globeQuaternion, morphProgress);
+
     matrix.compose(position, quaternion, size);
     mesh.setMatrixAt(index, matrix);
   });
@@ -502,16 +536,36 @@ function applyDotInstances(mesh, points, scale, radiusOffset = 0) {
   mesh.instanceMatrix.needsUpdate = true;
 }
 
-function createInstancedDotMesh(points, geometry, material, scale, radiusOffset) {
+function createInstancedDotMesh(points, image, geometry, material, scale, radiusOffset, morphProgress) {
   if (!points.length) return null;
   const mesh = new THREE.InstancedMesh(geometry, material, points.length);
   mesh.frustumCulled = false;
   mesh.userData.pointIds = points.map((point) => point.id);
-  applyDotInstances(mesh, points, scale, radiusOffset);
+  mesh.userData.points = points;
+  mesh.userData.image = image;
+  mesh.userData.scale = scale;
+  mesh.userData.radiusOffset = radiusOffset;
+  applyDotInstances(mesh, points, image, scale, radiusOffset, morphProgress);
   return mesh;
 }
 
-function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, shaderSettings }) {
+function applyDotLayerMorph(group, morphProgress) {
+  if (!group) return;
+  group.children.forEach((child) => {
+    if (!child.isInstancedMesh || !child.userData.points) return;
+    applyDotInstances(
+      child,
+      child.userData.points,
+      child.userData.image,
+      child.userData.scale,
+      child.userData.radiusOffset,
+      morphProgress,
+    );
+  });
+  group.userData.morphProgress = morphProgress;
+}
+
+function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, shaderSettings, morphProgress = 1 }) {
   const group = new THREE.Group();
   const points = buildGlobePoints(mapData, selectedDots);
   const normalPoints = points.filter((point) => !point.selected);
@@ -538,8 +592,16 @@ function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, s
     roughness: 0.5,
   });
 
-  const normalMesh = createInstancedDotMesh(normalPoints, geometry, baseMaterial, size, 0.018);
-  const selectedMesh = createInstancedDotMesh(selectedPoints, geometry.clone(), selectedMaterial, size * 1.18, 0.026);
+  const normalMesh = createInstancedDotMesh(normalPoints, mapData.image, geometry, baseMaterial, size, 0.018, morphProgress);
+  const selectedMesh = createInstancedDotMesh(
+    selectedPoints,
+    mapData.image,
+    geometry.clone(),
+    selectedMaterial,
+    size * 1.18,
+    0.026,
+    morphProgress,
+  );
 
   if (normalMesh) group.add(normalMesh);
   if (selectedMesh) group.add(selectedMesh);
@@ -553,7 +615,15 @@ function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, s
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-    const glowMesh = createInstancedDotMesh(points, glowGeometry, glowMaterial, size * (2.25 + intensity), 0.034);
+    const glowMesh = createInstancedDotMesh(
+      points,
+      mapData.image,
+      glowGeometry,
+      glowMaterial,
+      size * (2.25 + intensity),
+      0.034,
+      morphProgress,
+    );
     if (glowMesh) group.add(glowMesh);
   }
 
@@ -575,7 +645,15 @@ function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, s
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
-      const mesh = createInstancedDotMesh(chromaPoints, chromaGeometry.clone(), material, size * 1.2, 0.032);
+      const mesh = createInstancedDotMesh(
+        chromaPoints,
+        mapData.image,
+        chromaGeometry.clone(),
+        material,
+        size * 1.2,
+        0.032,
+        morphProgress,
+      );
       if (mesh) group.add(mesh);
     });
   }
@@ -585,7 +663,19 @@ function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, s
   }
 
   group.userData.dotCount = points.length;
+  group.userData.morphProgress = morphProgress;
   return group;
+}
+
+function applyGlobeShellProgress(refs, morphProgress) {
+  if (!refs) return;
+  const shellProgress = smoothStep(0.18, 0.92, morphProgress);
+
+  refs.baseMaterial.opacity = refs.baseOpacity * shellProgress;
+  refs.atmosphereMaterial.uniforms.intensity.value = refs.atmosphereIntensity * shellProgress;
+  refs.graticule.children.forEach((line) => {
+    line.material.opacity = refs.graticuleOpacity * shellProgress;
+  });
 }
 
 function createShaderEffectAssets({
@@ -1936,6 +2026,8 @@ function GlobeBackground({
   shape,
   background,
   interactive = true,
+  morphMode = "globe",
+  morphTransition = null,
   transparent,
   mapZoom,
   setMapZoom,
@@ -1957,6 +2049,14 @@ function GlobeBackground({
   });
   const threeRef = useRef(null);
   const mapZoomRef = useRef(mapZoom);
+  const initialMorphProgress = morphTransition === "to-globe" ? 0 : morphMode === "globe" ? 1 : 0;
+  const morphRef = useRef({
+    active: false,
+    progress: initialMorphProgress,
+    start: initialMorphProgress,
+    startTime: 0,
+    target: initialMorphProgress,
+  });
   const settingsRef = useRef(shaderSettings);
   const [isDraggingGlobe, setIsDraggingGlobe] = useState(false);
 
@@ -2096,16 +2196,20 @@ function GlobeBackground({
 
     threeRef.current = {
       atmosphereMaterial,
+      atmosphereIntensity: 0.9,
       baseDistance: GLOBE_CAMERA_DISTANCE,
       baseMaterial,
+      baseOpacity: 0.3,
       camera,
       dotLayer: null,
       globeGroup,
       graticule,
+      graticuleOpacity: 0.13,
       renderer,
       scene,
       setSelectedDots,
     };
+    applyGlobeShellProgress(threeRef.current, morphRef.current.progress);
 
     const resize = () => {
       const rect = mount.getBoundingClientRect();
@@ -2137,8 +2241,27 @@ function GlobeBackground({
 
       state.currentX += (state.targetX - state.currentX) * 0.095;
       state.currentY += (state.targetY - state.currentY) * 0.095;
-      globeGroup.rotation.x = state.currentX;
-      globeGroup.rotation.y = state.currentY;
+
+      const morph = morphRef.current;
+      if (morph.active) {
+        const elapsed = now - morph.startTime;
+        const progress = easeInOutCubic(elapsed / GLOBE_MORPH_DURATION);
+        morph.progress = morph.start + (morph.target - morph.start) * progress;
+        if (progress >= 1) {
+          morph.progress = morph.target;
+          morph.active = false;
+        }
+      }
+
+      const rotationProgress = smoothStep(0.08, 1, morph.progress);
+      globeGroup.rotation.x = state.currentX * rotationProgress;
+      globeGroup.rotation.y = state.currentY * rotationProgress;
+
+      if (threeRef.current.dotLayer) {
+        applyDotLayerMorph(threeRef.current.dotLayer, morph.progress);
+      }
+      applyGlobeShellProgress(threeRef.current, morph.progress);
+
       camera.position.z = threeRef.current.baseDistance / clampNumber(mapZoomRef.current, 0.5, 3);
       camera.updateProjectionMatrix();
       renderer.render(scene, camera);
@@ -2170,6 +2293,7 @@ function GlobeBackground({
       dotSize,
       shape,
       shaderSettings,
+      morphProgress: morphRef.current.progress,
     });
 
     if (refs.dotLayer) {
@@ -2182,6 +2306,24 @@ function GlobeBackground({
   }, [dotColor, dotSize, mapData, selectedDots, shaderSettings, shape]);
 
   useEffect(() => {
+    const target = morphMode === "globe" ? 1 : 0;
+    const morph = morphRef.current;
+    if (Math.abs(morph.progress - target) < 0.001) {
+      morph.progress = target;
+      morph.target = target;
+      morph.active = false;
+      applyDotLayerMorph(threeRef.current?.dotLayer, target);
+      applyGlobeShellProgress(threeRef.current, target);
+      return;
+    }
+
+    morph.start = morph.progress;
+    morph.target = target;
+    morph.startTime = window.performance.now();
+    morph.active = true;
+  }, [morphMode]);
+
+  useEffect(() => {
     const refs = threeRef.current;
     if (!refs) return;
 
@@ -2191,13 +2333,14 @@ function GlobeBackground({
     const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
 
     refs.baseMaterial.color.copy(surfaceColor);
-    refs.baseMaterial.opacity = transparent ? 0.2 : 0.3;
+    refs.baseOpacity = transparent ? 0.2 : 0.3;
     refs.atmosphereMaterial.uniforms.glowColor.value.copy(glowColor);
-    refs.atmosphereMaterial.uniforms.intensity.value = 0.72 + intensity * 0.64;
+    refs.atmosphereIntensity = 0.72 + intensity * 0.64;
+    refs.graticuleOpacity = 0.08 + intensity * 0.08;
     refs.graticule.children.forEach((line) => {
       line.material.color.copy(glowColor.clone().lerp(new THREE.Color("#ffffff"), 0.62));
-      line.material.opacity = 0.08 + intensity * 0.08;
     });
+    applyGlobeShellProgress(refs, morphRef.current.progress);
   }, [background, dotColor, shaderSettings.intensity, transparent]);
 
   return (
@@ -2514,7 +2657,7 @@ function App() {
     setViewMode(nextMode);
     viewTransitionTimeoutRef.current = window.setTimeout(() => {
       setViewTransition(null);
-    }, 940);
+    }, GLOBE_MORPH_DURATION + 80);
   }, [viewMode]);
 
   useEffect(() => () => window.clearTimeout(viewTransitionTimeoutRef.current), []);
@@ -2600,7 +2743,7 @@ function App() {
   };
 
   const isViewTransitioning = Boolean(viewTransition);
-  const showFlatBackground = viewMode === "flat" || isViewTransitioning;
+  const showFlatBackground = viewMode === "flat" && !isViewTransitioning;
   const showGlobeBackground = viewMode === "globe" || isViewTransitioning;
 
   return (
@@ -2636,6 +2779,8 @@ function App() {
           shape={shape}
           background={background}
           transparent={transparent}
+          morphMode={viewMode === "globe" ? "globe" : "flat"}
+          morphTransition={viewTransition}
           interactive={viewMode === "globe" && !isViewTransitioning}
           mapZoom={mapZoom}
           setMapZoom={setMapZoom}
