@@ -293,7 +293,7 @@ const areaOptions = [
 ];
 
 const areaOptionByValue = new Map(areaOptions.map((option) => [option.value, option]));
-const dotShapeOptions = ["Circle", "Hexagon", "Triangle", "Pentagon", "Square", "Diamond", "Star", "Plus", "Ring", "ASCII"];
+const dotShapeOptions = ["Circle", "Hexagon", "Triangle", "Pentagon", "Square", "Voxel", "Diamond", "Star", "Plus", "Ring", "ASCII"];
 
 const DEFAULT_SHADER_SETTINGS = {
   effect: "none",
@@ -534,6 +534,12 @@ function createAsciiAsteriskGeometry() {
   return geometry;
 }
 
+function createVoxelGeometry() {
+  const geometry = new THREE.BoxGeometry(1.08, 1.08, 1.08);
+  geometry.translate(0, 0.34, 0);
+  return geometry;
+}
+
 function formatPointList(points) {
   return points
     .map(([x, y]) => `${formatSvgNumber(x, 2)},${formatSvgNumber(y, 2)}`)
@@ -559,6 +565,36 @@ function createDiamondPoints(x, y, radius) {
     [x, y + radius],
     [x - radius, y],
   ]);
+}
+
+function createVoxelFaces(x, y, radius) {
+  const xRadius = radius * 1.28;
+  const topY = y - radius * 1.38;
+  const midY = y + radius * 0.04;
+  const lowY = y + radius * 1.52;
+  const shoulderY = y - radius * 0.64;
+  const footY = y + radius * 0.82;
+
+  return {
+    left: [
+      [x - xRadius, shoulderY],
+      [x, midY],
+      [x, lowY],
+      [x - xRadius, footY],
+    ],
+    right: [
+      [x + xRadius, shoulderY],
+      [x, midY],
+      [x, lowY],
+      [x + xRadius, footY],
+    ],
+    top: [
+      [x, topY],
+      [x + xRadius, shoulderY],
+      [x, midY],
+      [x - xRadius, shoulderY],
+    ],
+  };
 }
 
 function generateDots({ collection, density, shape }) {
@@ -670,6 +706,7 @@ function getShapeBounds(point, radius, shape) {
     Plus: 1.38,
     Ring: 1.08,
     Star: 1.78,
+    Voxel: 1.62,
   }[shape] ?? 1;
   const scaledRadius = radius * shapeRadius;
   return {
@@ -709,6 +746,7 @@ function createGlobeDotGeometry(shape) {
   if (shape === "Pentagon") return new THREE.CylinderGeometry(1.05, 1.05, 0.34, 5, 1);
   if (shape === "Hexagon") return new THREE.CylinderGeometry(1, 1, 0.36, 6, 1);
   if (shape === "Square") return new THREE.BoxGeometry(1.28, 0.32, 1.28);
+  if (shape === "Voxel") return createVoxelGeometry();
   if (shape === "Diamond") return new THREE.OctahedronGeometry(1, 0);
   if (shape === "ASCII") return createAsciiAsteriskGeometry();
   if (shape === "Ring") {
@@ -1274,6 +1312,16 @@ function createDotMarkup(point, radius, shape, color, selectedDots) {
 
   if (shape === "Square") {
     return `<rect ${data} x="${formatSvgNumber(point.x - radius)}" y="${formatSvgNumber(point.y - radius)}" width="${formatSvgNumber(radius * 2)}" height="${formatSvgNumber(radius * 2)}" />`;
+  }
+
+  if (shape === "Voxel") {
+    const faces = createVoxelFaces(point.x, point.y, radius);
+    const stroke = `stroke="#000000" stroke-opacity="0.16" stroke-width="${formatSvgNumber(Math.max(radius * 0.08, 0.025))}"`;
+    return `<g ${data}>
+<polygon points="${formatPointList(faces.left)}" fill="${fill}" fill-opacity="0.62" ${stroke} />
+<polygon points="${formatPointList(faces.right)}" fill="${fill}" fill-opacity="0.82" ${stroke} />
+<polygon points="${formatPointList(faces.top)}" fill="${fill}" fill-opacity="1" ${stroke} />
+</g>`;
   }
 
   if (shape === "Triangle") {
