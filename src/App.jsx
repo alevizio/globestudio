@@ -221,7 +221,30 @@ function normalizeLongitude(value) {
   return ((((value + 180) % 360) + 360) % 360) - 180;
 }
 
+function mercatorY(lat) {
+  const rad = THREE.MathUtils.degToRad(clampNumber(lat, -85.05113, 85.05113));
+  return Math.log(Math.tan(Math.PI / 4 + rad / 2));
+}
+
+function inverseMercatorY(y) {
+  return THREE.MathUtils.radToDeg(2 * Math.atan(Math.exp(y)) - Math.PI / 2);
+}
+
 function pointToGlobeCoordinate(point, image) {
+  const region = image.region;
+  if (region?.lat && region?.lng) {
+    const lngRange = region.lng.max - region.lng.min;
+    const yMax = mercatorY(region.lat.max);
+    const yMin = mercatorY(region.lat.min);
+    const lng = region.lng.min + (point.x / image.width) * lngRange;
+    const projectedY = yMax - (point.y / image.height) * (yMax - yMin);
+
+    return {
+      lat: clampNumber(inverseMercatorY(projectedY), -90, 90),
+      lng: normalizeLongitude(lng),
+    };
+  }
+
   const lng = Number.isFinite(point.lng)
     ? point.lng
     : normalizeLongitude((point.x / image.width) * 360 - 180);
