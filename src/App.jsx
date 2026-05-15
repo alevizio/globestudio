@@ -2,13 +2,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   Check,
+  CircleDot,
   Clipboard,
   Download,
+  Globe2,
+  Layers,
   Minus,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
   RotateCcw,
+  SlidersHorizontal,
+  Sparkles,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
@@ -1271,7 +1276,91 @@ function ColorSwatch({ value, onChange, label }) {
   );
 }
 
+function LayerPanel({
+  activeInspector,
+  setActiveInspector,
+  selectedLabel,
+  dotCount,
+  shaderEffect,
+  mapZoom,
+  mapDepth,
+  density,
+  shape,
+}) {
+  const effectLabel = shaderEffectOptions.find((option) => option.value === shaderEffect)?.label || "None";
+  const layers = [
+    {
+      id: "map",
+      title: "Map",
+      meta: selectedLabel,
+      kind: "Source",
+      Icon: Globe2,
+    },
+    {
+      id: "canvas",
+      title: "Canvas",
+      meta: `${Math.round(mapZoom * 100)}% zoom / ${mapDepth}% depth`,
+      kind: "Scene",
+      Icon: SlidersHorizontal,
+    },
+    {
+      id: "effects",
+      title: "Effects",
+      meta: effectLabel,
+      kind: "Pass",
+      Icon: Sparkles,
+    },
+    {
+      id: "dots",
+      title: "Dots",
+      meta: `${shape} / ${density} density`,
+      kind: "Geometry",
+      Icon: CircleDot,
+    },
+  ];
+
+  return (
+    <aside className="layer-rail" aria-label="Layer stack">
+      <div className="layer-panel-header">
+        <div className="panel-title-line">
+          <Layers size={15} />
+          <span>Layers</span>
+        </div>
+        <span className="panel-count">{layers.length}</span>
+      </div>
+
+      <div className="layer-list">
+        {layers.map(({ id, title, meta, kind, Icon }) => (
+          <button
+            key={id}
+            type="button"
+            className={`layer-button ${activeInspector === id ? "is-active" : ""}`}
+            onClick={() => setActiveInspector(id)}
+            aria-pressed={activeInspector === id}
+          >
+            <span className="layer-icon">
+              <Icon size={15} />
+            </span>
+            <span className="layer-copy">
+              <strong>{title}</strong>
+              <span>{meta}</span>
+            </span>
+            <span className="layer-kind">{kind}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="layer-footer">
+        <span>{selectedLabel}</span>
+        <strong>{dotCount.toLocaleString()} dots</strong>
+      </div>
+    </aside>
+  );
+}
+
 function ControlPanel({
+  activeInspector,
+  onReset,
   selection,
   setSelection,
   stateSelection,
@@ -1308,199 +1397,232 @@ function ControlPanel({
       [key]: value,
     }));
   };
+  const effectLabel = shaderEffectOptions.find((option) => option.value === shaderEffect)?.label || "None";
+  const inspectorMeta = {
+    map: { title: "Map", kind: showStates ? "State" : "Source" },
+    canvas: { title: "Canvas", kind: "Scene" },
+    effects: { title: "Effects", kind: effectLabel },
+    dots: { title: "Dots", kind: shape },
+  }[activeInspector] || { title: "Properties", kind: "Layer" };
 
   return (
     <aside className="control-panel">
-      <PanelSection title="Map">
-        <OptionRow label="Area">
-          <SelectControl
-            label="Country or region"
-            value={selection}
-            onChange={(value) => {
-              setSelection(value);
-              if (value !== `country:${US_COUNTRY_ID}`) setStateSelection("all");
-            }}
-            options={areaOptions}
-          />
-        </OptionRow>
-        {showStates && (
-          <OptionRow label="State">
+      <div className="inspector-header">
+        <div>
+          <span>Properties</span>
+          <h2>{inspectorMeta.title}</h2>
+        </div>
+        <div className="inspector-actions">
+          <span>{inspectorMeta.kind}</span>
+          <IconButton title="Reset all settings" onClick={onReset} className="inspector-reset-button">
+            <RotateCcw size={15} />
+          </IconButton>
+        </div>
+      </div>
+
+      {activeInspector === "map" && (
+        <PanelSection title="Source">
+          <OptionRow label="Area">
             <SelectControl
-              label="State"
-              value={stateSelection}
-              onChange={setStateSelection}
-              options={[
-                { value: "all", label: "All States" },
-                ...usStates.map((state) => ({
-                  value: state._id,
-                  label: state._displayName,
-                })),
-              ]}
+              label="Country or region"
+              value={selection}
+              onChange={(value) => {
+                setSelection(value);
+                if (value !== `country:${US_COUNTRY_ID}`) setStateSelection("all");
+              }}
+              options={areaOptions}
             />
           </OptionRow>
-        )}
-      </PanelSection>
-
-      <PanelSection title="Canvas">
-        <OptionRow label="Background">
-          <div className="background-control">
-            <ColorSwatch value={background} onChange={setBackground} label="Select background color" />
-            <button
-              type="button"
-              className={`transparent-toggle ${transparent ? "is-active" : ""}`}
-              onClick={() => setTransparent((value) => !value)}
-            >
-              {transparent ? "Transparent" : "Solid"}
-            </button>
-          </div>
-        </OptionRow>
-        <OptionRow label="Zoom" value={`${Math.round(mapZoom * 100)}%`}>
-          <ZoomControl value={mapZoom} onChange={setMapZoom} />
-        </OptionRow>
-        <OptionRow label="Tilt X" value={`${tiltX} deg`}>
-          <TiltControl label="Tilt X" value={tiltX} onChange={setTiltX} />
-        </OptionRow>
-        <OptionRow label="Tilt Y" value={`${tiltY} deg`}>
-          <TiltControl label="Tilt Y" value={tiltY} onChange={setTiltY} />
-        </OptionRow>
-        <OptionRow label="Depth" value={`${mapDepth}%`}>
-          <DepthControl value={mapDepth} onChange={setMapDepth} />
-        </OptionRow>
-      </PanelSection>
-
-      <PanelSection title="Effects">
-        <OptionRow label="Pass">
-          <SelectControl
-            label="Shader effect"
-            value={shaderEffect}
-            onChange={(value) => updateShaderSetting("effect", value)}
-            options={shaderEffectOptions}
-          />
-        </OptionRow>
-        {shaderEffect !== "none" && (
-          <>
-            <OptionRow label="Intensity" value={shaderSettings.intensity}>
-              <RangeControl
-                label="Effect intensity"
-                min={0}
-                max={100}
-                value={shaderSettings.intensity}
-                onChange={(value) => updateShaderSetting("intensity", value)}
+          {showStates && (
+            <OptionRow label="State">
+              <SelectControl
+                label="State"
+                value={stateSelection}
+                onChange={setStateSelection}
+                options={[
+                  { value: "all", label: "All States" },
+                  ...usStates.map((state) => ({
+                    value: state._id,
+                    label: state._displayName,
+                  })),
+                ]}
               />
             </OptionRow>
-            {effectsWithSplit.has(shaderEffect) && (
-              <OptionRow label="Split" value={`${shaderSettings.split}px`}>
-                <RangeControl
-                  label="Chromatic split"
-                  min={0}
-                  max={30}
-                  value={shaderSettings.split}
-                  onChange={(value) => updateShaderSetting("split", value)}
-                />
-              </OptionRow>
-            )}
-            {effectsWithCellSize.has(shaderEffect) && (
-              <OptionRow label="Cell Size" value={shaderSettings.cellSize}>
-                <RangeControl
-                  label="Effect cell size"
-                  min={4}
-                  max={42}
-                  value={shaderSettings.cellSize}
-                  onChange={(value) => updateShaderSetting("cellSize", value)}
-                />
-              </OptionRow>
-            )}
-            {effectsWithScanlines.has(shaderEffect) && (
-              <OptionRow label="Scanlines" value={shaderSettings.scanlines}>
-                <RangeControl
-                  label="Scanline strength"
-                  min={0}
-                  max={100}
-                  value={shaderSettings.scanlines}
-                  onChange={(value) => updateShaderSetting("scanlines", value)}
-                />
-              </OptionRow>
-            )}
-            {shaderEffect === "threshold" && (
-              <OptionRow label="Threshold" value={shaderSettings.threshold}>
-                <RangeControl
-                  label="Threshold"
-                  min={0}
-                  max={100}
-                  value={shaderSettings.threshold}
-                  onChange={(value) => updateShaderSetting("threshold", value)}
-                />
-              </OptionRow>
-            )}
-            {effectsWithWarp.has(shaderEffect) && (
-              <OptionRow label="Warp" value={shaderSettings.warp}>
-                <RangeControl
-                  label="Shader warp"
-                  min={0}
-                  max={100}
-                  value={shaderSettings.warp}
-                  onChange={(value) => updateShaderSetting("warp", value)}
-                />
-              </OptionRow>
-            )}
-            {effectsWithMotion.has(shaderEffect) && (
-              <OptionRow label="Motion" value={shaderSettings.motion}>
-                <RangeControl
-                  label="Shader motion"
-                  min={0}
-                  max={100}
-                  value={shaderSettings.motion}
-                  onChange={(value) => updateShaderSetting("motion", value)}
-                />
-              </OptionRow>
-            )}
-            <OptionRow label="Grain" value={shaderSettings.grain}>
-              <RangeControl
-                label="Grain"
-                min={0}
-                max={100}
-                value={shaderSettings.grain}
-                onChange={(value) => updateShaderSetting("grain", value)}
-              />
-            </OptionRow>
-          </>
-        )}
-      </PanelSection>
+          )}
+        </PanelSection>
+      )}
 
-      <PanelSection title="Dots">
-        <OptionRow label="Shape">
-          <SelectControl
-            label="Dot shape"
-            value={shape}
-            onChange={setShape}
-            options={["Circle", "Hexagon", "Square", "Diamond"].map((item) => ({
-              value: item,
-              label: item,
-            }))}
-          />
-        </OptionRow>
-        <OptionRow label="Density" value={density}>
-          <RangeControl
-            label="Density"
-            min={1}
-            max={100}
-            value={density}
-            onChange={setDensity}
-          />
-        </OptionRow>
-        <OptionRow label="Size" value={dotSize}>
-          <RangeControl
-            label="Size"
-            min={1}
-            max={25}
-            value={dotSize}
-            onChange={setDotSize}
-          />
-        </OptionRow>
-        <OptionRow label="Color">
-          <ColorSwatch value={dotColor} onChange={setDotColor} label="Select dot color" />
-        </OptionRow>
-      </PanelSection>
+      {activeInspector === "canvas" && (
+        <>
+          <PanelSection title="General">
+            <OptionRow label="Background">
+              <div className="background-control">
+                <ColorSwatch value={background} onChange={setBackground} label="Select background color" />
+                <button
+                  type="button"
+                  className={`transparent-toggle ${transparent ? "is-active" : ""}`}
+                  onClick={() => setTransparent((value) => !value)}
+                >
+                  {transparent ? "Transparent" : "Solid"}
+                </button>
+              </div>
+            </OptionRow>
+          </PanelSection>
+
+          <PanelSection title="Transform">
+            <OptionRow label="Zoom" value={`${Math.round(mapZoom * 100)}%`}>
+              <ZoomControl value={mapZoom} onChange={setMapZoom} />
+            </OptionRow>
+            <OptionRow label="Tilt X" value={`${tiltX} deg`}>
+              <TiltControl label="Tilt X" value={tiltX} onChange={setTiltX} />
+            </OptionRow>
+            <OptionRow label="Tilt Y" value={`${tiltY} deg`}>
+              <TiltControl label="Tilt Y" value={tiltY} onChange={setTiltY} />
+            </OptionRow>
+            <OptionRow label="Depth" value={`${mapDepth}%`}>
+              <DepthControl value={mapDepth} onChange={setMapDepth} />
+            </OptionRow>
+          </PanelSection>
+        </>
+      )}
+
+      {activeInspector === "effects" && (
+        <PanelSection title="Shader">
+          <OptionRow label="Pass">
+            <SelectControl
+              label="Shader effect"
+              value={shaderEffect}
+              onChange={(value) => updateShaderSetting("effect", value)}
+              options={shaderEffectOptions}
+            />
+          </OptionRow>
+          {shaderEffect !== "none" && (
+            <>
+              <OptionRow label="Intensity" value={shaderSettings.intensity}>
+                <RangeControl
+                  label="Effect intensity"
+                  min={0}
+                  max={100}
+                  value={shaderSettings.intensity}
+                  onChange={(value) => updateShaderSetting("intensity", value)}
+                />
+              </OptionRow>
+              {effectsWithSplit.has(shaderEffect) && (
+                <OptionRow label="Split" value={`${shaderSettings.split}px`}>
+                  <RangeControl
+                    label="Chromatic split"
+                    min={0}
+                    max={30}
+                    value={shaderSettings.split}
+                    onChange={(value) => updateShaderSetting("split", value)}
+                  />
+                </OptionRow>
+              )}
+              {effectsWithCellSize.has(shaderEffect) && (
+                <OptionRow label="Cell Size" value={shaderSettings.cellSize}>
+                  <RangeControl
+                    label="Effect cell size"
+                    min={4}
+                    max={42}
+                    value={shaderSettings.cellSize}
+                    onChange={(value) => updateShaderSetting("cellSize", value)}
+                  />
+                </OptionRow>
+              )}
+              {effectsWithScanlines.has(shaderEffect) && (
+                <OptionRow label="Scanlines" value={shaderSettings.scanlines}>
+                  <RangeControl
+                    label="Scanline strength"
+                    min={0}
+                    max={100}
+                    value={shaderSettings.scanlines}
+                    onChange={(value) => updateShaderSetting("scanlines", value)}
+                  />
+                </OptionRow>
+              )}
+              {shaderEffect === "threshold" && (
+                <OptionRow label="Threshold" value={shaderSettings.threshold}>
+                  <RangeControl
+                    label="Threshold"
+                    min={0}
+                    max={100}
+                    value={shaderSettings.threshold}
+                    onChange={(value) => updateShaderSetting("threshold", value)}
+                  />
+                </OptionRow>
+              )}
+              {effectsWithWarp.has(shaderEffect) && (
+                <OptionRow label="Warp" value={shaderSettings.warp}>
+                  <RangeControl
+                    label="Shader warp"
+                    min={0}
+                    max={100}
+                    value={shaderSettings.warp}
+                    onChange={(value) => updateShaderSetting("warp", value)}
+                  />
+                </OptionRow>
+              )}
+              {effectsWithMotion.has(shaderEffect) && (
+                <OptionRow label="Motion" value={shaderSettings.motion}>
+                  <RangeControl
+                    label="Shader motion"
+                    min={0}
+                    max={100}
+                    value={shaderSettings.motion}
+                    onChange={(value) => updateShaderSetting("motion", value)}
+                  />
+                </OptionRow>
+              )}
+              <OptionRow label="Grain" value={shaderSettings.grain}>
+                <RangeControl
+                  label="Grain"
+                  min={0}
+                  max={100}
+                  value={shaderSettings.grain}
+                  onChange={(value) => updateShaderSetting("grain", value)}
+                />
+              </OptionRow>
+            </>
+          )}
+        </PanelSection>
+      )}
+
+      {activeInspector === "dots" && (
+        <PanelSection title="Geometry">
+          <OptionRow label="Shape">
+            <SelectControl
+              label="Dot shape"
+              value={shape}
+              onChange={setShape}
+              options={["Circle", "Hexagon", "Square", "Diamond"].map((item) => ({
+                value: item,
+                label: item,
+              }))}
+            />
+          </OptionRow>
+          <OptionRow label="Density" value={density}>
+            <RangeControl
+              label="Density"
+              min={1}
+              max={100}
+              value={density}
+              onChange={setDensity}
+            />
+          </OptionRow>
+          <OptionRow label="Size" value={dotSize}>
+            <RangeControl
+              label="Size"
+              min={1}
+              max={25}
+              value={dotSize}
+              onChange={setDotSize}
+            />
+          </OptionRow>
+          <OptionRow label="Color">
+            <ColorSwatch value={dotColor} onChange={setDotColor} label="Select dot color" />
+          </OptionRow>
+        </PanelSection>
+      )}
     </aside>
   );
 }
@@ -1829,6 +1951,7 @@ function App() {
   const [shape, setShape] = useState("Circle");
   const [shaderSettings, setShaderSettings] = useState(() => ({ ...DEFAULT_SHADER_SETTINGS }));
   const [panelCollapsed, setPanelCollapsed] = useState(false);
+  const [activeInspector, setActiveInspector] = useState("effects");
   const [copyStatus, setCopyStatus] = useState("idle");
   const [selectedDots, setSelectedDots] = useState(new Set());
 
@@ -1931,6 +2054,7 @@ function App() {
     setShape("Circle");
     setShaderSettings({ ...DEFAULT_SHADER_SETTINGS });
     setPanelCollapsed(false);
+    setActiveInspector("effects");
     setSelectedDots(new Set());
   };
 
@@ -2039,19 +2163,23 @@ function App() {
       />
 
       {!panelCollapsed && (
-        <section className="control-rail">
-          <div className="panel-header">
-            <div className="panel-meta">
-              <span>{selected.label}</span>
-              <span>{displaySvg.dotCount.toLocaleString()} dots</span>
-            </div>
-            <IconButton title="Reset view" onClick={reset} className="panel-reset-button">
-              <RotateCcw size={15} />
-              Reset
-            </IconButton>
-          </div>
+        <>
+          <LayerPanel
+            activeInspector={activeInspector}
+            setActiveInspector={setActiveInspector}
+            selectedLabel={selected.label}
+            dotCount={displaySvg.dotCount}
+            shaderEffect={shaderSettings.effect}
+            mapZoom={mapZoom}
+            mapDepth={mapDepth}
+            density={density}
+            shape={shape}
+          />
 
+          <section className="control-rail">
           <ControlPanel
+            activeInspector={activeInspector}
+            onReset={reset}
             selection={selection}
             setSelection={(value) => {
               setSelection(value);
@@ -2085,7 +2213,8 @@ function App() {
             shaderSettings={shaderSettings}
             setShaderSettings={setShaderSettings}
           />
-        </section>
+          </section>
+        </>
       )}
     </main>
   );
