@@ -521,7 +521,7 @@ input[type="range"] {
 .tilt-control,
 .depth-control {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) 38px;
+  grid-template-columns: 38px minmax(0, 1fr) 62px 38px;
   align-items: center;
   gap: 8px;
 }

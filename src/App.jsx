@@ -1087,7 +1087,7 @@ function RangeControl({ value, min, max, step = 1, onChange, label }) {
       <input
         className="range-number"
         aria-label={`${label} value`}
-        type="text"
+        type="number"
         inputMode="numeric"
         min={min}
         max={max}
@@ -1100,7 +1100,10 @@ function RangeControl({ value, min, max, step = 1, onChange, label }) {
 }
 
 function ZoomControl({ value, onChange }) {
-  const updateZoom = (nextValue) => onChange(clampNumber(nextValue, 0.5, 3));
+  const updateZoom = (nextValue) => {
+    if (!Number.isFinite(Number(nextValue))) return;
+    onChange(Number(clampNumber(nextValue, 0.5, 3).toFixed(2)));
+  };
 
   return (
     <div className="zoom-control">
@@ -1122,6 +1125,17 @@ function ZoomControl({ value, onChange }) {
         value={value}
         onChange={(event) => updateZoom(event.target.value)}
       />
+      <input
+        className="range-number"
+        aria-label="Map zoom value"
+        type="number"
+        inputMode="decimal"
+        min={0.5}
+        max={3}
+        step={0.05}
+        value={value}
+        onChange={(event) => updateZoom(event.target.value)}
+      />
       <button
         type="button"
         className="step-button"
@@ -1136,7 +1150,10 @@ function ZoomControl({ value, onChange }) {
 }
 
 function TiltControl({ value, onChange, label }) {
-  const updateTilt = (nextValue) => onChange(clampNumber(nextValue, -45, 45));
+  const updateTilt = (nextValue) => {
+    if (!Number.isFinite(Number(nextValue))) return;
+    onChange(clampNumber(nextValue, -45, 45));
+  };
 
   return (
     <div className="tilt-control">
@@ -1158,6 +1175,17 @@ function TiltControl({ value, onChange, label }) {
         value={value}
         onChange={(event) => updateTilt(event.target.value)}
       />
+      <input
+        className="range-number"
+        aria-label={`${label} value`}
+        type="number"
+        inputMode="numeric"
+        min={-45}
+        max={45}
+        step={1}
+        value={value}
+        onChange={(event) => updateTilt(event.target.value)}
+      />
       <button
         type="button"
         className="step-button"
@@ -1172,7 +1200,10 @@ function TiltControl({ value, onChange, label }) {
 }
 
 function DepthControl({ value, onChange }) {
-  const updateDepth = (nextValue) => onChange(clampNumber(nextValue, 0, 100));
+  const updateDepth = (nextValue) => {
+    if (!Number.isFinite(Number(nextValue))) return;
+    onChange(clampNumber(nextValue, 0, 100));
+  };
 
   return (
     <div className="depth-control">
@@ -1191,6 +1222,17 @@ function DepthControl({ value, onChange }) {
         min={0}
         max={100}
         step={5}
+        value={value}
+        onChange={(event) => updateDepth(event.target.value)}
+      />
+      <input
+        className="range-number"
+        aria-label="Depth value"
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={100}
+        step={1}
         value={value}
         onChange={(event) => updateDepth(event.target.value)}
       />
