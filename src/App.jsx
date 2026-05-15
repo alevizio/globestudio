@@ -343,9 +343,26 @@ const DEFAULT_GLOBE_SETTINGS = {
   glowStrength: 58,
   grid: true,
   gridStrength: 82,
+  look: "classic",
+  routes: true,
+  routesStrength: 82,
   surface: true,
   surfaceStrength: 100,
 };
+
+const globeLookOptions = [
+  { value: "classic", label: "Classic" },
+  { value: "borderless", label: "Borderless" },
+];
+
+const BORDERLESS_ROUTE_PATHS = [
+  { from: [37.7749, -122.4194], to: [51.5074, -0.1278], color: "#8fdcff", lift: 0.42, opacity: 0.68 },
+  { from: [40.7128, -74.006], to: [35.6762, 139.6503], color: "#b793ff", lift: 0.58, opacity: 0.64 },
+  { from: [1.3521, 103.8198], to: [25.2048, 55.2708], color: "#6be7ff", lift: 0.36, opacity: 0.56 },
+  { from: [-23.5505, -46.6333], to: [19.4326, -99.1332], color: "#ff9ef3", lift: 0.33, opacity: 0.54 },
+  { from: [52.52, 13.405], to: [28.6139, 77.209], color: "#9ad7ff", lift: 0.45, opacity: 0.58 },
+  { from: [-33.8688, 151.2093], to: [34.6937, 135.5023], color: "#b7ffef", lift: 0.34, opacity: 0.52 },
+];
 
 function makeFeatureCollection(features) {
   return {
@@ -620,6 +637,83 @@ function createGraticule(radius = GLOBE_RADIUS + 0.006) {
   return group;
 }
 
+function createBorderlessRoutePoints([fromLat, fromLng], [toLat, toLng], lift = 0.42, segments = 96) {
+  const start = latLngToVector3(fromLat, fromLng, GLOBE_RADIUS + 0.055);
+  const end = latLngToVector3(toLat, toLng, GLOBE_RADIUS + 0.055);
+  const mid = start.clone().add(end).normalize().multiplyScalar(GLOBE_RADIUS + lift);
+  return new THREE.QuadraticBezierCurve3(start, mid, end).getPoints(segments);
+}
+
+function createBorderlessNetwork() {
+  const group = new THREE.Group();
+  group.visible = false;
+
+  BORDERLESS_ROUTE_PATHS.forEach((route, index) => {
+    const points = createBorderlessRoutePoints(route.from, route.to, route.lift);
+    const color = new THREE.Color(route.color);
+    const lineMaterial = new THREE.LineBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), lineMaterial);
+    line.userData.baseOpacity = route.opacity;
+    group.add(line);
+
+    const pulseMaterial = new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const pulse = new THREE.Mesh(new THREE.SphereGeometry(0.03, 18, 12), pulseMaterial);
+    pulse.userData.baseOpacity = 0.92;
+    pulse.userData.offset = index / BORDERLESS_ROUTE_PATHS.length;
+    pulse.userData.routePoints = points;
+    group.add(pulse);
+  });
+
+  [
+    { rotation: [0.25, 0.5, -0.12], color: "#6be7ff", opacity: 0.2 },
+    { rotation: [0.92, -0.32, 0.34], color: "#b793ff", opacity: 0.18 },
+    { rotation: [-0.38, 0.85, 0.72], color: "#ffffff", opacity: 0.12 },
+  ].forEach((ring) => {
+    const geometry = new THREE.TorusGeometry(GLOBE_RADIUS + 0.075, 0.0038, 8, 180);
+    const material = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(ring.color),
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.set(...ring.rotation);
+    mesh.userData.baseOpacity = ring.opacity;
+    group.add(mesh);
+  });
+
+  return group;
+}
+
+function updateBorderlessNetworkMotion(group, now) {
+  if (!group?.visible) return;
+  const opacity = group.userData.opacity ?? 0;
+  group.rotation.z = Math.sin(now * 0.00018) * 0.018;
+  group.children.forEach((child) => {
+    const points = child.userData.routePoints;
+    if (!points?.length || !child.material) return;
+
+    const travel = (now * 0.00016 + child.userData.offset) % 1;
+    const pointIndex = Math.min(points.length - 1, Math.floor(travel * (points.length - 1)));
+    const shimmer = 0.56 + Math.sin(travel * Math.PI * 2) * 0.28;
+    child.position.copy(points[pointIndex]);
+    child.material.opacity = (child.userData.baseOpacity ?? 0.8) * opacity * shimmer;
+  });
+}
+
 function createAtmosphereMaterial() {
   return new THREE.ShaderMaterial({
     vertexShader: `
@@ -746,24 +840,36 @@ function applyDotLayerMorph(group, morphProgress) {
   group.userData.morphProgress = morphProgress;
 }
 
-function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, shaderSettings, morphProgress = 1 }) {
+function buildGlobeDotLayer({
+  mapData,
+  selectedDots,
+  dotColor,
+  dotSize,
+  shape,
+  shaderSettings,
+  globeSettings,
+  morphProgress = 1,
+}) {
   const group = new THREE.Group();
   const points = buildGlobePoints(mapData, selectedDots);
   const normalPoints = points.filter((point) => !point.selected);
   const selectedPoints = points.filter((point) => point.selected);
   const effect = shaderSettings.effect || "none";
   const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
+  const look = globeSettings?.look ?? DEFAULT_GLOBE_SETTINGS.look;
+  const isBorderless = look === "borderless";
   const geometry = createGlobeDotGeometry(shape);
   const size = 0.009 + clampNumber(dotSize, 1, 25) * 0.00172;
-  const color = new THREE.Color(dotColor);
-  const accentColor = new THREE.Color(CLICK_HIGHLIGHT);
-  const emissiveBoost = effect === "none" ? 0.22 : 0.5 + intensity * 0.85;
+  const color = isBorderless && dotColor === "#ffffff" ? new THREE.Color("#f5fbff") : new THREE.Color(dotColor);
+  const emissiveColor = isBorderless ? new THREE.Color("#7edfff").lerp(color, 0.48) : color;
+  const accentColor = new THREE.Color(isBorderless ? "#a78bff" : CLICK_HIGHLIGHT);
+  const emissiveBoost = isBorderless ? 0.7 + intensity * 0.7 : effect === "none" ? 0.22 : 0.5 + intensity * 0.85;
   const baseMaterial = new THREE.MeshStandardMaterial({
     color,
-    emissive: color,
+    emissive: emissiveColor,
     emissiveIntensity: emissiveBoost,
-    metalness: 0,
-    roughness: 0.62,
+    metalness: isBorderless ? 0.08 : 0,
+    roughness: isBorderless ? 0.36 : 0.62,
   });
   const selectedMaterial = new THREE.MeshStandardMaterial({
     color: accentColor,
@@ -787,12 +893,12 @@ function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, s
   if (normalMesh) group.add(normalMesh);
   if (selectedMesh) group.add(selectedMesh);
 
-  if (effect === "bloom" || effect === "crt") {
+  if (isBorderless || effect === "bloom" || effect === "crt") {
     const glowGeometry = createGlobeDotGeometry("Circle");
     const glowMaterial = new THREE.MeshBasicMaterial({
-      color,
+      color: isBorderless ? new THREE.Color("#8ddfff") : color,
       transparent: true,
-      opacity: 0.11 + intensity * 0.14,
+      opacity: isBorderless ? 0.075 + intensity * 0.055 : 0.11 + intensity * 0.14,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
@@ -801,8 +907,8 @@ function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, s
       mapData.image,
       glowGeometry,
       glowMaterial,
-      size * (2.25 + intensity),
-      0.034,
+      size * (isBorderless ? 2.05 + intensity * 0.35 : 2.25 + intensity),
+      isBorderless ? 0.038 : 0.034,
       morphProgress,
     );
     if (glowMesh) group.add(glowMesh);
@@ -855,12 +961,24 @@ function applyGlobeShellProgress(refs, morphProgress, globeSettings = DEFAULT_GL
   const glowStrength = settings.glow ? clampNumber(settings.glowStrength, 0, 100) / 100 : 0;
   const gridStrength = settings.grid ? clampNumber(settings.gridStrength, 0, 100) / 100 : 0;
   const surfaceStrength = settings.surface ? clampNumber(settings.surfaceStrength, 0, 100) / 100 : 0;
+  const routeStrength = settings.look === "borderless" && settings.routes
+    ? clampNumber(settings.routesStrength, 0, 100) / 100
+    : 0;
 
   refs.baseMaterial.opacity = refs.baseOpacity * shellProgress * surfaceStrength;
   refs.atmosphereMaterial.uniforms.intensity.value = refs.atmosphereIntensity * shellProgress * glowStrength;
   refs.graticule.children.forEach((line) => {
     line.material.opacity = refs.graticuleOpacity * shellProgress * gridStrength;
   });
+  if (refs.borderlessNetwork) {
+    const routeOpacity = shellProgress * routeStrength;
+    refs.borderlessNetwork.visible = routeOpacity > 0.001;
+    refs.borderlessNetwork.userData.opacity = routeOpacity;
+    refs.borderlessNetwork.traverse((child) => {
+      if (!child.material || child.userData.routePoints) return;
+      child.material.opacity = (child.userData.baseOpacity ?? 0.3) * routeOpacity;
+    });
+  }
 }
 
 function createShaderEffectAssets({
@@ -1860,6 +1978,23 @@ function ControlPanel({
       [key]: value,
     }));
   };
+  const updateGlobeLook = (value) => {
+    setGlobeSettings((settings) => {
+      if (value !== "borderless") return { ...settings, look: value };
+      return {
+        ...settings,
+        glow: true,
+        glowStrength: 78,
+        grid: true,
+        gridStrength: 46,
+        look: value,
+        routes: true,
+        routesStrength: 88,
+        surface: true,
+        surfaceStrength: 82,
+      };
+    });
+  };
 
   return (
     <aside className="control-panel">
@@ -1958,6 +2093,14 @@ function ControlPanel({
 
       {viewMode === "globe" && (
         <PanelSection title="Globe">
+          <OptionRow label="Look">
+            <SelectControl
+              label="Globe look"
+              value={globeSettings.look}
+              onChange={updateGlobeLook}
+              options={globeLookOptions}
+            />
+          </OptionRow>
           <OptionRow label="Glow">
             <ToggleControl
               label="Toggle globe glow"
@@ -2011,6 +2154,28 @@ function ControlPanel({
                 onChange={(value) => updateGlobeSetting("gridStrength", value)}
               />
             </OptionRow>
+          )}
+          {globeSettings.look === "borderless" && (
+            <>
+              <OptionRow label="Routes">
+                <ToggleControl
+                  label="Toggle borderless routes"
+                  checked={globeSettings.routes}
+                  onChange={(value) => updateGlobeSetting("routes", value)}
+                />
+              </OptionRow>
+              {globeSettings.routes && (
+                <OptionRow label="Routes" value={globeSettings.routesStrength}>
+                  <RangeControl
+                    label="Route strength"
+                    min={0}
+                    max={100}
+                    value={globeSettings.routesStrength}
+                    onChange={(value) => updateGlobeSetting("routesStrength", value)}
+                  />
+                </OptionRow>
+              )}
+            </>
           )}
           <OptionRow label="Auto Spin">
             <ToggleControl
@@ -2530,6 +2695,9 @@ function GlobeBackground({
     const graticule = createGraticule();
     globeGroup.add(graticule);
 
+    const borderlessNetwork = createBorderlessNetwork();
+    globeGroup.add(borderlessNetwork);
+
     const keyLight = new THREE.DirectionalLight(0xffffff, 2.1);
     keyLight.position.set(2.2, 1.8, 4);
     scene.add(keyLight);
@@ -2541,6 +2709,7 @@ function GlobeBackground({
       baseDistance: GLOBE_CAMERA_DISTANCE,
       baseMaterial,
       baseOpacity: 0.3,
+      borderlessNetwork,
       camera,
       dotLayer: null,
       globeGroup,
@@ -2622,6 +2791,7 @@ function GlobeBackground({
         applyDotLayerMorph(threeRef.current.dotLayer, morph.progress);
       }
       applyGlobeShellProgress(threeRef.current, morph.progress, globeSettings);
+      updateBorderlessNetworkMotion(threeRef.current.borderlessNetwork, now);
 
       renderer.render(scene, camera);
       frame = window.requestAnimationFrame(animate);
@@ -2652,6 +2822,7 @@ function GlobeBackground({
       dotSize,
       shape,
       shaderSettings,
+      globeSettings,
       morphProgress: morphRef.current.progress,
     });
 
@@ -2662,7 +2833,7 @@ function GlobeBackground({
 
     refs.dotLayer = nextLayer;
     refs.globeGroup.add(nextLayer);
-  }, [dotColor, dotSize, mapData, selectedDots, shaderSettings, shape]);
+  }, [dotColor, dotSize, globeSettings, mapData, selectedDots, shaderSettings, shape]);
 
   useEffect(() => {
     const target = morphMode === "globe" ? 1 : 0;
@@ -2686,18 +2857,26 @@ function GlobeBackground({
     const refs = threeRef.current;
     if (!refs) return;
 
+    const look = globeSettings?.look ?? DEFAULT_GLOBE_SETTINGS.look;
+    const isBorderless = look === "borderless";
     const bgColor = new THREE.Color(transparent ? "#151517" : background);
-    const surfaceColor = bgColor.clone().lerp(new THREE.Color("#23262d"), transparent ? 0.52 : 0.36);
-    const glowColor = new THREE.Color(dotColor === "#ffffff" ? GLOBE_DEFAULT_GLOW : dotColor);
+    const surfaceColor = isBorderless
+      ? new THREE.Color("#091326").lerp(bgColor, transparent ? 0.12 : 0.22)
+      : bgColor.clone().lerp(new THREE.Color("#23262d"), transparent ? 0.52 : 0.36);
+    const glowColor = isBorderless
+      ? new THREE.Color("#7fe4ff").lerp(new THREE.Color("#ac8cff"), 0.28)
+      : new THREE.Color(dotColor === "#ffffff" ? GLOBE_DEFAULT_GLOW : dotColor);
     const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
 
     refs.baseMaterial.color.copy(surfaceColor);
-    refs.baseOpacity = transparent ? 0.2 : 0.3;
+    refs.baseMaterial.metalness = isBorderless ? 0.22 : 0.12;
+    refs.baseMaterial.roughness = isBorderless ? 0.46 : 0.78;
+    refs.baseOpacity = isBorderless ? (transparent ? 0.18 : 0.34) : (transparent ? 0.2 : 0.3);
     refs.atmosphereMaterial.uniforms.glowColor.value.copy(glowColor);
-    refs.atmosphereIntensity = 0.32 + intensity * 0.24;
-    refs.graticuleOpacity = 0.08 + intensity * 0.08;
+    refs.atmosphereIntensity = isBorderless ? 0.52 + intensity * 0.3 : 0.32 + intensity * 0.24;
+    refs.graticuleOpacity = isBorderless ? 0.035 + intensity * 0.045 : 0.08 + intensity * 0.08;
     refs.graticule.children.forEach((line) => {
-      line.material.color.copy(glowColor.clone().lerp(new THREE.Color("#ffffff"), 0.62));
+      line.material.color.copy(isBorderless ? new THREE.Color("#7bdcff") : glowColor.clone().lerp(new THREE.Color("#ffffff"), 0.62));
     });
     applyGlobeShellProgress(refs, morphRef.current.progress, globeSettingsRef.current);
   }, [background, dotColor, globeSettings, shaderSettings.intensity, transparent]);
@@ -2705,7 +2884,7 @@ function GlobeBackground({
   return (
     <div
       ref={mountRef}
-      className={`globe-background effect-${shaderSettings.effect || "none"} ${
+      className={`globe-background look-${globeSettings?.look ?? "classic"} effect-${shaderSettings.effect || "none"} ${
         isDraggingGlobe ? "is-dragging" : ""
       } ${
         interactive ? "" : "is-passive"
@@ -3107,12 +3286,15 @@ function App() {
   const showFlatBackground = false;
   const showGlobeBackground = true;
   const globeGlowOpacity = viewMode === "globe" && globeSettings.glow
-    ? 0.12 + (clampNumber(globeSettings.glowStrength, 0, 100) / 100) * 0.36
+    ? (globeSettings.look === "borderless" ? 0.18 : 0.12)
+      + (clampNumber(globeSettings.glowStrength, 0, 100) / 100) * (globeSettings.look === "borderless" ? 0.48 : 0.36)
     : 0;
 
   return (
     <main
       className={`app-shell ${viewMode === "globe" ? "is-globe-mode" : "is-flat-mode"} ${
+        globeSettings.look === "borderless" ? "is-borderless-globe" : ""
+      } ${
         transparent ? "is-transparent-preview" : ""
       } ${
         panelCollapsed ? "is-panel-collapsed" : ""

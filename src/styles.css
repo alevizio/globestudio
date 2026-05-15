@@ -118,12 +118,24 @@ button {
   opacity: var(--globe-bg-glow-opacity, 0.54);
 }
 
+.globe-background.look-borderless::before {
+  background:
+    radial-gradient(circle at 56% 42%, rgba(119, 222, 255, 0.16), transparent 26%),
+    radial-gradient(circle at 46% 56%, rgba(168, 133, 255, 0.13), transparent 36%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.055), transparent 55%);
+  mix-blend-mode: screen;
+}
+
 .globe-background canvas {
   position: relative;
   z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.globe-background.look-borderless canvas {
+  filter: saturate(1.2) contrast(1.06);
 }
 
 .globe-background.effect-chromatic canvas {
@@ -191,6 +203,20 @@ button {
       rgba(11, 11, 12, 0.58)
     ),
     linear-gradient(180deg, rgba(11, 11, 12, 0.05), rgba(11, 11, 12, 0.24));
+}
+
+.app-shell.is-borderless-globe::after {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 9, 18, 0.58),
+      rgba(5, 9, 18, 0.13) 24%,
+      transparent 47%,
+      transparent 63%,
+      rgba(10, 7, 23, 0.17) 79%,
+      rgba(5, 7, 15, 0.58)
+    ),
+    linear-gradient(180deg, rgba(19, 31, 59, 0.03), rgba(9, 10, 20, 0.2));
 }
 
 .map-background .dot-map {
