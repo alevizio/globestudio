@@ -4,6 +4,8 @@ import {
   Check,
   Clipboard,
   Download,
+  Globe2,
+  Map as MapIcon,
   Minus,
   PanelLeftClose,
   PanelLeftOpen,
@@ -12,6 +14,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
+import * as THREE from "three";
 import DottedMapEngine from "dotted-map";
 import { geoAlbersUsa, geoContains, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
@@ -198,6 +201,10 @@ const shaderEffectValue = {
   threshold: 6,
 };
 
+const GLOBE_RADIUS = 2;
+const GLOBE_CAMERA_DISTANCE = 7.35;
+const GLOBE_INITIAL_ROTATION = { x: -0.14, y: -0.9 };
+
 function makeFeatureCollection(features) {
   return {
     type: "FeatureCollection",
@@ -207,6 +214,35 @@ function makeFeatureCollection(features) {
 
 function clampNumber(value, min, max) {
   return Math.min(max, Math.max(min, Number(value)));
+}
+
+function normalizeLongitude(value) {
+  return ((((value + 180) % 360) + 360) % 360) - 180;
+}
+
+function pointToGlobeCoordinate(point, image) {
+  const lng = Number.isFinite(point.lng)
+    ? point.lng
+    : normalizeLongitude((point.x / image.width) * 360 - 180);
+  const lat = Number.isFinite(point.lat)
+    ? point.lat
+    : 90 - (point.y / image.height) * 180;
+
+  return {
+    lat: clampNumber(lat, -90, 90),
+    lng: normalizeLongitude(lng),
+  };
+}
+
+function latLngToVector3(lat, lng, radius = GLOBE_RADIUS) {
+  const phi = THREE.MathUtils.degToRad(90 - lat);
+  const theta = THREE.MathUtils.degToRad(lng + 180);
+
+  return new THREE.Vector3(
+    -radius * Math.sin(phi) * Math.cos(theta),
+    radius * Math.cos(phi),
+    radius * Math.sin(phi) * Math.sin(theta),
+  );
 }
 
 function formatSvgNumber(value, decimals = 3) {
@@ -265,8 +301,11 @@ function generateDots({ collection, density, padding, shape }) {
       const coordinates = projection.invert?.([x, y]);
       if (!coordinates) continue;
       if (geoContains(collection, coordinates)) {
+        const [lng, lat] = coordinates;
         dots.push({
           id: `${Math.round(x * 10)}-${Math.round(y * 10)}`,
+          lat,
+          lng,
           x,
           y,
         });
@@ -357,6 +396,196 @@ function getPointsBounds(points, radius, shape, image) {
     },
     { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity },
   );
+}
+
+function createGlobeDotGeometry(shape) {
+  if (shape === "Hexagon") return new THREE.CylinderGeometry(1, 1, 0.36, 6, 1);
+  if (shape === "Square") return new THREE.BoxGeometry(1.28, 0.32, 1.28);
+  if (shape === "Diamond") return new THREE.OctahedronGeometry(1, 0);
+  return new THREE.SphereGeometry(1, 9, 7);
+}
+
+function createGraticule(radius = GLOBE_RADIUS + 0.006) {
+  const group = new THREE.Group();
+  const material = new THREE.LineBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.13,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+
+  for (let lat = -60; lat <= 60; lat += 30) {
+    const points = [];
+    for (let lng = -180; lng <= 180; lng += 4) {
+      points.push(latLngToVector3(lat, lng, radius));
+    }
+    group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material));
+  }
+
+  for (let lng = -180; lng < 180; lng += 30) {
+    const points = [];
+    for (let lat = -82; lat <= 82; lat += 4) {
+      points.push(latLngToVector3(lat, lng, radius));
+    }
+    group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material));
+  }
+
+  return group;
+}
+
+function createAtmosphereMaterial() {
+  return new THREE.ShaderMaterial({
+    vertexShader: `
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 glowColor;
+      uniform float intensity;
+      varying vec3 vNormal;
+      void main() {
+        float rim = pow(0.72 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+        gl_FragColor = vec4(glowColor, clamp(rim * intensity, 0.0, 0.62));
+      }
+    `,
+    uniforms: {
+      glowColor: { value: new THREE.Color(CLICK_HIGHLIGHT) },
+      intensity: { value: 0.9 },
+    },
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    transparent: true,
+    depthWrite: false,
+  });
+}
+
+function disposeThreeObject(object) {
+  object.traverse((child) => {
+    child.geometry?.dispose?.();
+    if (Array.isArray(child.material)) {
+      child.material.forEach((material) => material.dispose?.());
+    } else {
+      child.material?.dispose?.();
+    }
+  });
+}
+
+function buildGlobePoints(mapData, selectedDots) {
+  return mapData.points
+    .map((point) => ({
+      ...point,
+      ...pointToGlobeCoordinate(point, mapData.image),
+      selected: selectedDots.has(point.id),
+    }))
+    .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+}
+
+function applyDotInstances(mesh, points, scale, radiusOffset = 0) {
+  const matrix = new THREE.Matrix4();
+  const quaternion = new THREE.Quaternion();
+  const normal = new THREE.Vector3();
+  const up = new THREE.Vector3(0, 1, 0);
+  const size = new THREE.Vector3(scale, scale, scale);
+
+  points.forEach((point, index) => {
+    const position = latLngToVector3(point.lat, point.lng, GLOBE_RADIUS + radiusOffset);
+    normal.copy(position).normalize();
+    quaternion.setFromUnitVectors(up, normal);
+    matrix.compose(position, quaternion, size);
+    mesh.setMatrixAt(index, matrix);
+  });
+
+  mesh.instanceMatrix.needsUpdate = true;
+}
+
+function createInstancedDotMesh(points, geometry, material, scale, radiusOffset) {
+  if (!points.length) return null;
+  const mesh = new THREE.InstancedMesh(geometry, material, points.length);
+  mesh.frustumCulled = false;
+  mesh.userData.pointIds = points.map((point) => point.id);
+  applyDotInstances(mesh, points, scale, radiusOffset);
+  return mesh;
+}
+
+function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, shaderSettings }) {
+  const group = new THREE.Group();
+  const points = buildGlobePoints(mapData, selectedDots);
+  const normalPoints = points.filter((point) => !point.selected);
+  const selectedPoints = points.filter((point) => point.selected);
+  const effect = shaderSettings.effect || "none";
+  const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
+  const geometry = createGlobeDotGeometry(shape);
+  const size = 0.009 + clampNumber(dotSize, 1, 25) * 0.00172;
+  const color = new THREE.Color(dotColor);
+  const accentColor = new THREE.Color(CLICK_HIGHLIGHT);
+  const emissiveBoost = effect === "none" ? 0.22 : 0.5 + intensity * 0.85;
+  const baseMaterial = new THREE.MeshStandardMaterial({
+    color,
+    emissive: color,
+    emissiveIntensity: emissiveBoost,
+    metalness: 0,
+    roughness: 0.62,
+  });
+  const selectedMaterial = new THREE.MeshStandardMaterial({
+    color: accentColor,
+    emissive: accentColor,
+    emissiveIntensity: 1.2,
+    metalness: 0,
+    roughness: 0.5,
+  });
+
+  const normalMesh = createInstancedDotMesh(normalPoints, geometry, baseMaterial, size, 0.018);
+  const selectedMesh = createInstancedDotMesh(selectedPoints, geometry.clone(), selectedMaterial, size * 1.18, 0.026);
+
+  if (normalMesh) group.add(normalMesh);
+  if (selectedMesh) group.add(selectedMesh);
+
+  if (effect === "bloom" || effect === "crt") {
+    const glowGeometry = createGlobeDotGeometry("Circle");
+    const glowMaterial = new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 0.11 + intensity * 0.14,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const glowMesh = createInstancedDotMesh(points, glowGeometry, glowMaterial, size * (2.25 + intensity), 0.034);
+    if (glowMesh) group.add(glowMesh);
+  }
+
+  if (effect === "chromatic") {
+    const split = clampNumber(shaderSettings.split ?? 7, 0, 30) * 0.06;
+    const chromaGeometry = createGlobeDotGeometry("Circle");
+    [
+      { offset: -split, color: "#ff3c94" },
+      { offset: split, color: "#40e0ff" },
+    ].forEach((layer) => {
+      const chromaPoints = points.map((point) => ({
+        ...point,
+        lng: normalizeLongitude(point.lng + layer.offset),
+      }));
+      const material = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(layer.color),
+        transparent: true,
+        opacity: 0.34 + intensity * 0.22,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const mesh = createInstancedDotMesh(chromaPoints, chromaGeometry.clone(), material, size * 1.2, 0.032);
+      if (mesh) group.add(mesh);
+    });
+  }
+
+  if (effect === "threshold") {
+    group.scale.setScalar(1 + intensity * 0.018);
+  }
+
+  group.userData.dotCount = points.length;
+  return group;
 }
 
 function createShaderEffectAssets({
@@ -1144,6 +1373,34 @@ function MapZoomControls({ value, onChange }) {
   );
 }
 
+function ViewModeSwitch({ viewMode, setViewMode }) {
+  const modes = [
+    { value: "flat", label: "Flat", icon: MapIcon },
+    { value: "globe", label: "Globe", icon: Globe2 },
+  ];
+
+  return (
+    <div className="view-mode-switch" aria-label="View mode">
+      {modes.map((mode) => {
+        const Icon = mode.icon;
+        const active = viewMode === mode.value;
+        return (
+          <button
+            key={mode.value}
+            type="button"
+            className={`view-mode-button ${active ? "is-active" : ""}`}
+            onClick={() => setViewMode(mode.value)}
+            aria-pressed={active}
+          >
+            <Icon size={15} />
+            {mode.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function TiltControl({ value, onChange, label }) {
   const updateTilt = (nextValue) => {
     if (!Number.isFinite(Number(nextValue))) return;
@@ -1291,6 +1548,7 @@ function ControlPanel({
   setShape,
   shaderSettings,
   setShaderSettings,
+  viewMode,
 }) {
   const selectedCountryId = selection.startsWith("country:") ? selection.replace("country:", "") : "";
   const showStates = selectedCountryId === US_COUNTRY_ID;
@@ -1382,15 +1640,29 @@ function ControlPanel({
             </button>
           </div>
         </OptionRow>
-        <OptionRow label="Tilt X" value={`${tiltX} deg`}>
-          <TiltControl label="Tilt X" value={tiltX} onChange={setTiltX} />
-        </OptionRow>
-        <OptionRow label="Tilt Y" value={`${tiltY} deg`}>
-          <TiltControl label="Tilt Y" value={tiltY} onChange={setTiltY} />
-        </OptionRow>
-        <OptionRow label="Depth" value={`${mapDepth}%`}>
-          <DepthControl value={mapDepth} onChange={setMapDepth} />
-        </OptionRow>
+        {viewMode === "flat" ? (
+          <>
+            <OptionRow label="Tilt X" value={`${tiltX} deg`}>
+              <TiltControl label="Tilt X" value={tiltX} onChange={setTiltX} />
+            </OptionRow>
+            <OptionRow label="Tilt Y" value={`${tiltY} deg`}>
+              <TiltControl label="Tilt Y" value={tiltY} onChange={setTiltY} />
+            </OptionRow>
+            <OptionRow label="Depth" value={`${mapDepth}%`}>
+              <DepthControl value={mapDepth} onChange={setMapDepth} />
+            </OptionRow>
+          </>
+        ) : (
+          <OptionRow label="Spin" value={shaderSettings.motion}>
+            <RangeControl
+              label="Globe spin"
+              min={0}
+              max={100}
+              value={shaderSettings.motion}
+              onChange={(value) => updateShaderSetting("motion", value)}
+            />
+          </OptionRow>
+        )}
       </PanelSection>
 
       <PanelSection title="Effects">
@@ -1653,6 +1925,302 @@ function DottedMapBackground({
   );
 }
 
+function GlobeBackground({
+  mapData,
+  selectedDots,
+  dotColor,
+  dotSize,
+  shape,
+  background,
+  transparent,
+  mapZoom,
+  setMapZoom,
+  setSelectedDots,
+  shaderSettings,
+  label,
+  canvasHandleRef,
+}) {
+  const mountRef = useRef(null);
+  const stateRef = useRef({
+    active: false,
+    currentX: GLOBE_INITIAL_ROTATION.x,
+    currentY: GLOBE_INITIAL_ROTATION.y,
+    lastX: 0,
+    lastY: 0,
+    moved: false,
+    targetX: GLOBE_INITIAL_ROTATION.x,
+    targetY: GLOBE_INITIAL_ROTATION.y,
+  });
+  const threeRef = useRef(null);
+  const mapZoomRef = useRef(mapZoom);
+  const settingsRef = useRef(shaderSettings);
+  const [isDraggingGlobe, setIsDraggingGlobe] = useState(false);
+
+  mapZoomRef.current = mapZoom;
+  settingsRef.current = shaderSettings;
+
+  const getClientPoint = (event) => {
+    const touch = event.touches?.[0] || event.changedTouches?.[0];
+    const x = touch?.clientX ?? event.clientX;
+    const y = touch?.clientY ?? event.clientY;
+
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    return { x, y };
+  };
+
+  const startDrag = useCallback((event) => {
+    if (Number.isFinite(event.button) && event.button !== 0) return;
+
+    const point = getClientPoint(event);
+    if (!point) return;
+
+    stateRef.current.active = true;
+    stateRef.current.lastX = point.x;
+    stateRef.current.lastY = point.y;
+    stateRef.current.moved = false;
+    setIsDraggingGlobe(true);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }, []);
+
+  const dragGlobe = useCallback((event) => {
+    const state = stateRef.current;
+    if (!state.active) return;
+
+    const point = getClientPoint(event);
+    if (!point) return;
+
+    const dx = point.x - state.lastX;
+    const dy = point.y - state.lastY;
+    state.lastX = point.x;
+    state.lastY = point.y;
+    state.targetY += dx * 0.006;
+    state.targetX = clampNumber(state.targetX + dy * 0.0045, -1.18, 1.18);
+    state.moved = state.moved || Math.abs(dx) > 2 || Math.abs(dy) > 2;
+    event.preventDefault();
+  }, []);
+
+  const stopDrag = useCallback((event) => {
+    if (!stateRef.current.active) return;
+    stateRef.current.active = false;
+    setIsDraggingGlobe(false);
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+  }, []);
+
+  const zoomGlobe = useCallback((event) => {
+    event.preventDefault();
+    const intensity = event.ctrlKey ? 0.01 : 0.0018;
+    const nextZoom = clampNumber(mapZoom * Math.exp(-event.deltaY * intensity), 0.5, 3);
+    setMapZoom(Number(nextZoom.toFixed(3)));
+  }, [mapZoom, setMapZoom]);
+
+  const toggleNearestDot = useCallback((event) => {
+    if (stateRef.current.moved) {
+      stateRef.current.moved = false;
+      return;
+    }
+
+    const refs = threeRef.current;
+    if (!refs?.camera || !refs?.renderer || !refs?.dotLayer) return;
+
+    const rect = refs.renderer.domElement.getBoundingClientRect();
+    const pointer = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1,
+    );
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(pointer, refs.camera);
+    const hits = raycaster.intersectObjects(refs.dotLayer.children, true);
+    const instanceId = hits[0]?.instanceId;
+    const pointMap = hits[0]?.object?.userData?.pointIds;
+    const dotId = Array.isArray(pointMap) ? pointMap[instanceId] : null;
+    if (!dotId) return;
+
+    refs.setSelectedDots?.((current) => {
+      const next = new Set(current);
+      if (next.has(dotId)) next.delete(dotId);
+      else next.add(dotId);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return undefined;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+    camera.position.set(0, 0, GLOBE_CAMERA_DISTANCE);
+
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      preserveDrawingBuffer: true,
+    });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    mount.appendChild(renderer.domElement);
+
+    if (canvasHandleRef) {
+      canvasHandleRef.current = renderer.domElement;
+    }
+
+    const globeGroup = new THREE.Group();
+    scene.add(globeGroup);
+
+    const baseMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color("#18191d"),
+      metalness: 0.12,
+      roughness: 0.78,
+      transparent: true,
+      opacity: 0.28,
+    });
+    const globeMesh = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS, 96, 96), baseMaterial);
+    globeGroup.add(globeMesh);
+
+    const atmosphereMaterial = createAtmosphereMaterial();
+    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS + 0.18, 96, 96), atmosphereMaterial);
+    globeGroup.add(atmosphere);
+
+    const graticule = createGraticule();
+    globeGroup.add(graticule);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.1);
+    keyLight.position.set(2.2, 1.8, 4);
+    scene.add(keyLight);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.76));
+
+    threeRef.current = {
+      atmosphereMaterial,
+      baseDistance: GLOBE_CAMERA_DISTANCE,
+      baseMaterial,
+      camera,
+      dotLayer: null,
+      globeGroup,
+      graticule,
+      renderer,
+      scene,
+      setSelectedDots,
+    };
+
+    const resize = () => {
+      const rect = mount.getBoundingClientRect();
+      const width = Math.max(1, Math.floor(rect.width));
+      const height = Math.max(1, Math.floor(rect.height));
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      threeRef.current.baseDistance = GLOBE_CAMERA_DISTANCE * Math.max(1, 0.78 / Math.max(camera.aspect, 0.1));
+      renderer.setSize(width, height, false);
+    };
+
+    const observer = new ResizeObserver(resize);
+    observer.observe(mount);
+    resize();
+
+    let frame = 0;
+    let lastTime = window.performance.now();
+    const animate = (now) => {
+      const delta = Math.min(48, now - lastTime);
+      lastTime = now;
+      const state = stateRef.current;
+      const settings = settingsRef.current;
+      const effectMotion = clampNumber(settings.motion ?? 35, 0, 100);
+      const spin = 0.00008 + effectMotion * 0.0000035;
+
+      if (!state.active) {
+        state.targetY += spin * delta;
+      }
+
+      state.currentX += (state.targetX - state.currentX) * 0.095;
+      state.currentY += (state.targetY - state.currentY) * 0.095;
+      globeGroup.rotation.x = state.currentX;
+      globeGroup.rotation.y = state.currentY;
+      camera.position.z = threeRef.current.baseDistance / clampNumber(mapZoomRef.current, 0.5, 3);
+      camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+      frame = window.requestAnimationFrame(animate);
+    };
+    frame = window.requestAnimationFrame(animate);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      if (canvasHandleRef) {
+        canvasHandleRef.current = null;
+      }
+      disposeThreeObject(scene);
+      renderer.dispose();
+      renderer.domElement.remove();
+      threeRef.current = null;
+    };
+  }, [canvasHandleRef, setSelectedDots]);
+
+  useEffect(() => {
+    const refs = threeRef.current;
+    if (!refs) return;
+
+    const nextLayer = buildGlobeDotLayer({
+      mapData,
+      selectedDots,
+      dotColor,
+      dotSize,
+      shape,
+      shaderSettings,
+    });
+
+    if (refs.dotLayer) {
+      refs.globeGroup.remove(refs.dotLayer);
+      disposeThreeObject(refs.dotLayer);
+    }
+
+    refs.dotLayer = nextLayer;
+    refs.globeGroup.add(nextLayer);
+  }, [dotColor, dotSize, mapData, selectedDots, shaderSettings, shape]);
+
+  useEffect(() => {
+    const refs = threeRef.current;
+    if (!refs) return;
+
+    const bgColor = new THREE.Color(transparent ? "#151517" : background);
+    const surfaceColor = bgColor.clone().lerp(new THREE.Color("#23262d"), transparent ? 0.52 : 0.36);
+    const glowColor = new THREE.Color(dotColor === "#ffffff" ? CLICK_HIGHLIGHT : dotColor);
+    const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
+
+    refs.baseMaterial.color.copy(surfaceColor);
+    refs.baseMaterial.opacity = transparent ? 0.2 : 0.3;
+    refs.atmosphereMaterial.uniforms.glowColor.value.copy(glowColor);
+    refs.atmosphereMaterial.uniforms.intensity.value = 0.72 + intensity * 0.64;
+    refs.graticule.children.forEach((line) => {
+      line.material.color.copy(glowColor.clone().lerp(new THREE.Color("#ffffff"), 0.62));
+      line.material.opacity = 0.08 + intensity * 0.08;
+    });
+  }, [background, dotColor, shaderSettings.intensity, transparent]);
+
+  return (
+    <div
+      ref={mountRef}
+      className={`globe-background effect-${shaderSettings.effect || "none"} ${
+        isDraggingGlobe ? "is-dragging" : ""
+      }`}
+      aria-label={label}
+      onPointerDown={startDrag}
+      onPointerMove={dragGlobe}
+      onPointerUp={stopDrag}
+      onPointerCancel={stopDrag}
+      onMouseDown={startDrag}
+      onMouseMove={dragGlobe}
+      onMouseUp={stopDrag}
+      onMouseLeave={stopDrag}
+      onTouchStart={startDrag}
+      onTouchMove={dragGlobe}
+      onTouchEnd={stopDrag}
+      onTouchCancel={stopDrag}
+      onWheel={zoomGlobe}
+      onClick={toggleNearestDot}
+    />
+  );
+}
+
 function ExportMenu({ canvasScale, setCanvasScale, copyStatus, copySvg, svgMarkup, exportPng, exportSvg }) {
   const [open, setOpen] = useState(false);
   const runExport = (exportFile) => {
@@ -1804,11 +2372,13 @@ async function copyTextToClipboard(text) {
 
 function App() {
   const shaderCanvasRef = useRef(null);
+  const globeCanvasRef = useRef(null);
   const [selection, setSelection] = useState("world");
   const [stateSelection, setStateSelection] = useState("all");
   const [canvasScale, setCanvasScale] = useState("1x");
   const [background, setBackground] = useState("#0a0a0a");
   const [transparent, setTransparent] = useState(false);
+  const [viewMode, setViewMode] = useState("globe");
   const [mapZoom, setMapZoom] = useState(1);
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const [mapDepth, setMapDepth] = useState(55);
@@ -1911,6 +2481,7 @@ function App() {
     setCanvasScale("1x");
     setBackground("#0a0a0a");
     setTransparent(false);
+    setViewMode("globe");
     setMapZoom(1);
     setMapOffset({ x: 0, y: 0 });
     setMapDepth(55);
@@ -1942,6 +2513,27 @@ function App() {
   }, [exportSvgData.svg]);
 
   const exportPng = () => {
+    const activeGlobeCanvas = viewMode === "globe" ? globeCanvasRef.current : null;
+    if (activeGlobeCanvas?.width && activeGlobeCanvas?.height) {
+      const scale = exportScaleValue(canvasScale);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(activeGlobeCanvas.width * scale);
+      canvas.height = Math.round(activeGlobeCanvas.height * scale);
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      if (!transparent) {
+        context.fillStyle = background;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = "high";
+      context.drawImage(activeGlobeCanvas, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((pngBlob) => {
+        if (pngBlob) downloadBlob(pngBlob, "world-in-dots-globe.png");
+      }, "image/png");
+      return;
+    }
+
     const activeShaderCanvas = shaderSettings.effect !== "none" ? shaderCanvasRef.current : null;
 
     if (activeShaderCanvas?.width && activeShaderCanvas?.height) {
@@ -1986,7 +2578,9 @@ function App() {
 
   return (
     <main
-      className={`app-shell ${transparent ? "is-transparent-preview" : ""} ${
+      className={`app-shell ${viewMode === "globe" ? "is-globe-mode" : "is-flat-mode"} ${
+        transparent ? "is-transparent-preview" : ""
+      } ${
         panelCollapsed ? "is-panel-collapsed" : ""
       }`}
       style={{
@@ -2004,20 +2598,38 @@ function App() {
         "--tilt-y": `${tiltY}deg`,
       }}
     >
-      <DottedMapBackground
-        svgMarkup={displaySvg.svg}
-        svgWidth={displaySvg.width}
-        svgHeight={displaySvg.height}
-        mapZoom={mapZoom}
-        setMapZoom={setMapZoom}
-        mapOffset={mapOffset}
-        setMapOffset={setMapOffset}
-        setSelectedDots={setSelectedDots}
-        shaderEffect={shaderSettings.effect}
-        shaderSettings={shaderSettings}
-        shaderCanvasRef={shaderCanvasRef}
-        label={`${selected.label} dotted map background`}
-      />
+      {viewMode === "globe" ? (
+        <GlobeBackground
+          mapData={mapData}
+          selectedDots={selectedDots}
+          dotColor={dotColor}
+          dotSize={dotSize}
+          shape={shape}
+          background={background}
+          transparent={transparent}
+          mapZoom={mapZoom}
+          setMapZoom={setMapZoom}
+          setSelectedDots={setSelectedDots}
+          shaderSettings={shaderSettings}
+          canvasHandleRef={globeCanvasRef}
+          label={`${selected.label} dotted globe background`}
+        />
+      ) : (
+        <DottedMapBackground
+          svgMarkup={displaySvg.svg}
+          svgWidth={displaySvg.width}
+          svgHeight={displaySvg.height}
+          mapZoom={mapZoom}
+          setMapZoom={setMapZoom}
+          mapOffset={mapOffset}
+          setMapOffset={setMapOffset}
+          setSelectedDots={setSelectedDots}
+          shaderEffect={shaderSettings.effect}
+          shaderSettings={shaderSettings}
+          shaderCanvasRef={shaderCanvasRef}
+          label={`${selected.label} dotted map background`}
+        />
+      )}
 
       <TopActions
         canvasScale={canvasScale}
@@ -2031,6 +2643,7 @@ function App() {
         exportSvg={exportSvg}
       />
 
+      <ViewModeSwitch viewMode={viewMode} setViewMode={setViewMode} />
       <MapZoomControls value={mapZoom} onChange={setMapZoom} />
 
       {!panelCollapsed && (
@@ -2077,6 +2690,7 @@ function App() {
             setShape={setShape}
             shaderSettings={shaderSettings}
             setShaderSettings={setShaderSettings}
+            viewMode={viewMode}
           />
         </section>
       )}
