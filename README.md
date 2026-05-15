@@ -9,8 +9,9 @@ Worlddots lets you build dotted maps for the world, countries, regions, subregio
 - Generate dotted world, country, region, subregion, and US state maps.
 - Adjust dot shape, density, size, foreground color, and background color.
 - Preview with zoom, pan, tilt, and depth controls for a more spatial composition.
+- Add lightweight shader-inspired passes like bloom, chromatic split, CRT, halftone, pixel, and threshold.
 - Export production-ready SVG or PNG files.
-- Copy generated SVG markup directly from the export menu.
+- Copy generated SVG markup directly from the export menu, including active SVG filter effects.
 - Use transparent backgrounds for compositing in other tools.
 
 ## Local Development

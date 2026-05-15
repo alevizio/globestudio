@@ -166,6 +166,30 @@ const areaOptions = [
 
 const areaOptionByValue = new Map(areaOptions.map((option) => [option.value, option]));
 
+const DEFAULT_SHADER_SETTINGS = {
+  effect: "none",
+  intensity: 45,
+  split: 7,
+  grain: 8,
+  scanlines: 36,
+  cellSize: 14,
+  threshold: 50,
+};
+
+const shaderEffectOptions = [
+  { value: "none", label: "None" },
+  { value: "bloom", label: "Bloom" },
+  { value: "chromatic", label: "Chromatic" },
+  { value: "crt", label: "CRT" },
+  { value: "halftone", label: "Halftone" },
+  { value: "pixel", label: "Pixel" },
+  { value: "threshold", label: "Threshold" },
+];
+
+const effectsWithSplit = new Set(["chromatic", "crt"]);
+const effectsWithScanlines = new Set(["crt", "pixel", "halftone"]);
+const effectsWithCellSize = new Set(["pixel", "halftone", "crt"]);
+
 function makeFeatureCollection(features) {
   return {
     type: "FeatureCollection",
@@ -175,6 +199,11 @@ function makeFeatureCollection(features) {
 
 function clampNumber(value, min, max) {
   return Math.min(max, Math.max(min, Number(value)));
+}
+
+function formatSvgNumber(value, decimals = 3) {
+  const number = Number.isFinite(value) ? value : 0;
+  return number.toFixed(decimals).replace(/\.?0+$/, "");
 }
 
 function createHexagonPoints(x, y, radius) {
@@ -322,6 +351,157 @@ function getPointsBounds(points, radius, shape, image) {
   );
 }
 
+function createShaderEffectAssets({
+  shaderSettings = DEFAULT_SHADER_SETTINGS,
+  viewX,
+  viewY,
+  viewWidth,
+  viewHeight,
+  dotColor,
+}) {
+  const effect = shaderSettings.effect || DEFAULT_SHADER_SETTINGS.effect;
+  const intensity = clampNumber(shaderSettings.intensity ?? DEFAULT_SHADER_SETTINGS.intensity, 0, 100) / 100;
+  const grain = clampNumber(shaderSettings.grain ?? DEFAULT_SHADER_SETTINGS.grain, 0, 100) / 100;
+  const scanlines = clampNumber(shaderSettings.scanlines ?? DEFAULT_SHADER_SETTINGS.scanlines, 0, 100) / 100;
+  const threshold = clampNumber(shaderSettings.threshold ?? DEFAULT_SHADER_SETTINGS.threshold, 0, 100) / 100;
+  const unit = Math.max(0.05, Math.max(viewWidth, viewHeight) / 1000);
+  const split = clampNumber(shaderSettings.split ?? DEFAULT_SHADER_SETTINGS.split, 0, 30) * unit * (0.35 + intensity);
+  const cell = Math.max(2 * unit, clampNumber(shaderSettings.cellSize ?? DEFAULT_SHADER_SETTINGS.cellSize, 4, 42) * unit);
+  const glow = Math.max(0.25 * unit, (2 + intensity * 10) * unit);
+  const filterId = "dots-shader-filter";
+  const grainId = "dots-shader-grain";
+  const scanlineId = "dots-shader-scanlines";
+  const halftoneId = "dots-shader-halftone";
+  const pixelGridId = "dots-shader-pixel-grid";
+  const vignetteId = "dots-shader-vignette";
+  const defs = [];
+  const overlays = [];
+
+  if (effect === "bloom") {
+    defs.push(`<filter id="${filterId}" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+<feGaussianBlur in="SourceGraphic" stdDeviation="${formatSvgNumber(glow * 0.48)}" result="blur" />
+<feColorMatrix in="blur" type="matrix" values="1.2 0 0 0 0 0 1.2 0 0 0 0 0 1.2 0 0 0 0 0 ${formatSvgNumber(0.4 + intensity * 0.55)} 0" result="glow" />
+<feMerge>
+<feMergeNode in="glow" />
+<feMergeNode in="SourceGraphic" />
+</feMerge>
+</filter>`);
+  }
+
+  if (effect === "chromatic") {
+    defs.push(`<filter id="${filterId}" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+<feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="red" />
+<feOffset in="red" dx="${formatSvgNumber(split)}" dy="0" result="redShift" />
+<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0" result="green" />
+<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result="blue" />
+<feOffset in="blue" dx="${formatSvgNumber(-split)}" dy="0" result="blueShift" />
+<feBlend in="redShift" in2="green" mode="screen" result="redGreen" />
+<feBlend in="redGreen" in2="blueShift" mode="screen" />
+</filter>`);
+  }
+
+  if (effect === "crt") {
+    defs.push(`<filter id="${filterId}" x="-24%" y="-24%" width="148%" height="148%" color-interpolation-filters="sRGB">
+<feGaussianBlur in="SourceGraphic" stdDeviation="${formatSvgNumber(glow * 0.16)}" result="soft" />
+<feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="red" />
+<feOffset in="red" dx="${formatSvgNumber(split * 0.72)}" dy="0" result="redShift" />
+<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result="blue" />
+<feOffset in="blue" dx="${formatSvgNumber(-split * 0.72)}" dy="0" result="blueShift" />
+<feBlend in="redShift" in2="SourceGraphic" mode="screen" result="redMix" />
+<feBlend in="redMix" in2="blueShift" mode="screen" result="splitMix" />
+<feMerge>
+<feMergeNode in="soft" />
+<feMergeNode in="splitMix" />
+</feMerge>
+</filter>`);
+  }
+
+  if (effect === "threshold") {
+    const slope = 1 + intensity * 14;
+    const intercept = 0.5 - threshold * slope;
+    defs.push(`<filter id="${filterId}" color-interpolation-filters="sRGB">
+<feColorMatrix in="SourceGraphic" type="saturate" values="${formatSvgNumber(1 - intensity * 0.9)}" result="desaturated" />
+<feComponentTransfer in="desaturated">
+<feFuncR type="linear" slope="${formatSvgNumber(slope)}" intercept="${formatSvgNumber(intercept)}" />
+<feFuncG type="linear" slope="${formatSvgNumber(slope)}" intercept="${formatSvgNumber(intercept)}" />
+<feFuncB type="linear" slope="${formatSvgNumber(slope)}" intercept="${formatSvgNumber(intercept)}" />
+</feComponentTransfer>
+</filter>`);
+  }
+
+  if (effect === "pixel") {
+    const contrast = formatSvgNumber(1 + intensity * 2.8);
+    defs.push(`<filter id="${filterId}" color-interpolation-filters="sRGB">
+<feComponentTransfer>
+<feFuncR type="linear" slope="${contrast}" intercept="${formatSvgNumber(-0.18 * intensity)}" />
+<feFuncG type="linear" slope="${contrast}" intercept="${formatSvgNumber(-0.18 * intensity)}" />
+<feFuncB type="linear" slope="${contrast}" intercept="${formatSvgNumber(-0.18 * intensity)}" />
+</feComponentTransfer>
+</filter>`);
+  }
+
+  if (effect === "halftone") {
+    const contrast = formatSvgNumber(1 + intensity * 1.6);
+    defs.push(`<filter id="${filterId}" color-interpolation-filters="sRGB">
+<feComponentTransfer>
+<feFuncR type="linear" slope="${contrast}" intercept="${formatSvgNumber(-0.08 * intensity)}" />
+<feFuncG type="linear" slope="${contrast}" intercept="${formatSvgNumber(-0.08 * intensity)}" />
+<feFuncB type="linear" slope="${contrast}" intercept="${formatSvgNumber(-0.08 * intensity)}" />
+</feComponentTransfer>
+</filter>`);
+  }
+
+  if (grain > 0 && effect !== "none") {
+    const grainOpacity = grain * (0.06 + intensity * 0.16);
+    defs.push(`<filter id="${grainId}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+<feTurbulence type="fractalNoise" baseFrequency="${formatSvgNumber(0.62 + intensity * 0.35)}" numOctaves="2" seed="11" result="noise" />
+<feColorMatrix in="noise" type="saturate" values="0" />
+</filter>`);
+    overlays.push(`<rect class="shader-overlay" pointer-events="none" x="${formatSvgNumber(viewX)}" y="${formatSvgNumber(viewY)}" width="${formatSvgNumber(viewWidth)}" height="${formatSvgNumber(viewHeight)}" filter="url(#${grainId})" opacity="${formatSvgNumber(grainOpacity)}" style="mix-blend-mode: screen" />`);
+  }
+
+  if (effectsWithScanlines.has(effect) && scanlines > 0) {
+    const scanlineSpacing = Math.max(2 * unit, cell * (effect === "crt" ? 0.42 : 0.68));
+    const scanlineHeight = Math.max(0.45 * unit, scanlineSpacing * 0.16);
+    const scanlineOpacity = scanlines * (effect === "crt" ? 0.34 : 0.18) * (0.45 + intensity * 0.55);
+    defs.push(`<pattern id="${scanlineId}" width="${formatSvgNumber(scanlineSpacing)}" height="${formatSvgNumber(scanlineSpacing)}" patternUnits="userSpaceOnUse">
+<rect x="0" y="0" width="${formatSvgNumber(scanlineSpacing)}" height="${formatSvgNumber(scanlineHeight)}" fill="#000000" />
+</pattern>`);
+    overlays.push(`<rect class="shader-overlay" pointer-events="none" x="${formatSvgNumber(viewX)}" y="${formatSvgNumber(viewY)}" width="${formatSvgNumber(viewWidth)}" height="${formatSvgNumber(viewHeight)}" fill="url(#${scanlineId})" opacity="${formatSvgNumber(scanlineOpacity)}" />`);
+  }
+
+  if (effect === "halftone") {
+    const dotRadius = Math.max(0.25 * unit, cell * (0.1 + intensity * 0.17));
+    defs.push(`<pattern id="${halftoneId}" width="${formatSvgNumber(cell)}" height="${formatSvgNumber(cell)}" patternUnits="userSpaceOnUse" patternTransform="rotate(28)">
+<circle cx="${formatSvgNumber(cell / 2)}" cy="${formatSvgNumber(cell / 2)}" r="${formatSvgNumber(dotRadius)}" fill="${dotColor}" />
+</pattern>`);
+    overlays.push(`<rect class="shader-overlay" pointer-events="none" x="${formatSvgNumber(viewX)}" y="${formatSvgNumber(viewY)}" width="${formatSvgNumber(viewWidth)}" height="${formatSvgNumber(viewHeight)}" fill="url(#${halftoneId})" opacity="${formatSvgNumber(0.1 + intensity * 0.22)}" style="mix-blend-mode: multiply" />`);
+  }
+
+  if (effect === "pixel") {
+    const strokeWidth = Math.max(0.35 * unit, cell * 0.035);
+    defs.push(`<pattern id="${pixelGridId}" width="${formatSvgNumber(cell)}" height="${formatSvgNumber(cell)}" patternUnits="userSpaceOnUse">
+<path d="M ${formatSvgNumber(cell)} 0 H 0 V ${formatSvgNumber(cell)}" fill="none" stroke="${dotColor}" stroke-width="${formatSvgNumber(strokeWidth)}" stroke-opacity="${formatSvgNumber(0.22 + intensity * 0.3)}" />
+</pattern>`);
+    overlays.push(`<rect class="shader-overlay" pointer-events="none" x="${formatSvgNumber(viewX)}" y="${formatSvgNumber(viewY)}" width="${formatSvgNumber(viewWidth)}" height="${formatSvgNumber(viewHeight)}" fill="url(#${pixelGridId})" opacity="${formatSvgNumber(0.25 + intensity * 0.4)}" />`);
+  }
+
+  if (effect === "crt") {
+    defs.push(`<radialGradient id="${vignetteId}" cx="50%" cy="50%" r="76%">
+<stop offset="58%" stop-color="#000000" stop-opacity="0" />
+<stop offset="100%" stop-color="#000000" stop-opacity="1" />
+</radialGradient>`);
+    overlays.push(`<rect class="shader-overlay" pointer-events="none" x="${formatSvgNumber(viewX)}" y="${formatSvgNumber(viewY)}" width="${formatSvgNumber(viewWidth)}" height="${formatSvgNumber(viewHeight)}" fill="url(#${vignetteId})" opacity="${formatSvgNumber(0.12 + intensity * 0.28)}" />`);
+  }
+
+  const hasFilter = defs.some((definition) => definition.includes(`id="${filterId}"`));
+  return {
+    defs: defs.length ? `<defs>\n${defs.join("\n")}\n</defs>` : "",
+    groupAttributes: ` class="dots-effect dots-effect-${effect}"${hasFilter ? ` filter="url(#${filterId})"` : ""}`,
+    overlays: overlays.join("\n"),
+  };
+}
+
 function createDotMarkup(point, radius, shape, color, selectedDots) {
   const fill = selectedDots.has(point.id) ? CLICK_HIGHLIGHT : color;
   const data = `class="map-dot" data-dot-id="${point.id}" fill="${fill}"`;
@@ -352,6 +532,7 @@ function createDottedSvg({
   transparent,
   selectedDots,
   mode,
+  shaderSettings,
   crop = false,
   scale = 1,
   label = "Dotted map",
@@ -384,16 +565,26 @@ function createDottedSvg({
   const backgroundRect = transparent
     ? ""
     : `<rect x="${viewX}" y="${viewY}" width="${viewWidth}" height="${viewHeight}" fill="${background}" />`;
+  const effectAssets = createShaderEffectAssets({
+    shaderSettings,
+    viewX,
+    viewY,
+    viewWidth,
+    viewHeight,
+    dotColor,
+  });
 
   return {
     width,
     height,
     dotCount: mapData.points.length,
     svg: `<svg xmlns="http://www.w3.org/2000/svg" id="dots" class="dot-map" role="img" aria-label="${label}" width="${width}" height="${height}" viewBox="${viewX} ${viewY} ${viewWidth} ${viewHeight}" style="background-color: ${backgroundColor}">
+${effectAssets.defs}
 ${backgroundRect}
-<g>
+<g${effectAssets.groupAttributes}>
 ${dots}
 </g>
+${effectAssets.overlays}
 </svg>`,
   };
 }
@@ -668,9 +859,18 @@ function ControlPanel({
   setDotColor,
   shape,
   setShape,
+  shaderSettings,
+  setShaderSettings,
 }) {
   const selectedCountryId = selection.startsWith("country:") ? selection.replace("country:", "") : "";
   const showStates = selectedCountryId === US_COUNTRY_ID;
+  const shaderEffect = shaderSettings.effect;
+  const updateShaderSetting = (key, value) => {
+    setShaderSettings((settings) => ({
+      ...settings,
+      [key]: value,
+    }));
+  };
   const panMap = (x, y) => {
     setMapOffset((offset) => ({
       x: offset.x + x,
@@ -740,6 +940,83 @@ function ControlPanel({
         </OptionRow>
       </PanelSection>
 
+      <PanelSection title="Effects">
+        <OptionRow label="Pass">
+          <SelectControl
+            label="Shader effect"
+            value={shaderEffect}
+            onChange={(value) => updateShaderSetting("effect", value)}
+            options={shaderEffectOptions}
+          />
+        </OptionRow>
+        {shaderEffect !== "none" && (
+          <>
+            <OptionRow label="Intensity" value={shaderSettings.intensity}>
+              <RangeControl
+                label="Effect intensity"
+                min={0}
+                max={100}
+                value={shaderSettings.intensity}
+                onChange={(value) => updateShaderSetting("intensity", value)}
+              />
+            </OptionRow>
+            {effectsWithSplit.has(shaderEffect) && (
+              <OptionRow label="Split" value={`${shaderSettings.split}px`}>
+                <RangeControl
+                  label="Chromatic split"
+                  min={0}
+                  max={30}
+                  value={shaderSettings.split}
+                  onChange={(value) => updateShaderSetting("split", value)}
+                />
+              </OptionRow>
+            )}
+            {effectsWithCellSize.has(shaderEffect) && (
+              <OptionRow label="Cell Size" value={shaderSettings.cellSize}>
+                <RangeControl
+                  label="Effect cell size"
+                  min={4}
+                  max={42}
+                  value={shaderSettings.cellSize}
+                  onChange={(value) => updateShaderSetting("cellSize", value)}
+                />
+              </OptionRow>
+            )}
+            {effectsWithScanlines.has(shaderEffect) && (
+              <OptionRow label="Scanlines" value={shaderSettings.scanlines}>
+                <RangeControl
+                  label="Scanline strength"
+                  min={0}
+                  max={100}
+                  value={shaderSettings.scanlines}
+                  onChange={(value) => updateShaderSetting("scanlines", value)}
+                />
+              </OptionRow>
+            )}
+            {shaderEffect === "threshold" && (
+              <OptionRow label="Threshold" value={shaderSettings.threshold}>
+                <RangeControl
+                  label="Threshold"
+                  min={0}
+                  max={100}
+                  value={shaderSettings.threshold}
+                  onChange={(value) => updateShaderSetting("threshold", value)}
+                />
+              </OptionRow>
+            )}
+            <OptionRow label="Grain" value={shaderSettings.grain}>
+              <RangeControl
+                label="Grain"
+                min={0}
+                max={100}
+                value={shaderSettings.grain}
+                onChange={(value) => updateShaderSetting("grain", value)}
+              />
+            </OptionRow>
+          </>
+        )}
+      </PanelSection>
+
       <PanelSection title="Dots">
         <OptionRow label="Shape">
           <SelectControl
@@ -784,6 +1061,7 @@ function DottedMapBackground({
   setMapOffset,
   setSelectedDots,
   label,
+  shaderEffect,
 }) {
   const dragState = useRef({
     active: false,
@@ -872,7 +1150,7 @@ function DottedMapBackground({
 
   return (
     <div
-      className={`map-background ${isDraggingMap ? "is-dragging" : ""}`}
+      className={`map-background effect-${shaderEffect || "none"} ${isDraggingMap ? "is-dragging" : ""}`}
       aria-label={label}
       onPointerDown={startDrag}
       onPointerMove={dragMap}
@@ -1056,6 +1334,7 @@ function App() {
   const [dotSize, setDotSize] = useState(10);
   const [dotColor, setDotColor] = useState("#ffffff");
   const [shape, setShape] = useState("Circle");
+  const [shaderSettings, setShaderSettings] = useState(() => ({ ...DEFAULT_SHADER_SETTINGS }));
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [copyStatus, setCopyStatus] = useState("idle");
   const [selectedDots, setSelectedDots] = useState(new Set());
@@ -1103,10 +1382,11 @@ function App() {
         transparent: true,
         selectedDots,
         mode: selected.mode,
+        shaderSettings,
         crop: false,
         label: `${selected.label} dotted map`,
       }),
-    [background, dotColor, dotSize, mapData, selected.label, selected.mode, selectedDots, shape],
+    [background, dotColor, dotSize, mapData, selected.label, selected.mode, selectedDots, shaderSettings, shape],
   );
 
   const exportSvgData = useMemo(
@@ -1120,6 +1400,7 @@ function App() {
         transparent,
         selectedDots,
         mode: selected.mode,
+        shaderSettings,
         crop: true,
         scale: exportScaleValue(canvasScale),
         label: `${selected.label} dotted map`,
@@ -1133,6 +1414,7 @@ function App() {
       selected.label,
       selected.mode,
       selectedDots,
+      shaderSettings,
       shape,
       transparent,
     ],
@@ -1153,6 +1435,7 @@ function App() {
     setDotSize(10);
     setDotColor("#ffffff");
     setShape("Circle");
+    setShaderSettings({ ...DEFAULT_SHADER_SETTINGS });
     setPanelCollapsed(false);
     setSelectedDots(new Set());
   };
@@ -1206,6 +1489,11 @@ function App() {
         "--map-offset-y": `${mapOffset.y}px`,
         "--map-perspective": `${1800 - mapDepth * 14}px`,
         "--map-zoom": mapZoom,
+        "--shader-glow": `${Math.max(0, shaderSettings.intensity * 0.16)}px`,
+        "--shader-glow-wide": `${Math.max(0, shaderSettings.intensity * 0.32)}px`,
+        "--shader-intensity": shaderSettings.intensity / 100,
+        "--shader-split": `${shaderSettings.split}px`,
+        "--shader-split-neg": `${-shaderSettings.split}px`,
         "--tilt-x": `${tiltX}deg`,
         "--tilt-y": `${tiltY}deg`,
       }}
@@ -1215,6 +1503,7 @@ function App() {
         mapOffset={mapOffset}
         setMapOffset={setMapOffset}
         setSelectedDots={setSelectedDots}
+        shaderEffect={shaderSettings.effect}
         label={`${selected.label} dotted map background`}
       />
 
@@ -1276,6 +1565,8 @@ function App() {
             setDotColor={setDotColor}
             shape={shape}
             setShape={setShape}
+            shaderSettings={shaderSettings}
+            setShaderSettings={setShaderSettings}
           />
         </section>
       )}

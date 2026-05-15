@@ -94,8 +94,39 @@ button {
     rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) scale(var(--map-zoom, 1));
   transform-origin: center;
   transform-style: preserve-3d;
-  transition: transform 160ms ease;
-  will-change: transform;
+  transition:
+    filter 180ms ease,
+    opacity 180ms ease,
+    transform 160ms ease;
+  will-change: filter, transform;
+}
+
+.map-background.effect-bloom .dot-map {
+  filter: drop-shadow(0 0 var(--shader-glow, 8px) rgba(214, 255, 121, 0.56))
+    drop-shadow(0 0 var(--shader-glow-wide, 16px) rgba(255, 255, 255, 0.18));
+}
+
+.map-background.effect-chromatic .dot-map {
+  filter: drop-shadow(var(--shader-split, 7px) 0 0 rgba(255, 60, 148, 0.64))
+    drop-shadow(var(--shader-split-neg, -7px) 0 0 rgba(64, 224, 255, 0.6));
+}
+
+.map-background.effect-crt .dot-map {
+  filter: saturate(1.2) drop-shadow(0 0 var(--shader-glow, 8px) rgba(214, 255, 121, 0.26));
+  animation: crt-flicker 3.6s steps(2, end) infinite;
+}
+
+.map-background.effect-halftone .dot-map {
+  filter: contrast(1.18) saturate(1.05);
+}
+
+.map-background.effect-pixel .dot-map {
+  filter: contrast(1.36);
+  image-rendering: pixelated;
+}
+
+.map-background.effect-threshold .dot-map {
+  filter: grayscale(0.6) contrast(2.2);
 }
 
 .map-background.is-dragging,
@@ -116,6 +147,21 @@ button {
 
 .map-dot:hover {
   opacity: 0.72;
+}
+
+@keyframes crt-flicker {
+  0%,
+  100% {
+    opacity: 0.94;
+  }
+
+  48% {
+    opacity: 0.9;
+  }
+
+  52% {
+    opacity: 0.98;
+  }
 }
 
 .control-rail {
