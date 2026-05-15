@@ -339,10 +339,11 @@ button {
 .control-rail {
   position: fixed;
   top: 62px;
-  bottom: 12px;
+  bottom: auto;
   left: 12px;
   z-index: 2;
   width: min(398px, calc(100vw - 24px));
+  max-height: calc(100vh - 74px);
   display: grid;
   align-content: start;
   gap: 10px;
@@ -641,10 +642,12 @@ button {
 .control-panel {
   min-width: 0;
   display: grid;
+  align-content: start;
   gap: 10px;
 }
 
 .option-block {
+  align-self: start;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -995,9 +998,17 @@ input[type="range"] {
   }
 
   .option-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(88px, 104px) minmax(0, 1fr);
+    gap: 10px;
+    padding: 9px 12px;
   }
 
+}
+
+@media (max-width: 460px) {
+  .option-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
