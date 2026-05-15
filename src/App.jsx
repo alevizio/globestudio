@@ -1998,9 +1998,11 @@ function App() {
 
   return (
     <main
-      className={`app-shell ${panelCollapsed ? "is-panel-collapsed" : ""}`}
+      className={`app-shell ${transparent ? "is-transparent-preview" : ""} ${
+        panelCollapsed ? "is-panel-collapsed" : ""
+      }`}
       style={{
-        "--preview-bg": transparent ? "#0b0b0c" : background,
+        "--preview-bg": transparent ? "#101012" : background,
         "--map-offset-x": `${mapOffset.x}px`,
         "--map-offset-y": `${mapOffset.y}px`,
         "--map-perspective": `${1800 - mapDepth * 14}px`,
