@@ -140,6 +140,37 @@ button {
   cursor: grabbing;
 }
 
+.map-background.is-passive,
+.globe-background.is-passive {
+  pointer-events: none;
+}
+
+.app-shell.is-view-transitioning .globe-background,
+.app-shell.is-view-transitioning .map-svg-layer,
+.app-shell.is-view-transitioning .shader-canvas {
+  will-change: opacity, transform, filter, clip-path;
+}
+
+.app-shell.is-to-globe .globe-background {
+  animation: globe-rise-in 940ms cubic-bezier(0.18, 0.88, 0.18, 1) both;
+}
+
+.app-shell.is-to-globe .map-svg-layer,
+.app-shell.is-to-globe .shader-canvas {
+  animation: flat-fold-out 940ms cubic-bezier(0.76, 0, 0.24, 1) both;
+  transform-origin: center;
+}
+
+.app-shell.is-to-flat .globe-background {
+  animation: globe-rise-out 940ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.app-shell.is-to-flat .map-svg-layer,
+.app-shell.is-to-flat .shader-canvas {
+  animation: flat-unfold-in 940ms cubic-bezier(0.18, 0.88, 0.18, 1) both;
+  transform-origin: center;
+}
+
 .app-shell.is-transparent-preview,
 .app-shell.is-transparent-preview .map-background,
 .app-shell.is-transparent-preview .globe-background {
@@ -291,6 +322,92 @@ button {
 
   52% {
     opacity: 0.98;
+  }
+}
+
+@keyframes globe-rise-in {
+  0% {
+    opacity: 0;
+    filter: blur(14px) brightness(0.72) saturate(0.86);
+    transform: scale(0.74);
+  }
+
+  48% {
+    opacity: 0.76;
+    filter: blur(2px) brightness(0.92) saturate(1.02);
+    transform: scale(0.94);
+  }
+
+  100% {
+    opacity: 1;
+    filter: none;
+    transform: scale(1);
+  }
+}
+
+@keyframes globe-rise-out {
+  0% {
+    opacity: 1;
+    filter: none;
+    transform: scale(1);
+  }
+
+  52% {
+    opacity: 0.58;
+    filter: blur(2px) brightness(0.9);
+    transform: scale(0.92);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(14px) brightness(0.68);
+    transform: scale(0.72);
+  }
+}
+
+@keyframes flat-fold-out {
+  0% {
+    opacity: 1;
+    clip-path: inset(0);
+    filter: none;
+    transform: scale(1) rotateX(0deg);
+  }
+
+  46% {
+    opacity: 0.78;
+    clip-path: ellipse(49% 45% at 50% 50%);
+    filter: blur(0.4px) brightness(1.08);
+    transform: scale(0.9) rotateX(38deg);
+  }
+
+  100% {
+    opacity: 0;
+    clip-path: ellipse(29% 49% at 50% 50%);
+    filter: blur(9px) brightness(0.82);
+    transform: scale(0.64) rotateX(72deg);
+  }
+}
+
+@keyframes flat-unfold-in {
+  0% {
+    opacity: 0;
+    clip-path: ellipse(29% 49% at 50% 50%);
+    filter: blur(9px) brightness(0.82);
+    transform: scale(0.64) rotateX(72deg);
+  }
+
+  52% {
+    opacity: 0.76;
+    clip-path: ellipse(49% 45% at 50% 50%);
+    filter: blur(0.6px) brightness(1.04);
+    transform: scale(0.9) rotateX(38deg);
+  }
+
+  100% {
+    opacity: 1;
+    clip-path: inset(0);
+    filter: none;
+    transform: scale(1) rotateX(0deg);
   }
 }
 

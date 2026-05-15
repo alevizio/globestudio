@@ -1772,6 +1772,7 @@ function DottedMapBackground({
   svgMarkup,
   svgWidth,
   svgHeight,
+  interactive = true,
   mapZoom,
   setMapZoom,
   mapOffset,
@@ -1894,6 +1895,8 @@ function DottedMapBackground({
     <div
       className={`map-background effect-${shaderEffect || "none"} ${hasWebglShader ? "has-webgl-shader" : ""} ${
         isDraggingMap ? "is-dragging" : ""
+      } ${
+        interactive ? "" : "is-passive"
       }`}
       aria-label={label}
       onPointerDown={startDrag}
@@ -1932,6 +1935,7 @@ function GlobeBackground({
   dotSize,
   shape,
   background,
+  interactive = true,
   transparent,
   mapZoom,
   setMapZoom,
@@ -2201,6 +2205,8 @@ function GlobeBackground({
       ref={mountRef}
       className={`globe-background effect-${shaderSettings.effect || "none"} ${
         isDraggingGlobe ? "is-dragging" : ""
+      } ${
+        interactive ? "" : "is-passive"
       }`}
       aria-label={label}
       onPointerDown={startDrag}
@@ -2379,6 +2385,8 @@ function App() {
   const [background, setBackground] = useState("#0a0a0a");
   const [transparent, setTransparent] = useState(false);
   const [viewMode, setViewMode] = useState("globe");
+  const [viewTransition, setViewTransition] = useState(null);
+  const viewTransitionTimeoutRef = useRef(0);
   const [mapZoom, setMapZoom] = useState(1);
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const [mapDepth, setMapDepth] = useState(55);
@@ -2482,6 +2490,8 @@ function App() {
     setBackground("#0a0a0a");
     setTransparent(false);
     setViewMode("globe");
+    setViewTransition(null);
+    window.clearTimeout(viewTransitionTimeoutRef.current);
     setMapZoom(1);
     setMapOffset({ x: 0, y: 0 });
     setMapDepth(55);
@@ -2495,6 +2505,19 @@ function App() {
     setPanelCollapsed(false);
     setSelectedDots(new Set());
   };
+
+  const changeViewMode = useCallback((nextMode) => {
+    if (nextMode === viewMode) return;
+
+    window.clearTimeout(viewTransitionTimeoutRef.current);
+    setViewTransition(nextMode === "globe" ? "to-globe" : "to-flat");
+    setViewMode(nextMode);
+    viewTransitionTimeoutRef.current = window.setTimeout(() => {
+      setViewTransition(null);
+    }, 940);
+  }, [viewMode]);
+
+  useEffect(() => () => window.clearTimeout(viewTransitionTimeoutRef.current), []);
 
   const exportSvg = () => {
     downloadBlob(new Blob([exportSvgData.svg], { type: "image/svg+xml;charset=utf-8" }), "scaled_map.svg");
@@ -2576,12 +2599,18 @@ function App() {
     image.src = url;
   };
 
+  const isViewTransitioning = Boolean(viewTransition);
+  const showFlatBackground = viewMode === "flat" || isViewTransitioning;
+  const showGlobeBackground = viewMode === "globe" || isViewTransitioning;
+
   return (
     <main
       className={`app-shell ${viewMode === "globe" ? "is-globe-mode" : "is-flat-mode"} ${
         transparent ? "is-transparent-preview" : ""
       } ${
         panelCollapsed ? "is-panel-collapsed" : ""
+      } ${
+        viewTransition ? `is-view-transitioning is-${viewTransition}` : ""
       }`}
       style={{
         "--preview-bg": transparent ? "#171717" : background,
@@ -2598,7 +2627,7 @@ function App() {
         "--tilt-y": `${tiltY}deg`,
       }}
     >
-      {viewMode === "globe" ? (
+      {showGlobeBackground && (
         <GlobeBackground
           mapData={mapData}
           selectedDots={selectedDots}
@@ -2607,6 +2636,7 @@ function App() {
           shape={shape}
           background={background}
           transparent={transparent}
+          interactive={viewMode === "globe" && !isViewTransitioning}
           mapZoom={mapZoom}
           setMapZoom={setMapZoom}
           setSelectedDots={setSelectedDots}
@@ -2614,11 +2644,13 @@ function App() {
           canvasHandleRef={globeCanvasRef}
           label={`${selected.label} dotted globe background`}
         />
-      ) : (
+      )}
+      {showFlatBackground && (
         <DottedMapBackground
           svgMarkup={displaySvg.svg}
           svgWidth={displaySvg.width}
           svgHeight={displaySvg.height}
+          interactive={viewMode === "flat" && !isViewTransitioning}
           mapZoom={mapZoom}
           setMapZoom={setMapZoom}
           mapOffset={mapOffset}
@@ -2643,7 +2675,7 @@ function App() {
         exportSvg={exportSvg}
       />
 
-      <ViewModeSwitch viewMode={viewMode} setViewMode={setViewMode} />
+      <ViewModeSwitch viewMode={viewMode} setViewMode={changeViewMode} />
       <MapZoomControls value={mapZoom} onChange={setMapZoom} />
 
       {!panelCollapsed && (
