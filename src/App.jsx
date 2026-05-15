@@ -337,6 +337,15 @@ const GLOBE_CAMERA_DISTANCE = 7.35;
 const GLOBE_INITIAL_ROTATION = { x: -0.14, y: -0.9 };
 const GLOBE_MORPH_DURATION = 1250;
 const GLOBE_DEFAULT_GLOW = "#dbe8b5";
+const DEFAULT_GLOBE_SETTINGS = {
+  autoSpin: true,
+  glow: true,
+  glowStrength: 58,
+  grid: true,
+  gridStrength: 82,
+  surface: true,
+  surfaceStrength: 100,
+};
 
 function makeFeatureCollection(features) {
   return {
@@ -839,14 +848,18 @@ function buildGlobeDotLayer({ mapData, selectedDots, dotColor, dotSize, shape, s
   return group;
 }
 
-function applyGlobeShellProgress(refs, morphProgress) {
+function applyGlobeShellProgress(refs, morphProgress, globeSettings = DEFAULT_GLOBE_SETTINGS) {
   if (!refs) return;
+  const settings = { ...DEFAULT_GLOBE_SETTINGS, ...globeSettings };
   const shellProgress = smoothStep(0.18, 0.92, morphProgress);
+  const glowStrength = settings.glow ? clampNumber(settings.glowStrength, 0, 100) / 100 : 0;
+  const gridStrength = settings.grid ? clampNumber(settings.gridStrength, 0, 100) / 100 : 0;
+  const surfaceStrength = settings.surface ? clampNumber(settings.surfaceStrength, 0, 100) / 100 : 0;
 
-  refs.baseMaterial.opacity = refs.baseOpacity * shellProgress;
-  refs.atmosphereMaterial.uniforms.intensity.value = refs.atmosphereIntensity * shellProgress;
+  refs.baseMaterial.opacity = refs.baseOpacity * shellProgress * surfaceStrength;
+  refs.atmosphereMaterial.uniforms.intensity.value = refs.atmosphereIntensity * shellProgress * glowStrength;
   refs.graticule.children.forEach((line) => {
-    line.material.opacity = refs.graticuleOpacity * shellProgress;
+    line.material.opacity = refs.graticuleOpacity * shellProgress * gridStrength;
   });
 }
 
@@ -1593,6 +1606,24 @@ function RangeControl({ value, min, max, step = 1, onChange, label }) {
   );
 }
 
+function ToggleControl({ checked, onChange, label }) {
+  return (
+    <button
+      type="button"
+      className={`toggle-control ${checked ? "is-active" : ""}`}
+      role="switch"
+      aria-label={label}
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+    >
+      <span className="toggle-track" aria-hidden="true">
+        <span className="toggle-knob" />
+      </span>
+      <span>{checked ? "On" : "Off"}</span>
+    </button>
+  );
+}
+
 function MapZoomControls({ value, onChange }) {
   const updateZoom = (nextValue) => {
     if (!Number.isFinite(Number(nextValue))) return;
@@ -1810,6 +1841,8 @@ function ControlPanel({
   setShape,
   shaderSettings,
   setShaderSettings,
+  globeSettings,
+  setGlobeSettings,
   viewMode,
 }) {
   const selectedCountryId = selection.startsWith("country:") ? selection.replace("country:", "") : "";
@@ -1817,6 +1850,12 @@ function ControlPanel({
   const shaderEffect = shaderSettings.effect;
   const updateShaderSetting = (key, value) => {
     setShaderSettings((settings) => ({
+      ...settings,
+      [key]: value,
+    }));
+  };
+  const updateGlobeSetting = (key, value) => {
+    setGlobeSettings((settings) => ({
       ...settings,
       [key]: value,
     }));
@@ -1902,7 +1941,7 @@ function ControlPanel({
             </button>
           </div>
         </OptionRow>
-        {viewMode === "flat" ? (
+        {viewMode === "flat" && (
           <>
             <OptionRow label="Tilt X" value={`${tiltX} deg`}>
               <TiltControl label="Tilt X" value={tiltX} onChange={setTiltX} />
@@ -1914,18 +1953,85 @@ function ControlPanel({
               <DepthControl value={mapDepth} onChange={setMapDepth} />
             </OptionRow>
           </>
-        ) : (
-          <OptionRow label="Spin" value={shaderSettings.motion}>
-            <RangeControl
-              label="Globe spin"
-              min={0}
-              max={100}
-              value={shaderSettings.motion}
-              onChange={(value) => updateShaderSetting("motion", value)}
-            />
-          </OptionRow>
         )}
       </PanelSection>
+
+      {viewMode === "globe" && (
+        <PanelSection title="Globe">
+          <OptionRow label="Glow">
+            <ToggleControl
+              label="Toggle globe glow"
+              checked={globeSettings.glow}
+              onChange={(value) => updateGlobeSetting("glow", value)}
+            />
+          </OptionRow>
+          {globeSettings.glow && (
+            <OptionRow label="Glow" value={globeSettings.glowStrength}>
+              <RangeControl
+                label="Glow strength"
+                min={0}
+                max={100}
+                value={globeSettings.glowStrength}
+                onChange={(value) => updateGlobeSetting("glowStrength", value)}
+              />
+            </OptionRow>
+          )}
+          <OptionRow label="Surface">
+            <ToggleControl
+              label="Toggle globe surface"
+              checked={globeSettings.surface}
+              onChange={(value) => updateGlobeSetting("surface", value)}
+            />
+          </OptionRow>
+          {globeSettings.surface && (
+            <OptionRow label="Surface" value={globeSettings.surfaceStrength}>
+              <RangeControl
+                label="Surface strength"
+                min={0}
+                max={100}
+                value={globeSettings.surfaceStrength}
+                onChange={(value) => updateGlobeSetting("surfaceStrength", value)}
+              />
+            </OptionRow>
+          )}
+          <OptionRow label="Grid">
+            <ToggleControl
+              label="Toggle globe grid"
+              checked={globeSettings.grid}
+              onChange={(value) => updateGlobeSetting("grid", value)}
+            />
+          </OptionRow>
+          {globeSettings.grid && (
+            <OptionRow label="Grid" value={globeSettings.gridStrength}>
+              <RangeControl
+                label="Grid strength"
+                min={0}
+                max={100}
+                value={globeSettings.gridStrength}
+                onChange={(value) => updateGlobeSetting("gridStrength", value)}
+              />
+            </OptionRow>
+          )}
+          <OptionRow label="Auto Spin">
+            <ToggleControl
+              label="Toggle globe auto spin"
+              checked={globeSettings.autoSpin}
+              onChange={(value) => updateGlobeSetting("autoSpin", value)}
+            />
+          </OptionRow>
+          {globeSettings.autoSpin && (
+            <OptionRow label="Spin" value={shaderSettings.motion}>
+              <RangeControl
+                label="Globe spin"
+                min={0}
+                max={100}
+                value={shaderSettings.motion}
+                onChange={(value) => updateShaderSetting("motion", value)}
+              />
+            </OptionRow>
+          )}
+        </PanelSection>
+      )}
 
       <PanelSection title="Effects">
         <OptionRow label="Pass">
@@ -2210,6 +2316,7 @@ function GlobeBackground({
   tiltY,
   setSelectedDots,
   shaderSettings,
+  globeSettings,
   label,
   canvasHandleRef,
 }) {
@@ -2242,6 +2349,7 @@ function GlobeBackground({
     target: initialMorphProgress,
   });
   const settingsRef = useRef(shaderSettings);
+  const globeSettingsRef = useRef(globeSettings);
   const transformRef = useRef({ mapDepth, tiltX, tiltY });
   const [isDraggingGlobe, setIsDraggingGlobe] = useState(false);
 
@@ -2249,6 +2357,7 @@ function GlobeBackground({
   mapZoomRef.current = mapZoom;
   morphModeRef.current = morphMode;
   settingsRef.current = shaderSettings;
+  globeSettingsRef.current = globeSettings;
   transformRef.current = { mapDepth, tiltX, tiltY };
 
   const getClientPoint = (event) => {
@@ -2441,7 +2550,7 @@ function GlobeBackground({
       scene,
       setSelectedDots,
     };
-    applyGlobeShellProgress(threeRef.current, morphRef.current.progress);
+    applyGlobeShellProgress(threeRef.current, morphRef.current.progress, globeSettingsRef.current);
 
     const resize = () => {
       const rect = mount.getBoundingClientRect();
@@ -2464,10 +2573,11 @@ function GlobeBackground({
       lastTime = now;
       const state = stateRef.current;
       const settings = settingsRef.current;
+      const globeSettings = { ...DEFAULT_GLOBE_SETTINGS, ...globeSettingsRef.current };
       const effectMotion = clampNumber(settings.motion ?? 35, 0, 100);
       const spin = 0.00008 + effectMotion * 0.0000035;
 
-      const spinProgress = smoothStep(0.28, 1, morphRef.current.progress);
+      const spinProgress = globeSettings.autoSpin ? smoothStep(0.28, 1, morphRef.current.progress) : 0;
       if (!state.active) {
         state.targetY += spin * delta * spinProgress;
       }
@@ -2511,7 +2621,7 @@ function GlobeBackground({
       ) {
         applyDotLayerMorph(threeRef.current.dotLayer, morph.progress);
       }
-      applyGlobeShellProgress(threeRef.current, morph.progress);
+      applyGlobeShellProgress(threeRef.current, morph.progress, globeSettings);
 
       renderer.render(scene, camera);
       frame = window.requestAnimationFrame(animate);
@@ -2562,7 +2672,7 @@ function GlobeBackground({
       morph.target = target;
       morph.active = false;
       applyDotLayerMorph(threeRef.current?.dotLayer, target);
-      applyGlobeShellProgress(threeRef.current, target);
+      applyGlobeShellProgress(threeRef.current, target, globeSettingsRef.current);
       return;
     }
 
@@ -2589,8 +2699,8 @@ function GlobeBackground({
     refs.graticule.children.forEach((line) => {
       line.material.color.copy(glowColor.clone().lerp(new THREE.Color("#ffffff"), 0.62));
     });
-    applyGlobeShellProgress(refs, morphRef.current.progress);
-  }, [background, dotColor, shaderSettings.intensity, transparent]);
+    applyGlobeShellProgress(refs, morphRef.current.progress, globeSettingsRef.current);
+  }, [background, dotColor, globeSettings, shaderSettings.intensity, transparent]);
 
   return (
     <div
@@ -2789,6 +2899,7 @@ function App() {
   const [dotColor, setDotColor] = useState("#ffffff");
   const [shape, setShape] = useState("Circle");
   const [shaderSettings, setShaderSettings] = useState(() => ({ ...DEFAULT_SHADER_SETTINGS }));
+  const [globeSettings, setGlobeSettings] = useState(() => ({ ...DEFAULT_GLOBE_SETTINGS }));
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [copyStatus, setCopyStatus] = useState("idle");
   const [selectedDots, setSelectedDots] = useState(new Set());
@@ -2894,6 +3005,7 @@ function App() {
     setDotColor("#ffffff");
     setShape("Circle");
     setShaderSettings({ ...DEFAULT_SHADER_SETTINGS });
+    setGlobeSettings({ ...DEFAULT_GLOBE_SETTINGS });
     setPanelCollapsed(false);
     setSelectedDots(new Set());
   };
@@ -2994,6 +3106,9 @@ function App() {
   const isViewTransitioning = Boolean(viewTransition);
   const showFlatBackground = false;
   const showGlobeBackground = true;
+  const globeGlowOpacity = viewMode === "globe" && globeSettings.glow
+    ? 0.12 + (clampNumber(globeSettings.glowStrength, 0, 100) / 100) * 0.36
+    : 0;
 
   return (
     <main
@@ -3012,6 +3127,7 @@ function App() {
         "--map-zoom": mapZoom,
         "--shader-glow": `${Math.max(0, shaderSettings.intensity * 0.16)}px`,
         "--shader-glow-wide": `${Math.max(0, shaderSettings.intensity * 0.32)}px`,
+        "--globe-bg-glow-opacity": globeGlowOpacity,
         "--shader-intensity": shaderSettings.intensity / 100,
         "--shader-split": `${shaderSettings.split}px`,
         "--shader-split-neg": `${-shaderSettings.split}px`,
@@ -3040,6 +3156,7 @@ function App() {
           tiltY={tiltY}
           setSelectedDots={setSelectedDots}
           shaderSettings={shaderSettings}
+          globeSettings={globeSettings}
           canvasHandleRef={globeCanvasRef}
           label={`${selected.label} dotted ${viewMode === "globe" ? "globe" : "map"} background`}
         />
@@ -3121,6 +3238,8 @@ function App() {
             setShape={setShape}
             shaderSettings={shaderSettings}
             setShaderSettings={setShaderSettings}
+            globeSettings={globeSettings}
+            setGlobeSettings={setGlobeSettings}
             viewMode={viewMode}
           />
         </section>

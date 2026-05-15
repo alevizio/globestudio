@@ -115,7 +115,7 @@ button {
   background:
     radial-gradient(circle at 50% 48%, rgba(219, 232, 181, 0.028), transparent 34%),
     radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.042), transparent 52%);
-  opacity: 0.54;
+  opacity: var(--globe-bg-glow-opacity, 0.54);
 }
 
 .globe-background canvas {
@@ -733,6 +733,7 @@ input[type="range"]:focus-visible,
 .map-zoom-input:focus-visible,
 .button:focus-visible,
 .transparent-toggle:focus-visible,
+.toggle-control:focus-visible,
 .color-swatch:focus-visible,
 .step-button:focus-visible,
 .export-menu-item:focus-visible,
@@ -848,6 +849,63 @@ input[type="range"] {
 .transparent-toggle.is-active {
   border-color: rgba(214, 255, 121, 0.62);
   color: var(--accent);
+}
+
+.toggle-control {
+  width: 100%;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--field);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+  cursor: pointer;
+}
+
+.toggle-control.is-active {
+  border-color: rgba(214, 255, 121, 0.56);
+  color: var(--accent);
+}
+
+.toggle-track {
+  width: 34px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.toggle-knob {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--muted);
+  transform: translateX(0);
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.toggle-control.is-active .toggle-track {
+  border-color: rgba(214, 255, 121, 0.48);
+  background: rgba(214, 255, 121, 0.16);
+}
+
+.toggle-control.is-active .toggle-knob {
+  background: var(--accent);
+  transform: translateX(14px);
 }
 
 @media (max-width: 620px) {
