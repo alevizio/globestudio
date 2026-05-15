@@ -294,6 +294,7 @@ const areaOptions = [
 ];
 
 const areaOptionByValue = new Map(areaOptions.map((option) => [option.value, option]));
+const dotShapeOptions = ["Circle", "Hexagon", "Triangle", "Pentagon", "Square", "Diamond", "Star", "Plus", "Ring"];
 
 const DEFAULT_SHADER_SETTINGS = {
   effect: "none",
@@ -460,27 +461,65 @@ function formatSvgNumber(value, decimals = 3) {
   return number.toFixed(decimals).replace(/\.?0+$/, "");
 }
 
+function createRegularPolygonPointArray(x, y, radius, sides, rotation = -Math.PI / 2) {
+  return Array.from({ length: sides }, (_, index) => {
+    const angle = rotation + (index / sides) * Math.PI * 2;
+    return [x + Math.cos(angle) * radius, y + Math.sin(angle) * radius];
+  });
+}
+
+function createStarPointArray(x, y, outerRadius, innerRadius, points = 5) {
+  return Array.from({ length: points * 2 }, (_, index) => {
+    const radius = index % 2 === 0 ? outerRadius : innerRadius;
+    const angle = -Math.PI / 2 + (index / (points * 2)) * Math.PI * 2;
+    return [x + Math.cos(angle) * radius, y + Math.sin(angle) * radius];
+  });
+}
+
+function createPlusPointArray(x, y, radius) {
+  const arm = radius * 0.46;
+  const long = radius * 1.38;
+  return [
+    [x - arm, y - long],
+    [x + arm, y - long],
+    [x + arm, y - arm],
+    [x + long, y - arm],
+    [x + long, y + arm],
+    [x + arm, y + arm],
+    [x + arm, y + long],
+    [x - arm, y + long],
+    [x - arm, y + arm],
+    [x - long, y + arm],
+    [x - long, y - arm],
+    [x - arm, y - arm],
+  ];
+}
+
+function formatPointList(points) {
+  return points
+    .map(([x, y]) => `${formatSvgNumber(x, 2)},${formatSvgNumber(y, 2)}`)
+    .join(" ");
+}
+
 function createHexagonPoints(x, y, radius) {
   const sqrt3radius = Math.sqrt(3) * radius;
-  return [
+  return formatPointList([
     [x + sqrt3radius, y - radius],
     [x + sqrt3radius, y + radius],
     [x, y + 2 * radius],
     [x - sqrt3radius, y + radius],
     [x - sqrt3radius, y - radius],
     [x, y - 2 * radius],
-  ]
-    .map((point) => point.join(","))
-    .join(" ");
+  ]);
 }
 
 function createDiamondPoints(x, y, radius) {
-  return [
-    `${x.toFixed(2)},${(y - radius).toFixed(2)}`,
-    `${(x + radius).toFixed(2)},${y.toFixed(2)}`,
-    `${x.toFixed(2)},${(y + radius).toFixed(2)}`,
-    `${(x - radius).toFixed(2)},${y.toFixed(2)}`,
-  ].join(" ");
+  return formatPointList([
+    [x, y - radius],
+    [x + radius, y],
+    [x, y + radius],
+    [x - radius, y],
+  ]);
 }
 
 function generateDots({ collection, density, padding, shape }) {
@@ -575,6 +614,16 @@ function getDotRadius(dotSize, mode) {
 }
 
 function getShapeBounds(point, radius, shape) {
+  if (shape === "Triangle" || shape === "Pentagon") {
+    const shapeRadius = shape === "Triangle" ? radius * 1.72 : radius * 1.42;
+    return {
+      minX: point.x - shapeRadius,
+      maxX: point.x + shapeRadius,
+      minY: point.y - shapeRadius,
+      maxY: point.y + shapeRadius,
+    };
+  }
+
   if (shape === "Hexagon") {
     const xRadius = Math.sqrt(3) * radius;
     return {
@@ -585,12 +634,18 @@ function getShapeBounds(point, radius, shape) {
     };
   }
 
-  const shapeRadius = shape === "Diamond" ? radius * 1.35 : radius;
+  const shapeRadius = {
+    Diamond: 1.35,
+    Plus: 1.38,
+    Ring: 1.08,
+    Star: 1.78,
+  }[shape] ?? 1;
+  const scaledRadius = radius * shapeRadius;
   return {
-    minX: point.x - shapeRadius,
-    maxX: point.x + shapeRadius,
-    minY: point.y - shapeRadius,
-    maxY: point.y + shapeRadius,
+    minX: point.x - scaledRadius,
+    maxX: point.x + scaledRadius,
+    minY: point.y - scaledRadius,
+    maxY: point.y + scaledRadius,
   };
 }
 
@@ -619,9 +674,35 @@ function getPointsBounds(points, radius, shape, image) {
 }
 
 function createGlobeDotGeometry(shape) {
+  if (shape === "Triangle") return new THREE.CylinderGeometry(1.18, 1.18, 0.34, 3, 1);
+  if (shape === "Pentagon") return new THREE.CylinderGeometry(1.05, 1.05, 0.34, 5, 1);
   if (shape === "Hexagon") return new THREE.CylinderGeometry(1, 1, 0.36, 6, 1);
   if (shape === "Square") return new THREE.BoxGeometry(1.28, 0.32, 1.28);
   if (shape === "Diamond") return new THREE.OctahedronGeometry(1, 0);
+  if (shape === "Ring") {
+    const geometry = new THREE.TorusGeometry(0.74, 0.2, 10, 24);
+    geometry.rotateX(Math.PI / 2);
+    return geometry;
+  }
+  if (shape === "Star" || shape === "Plus") {
+    const points = shape === "Star"
+      ? createStarPointArray(0, 0, 1.08, 0.48)
+      : createPlusPointArray(0, 0, 0.9);
+    const shapePath = new THREE.Shape();
+    points.forEach(([x, y], index) => {
+      if (index === 0) shapePath.moveTo(x, y);
+      else shapePath.lineTo(x, y);
+    });
+    shapePath.closePath();
+    const geometry = new THREE.ExtrudeGeometry(shapePath, {
+      bevelEnabled: false,
+      depth: 0.32,
+      steps: 1,
+    });
+    geometry.center();
+    geometry.rotateX(Math.PI / 2);
+    return geometry;
+  }
   return new THREE.SphereGeometry(1, 9, 7);
 }
 
@@ -1152,22 +1233,41 @@ function createShaderEffectAssets({
 function createDotMarkup(point, radius, shape, color, selectedDots) {
   const fill = selectedDots.has(point.id) ? CLICK_HIGHLIGHT : color;
   const data = `class="map-dot" data-dot-id="${point.id}" fill="${fill}"`;
+  const plainData = `class="map-dot" data-dot-id="${point.id}"`;
 
   if (shape === "Square") {
-    return `<rect ${data} x="${point.x - radius}" y="${point.y - radius}" width="${
-      radius * 2
-    }" height="${radius * 2}" />`;
+    return `<rect ${data} x="${formatSvgNumber(point.x - radius)}" y="${formatSvgNumber(point.y - radius)}" width="${formatSvgNumber(radius * 2)}" height="${formatSvgNumber(radius * 2)}" />`;
+  }
+
+  if (shape === "Triangle") {
+    return `<polygon ${data} points="${formatPointList(createRegularPolygonPointArray(point.x, point.y, radius * 1.72, 3))}" />`;
+  }
+
+  if (shape === "Pentagon") {
+    return `<polygon ${data} points="${formatPointList(createRegularPolygonPointArray(point.x, point.y, radius * 1.42, 5))}" />`;
   }
 
   if (shape === "Hexagon") {
-    return `<polyline ${data} points="${createHexagonPoints(point.x, point.y, radius)}" />`;
+    return `<polygon ${data} points="${createHexagonPoints(point.x, point.y, radius)}" />`;
   }
 
   if (shape === "Diamond") {
-    return `<polyline ${data} points="${createDiamondPoints(point.x, point.y, radius * 1.35)}" />`;
+    return `<polygon ${data} points="${createDiamondPoints(point.x, point.y, radius * 1.35)}" />`;
   }
 
-  return `<circle ${data} cx="${point.x}" cy="${point.y}" r="${radius}" />`;
+  if (shape === "Star") {
+    return `<polygon ${data} points="${formatPointList(createStarPointArray(point.x, point.y, radius * 1.78, radius * 0.78))}" />`;
+  }
+
+  if (shape === "Plus") {
+    return `<polygon ${data} points="${formatPointList(createPlusPointArray(point.x, point.y, radius))}" />`;
+  }
+
+  if (shape === "Ring") {
+    return `<circle ${plainData} cx="${formatSvgNumber(point.x)}" cy="${formatSvgNumber(point.y)}" r="${formatSvgNumber(radius * 0.72)}" fill="none" stroke="${fill}" stroke-width="${formatSvgNumber(Math.max(radius * 0.42, 0.08))}" />`;
+  }
+
+  return `<circle ${data} cx="${formatSvgNumber(point.x)}" cy="${formatSvgNumber(point.y)}" r="${formatSvgNumber(radius)}" />`;
 }
 
 function createDottedSvg({
@@ -2063,7 +2163,7 @@ function ControlPanel({
             label="Dot shape"
             value={shape}
             onChange={setShape}
-            options={["Circle", "Hexagon", "Square", "Diamond"].map((item) => ({
+            options={dotShapeOptions.map((item) => ({
               value: item,
               label: item,
             }))}
