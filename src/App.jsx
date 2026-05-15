@@ -1,25 +1,156 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ChevronDown,
-  Check,
-  Clipboard,
-  Download,
-  Globe2,
-  Map as MapIcon,
-  Minus,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Plus,
-  RotateCcw,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
 import * as THREE from "three";
 import DottedMapEngine from "dotted-map";
 import { geoAlbersUsa, geoContains, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import statesTopology from "us-atlas/states-10m.json";
 import countryData from "world-countries";
+
+function SfIcon({ size = 15, children, className = "", strokeWidth = 1.9 }) {
+  return (
+    <svg
+      className={`sf-icon ${className}`}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {children}
+    </svg>
+  );
+}
+
+function ChevronDown(props) {
+  return (
+    <SfIcon {...props}>
+      <path d="m6.75 9.25 5.25 5.5 5.25-5.5" />
+    </SfIcon>
+  );
+}
+
+function Check(props) {
+  return (
+    <SfIcon {...props}>
+      <path d="m5.25 12.45 4.2 4.1 9.3-9.1" />
+    </SfIcon>
+  );
+}
+
+function Clipboard(props) {
+  return (
+    <SfIcon {...props}>
+      <path d="M9.25 4.75h5.5" />
+      <path d="M9 4.75a3 3 0 0 0-2.75 3v10.5a2 2 0 0 0 2 2h7.5a2 2 0 0 0 2-2V7.75a3 3 0 0 0-2.75-3" />
+      <path d="M9.25 4.75c.25-1.35 1.25-2 2.75-2s2.5.65 2.75 2" />
+      <path d="M8.9 9.5h6.2" />
+      <path d="M8.9 13h6.2" />
+    </SfIcon>
+  );
+}
+
+function Download(props) {
+  return (
+    <SfIcon {...props}>
+      <path d="M12 3.75v10.5" />
+      <path d="m7.6 10.15 4.4 4.35 4.4-4.35" />
+      <path d="M5 19.25h14" />
+    </SfIcon>
+  );
+}
+
+function Globe2(props) {
+  return (
+    <SfIcon {...props}>
+      <circle cx="12" cy="12" r="8.75" />
+      <path d="M3.55 12h16.9" />
+      <path d="M12 3.25c2.2 2.25 3.35 5.1 3.35 8.75S14.2 18.5 12 20.75" />
+      <path d="M12 3.25C9.8 5.5 8.65 8.35 8.65 12s1.15 6.5 3.35 8.75" />
+    </SfIcon>
+  );
+}
+
+function MapIcon(props) {
+  return (
+    <SfIcon {...props}>
+      <path d="M4.25 6.2 9.4 4.25l5.2 1.95 5.15-1.95v13.55l-5.15 1.95-5.2-1.95-5.15 1.95V6.2Z" />
+      <path d="M9.4 4.25V17.8" />
+      <path d="M14.6 6.2v13.55" />
+    </SfIcon>
+  );
+}
+
+function Minus(props) {
+  return (
+    <SfIcon {...props}>
+      <path d="M6.25 12h11.5" />
+    </SfIcon>
+  );
+}
+
+function PanelLeftClose(props) {
+  return (
+    <SfIcon {...props}>
+      <path d="M4.25 5.25h15.5v13.5H4.25z" />
+      <path d="M9 5.25v13.5" />
+      <path d="m15.5 9-3 3 3 3" />
+    </SfIcon>
+  );
+}
+
+function PanelLeftOpen(props) {
+  return (
+    <SfIcon {...props}>
+      <path d="M4.25 5.25h15.5v13.5H4.25z" />
+      <path d="M9 5.25v13.5" />
+      <path d="m12.5 9 3 3-3 3" />
+    </SfIcon>
+  );
+}
+
+function Plus(props) {
+  return (
+    <SfIcon {...props}>
+      <path d="M12 6.25v11.5" />
+      <path d="M6.25 12h11.5" />
+    </SfIcon>
+  );
+}
+
+function RotateCcw(props) {
+  return (
+    <SfIcon {...props}>
+      <path d="M7.35 8.1H4.5V5.25" />
+      <path d="M5.35 8.1a7.2 7.2 0 1 1 1.2 8.65" />
+    </SfIcon>
+  );
+}
+
+function ZoomIn(props) {
+  return (
+    <SfIcon {...props}>
+      <circle cx="10.75" cy="10.75" r="6.25" />
+      <path d="M15.35 15.35 20 20" />
+      <path d="M10.75 7.75v6" />
+      <path d="M7.75 10.75h6" />
+    </SfIcon>
+  );
+}
+
+function ZoomOut(props) {
+  return (
+    <SfIcon {...props}>
+      <circle cx="10.75" cy="10.75" r="6.25" />
+      <path d="M15.35 15.35 20 20" />
+      <path d="M7.75 10.75h6" />
+    </SfIcon>
+  );
+}
 
 const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 620;

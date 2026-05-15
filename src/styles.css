@@ -49,6 +49,11 @@ button {
   color: inherit;
 }
 
+.sf-icon {
+  flex: 0 0 auto;
+  display: block;
+}
+
 .app-shell {
   position: relative;
   min-height: 100svh;

@@ -11,7 +11,6 @@
   "dependencies": {
     "d3-geo": "^3.1.1",
     "dotted-map": "^3.1.0",
-    "lucide-react": "^0.561.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "three": "^0.184.0",
