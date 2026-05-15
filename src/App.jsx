@@ -3431,7 +3431,7 @@ function App() {
         viewTransition ? `is-view-transitioning is-${viewTransition}` : ""
       }`}
       style={{
-        "--preview-bg": transparent ? "#171717" : background,
+        "--preview-bg": transparent ? "#f4f4f4" : background,
         "--map-offset-x": `${mapOffset.x}px`,
         "--map-offset-y": `${mapOffset.y}px`,
         "--map-perspective": `${1800 - mapDepth * 14}px`,
