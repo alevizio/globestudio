@@ -1032,8 +1032,10 @@ function IconButton({ children, title, onClick, className = "", active = false }
 }
 
 function PanelSection({ title, children, icon }) {
+  const [isOpen, setIsOpen] = useState(true);
+
   return (
-    <details className="option-block" open>
+    <details className="option-block" open={isOpen} onToggle={(event) => setIsOpen(event.currentTarget.open)}>
       <summary>
         {icon}
         <span>{title}</span>
