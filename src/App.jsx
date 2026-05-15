@@ -1473,6 +1473,7 @@ function createDottedSvg({
   dotColor,
   dotSize,
   shape,
+  dotsVisible = true,
   background,
   transparent,
   selectedDots,
@@ -1505,9 +1506,11 @@ function createDottedSvg({
   const width = Math.round((aspect > 1 ? 1000 * scale : 1000 * aspect * scale) * 1000) / 1000;
   const height = Math.round((aspect > 1 ? (1000 / aspect) * scale : 1000 * scale) * 1000) / 1000;
   const backgroundColor = transparent ? "transparent" : background;
-  const dots = mapData.points
-    .map((point) => createDotMarkup(point, radius, shape, dotColor, selectedDots))
-    .join("\n");
+  const dots = dotsVisible
+    ? mapData.points
+        .map((point) => createDotMarkup(point, radius, shape, dotColor, selectedDots))
+        .join("\n")
+    : "";
   const backgroundRect = transparent
     ? ""
     : `<rect x="${viewX}" y="${viewY}" width="${viewWidth}" height="${viewHeight}" fill="${background}" />`;
@@ -1529,7 +1532,7 @@ function createDottedSvg({
   return {
     width,
     height,
-    dotCount: mapData.points.length,
+    dotCount: dotsVisible ? mapData.points.length : 0,
     svg: `<svg xmlns="http://www.w3.org/2000/svg" id="dots" class="dot-map" role="img" aria-label="${label}" width="${width}" height="${height}" viewBox="${viewX} ${viewY} ${viewWidth} ${viewHeight}" style="background-color: ${backgroundColor}">
 ${effectAssets.defs}
 ${backgroundRect}
@@ -2272,6 +2275,8 @@ function ControlPanel({
   setDotColor,
   shape,
   setShape,
+  dotsVisible,
+  setDotsVisible,
   shaderSettings,
   setShaderSettings,
   globeSettings,
@@ -2346,6 +2351,9 @@ function ControlPanel({
       </PanelSection>
 
       <PanelSection title="Dots">
+        <OptionRow label="Dots">
+          <ToggleControl checked={dotsVisible} onChange={setDotsVisible} label="Toggle dots" />
+        </OptionRow>
         <OptionRow label="Shape">
           <SelectControl
             label="Dot shape"
@@ -2815,6 +2823,7 @@ function GlobeBackground({
   dotColor,
   dotSize,
   shape,
+  dotsVisible,
   background,
   interactive = true,
   morphMode = "globe",
@@ -3182,6 +3191,15 @@ function GlobeBackground({
     const refs = threeRef.current;
     if (!refs) return;
 
+    if (!dotsVisible) {
+      if (refs.dotLayer) {
+        refs.globeGroup.remove(refs.dotLayer);
+        disposeThreeObject(refs.dotLayer);
+        refs.dotLayer = null;
+      }
+      return;
+    }
+
     const nextLayer = buildGlobeDotLayer({
       mapData,
       selectedDots,
@@ -3200,7 +3218,7 @@ function GlobeBackground({
 
     refs.dotLayer = nextLayer;
     refs.globeGroup.add(nextLayer);
-  }, [dotColor, dotSize, globeSettings, mapData, selectedDots, shaderSettings, shape]);
+  }, [dotColor, dotSize, dotsVisible, globeSettings, mapData, selectedDots, shaderSettings, shape]);
 
   useEffect(() => {
     const target = morphMode === "globe" ? 1 : 0;
@@ -3445,6 +3463,7 @@ function App() {
   const [density, setDensity] = useState(40);
   const [dotSize, setDotSize] = useState(10);
   const [dotColor, setDotColor] = useState("#ffffff");
+  const [dotsVisible, setDotsVisible] = useState(true);
   const [shape, setShape] = useState("Circle");
   const [shaderSettings, setShaderSettings] = useState(() => ({ ...DEFAULT_SHADER_SETTINGS }));
   const [globeSettings, setGlobeSettings] = useState(() => ({ ...DEFAULT_GLOBE_SETTINGS }));
@@ -3494,6 +3513,7 @@ function App() {
         dotColor,
         dotSize,
         shape,
+        dotsVisible,
         background,
         transparent: true,
         selectedDots,
@@ -3503,7 +3523,7 @@ function App() {
         crop: false,
         label: `${selected.label} dotted map`,
       }),
-    [background, dotColor, dotSize, mapData, selected.label, selected.mode, selectedDots, shaderSettings, shape],
+    [background, dotColor, dotSize, dotsVisible, mapData, selected.label, selected.mode, selectedDots, shaderSettings, shape],
   );
 
   const exportSvgData = useMemo(
@@ -3513,6 +3533,7 @@ function App() {
         dotColor,
         dotSize,
         shape,
+        dotsVisible,
         background,
         transparent,
         selectedDots,
@@ -3527,6 +3548,7 @@ function App() {
       canvasScale,
       dotColor,
       dotSize,
+      dotsVisible,
       mapData,
       selected.label,
       selected.mode,
@@ -3554,6 +3576,7 @@ function App() {
     setDensity(40);
     setDotSize(10);
     setDotColor("#ffffff");
+    setDotsVisible(true);
     setShape("Circle");
     setShaderSettings({ ...DEFAULT_SHADER_SETTINGS });
     setGlobeSettings({ ...DEFAULT_GLOBE_SETTINGS });
@@ -3770,6 +3793,7 @@ function App() {
           selectedDots={selectedDots}
           dotColor={dotColor}
           dotSize={dotSize}
+          dotsVisible={dotsVisible}
           shape={shape}
           background={background}
           transparent={transparent}
@@ -3829,7 +3853,7 @@ function App() {
           <div className="panel-header">
             <div className="panel-meta">
               <span>{selected.label}</span>
-              <span>{displaySvg.dotCount.toLocaleString()} dots</span>
+              <span>{dotsVisible ? `${displaySvg.dotCount.toLocaleString()} dots` : "Dots off"}</span>
             </div>
             <IconButton title="Reset view" onClick={reset} className="panel-reset-button">
               <RotateCcw size={15} />
@@ -3864,6 +3888,8 @@ function App() {
             setDotSize={setDotSize}
             dotColor={dotColor}
             setDotColor={setDotColor}
+            dotsVisible={dotsVisible}
+            setDotsVisible={setDotsVisible}
             shape={shape}
             setShape={setShape}
             shaderSettings={shaderSettings}
