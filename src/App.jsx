@@ -280,6 +280,16 @@ function pointToFlatVector3(point, image, radiusOffset = 0) {
   );
 }
 
+function getFlatLongitudeRadius(image, radiusOffset = 0) {
+  const flatWidth = 5.35 + radiusOffset * 12;
+  const longitudeRange = image.region?.lng
+    ? image.region.lng.max - image.region.lng.min
+    : 360;
+  const rangeRadians = THREE.MathUtils.degToRad(clampNumber(longitudeRange, 28, 360));
+
+  return flatWidth / Math.max(rangeRadians, 0.01);
+}
+
 function easeInOutCubic(value) {
   const t = clampNumber(value, 0, 1);
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -532,8 +542,11 @@ function buildGlobePoints(mapData, selectedDots) {
 function applyDotInstances(mesh, points, image, scale, radiusOffset = 0, morphProgress = 1) {
   const matrix = new THREE.Matrix4();
   const quaternion = new THREE.Quaternion();
+  const cylinderQuaternion = new THREE.Quaternion();
   const flatQuaternion = new THREE.Quaternion();
   const globeQuaternion = new THREE.Quaternion();
+  const cylinderNormal = new THREE.Vector3();
+  const curvedPosition = new THREE.Vector3();
   const normal = new THREE.Vector3();
   const position = new THREE.Vector3();
   const flatPosition = new THREE.Vector3();
@@ -541,16 +554,35 @@ function applyDotInstances(mesh, points, image, scale, radiusOffset = 0, morphPr
   const up = new THREE.Vector3(0, 1, 0);
   const depth = new THREE.Vector3(0, 0, 1);
   const size = new THREE.Vector3(scale, scale, scale);
+  const bendProgress = smoothStep(0, 0.74, morphProgress);
+  const settleProgress = smoothStep(0.58, 1, morphProgress);
+  const flatLongitudeRadius = getFlatLongitudeRadius(image, radiusOffset);
 
   points.forEach((point, index) => {
     flatPosition.copy(pointToFlatVector3(point, image, radiusOffset));
     globePosition.copy(latLngToVector3(point.lat, point.lng, GLOBE_RADIUS + radiusOffset));
-    position.copy(flatPosition).lerp(globePosition, morphProgress);
+
+    if (bendProgress < 0.001) {
+      curvedPosition.copy(flatPosition);
+      cylinderNormal.copy(depth);
+    } else {
+      const localAngle = (flatPosition.x / flatLongitudeRadius) * bendProgress;
+      const curveRadius = flatLongitudeRadius / bendProgress;
+      curvedPosition.set(
+        curveRadius * Math.sin(localAngle),
+        flatPosition.y,
+        flatPosition.z + curveRadius * (Math.cos(localAngle) - 1),
+      );
+      cylinderNormal.set(Math.sin(localAngle), 0, Math.cos(localAngle)).normalize();
+    }
+
+    position.copy(curvedPosition).lerp(globePosition, settleProgress);
 
     normal.copy(globePosition).normalize();
     globeQuaternion.setFromUnitVectors(up, normal);
     flatQuaternion.setFromUnitVectors(up, depth);
-    quaternion.copy(flatQuaternion).slerp(globeQuaternion, morphProgress);
+    cylinderQuaternion.setFromUnitVectors(up, cylinderNormal);
+    quaternion.copy(flatQuaternion).slerp(cylinderQuaternion, bendProgress).slerp(globeQuaternion, settleProgress);
 
     matrix.compose(position, quaternion, size);
     mesh.setMatrixAt(index, matrix);
@@ -2052,8 +2084,13 @@ function GlobeBackground({
   morphMode = "globe",
   morphTransition = null,
   transparent,
+  mapOffset,
+  setMapOffset,
   mapZoom,
   setMapZoom,
+  mapDepth,
+  tiltX,
+  tiltY,
   setSelectedDots,
   shaderSettings,
   label,
@@ -2062,16 +2099,23 @@ function GlobeBackground({
   const mountRef = useRef(null);
   const stateRef = useRef({
     active: false,
+    baseOffsetX: 0,
+    baseOffsetY: 0,
     currentX: GLOBE_INITIAL_ROTATION.x,
     currentY: GLOBE_INITIAL_ROTATION.y,
+    dragMode: "rotate",
     lastX: 0,
     lastY: 0,
     moved: false,
+    startX: 0,
+    startY: 0,
     targetX: GLOBE_INITIAL_ROTATION.x,
     targetY: GLOBE_INITIAL_ROTATION.y,
   });
   const threeRef = useRef(null);
+  const mapOffsetRef = useRef(mapOffset);
   const mapZoomRef = useRef(mapZoom);
+  const morphModeRef = useRef(morphMode);
   const initialMorphProgress = morphTransition === "to-globe" ? 0 : morphMode === "globe" ? 1 : 0;
   const morphRef = useRef({
     active: false,
@@ -2081,10 +2125,14 @@ function GlobeBackground({
     target: initialMorphProgress,
   });
   const settingsRef = useRef(shaderSettings);
+  const transformRef = useRef({ mapDepth, tiltX, tiltY });
   const [isDraggingGlobe, setIsDraggingGlobe] = useState(false);
 
+  mapOffsetRef.current = mapOffset;
   mapZoomRef.current = mapZoom;
+  morphModeRef.current = morphMode;
   settingsRef.current = shaderSettings;
+  transformRef.current = { mapDepth, tiltX, tiltY };
 
   const getClientPoint = (event) => {
     const touch = event.touches?.[0] || event.changedTouches?.[0];
@@ -2101,12 +2149,21 @@ function GlobeBackground({
     const point = getClientPoint(event);
     if (!point) return;
 
+    const shouldPanFlatMap = morphModeRef.current === "flat" && morphRef.current.progress < 0.35;
+    const offset = mapOffsetRef.current || { x: 0, y: 0 };
     stateRef.current.active = true;
+    stateRef.current.baseOffsetX = offset.x;
+    stateRef.current.baseOffsetY = offset.y;
+    stateRef.current.dragMode = shouldPanFlatMap ? "pan" : "rotate";
     stateRef.current.lastX = point.x;
     stateRef.current.lastY = point.y;
     stateRef.current.moved = false;
+    stateRef.current.startX = point.x;
+    stateRef.current.startY = point.y;
     setIsDraggingGlobe(true);
-    event.currentTarget.setPointerCapture?.(event.pointerId);
+    if (event.pointerId !== undefined) {
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    }
   }, []);
 
   const dragGlobe = useCallback((event) => {
@@ -2120,25 +2177,60 @@ function GlobeBackground({
     const dy = point.y - state.lastY;
     state.lastX = point.x;
     state.lastY = point.y;
+
+    if (state.dragMode === "pan") {
+      const panX = point.x - state.startX;
+      const panY = point.y - state.startY;
+      if (Math.abs(panX) > 3 || Math.abs(panY) > 3) {
+        state.moved = true;
+      }
+      setMapOffset({
+        x: state.baseOffsetX + panX,
+        y: state.baseOffsetY + panY,
+      });
+      event.preventDefault();
+      return;
+    }
+
     state.targetY += dx * 0.006;
     state.targetX = clampNumber(state.targetX + dy * 0.0045, -1.18, 1.18);
     state.moved = state.moved || Math.abs(dx) > 2 || Math.abs(dy) > 2;
     event.preventDefault();
-  }, []);
+  }, [setMapOffset]);
 
   const stopDrag = useCallback((event) => {
     if (!stateRef.current.active) return;
     stateRef.current.active = false;
     setIsDraggingGlobe(false);
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    if (event.pointerId !== undefined) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
   }, []);
 
   const zoomGlobe = useCallback((event) => {
     event.preventDefault();
     const intensity = event.ctrlKey ? 0.01 : 0.0018;
-    const nextZoom = clampNumber(mapZoom * Math.exp(-event.deltaY * intensity), 0.5, 3);
+    const currentZoom = clampNumber(mapZoomRef.current, 0.5, 3);
+    const nextZoom = clampNumber(currentZoom * Math.exp(-event.deltaY * intensity), 0.5, 3);
+
+    if (morphModeRef.current === "flat" && morphRef.current.progress < 0.35) {
+      const point = getClientPoint(event);
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (point && rect.width && rect.height) {
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const pointerX = point.x - centerX;
+        const pointerY = point.y - centerY;
+        const zoomRatio = nextZoom / currentZoom;
+        setMapOffset((offset) => ({
+          x: pointerX - (pointerX - offset.x) * zoomRatio,
+          y: pointerY - (pointerY - offset.y) * zoomRatio,
+        }));
+      }
+    }
+
     setMapZoom(Number(nextZoom.toFixed(3)));
-  }, [mapZoom, setMapZoom]);
+  }, [setMapOffset, setMapZoom]);
 
   const toggleNearestDot = useCallback((event) => {
     if (stateRef.current.moved) {
@@ -2258,8 +2350,9 @@ function GlobeBackground({
       const effectMotion = clampNumber(settings.motion ?? 35, 0, 100);
       const spin = 0.00008 + effectMotion * 0.0000035;
 
+      const spinProgress = smoothStep(0.28, 1, morphRef.current.progress);
       if (!state.active) {
-        state.targetY += spin * delta;
+        state.targetY += spin * delta * spinProgress;
       }
 
       state.currentX += (state.targetX - state.currentX) * 0.095;
@@ -2276,17 +2369,30 @@ function GlobeBackground({
         }
       }
 
+      const flatProgress = 1 - smoothStep(0.06, 0.82, morph.progress);
       const rotationProgress = smoothStep(0.08, 1, morph.progress);
-      globeGroup.rotation.x = state.currentX * rotationProgress;
-      globeGroup.rotation.y = state.currentY * rotationProgress;
+      const transform = transformRef.current;
+      const targetFov = clampNumber(42 + (transform.mapDepth - 55) * 0.12 * flatProgress, 34, 54);
+      camera.fov += (targetFov - camera.fov) * 0.12;
+      camera.position.z = threeRef.current.baseDistance / clampNumber(mapZoomRef.current, 0.5, 3);
+      camera.updateProjectionMatrix();
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.z;
+      const visibleWidth = visibleHeight * camera.aspect;
+      const offset = mapOffsetRef.current || { x: 0, y: 0 };
+
+      globeGroup.position.x = (offset.x / Math.max(rect.width, 1)) * visibleWidth * flatProgress;
+      globeGroup.position.y = (-offset.y / Math.max(rect.height, 1)) * visibleHeight * flatProgress;
+      globeGroup.position.z = 0;
+      globeGroup.rotation.x = THREE.MathUtils.degToRad(transform.tiltX || 0) * flatProgress + state.currentX * rotationProgress;
+      globeGroup.rotation.y = THREE.MathUtils.degToRad(transform.tiltY || 0) * flatProgress + state.currentY * rotationProgress;
 
       if (threeRef.current.dotLayer) {
         applyDotLayerMorph(threeRef.current.dotLayer, morph.progress);
       }
       applyGlobeShellProgress(threeRef.current, morph.progress);
 
-      camera.position.z = threeRef.current.baseDistance / clampNumber(mapZoomRef.current, 0.5, 3);
-      camera.updateProjectionMatrix();
       renderer.render(scene, camera);
       frame = window.requestAnimationFrame(animate);
     };
@@ -2702,7 +2808,7 @@ function App() {
   }, [exportSvgData.svg]);
 
   const exportPng = () => {
-    const activeGlobeCanvas = viewMode === "globe" ? globeCanvasRef.current : null;
+    const activeGlobeCanvas = globeCanvasRef.current;
     if (activeGlobeCanvas?.width && activeGlobeCanvas?.height) {
       const scale = exportScaleValue(canvasScale);
       const canvas = document.createElement("canvas");
@@ -2766,8 +2872,8 @@ function App() {
   };
 
   const isViewTransitioning = Boolean(viewTransition);
-  const showFlatBackground = viewMode === "flat" && !isViewTransitioning;
-  const showGlobeBackground = viewMode === "globe" || isViewTransitioning;
+  const showFlatBackground = false;
+  const showGlobeBackground = true;
 
   return (
     <main
@@ -2804,13 +2910,18 @@ function App() {
           transparent={transparent}
           morphMode={viewMode === "globe" ? "globe" : "flat"}
           morphTransition={viewTransition}
-          interactive={viewMode === "globe" && !isViewTransitioning}
+          interactive={!isViewTransitioning}
+          mapOffset={mapOffset}
+          setMapOffset={setMapOffset}
           mapZoom={mapZoom}
           setMapZoom={setMapZoom}
+          mapDepth={mapDepth}
+          tiltX={tiltX}
+          tiltY={tiltY}
           setSelectedDots={setSelectedDots}
           shaderSettings={shaderSettings}
           canvasHandleRef={globeCanvasRef}
-          label={`${selected.label} dotted globe background`}
+          label={`${selected.label} dotted ${viewMode === "globe" ? "globe" : "map"} background`}
         />
       )}
       {showFlatBackground && (
