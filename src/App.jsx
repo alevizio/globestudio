@@ -293,7 +293,7 @@ const areaOptions = [
 ];
 
 const areaOptionByValue = new Map(areaOptions.map((option) => [option.value, option]));
-const dotShapeOptions = ["Circle", "Hexagon", "Triangle", "Pentagon", "Square", "Diamond", "Star", "Plus", "Ring"];
+const dotShapeOptions = ["Circle", "Hexagon", "Triangle", "Pentagon", "Square", "Diamond", "Star", "Plus", "Ring", "ASCII"];
 
 const DEFAULT_SHADER_SETTINGS = {
   effect: "none",
@@ -496,6 +496,44 @@ function createPlusPointArray(x, y, radius) {
   ];
 }
 
+function createBarShape(width, height, rotation = 0) {
+  const halfWidth = width / 2;
+  const halfHeight = height / 2;
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  const corners = [
+    [-halfWidth, -halfHeight],
+    [halfWidth, -halfHeight],
+    [halfWidth, halfHeight],
+    [-halfWidth, halfHeight],
+  ].map(([x, y]) => [x * cos - y * sin, x * sin + y * cos]);
+
+  const shape = new THREE.Shape();
+  corners.forEach(([x, y], index) => {
+    if (index === 0) shape.moveTo(x, y);
+    else shape.lineTo(x, y);
+  });
+  shape.closePath();
+  return shape;
+}
+
+function createAsciiAsteriskGeometry() {
+  const bars = [
+    createBarShape(0.22, 1.5, 0),
+    createBarShape(0.22, 1.5, Math.PI / 4),
+    createBarShape(0.22, 1.5, Math.PI / 2),
+    createBarShape(0.22, 1.5, -Math.PI / 4),
+  ];
+  const geometry = new THREE.ExtrudeGeometry(bars, {
+    bevelEnabled: false,
+    depth: 0.28,
+    steps: 1,
+  });
+  geometry.center();
+  geometry.rotateX(Math.PI / 2);
+  return geometry;
+}
+
 function formatPointList(points) {
   return points
     .map(([x, y]) => `${formatSvgNumber(x, 2)},${formatSvgNumber(y, 2)}`)
@@ -627,6 +665,7 @@ function getShapeBounds(point, radius, shape) {
   }
 
   const shapeRadius = {
+    ASCII: 1.8,
     Diamond: 1.35,
     Plus: 1.38,
     Ring: 1.08,
@@ -671,6 +710,7 @@ function createGlobeDotGeometry(shape) {
   if (shape === "Hexagon") return new THREE.CylinderGeometry(1, 1, 0.36, 6, 1);
   if (shape === "Square") return new THREE.BoxGeometry(1.28, 0.32, 1.28);
   if (shape === "Diamond") return new THREE.OctahedronGeometry(1, 0);
+  if (shape === "ASCII") return createAsciiAsteriskGeometry();
   if (shape === "Ring") {
     const geometry = new THREE.TorusGeometry(0.74, 0.2, 10, 24);
     geometry.rotateX(Math.PI / 2);
@@ -1226,6 +1266,11 @@ function createDotMarkup(point, radius, shape, color, selectedDots) {
   const fill = selectedDots.has(point.id) ? CLICK_HIGHLIGHT : color;
   const data = `class="map-dot" data-dot-id="${point.id}" fill="${fill}"`;
   const plainData = `class="map-dot" data-dot-id="${point.id}"`;
+
+  if (shape === "ASCII") {
+    const fontSize = radius * 3.55;
+    return `<text ${data} x="${formatSvgNumber(point.x)}" y="${formatSvgNumber(point.y)}" text-anchor="middle" dominant-baseline="central" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace" font-size="${formatSvgNumber(fontSize)}" font-weight="700">*</text>`;
+  }
 
   if (shape === "Square") {
     return `<rect ${data} x="${formatSvgNumber(point.x - radius)}" y="${formatSvgNumber(point.y - radius)}" width="${formatSvgNumber(radius * 2)}" height="${formatSvgNumber(radius * 2)}" />`;
