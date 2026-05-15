@@ -208,188 +208,23 @@ button {
   }
 }
 
-.layer-rail,
 .control-rail {
   position: fixed;
   top: 62px;
   bottom: 12px;
+  left: 12px;
   z-index: 2;
+  width: min(398px, calc(100vw - 24px));
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  overflow: auto;
+  padding: 10px;
   background: var(--panel);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
   backdrop-filter: blur(18px);
   border: 1px solid var(--border);
   border-radius: 14px;
-}
-
-.layer-rail {
-  left: 12px;
-  width: 238px;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 10px;
-  overflow: hidden;
-  padding: 10px;
-}
-
-.layer-panel-header,
-.panel-title-line,
-.layer-footer {
-  display: flex;
-  align-items: center;
-}
-
-.layer-panel-header {
-  justify-content: space-between;
-  min-height: 36px;
-  padding: 0 4px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 820;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.panel-title-line {
-  gap: 8px;
-}
-
-.panel-count,
-.layer-kind,
-.inspector-actions > span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 22px;
-  padding: 0 7px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.045);
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.layer-list {
-  display: grid;
-  align-content: start;
-  gap: 6px;
-  overflow: auto;
-  padding-right: 2px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--panel-3) transparent;
-}
-
-.layer-button {
-  width: 100%;
-  min-height: 58px;
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 9px;
-  padding: 8px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease,
-    transform 140ms ease;
-}
-
-.layer-button:hover,
-.layer-button:focus-visible,
-.layer-button.is-active {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: var(--border);
-}
-
-.layer-button:active {
-  transform: translateY(1px);
-}
-
-.layer-button.is-active .layer-icon {
-  border-color: rgba(214, 255, 121, 0.46);
-  background: rgba(214, 255, 121, 0.12);
-  color: var(--accent);
-}
-
-.layer-icon {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--muted);
-}
-
-.layer-copy {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
-}
-
-.layer-copy strong {
-  overflow: hidden;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 790;
-  line-height: 1.1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.layer-copy span {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 650;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.layer-footer {
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 40px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.045);
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 720;
-}
-
-.layer-footer span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.layer-footer strong {
-  color: var(--text);
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-.control-rail {
-  right: 12px;
-  width: min(392px, calc(100vw - 286px));
-  display: grid;
-  align-content: start;
-  gap: 10px;
-  overflow: auto;
-  padding: 10px;
   scrollbar-width: thin;
   scrollbar-color: var(--panel-3) transparent;
 }
@@ -548,59 +383,49 @@ button {
   cursor: default;
 }
 
-.control-panel {
-  min-width: 0;
-  display: grid;
-  gap: 10px;
-}
-
-.inspector-header {
+.panel-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.inspector-header > div:first-child {
-  min-width: 0;
-}
-
-.inspector-header > div:first-child > span {
-  display: block;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 820;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.inspector-header h2 {
-  overflow: hidden;
-  margin: 6px 0 0;
-  color: var(--text);
-  font-size: 20px;
-  font-weight: 760;
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.inspector-actions {
-  display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.inspector-reset-button {
-  width: 36px;
-  min-width: 36px;
-  min-height: 36px;
-  padding: 0;
+.panel-meta {
+  min-width: 0;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 740;
+}
+
+.panel-meta span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-meta span:last-child {
+  color: var(--text);
+  font-size: 11px;
+}
+
+.panel-reset-button {
+  min-width: 92px;
+}
+
+.control-panel {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
 }
 
 .option-block {
@@ -610,19 +435,42 @@ button {
   background: rgba(255, 255, 255, 0.035);
 }
 
-.option-block header {
+.option-block summary {
   min-height: 34px;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 0 12px;
-  border-bottom: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.045);
   color: var(--muted);
   font-size: 10px;
   font-weight: 820;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.option-block summary::-webkit-details-marker {
+  display: none;
+}
+
+.option-block summary svg:last-child {
+  margin-left: auto;
+  transition: transform 140ms ease;
+}
+
+.option-block[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.option-block[open] > summary svg:last-child {
+  transform: rotate(180deg);
+}
+
+.option-content {
+  display: grid;
 }
 
 .option-row {
@@ -696,10 +544,10 @@ input[type="range"]:focus-visible,
 .transparent-toggle:focus-visible,
 .color-swatch:focus-visible,
 .step-button:focus-visible,
-  .export-menu-item:focus-visible,
-  .export-scale-option:focus-visible,
-  .layer-button:focus-visible,
-  .copy-fallback:focus-visible {
+.export-menu-item:focus-visible,
+.export-scale-option:focus-visible,
+.option-block summary:focus-visible,
+.copy-fallback:focus-visible {
   outline: 3px solid rgba(214, 255, 121, 0.24);
   outline-offset: 2px;
 }
@@ -841,24 +689,14 @@ input[type="range"] {
     opacity: 0.012;
   }
 
-  .layer-rail,
   .control-rail {
     position: relative;
     top: auto;
     bottom: auto;
     left: auto;
-    right: auto;
     width: 100%;
     max-height: none;
-  }
-
-  .layer-rail {
     margin-top: 52px;
-    grid-template-rows: auto auto auto;
-  }
-
-  .control-rail {
-    margin-top: 10px;
   }
 
   .top-actions {
