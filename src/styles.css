@@ -93,12 +93,12 @@ button {
 
 .app-shell.is-transparent-preview,
 .app-shell.is-transparent-preview .map-background {
-  background-color: #101012;
+  background-color: #171717;
   background-image:
-    linear-gradient(45deg, rgba(255, 255, 255, 0.115) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(255, 255, 255, 0.115) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.115) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.115) 75%);
+    linear-gradient(45deg, rgba(255, 255, 255, 0.075) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.075) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.075) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.075) 75%);
   background-position:
     0 0,
     0 14px,
@@ -109,8 +109,8 @@ button {
 
 .app-shell.is-transparent-preview::after {
   background:
-    linear-gradient(90deg, rgba(11, 11, 12, 0.34), transparent 36%, transparent 68%, rgba(11, 11, 12, 0.32)),
-    linear-gradient(180deg, rgba(11, 11, 12, 0.03), rgba(11, 11, 12, 0.16));
+    linear-gradient(90deg, rgba(10, 10, 10, 0.18), transparent 36%, transparent 68%, rgba(10, 10, 10, 0.18)),
+    linear-gradient(180deg, rgba(10, 10, 10, 0.02), rgba(10, 10, 10, 0.08));
 }
 
 .map-background .dot-map {

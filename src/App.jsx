@@ -1990,7 +1990,7 @@ function App() {
         panelCollapsed ? "is-panel-collapsed" : ""
       }`}
       style={{
-        "--preview-bg": transparent ? "#101012" : background,
+        "--preview-bg": transparent ? "#171717" : background,
         "--map-offset-x": `${mapOffset.x}px`,
         "--map-offset-y": `${mapOffset.y}px`,
         "--map-perspective": `${1800 - mapDepth * 14}px`,
