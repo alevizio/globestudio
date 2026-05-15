@@ -335,6 +335,8 @@ const shaderEffectValue = {
 
 const GLOBE_RADIUS = 2;
 const GLOBE_CAMERA_DISTANCE = 7.35;
+const GLOBE_FLAT_FIT_ASPECT = 0.96;
+const GLOBE_ROUND_FIT_ASPECT = 1.1;
 const GLOBE_INITIAL_ROTATION = { x: -0.14, y: -0.9 };
 const GLOBE_MORPH_DURATION = 1250;
 const GLOBE_DEFAULT_GLOW = "#dbe8b5";
@@ -877,8 +879,8 @@ function applyDotInstances(mesh, points, image, scale, radiusOffset = 0, morphPr
   const up = new THREE.Vector3(0, 1, 0);
   const depth = new THREE.Vector3(0, 0, 1);
   const size = new THREE.Vector3(scale, scale, scale);
-  const wrapProgress = smoothStep(0, 0.62, morphProgress);
-  const sphereProgress = smoothStep(0.16, 1, morphProgress);
+  const wrapProgress = smoothStep(0.02, 0.7, morphProgress);
+  const sphereProgress = smoothStep(0.24, 1, morphProgress);
   const targetRadius = GLOBE_RADIUS + radiusOffset;
 
   points.forEach((point, index) => {
@@ -2614,6 +2616,7 @@ function GlobeBackground({
   globeSettings,
   label,
   canvasHandleRef,
+  panelCollapsed,
 }) {
   const mountRef = useRef(null);
   const stateRef = useRef({
@@ -2635,6 +2638,7 @@ function GlobeBackground({
   const mapOffsetRef = useRef(mapOffset);
   const mapZoomRef = useRef(mapZoom);
   const morphModeRef = useRef(morphMode);
+  const panelCollapsedRef = useRef(panelCollapsed);
   const initialMorphProgress = morphTransition === "to-globe" ? 0 : morphMode === "globe" ? 1 : 0;
   const morphRef = useRef({
     active: false,
@@ -2651,6 +2655,7 @@ function GlobeBackground({
   mapOffsetRef.current = mapOffset;
   mapZoomRef.current = mapZoom;
   morphModeRef.current = morphMode;
+  panelCollapsedRef.current = panelCollapsed;
   settingsRef.current = shaderSettings;
   globeSettingsRef.current = globeSettings;
   transformRef.current = { mapDepth, tiltX, tiltY };
@@ -2842,6 +2847,8 @@ function GlobeBackground({
       borderlessNetwork,
       camera,
       dotLayer: null,
+      flatDistance: GLOBE_CAMERA_DISTANCE,
+      globeDistance: GLOBE_CAMERA_DISTANCE,
       globeGroup,
       graticule,
       graticuleOpacity: 0.13,
@@ -2857,7 +2864,13 @@ function GlobeBackground({
       const height = Math.max(1, Math.floor(rect.height));
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      threeRef.current.baseDistance = GLOBE_CAMERA_DISTANCE * Math.max(1, 0.78 / Math.max(camera.aspect, 0.1));
+      const aspect = Math.max(camera.aspect, 0.1);
+      const narrowFit = clampNumber((760 - width) / 260, 0, 1);
+      const flatFitAspect = GLOBE_FLAT_FIT_ASPECT + narrowFit * 0.18;
+      const globeFitAspect = GLOBE_ROUND_FIT_ASPECT + narrowFit * 0.32;
+      threeRef.current.flatDistance = GLOBE_CAMERA_DISTANCE * Math.max(1, flatFitAspect / aspect);
+      threeRef.current.globeDistance = GLOBE_CAMERA_DISTANCE * Math.max(1, globeFitAspect / aspect);
+      threeRef.current.baseDistance = threeRef.current.globeDistance;
       renderer.setSize(width, height, false);
     };
 
@@ -2896,19 +2909,27 @@ function GlobeBackground({
       }
 
       const flatProgress = 1 - smoothStep(0.06, 0.82, morph.progress);
-      const rotationProgress = smoothStep(0.08, 1, morph.progress);
+      const rotationProgress = smoothStep(0.18, 1, morph.progress);
       const transform = transformRef.current;
       const targetFov = clampNumber(42 + (transform.mapDepth - 55) * 0.12 * flatProgress, 34, 54);
+      const targetDistance = THREE.MathUtils.lerp(
+        threeRef.current.flatDistance || threeRef.current.baseDistance,
+        threeRef.current.globeDistance || threeRef.current.baseDistance,
+        rotationProgress,
+      );
       camera.fov += (targetFov - camera.fov) * 0.12;
-      camera.position.z = threeRef.current.baseDistance / clampNumber(mapZoomRef.current, 0.5, 3);
+      camera.position.z = targetDistance / clampNumber(mapZoomRef.current, 0.5, 3);
       camera.updateProjectionMatrix();
 
       const rect = renderer.domElement.getBoundingClientRect();
       const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.z;
       const visibleWidth = visibleHeight * camera.aspect;
       const offset = mapOffsetRef.current || { x: 0, y: 0 };
+      const narrowFocus = clampNumber((760 - rect.width) / 260, 0, 1);
+      const panelFocusPixels = panelCollapsedRef.current ? 0 : narrowFocus * 104;
+      const globeFocusOffset = (panelFocusPixels / Math.max(rect.width, 1)) * visibleWidth;
 
-      globeGroup.position.x = (offset.x / Math.max(rect.width, 1)) * visibleWidth * flatProgress;
+      globeGroup.position.x = (offset.x / Math.max(rect.width, 1)) * visibleWidth * flatProgress + globeFocusOffset * rotationProgress;
       globeGroup.position.y = (-offset.y / Math.max(rect.height, 1)) * visibleHeight * flatProgress;
       globeGroup.position.z = 0;
       globeGroup.rotation.x = THREE.MathUtils.degToRad(transform.tiltX || 0) * flatProgress + state.currentX * rotationProgress;
@@ -3472,6 +3493,7 @@ function App() {
           shaderSettings={shaderSettings}
           globeSettings={globeSettings}
           canvasHandleRef={globeCanvasRef}
+          panelCollapsed={panelCollapsed}
           label={`${selected.label} dotted ${viewMode === "globe" ? "globe" : "map"} background`}
         />
       )}

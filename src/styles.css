@@ -1005,6 +1005,29 @@ input[type="range"] {
 
 }
 
+@media (min-width: 521px) and (max-width: 620px) {
+  body {
+    overflow: hidden;
+  }
+
+  .app-shell {
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .control-rail {
+    position: fixed;
+    top: 112px;
+    bottom: auto;
+    left: 10px;
+    width: min(360px, calc(100vw - 20px));
+    max-height: calc(100vh - 124px);
+    margin-top: 0;
+    padding-bottom: 10px;
+    overflow: auto;
+  }
+}
+
 @media (max-width: 460px) {
   .option-row {
     grid-template-columns: 1fr;
