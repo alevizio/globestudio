@@ -539,18 +539,6 @@ input[type="range"] {
   cursor: pointer;
 }
 
-.pan-control {
-  display: grid;
-  grid-template-columns: repeat(3, 38px);
-  justify-content: center;
-  gap: 7px;
-}
-
-.pan-spacer {
-  width: 38px;
-  height: 38px;
-}
-
 .background-control {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);

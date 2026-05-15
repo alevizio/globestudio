@@ -1,15 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
   ChevronDown,
   Check,
   Clipboard,
   Download,
   Minus,
-  Move,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
@@ -1212,38 +1207,6 @@ function DepthControl({ value, onChange }) {
   );
 }
 
-function PanControl({ onPan, onReset }) {
-  return (
-    <div className="pan-control" aria-label="Map pan controls">
-      <span className="pan-spacer" />
-      <button type="button" className="step-button" onClick={() => onPan(0, -30)} aria-label="Pan up" title="Pan up">
-        <ArrowUp size={15} />
-      </button>
-      <span className="pan-spacer" />
-      <button type="button" className="step-button" onClick={() => onPan(-30, 0)} aria-label="Pan left" title="Pan left">
-        <ArrowLeft size={15} />
-      </button>
-      <button type="button" className="step-button" onClick={onReset} aria-label="Center map" title="Center map">
-        <Move size={15} />
-      </button>
-      <button type="button" className="step-button" onClick={() => onPan(30, 0)} aria-label="Pan right" title="Pan right">
-        <ArrowRight size={15} />
-      </button>
-      <span className="pan-spacer" />
-      <button
-        type="button"
-        className="step-button"
-        onClick={() => onPan(0, 30)}
-        aria-label="Pan down"
-        title="Pan down"
-      >
-        <ArrowDown size={15} />
-      </button>
-      <span className="pan-spacer" />
-    </div>
-  );
-}
-
 function ColorSwatch({ value, onChange, label }) {
   return (
     <div className="color-control">
@@ -1277,8 +1240,6 @@ function ControlPanel({
   setTransparent,
   mapZoom,
   setMapZoom,
-  mapOffset,
-  setMapOffset,
   mapDepth,
   setMapDepth,
   tiltX,
@@ -1303,12 +1264,6 @@ function ControlPanel({
     setShaderSettings((settings) => ({
       ...settings,
       [key]: value,
-    }));
-  };
-  const panMap = (x, y) => {
-    setMapOffset((offset) => ({
-      x: offset.x + x,
-      y: offset.y + y,
     }));
   };
 
@@ -1359,9 +1314,6 @@ function ControlPanel({
         </OptionRow>
         <OptionRow label="Zoom" value={`${Math.round(mapZoom * 100)}%`}>
           <ZoomControl value={mapZoom} onChange={setMapZoom} />
-        </OptionRow>
-        <OptionRow label="Pan" value={`${Math.round(mapOffset.x)}, ${Math.round(mapOffset.y)}`}>
-          <PanControl onPan={panMap} onReset={() => setMapOffset({ x: 0, y: 0 })} />
         </OptionRow>
         <OptionRow label="Tilt X" value={`${tiltX} deg`}>
           <TiltControl label="Tilt X" value={tiltX} onChange={setTiltX} />
@@ -1515,6 +1467,8 @@ function DottedMapBackground({
   svgMarkup,
   svgWidth,
   svgHeight,
+  mapZoom,
+  setMapZoom,
   mapOffset,
   setMapOffset,
   setSelectedDots,
@@ -1590,6 +1544,27 @@ function DottedMapBackground({
     }
   }, []);
 
+  const zoomMap = useCallback((event) => {
+    const point = getClientPoint(event);
+    if (!point) return;
+
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const pointerX = point.x - centerX;
+    const pointerY = point.y - centerY;
+    const intensity = event.ctrlKey ? 0.01 : 0.0018;
+    const nextZoom = clampNumber(mapZoom * Math.exp(-event.deltaY * intensity), 0.5, 3);
+    const zoomRatio = nextZoom / mapZoom;
+
+    setMapZoom(Number(nextZoom.toFixed(3)));
+    setMapOffset((offset) => ({
+      x: pointerX - (pointerX - offset.x) * zoomRatio,
+      y: pointerY - (pointerY - offset.y) * zoomRatio,
+    }));
+  }, [mapZoom, setMapOffset, setMapZoom]);
+
   const toggleDot = useCallback((event) => {
     if (dragState.current.moved) {
       dragState.current.moved = false;
@@ -1628,6 +1603,7 @@ function DottedMapBackground({
       onTouchMove={dragMap}
       onTouchEnd={stopDrag}
       onTouchCancel={stopDrag}
+      onWheel={zoomMap}
       onClick={toggleDot}
     >
       <div className="map-svg-layer" dangerouslySetInnerHTML={{ __html: svgMarkup }} />
@@ -1997,6 +1973,8 @@ function App() {
         svgMarkup={displaySvg.svg}
         svgWidth={displaySvg.width}
         svgHeight={displaySvg.height}
+        mapZoom={mapZoom}
+        setMapZoom={setMapZoom}
         mapOffset={mapOffset}
         setMapOffset={setMapOffset}
         setSelectedDots={setSelectedDots}
@@ -2048,8 +2026,6 @@ function App() {
             setTransparent={setTransparent}
             mapZoom={mapZoom}
             setMapZoom={setMapZoom}
-            mapOffset={mapOffset}
-            setMapOffset={setMapOffset}
             mapDepth={mapDepth}
             setMapDepth={setMapDepth}
             tiltX={tiltX}
