@@ -1314,6 +1314,41 @@ function ControlPanel({
 
   return (
     <aside className="control-panel">
+      <PanelSection title="Dots">
+        <OptionRow label="Shape">
+          <SelectControl
+            label="Dot shape"
+            value={shape}
+            onChange={setShape}
+            options={["Circle", "Hexagon", "Square", "Diamond"].map((item) => ({
+              value: item,
+              label: item,
+            }))}
+          />
+        </OptionRow>
+        <OptionRow label="Density" value={density}>
+          <RangeControl
+            label="Density"
+            min={1}
+            max={100}
+            value={density}
+            onChange={setDensity}
+          />
+        </OptionRow>
+        <OptionRow label="Size" value={dotSize}>
+          <RangeControl
+            label="Size"
+            min={1}
+            max={25}
+            value={dotSize}
+            onChange={setDotSize}
+          />
+        </OptionRow>
+        <OptionRow label="Color">
+          <ColorSwatch value={dotColor} onChange={setDotColor} label="Select dot color" />
+        </OptionRow>
+      </PanelSection>
+
       <PanelSection title="Map">
         <OptionRow label="Area">
           <SelectControl
@@ -1470,40 +1505,6 @@ function ControlPanel({
         )}
       </PanelSection>
 
-      <PanelSection title="Dots">
-        <OptionRow label="Shape">
-          <SelectControl
-            label="Dot shape"
-            value={shape}
-            onChange={setShape}
-            options={["Circle", "Hexagon", "Square", "Diamond"].map((item) => ({
-              value: item,
-              label: item,
-            }))}
-          />
-        </OptionRow>
-        <OptionRow label="Density" value={density}>
-          <RangeControl
-            label="Density"
-            min={1}
-            max={100}
-            value={density}
-            onChange={setDensity}
-          />
-        </OptionRow>
-        <OptionRow label="Size" value={dotSize}>
-          <RangeControl
-            label="Size"
-            min={1}
-            max={25}
-            value={dotSize}
-            onChange={setDotSize}
-          />
-        </OptionRow>
-        <OptionRow label="Color">
-          <ColorSwatch value={dotColor} onChange={setDotColor} label="Select dot color" />
-        </OptionRow>
-      </PanelSection>
     </aside>
   );
 }
