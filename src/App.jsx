@@ -367,9 +367,12 @@ const GLOBE_MORPH_DURATION = 1250;
 const GLOBE_DEFAULT_GLOW = "#dbe8b5";
 const DEFAULT_GLOBE_SETTINGS = {
   autoSpin: true,
+  dotLift: 15,
   glow: true,
   glowStrength: 58,
   grid: true,
+  gridLift: 1,
+  gridSize: 30,
   gridStrength: 82,
   look: "classic",
   routes: true,
@@ -850,7 +853,17 @@ function createGlobeDotGeometry(shape) {
   return new THREE.SphereGeometry(1, 9, 7);
 }
 
-function createGraticule(radius = GLOBE_RADIUS + 0.006) {
+function getGridSettingsSignature(settings = DEFAULT_GLOBE_SETTINGS) {
+  const gridSize = clampNumber(settings.gridSize ?? DEFAULT_GLOBE_SETTINGS.gridSize, 12, 60);
+  const gridLift = clampNumber(settings.gridLift ?? DEFAULT_GLOBE_SETTINGS.gridLift, 0, 100);
+  return `${gridSize}:${gridLift}`;
+}
+
+function createGraticule(settings = DEFAULT_GLOBE_SETTINGS) {
+  const gridSize = clampNumber(settings.gridSize ?? DEFAULT_GLOBE_SETTINGS.gridSize, 12, 60);
+  const gridLift = clampNumber(settings.gridLift ?? DEFAULT_GLOBE_SETTINGS.gridLift, 0, 100);
+  const radius = GLOBE_RADIUS + 0.004 + gridLift * 0.0024;
+  const sampleStep = Math.max(2, Math.min(6, gridSize / 6));
   const group = new THREE.Group();
   const material = new THREE.LineBasicMaterial({
     color: 0xffffff,
@@ -859,24 +872,39 @@ function createGraticule(radius = GLOBE_RADIUS + 0.006) {
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
+  group.userData.gridSignature = getGridSettingsSignature({ gridSize, gridLift });
 
-  for (let lat = -60; lat <= 60; lat += 30) {
+  for (let lat = -90 + gridSize; lat < 90; lat += gridSize) {
     const points = [];
-    for (let lng = -180; lng <= 180; lng += 4) {
+    for (let lng = -180; lng <= 180; lng += sampleStep) {
       points.push(latLngToVector3(lat, lng, radius));
     }
     group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material));
   }
 
-  for (let lng = -180; lng < 180; lng += 30) {
+  for (let lng = -180; lng < 180; lng += gridSize) {
     const points = [];
-    for (let lat = -82; lat <= 82; lat += 4) {
+    for (let lat = -82; lat <= 82; lat += sampleStep) {
       points.push(latLngToVector3(lat, lng, radius));
     }
     group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material));
   }
 
   return group;
+}
+
+function syncGraticule(refs, settings) {
+  if (!refs?.globeGroup) return;
+  const signature = getGridSettingsSignature(settings);
+  if (refs.graticule?.userData?.gridSignature === signature) return;
+
+  const nextGraticule = createGraticule(settings);
+  if (refs.graticule) {
+    refs.globeGroup.remove(refs.graticule);
+    disposeThreeObject(refs.graticule);
+  }
+  refs.graticule = nextGraticule;
+  refs.globeGroup.add(nextGraticule);
 }
 
 function createBorderlessRoutePoints([fromLat, fromLng], [toLat, toLng], lift = 0.42, segments = 96) {
@@ -1102,6 +1130,8 @@ function buildGlobeDotLayer({
   const isBorderless = look === "borderless";
   const geometry = createGlobeDotGeometry(shape);
   const size = 0.004 + clampNumber(dotSize, 0.1, 25) * 0.0022;
+  const dotLift = clampNumber(globeSettings?.dotLift ?? DEFAULT_GLOBE_SETTINGS.dotLift, 0, 100) / 100;
+  const baseRadiusOffset = 0.006 + dotLift * 0.08;
   const color = isBorderless && dotColor === "#ffffff" ? new THREE.Color("#f5fbff") : new THREE.Color(dotColor);
   const emissiveColor = isBorderless ? new THREE.Color("#7edfff").lerp(color, 0.48) : color;
   const accentColor = new THREE.Color(isBorderless ? "#a78bff" : CLICK_HIGHLIGHT);
@@ -1121,14 +1151,14 @@ function buildGlobeDotLayer({
     roughness: 0.5,
   });
 
-  const normalMesh = createInstancedDotMesh(normalPoints, mapData.image, geometry, baseMaterial, size, 0.018, morphProgress);
+  const normalMesh = createInstancedDotMesh(normalPoints, mapData.image, geometry, baseMaterial, size, baseRadiusOffset, morphProgress);
   const selectedMesh = createInstancedDotMesh(
     selectedPoints,
     mapData.image,
     geometry.clone(),
     selectedMaterial,
     size * 1.18,
-    0.026,
+    baseRadiusOffset + 0.01,
     morphProgress,
   );
 
@@ -1150,7 +1180,7 @@ function buildGlobeDotLayer({
       glowGeometry,
       glowMaterial,
       size * (isBorderless ? 2.05 + intensity * 0.35 : 2.25 + intensity),
-      isBorderless ? 0.038 : 0.034,
+      baseRadiusOffset + (isBorderless ? 0.024 : 0.02),
       morphProgress,
     );
     if (glowMesh) group.add(glowMesh);
@@ -1180,7 +1210,7 @@ function buildGlobeDotLayer({
         chromaGeometry.clone(),
         material,
         size * 1.2,
-        0.032,
+        baseRadiusOffset + 0.018,
         morphProgress,
       );
       if (mesh) group.add(mesh);
@@ -1199,6 +1229,7 @@ function buildGlobeDotLayer({
 function applyGlobeShellProgress(refs, morphProgress, globeSettings = DEFAULT_GLOBE_SETTINGS) {
   if (!refs) return;
   const settings = { ...DEFAULT_GLOBE_SETTINGS, ...globeSettings };
+  syncGraticule(refs, settings);
   const shellProgress = smoothStep(0.18, 0.92, morphProgress);
   const glowStrength = settings.glow ? clampNumber(settings.glowStrength, 0, 100) / 100 : 0;
   const gridStrength = settings.grid ? clampNumber(settings.gridStrength, 0, 100) / 100 : 0;
@@ -2270,6 +2301,8 @@ function ControlPanel({
         glow: true,
         glowStrength: 78,
         grid: true,
+        gridLift: 8,
+        gridSize: 42,
         gridStrength: 46,
         look: value,
         routes: true,
@@ -2430,16 +2463,46 @@ function ControlPanel({
             />
           </OptionRow>
           {globeSettings.grid && (
-            <OptionRow label="Grid" value={globeSettings.gridStrength}>
-              <RangeControl
-                label="Grid strength"
-                min={0}
-                max={100}
-                value={globeSettings.gridStrength}
-                onChange={(value) => updateGlobeSetting("gridStrength", value)}
-              />
-            </OptionRow>
+            <>
+              <OptionRow label="Grid" value={globeSettings.gridStrength}>
+                <RangeControl
+                  label="Grid strength"
+                  min={0}
+                  max={100}
+                  value={globeSettings.gridStrength}
+                  onChange={(value) => updateGlobeSetting("gridStrength", value)}
+                />
+              </OptionRow>
+              <OptionRow label="Grid Size" value={`${globeSettings.gridSize} deg`}>
+                <RangeControl
+                  label="Grid size"
+                  min={12}
+                  max={60}
+                  step={3}
+                  value={globeSettings.gridSize}
+                  onChange={(value) => updateGlobeSetting("gridSize", value)}
+                />
+              </OptionRow>
+              <OptionRow label="Grid Lift" value={globeSettings.gridLift}>
+                <RangeControl
+                  label="Grid lift"
+                  min={0}
+                  max={100}
+                  value={globeSettings.gridLift}
+                  onChange={(value) => updateGlobeSetting("gridLift", value)}
+                />
+              </OptionRow>
+            </>
           )}
+          <OptionRow label="Dot Lift" value={globeSettings.dotLift}>
+            <RangeControl
+              label="Globe dot lift"
+              min={0}
+              max={100}
+              value={globeSettings.dotLift}
+              onChange={(value) => updateGlobeSetting("dotLift", value)}
+            />
+          </OptionRow>
           {globeSettings.look === "borderless" && (
             <>
               <OptionRow label="Routes">
