@@ -154,7 +154,7 @@ function ZoomOut(props) {
 
 const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 620;
-const DEFAULT_STATE_PADDING = 1;
+const DEFAULT_MAP_PADDING = 1;
 const US_COUNTRY_ID = "USA";
 const CLICK_HIGHLIGHT = "#d6ff79";
 const UNSUPPORTED_DOTTED_MAP_CODES = new Set([
@@ -389,6 +389,13 @@ function inverseMercatorY(y) {
 }
 
 function pointToGlobeCoordinate(point, image) {
+  if (Number.isFinite(point.lat) && Number.isFinite(point.lng)) {
+    return {
+      lat: clampNumber(point.lat, -90, 90),
+      lng: normalizeLongitude(point.lng),
+    };
+  }
+
   const region = image.region;
   if (region?.lat && region?.lng) {
     const lngRange = region.lng.max - region.lng.min;
@@ -520,17 +527,27 @@ function generateDots({ collection, density, padding, shape }) {
   return dots;
 }
 
-function createCountryMapData(countryCodes, density) {
+function createCountryMapData(countryCodes, density, padding = DEFAULT_MAP_PADDING) {
   const map = new DottedMapEngine({
     height: density,
     grid: "diagonal",
     ...(countryCodes.length ? { countries: countryCodes } : {}),
   });
+  const image = map.image;
+  const paddingUnits = image.height * clampNumber(padding, 0, 8) * 0.018;
+  const paddedImage = {
+    ...image,
+    width: image.width + paddingUnits * 2,
+    height: image.height + paddingUnits * 2,
+  };
 
   return {
-    image: map.image,
+    image: paddedImage,
     points: map.getPoints().map((point, index) => ({
       ...point,
+      ...pointToGlobeCoordinate(point, image),
+      x: point.x + paddingUnits,
+      y: point.y + paddingUnits,
       id: `${point.x}:${point.y}:${index}`,
     })),
   };
@@ -554,7 +571,7 @@ function createStateMapData(collection, density, padding, shape) {
 }
 
 function getDotRadius(dotSize, mode) {
-  return mode === "state" ? Math.max(1.2, dotSize * 0.42) : dotSize / 100;
+  return mode === "state" ? Math.max(0.15, dotSize * 0.42) : dotSize / 100;
 }
 
 function getShapeBounds(point, radius, shape) {
@@ -859,7 +876,7 @@ function buildGlobeDotLayer({
   const look = globeSettings?.look ?? DEFAULT_GLOBE_SETTINGS.look;
   const isBorderless = look === "borderless";
   const geometry = createGlobeDotGeometry(shape);
-  const size = 0.009 + clampNumber(dotSize, 1, 25) * 0.00172;
+  const size = 0.004 + clampNumber(dotSize, 0.1, 25) * 0.0022;
   const color = isBorderless && dotColor === "#ffffff" ? new THREE.Color("#f5fbff") : new THREE.Color(dotColor);
   const emissiveColor = isBorderless ? new THREE.Color("#7edfff").lerp(color, 0.48) : color;
   const accentColor = new THREE.Color(isBorderless ? "#a78bff" : CLICK_HIGHLIGHT);
@@ -1949,6 +1966,8 @@ function ControlPanel({
   setTiltX,
   tiltY,
   setTiltY,
+  mapPadding,
+  setMapPadding,
   density,
   setDensity,
   dotSize,
@@ -2026,6 +2045,16 @@ function ControlPanel({
             />
           </OptionRow>
         )}
+        <OptionRow label="Padding" value={formatSvgNumber(mapPadding, 2)}>
+          <RangeControl
+            label="Padding"
+            min={0}
+            max={8}
+            step={0.25}
+            value={mapPadding}
+            onChange={setMapPadding}
+          />
+        </OptionRow>
       </PanelSection>
 
       <PanelSection title="Dots">
@@ -2049,11 +2078,12 @@ function ControlPanel({
             onChange={setDensity}
           />
         </OptionRow>
-        <OptionRow label="Size" value={dotSize}>
+        <OptionRow label="Size" value={formatSvgNumber(dotSize, 1)}>
           <RangeControl
             label="Size"
-            min={1}
+            min={0.1}
             max={25}
+            step={0.1}
             value={dotSize}
             onChange={setDotSize}
           />
@@ -3073,6 +3103,7 @@ function App() {
   const [mapDepth, setMapDepth] = useState(55);
   const [tiltX, setTiltX] = useState(0);
   const [tiltY, setTiltY] = useState(0);
+  const [mapPadding, setMapPadding] = useState(DEFAULT_MAP_PADDING);
   const [density, setDensity] = useState(40);
   const [dotSize, setDotSize] = useState(10);
   const [dotColor, setDotColor] = useState("#ffffff");
@@ -3109,11 +3140,11 @@ function App() {
 
   const mapData = useMemo(() => {
     if (selected.mode === "state") {
-      return createStateMapData(selected.collection, density, DEFAULT_STATE_PADDING, shape);
+      return createStateMapData(selected.collection, density, mapPadding, shape);
     }
 
-    return createCountryMapData(selected.countryCodes, density);
-  }, [density, selected, shape]);
+    return createCountryMapData(selected.countryCodes, density, mapPadding);
+  }, [density, mapPadding, selected, shape]);
 
   const displaySvg = useMemo(
     () =>
@@ -3179,6 +3210,7 @@ function App() {
     setMapDepth(55);
     setTiltX(0);
     setTiltY(0);
+    setMapPadding(DEFAULT_MAP_PADDING);
     setDensity(40);
     setDotSize(10);
     setDotColor("#ffffff");
@@ -3410,6 +3442,8 @@ function App() {
             setTiltX={setTiltX}
             tiltY={tiltY}
             setTiltY={setTiltY}
+            mapPadding={mapPadding}
+            setMapPadding={setMapPadding}
             density={density}
             setDensity={setDensity}
             dotSize={dotSize}
