@@ -154,7 +154,6 @@ function ZoomOut(props) {
 
 const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 620;
-const DEFAULT_MAP_PADDING = 1;
 const US_COUNTRY_ID = "USA";
 const CLICK_HIGHLIGHT = "#d6ff79";
 const UNSUPPORTED_DOTTED_MAP_CODES = new Set([
@@ -524,8 +523,8 @@ function createDiamondPoints(x, y, radius) {
   ]);
 }
 
-function generateDots({ collection, density, padding, shape }) {
-  const paddingPx = 28 + padding * 13;
+function generateDots({ collection, density, shape }) {
+  const paddingPx = 28;
   const projection = geoAlbersUsa();
   projection.fitExtent(
     [
@@ -568,37 +567,28 @@ function generateDots({ collection, density, padding, shape }) {
   return dots;
 }
 
-function createCountryMapData(countryCodes, density, padding = DEFAULT_MAP_PADDING) {
+function createCountryMapData(countryCodes, density) {
   const map = new DottedMapEngine({
     height: density,
     grid: "diagonal",
     ...(countryCodes.length ? { countries: countryCodes } : {}),
   });
   const image = map.image;
-  const paddingUnits = image.height * clampNumber(padding, 0, 8) * 0.018;
-  const paddedImage = {
-    ...image,
-    width: image.width + paddingUnits * 2,
-    height: image.height + paddingUnits * 2,
-  };
 
   return {
-    image: paddedImage,
+    image,
     points: map.getPoints().map((point, index) => ({
       ...point,
       ...pointToGlobeCoordinate(point, image),
-      x: point.x + paddingUnits,
-      y: point.y + paddingUnits,
       id: `${point.x}:${point.y}:${index}`,
     })),
   };
 }
 
-function createStateMapData(collection, density, padding, shape) {
+function createStateMapData(collection, density, shape) {
   const points = generateDots({
     collection,
     density,
-    padding,
     shape,
   }).map((point, index) => ({
     ...point,
@@ -2068,8 +2058,6 @@ function ControlPanel({
   setTiltX,
   tiltY,
   setTiltY,
-  mapPadding,
-  setMapPadding,
   density,
   setDensity,
   dotSize,
@@ -2147,16 +2135,6 @@ function ControlPanel({
             />
           </OptionRow>
         )}
-        <OptionRow label="Padding" value={formatSvgNumber(mapPadding, 2)}>
-          <RangeControl
-            label="Padding"
-            min={0}
-            max={8}
-            step={0.25}
-            value={mapPadding}
-            onChange={setMapPadding}
-          />
-        </OptionRow>
       </PanelSection>
 
       <PanelSection title="Dots">
@@ -3224,7 +3202,6 @@ function App() {
   const [mapDepth, setMapDepth] = useState(55);
   const [tiltX, setTiltX] = useState(0);
   const [tiltY, setTiltY] = useState(0);
-  const [mapPadding, setMapPadding] = useState(DEFAULT_MAP_PADDING);
   const [density, setDensity] = useState(40);
   const [dotSize, setDotSize] = useState(10);
   const [dotColor, setDotColor] = useState("#ffffff");
@@ -3261,11 +3238,11 @@ function App() {
 
   const mapData = useMemo(() => {
     if (selected.mode === "state") {
-      return createStateMapData(selected.collection, density, mapPadding, shape);
+      return createStateMapData(selected.collection, density, shape);
     }
 
-    return createCountryMapData(selected.countryCodes, density, mapPadding);
-  }, [density, mapPadding, selected, shape]);
+    return createCountryMapData(selected.countryCodes, density);
+  }, [density, selected, shape]);
 
   const displaySvg = useMemo(
     () =>
@@ -3331,7 +3308,6 @@ function App() {
     setMapDepth(55);
     setTiltX(0);
     setTiltY(0);
-    setMapPadding(DEFAULT_MAP_PADDING);
     setDensity(40);
     setDotSize(10);
     setDotColor("#ffffff");
@@ -3564,8 +3540,6 @@ function App() {
             setTiltX={setTiltX}
             tiltY={tiltY}
             setTiltY={setTiltY}
-            mapPadding={mapPadding}
-            setMapPadding={setMapPadding}
             density={density}
             setDensity={setDensity}
             dotSize={dotSize}
