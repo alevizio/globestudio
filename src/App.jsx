@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowLeft,
@@ -174,6 +174,8 @@ const DEFAULT_SHADER_SETTINGS = {
   scanlines: 36,
   cellSize: 14,
   threshold: 50,
+  warp: 24,
+  motion: 35,
 };
 
 const shaderEffectOptions = [
@@ -189,6 +191,17 @@ const shaderEffectOptions = [
 const effectsWithSplit = new Set(["chromatic", "crt"]);
 const effectsWithScanlines = new Set(["crt", "pixel", "halftone"]);
 const effectsWithCellSize = new Set(["pixel", "halftone", "crt"]);
+const effectsWithWarp = new Set(["bloom", "chromatic", "crt", "threshold"]);
+const effectsWithMotion = new Set(["bloom", "chromatic", "crt", "halftone", "threshold"]);
+const shaderEffectValue = {
+  none: 0,
+  bloom: 1,
+  chromatic: 2,
+  crt: 3,
+  halftone: 4,
+  pixel: 5,
+  threshold: 6,
+};
 
 function makeFeatureCollection(features) {
   return {
@@ -533,6 +546,7 @@ function createDottedSvg({
   selectedDots,
   mode,
   shaderSettings,
+  includeSvgEffects = true,
   crop = false,
   scale = 1,
   label = "Dotted map",
@@ -565,14 +579,20 @@ function createDottedSvg({
   const backgroundRect = transparent
     ? ""
     : `<rect x="${viewX}" y="${viewY}" width="${viewWidth}" height="${viewHeight}" fill="${background}" />`;
-  const effectAssets = createShaderEffectAssets({
-    shaderSettings,
-    viewX,
-    viewY,
-    viewWidth,
-    viewHeight,
-    dotColor,
-  });
+  const effectAssets = includeSvgEffects
+    ? createShaderEffectAssets({
+        shaderSettings,
+        viewX,
+        viewY,
+        viewWidth,
+        viewHeight,
+        dotColor,
+      })
+    : {
+        defs: "",
+        groupAttributes: ' class="dots-effect dots-effect-none"',
+        overlays: "",
+      };
 
   return {
     width,
@@ -587,6 +607,420 @@ ${dots}
 ${effectAssets.overlays}
 </svg>`,
   };
+}
+
+const SHADER_VERTEX_SOURCE = `
+attribute vec2 a_position;
+varying vec2 v_uv;
+
+void main() {
+  v_uv = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}
+`;
+
+const SHADER_FRAGMENT_SOURCE = `
+precision highp float;
+
+uniform sampler2D u_texture;
+uniform vec2 u_resolution;
+uniform float u_time;
+uniform float u_effect;
+uniform float u_intensity;
+uniform float u_split;
+uniform float u_grain;
+uniform float u_scanlines;
+uniform float u_cellSize;
+uniform float u_threshold;
+uniform float u_warp;
+uniform float u_motion;
+varying vec2 v_uv;
+
+const float PI = 3.14159265359;
+
+float random(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float luma(vec3 color) {
+  return dot(color, vec3(0.299, 0.587, 0.114));
+}
+
+vec2 rotateUv(vec2 uv, float angle) {
+  float c = cos(angle);
+  float s = sin(angle);
+  return mat2(c, -s, s, c) * uv;
+}
+
+vec4 mapSample(vec2 uv) {
+  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {
+    return vec4(0.0);
+  }
+
+  return texture2D(u_texture, uv);
+}
+
+vec4 blurMap(vec2 uv, float radiusPx) {
+  vec2 px = radiusPx / max(u_resolution, vec2(1.0));
+  vec4 color = mapSample(uv) * 0.2;
+  color += mapSample(uv + vec2(px.x, 0.0)) * 0.12;
+  color += mapSample(uv - vec2(px.x, 0.0)) * 0.12;
+  color += mapSample(uv + vec2(0.0, px.y)) * 0.12;
+  color += mapSample(uv - vec2(0.0, px.y)) * 0.12;
+  color += mapSample(uv + px) * 0.08;
+  color += mapSample(uv - px) * 0.08;
+  color += mapSample(uv + vec2(px.x, -px.y)) * 0.08;
+  color += mapSample(uv + vec2(-px.x, px.y)) * 0.08;
+  return color;
+}
+
+vec2 barrelWarp(vec2 uv, float amount) {
+  vec2 centered = uv * 2.0 - 1.0;
+  float radius = dot(centered, centered);
+  centered *= 1.0 + radius * amount;
+  return centered * 0.5 + 0.5;
+}
+
+vec4 bloomPass(vec2 uv) {
+  float pulse = 0.5 + 0.5 * sin(u_time * mix(0.4, 2.8, u_motion) + uv.x * 5.0 + uv.y * 3.0);
+  float warp = (pulse - 0.5) * u_warp * u_intensity * 0.018;
+  vec2 warpedUv = uv + vec2(warp * (uv.y - 0.5), -warp * (uv.x - 0.5));
+  vec4 source = mapSample(warpedUv);
+  vec4 glowA = blurMap(warpedUv, mix(5.0, 34.0, u_intensity));
+  vec4 glowB = blurMap(warpedUv, mix(20.0, 80.0, u_intensity));
+  vec3 halo = glowA.rgb * (0.9 + u_intensity * 2.2) + glowB.rgb * (0.3 + u_intensity * 1.4);
+  vec3 color = source.rgb + halo + vec3(0.14, 0.38, 0.08) * glowB.a * pulse * u_intensity;
+  float alpha = clamp(source.a + glowA.a * (0.5 + u_intensity) + glowB.a * u_intensity * 0.75, 0.0, 1.0);
+  return vec4(color, alpha);
+}
+
+vec4 chromaticPass(vec2 uv) {
+  vec2 centered = uv - 0.5;
+  float dist = length(centered);
+  vec2 dir = normalize(centered + vec2(0.0001));
+  vec2 tangent = vec2(-dir.y, dir.x);
+  float wave = sin((uv.y * 18.0 + uv.x * 7.0) + u_time * mix(0.3, 6.0, u_motion));
+  vec2 warpedUv = uv + centered * dist * dist * u_warp * u_intensity * 0.22;
+  vec2 offset = (dir + tangent * wave * 0.34) * (u_split * (0.8 + dist * 1.8)) / max(u_resolution, vec2(1.0));
+  vec4 red = mapSample(warpedUv + offset);
+  vec4 green = mapSample(warpedUv);
+  vec4 blue = mapSample(warpedUv - offset);
+  vec4 glow = blurMap(warpedUv, 8.0 + u_split * 1.4);
+  vec3 color = vec3(red.r, green.g, blue.b) + glow.rgb * glow.a * u_intensity * 0.8;
+  float alpha = clamp(max(max(red.a, green.a), blue.a) + glow.a * u_intensity * 0.4, 0.0, 1.0);
+  return vec4(color, alpha);
+}
+
+vec4 crtPass(vec2 uv) {
+  vec2 warpedUv = barrelWarp(uv, 0.04 + u_warp * u_intensity * 0.2);
+  vec2 centered = warpedUv - 0.5;
+  vec2 offset = vec2(u_split / max(u_resolution.x, 1.0), 0.0);
+  vec4 red = mapSample(warpedUv + offset * 0.8);
+  vec4 green = mapSample(warpedUv);
+  vec4 blue = mapSample(warpedUv - offset * 0.8);
+  vec4 glow = blurMap(warpedUv, 4.0 + u_intensity * 18.0);
+  vec3 color = vec3(red.r, green.g, blue.b) + glow.rgb * glow.a * (0.7 + u_intensity * 1.7);
+  float alpha = clamp(max(max(red.a, green.a), blue.a) + glow.a * (0.3 + u_intensity * 0.6), 0.0, 1.0);
+
+  float scan = 0.82 + 0.18 * sin(warpedUv.y * u_resolution.y * PI / max(u_cellSize * 0.48, 1.0));
+  color *= mix(1.0, scan, u_scanlines);
+
+  float stripe = mod(floor(warpedUv.x * u_resolution.x), 3.0);
+  vec3 phosphor = stripe < 1.0 ? vec3(1.16, 0.78, 0.78) : (stripe < 2.0 ? vec3(0.8, 1.12, 0.8) : vec3(0.78, 0.86, 1.18));
+  color *= mix(vec3(1.0), phosphor, u_scanlines * 0.5);
+
+  float flicker = 1.0 + (random(vec2(floor(u_time * mix(8.0, 34.0, u_motion)), 7.0)) - 0.5) * 0.1 * u_intensity;
+  float vignette = smoothstep(0.86, 0.18, length(centered * vec2(u_resolution.x / max(u_resolution.y, 1.0), 1.0)));
+  float edgeAlpha = (1.0 - vignette) * (0.14 + u_intensity * 0.22);
+  color *= flicker * mix(0.45, 1.0, vignette);
+  return vec4(color, clamp(max(alpha, edgeAlpha), 0.0, 1.0));
+}
+
+vec4 halftonePass(vec2 uv) {
+  float cell = max(u_cellSize, 3.0);
+  vec2 gridUv = uv * u_resolution / cell;
+  vec2 rotated = rotateUv(gridUv, 0.49 + u_time * u_motion * 0.015);
+  vec2 local = fract(rotated) - 0.5;
+  vec4 source = mapSample(uv);
+  vec4 densitySample = blurMap(uv, cell * (0.7 + u_intensity * 1.6));
+  float density = clamp(max(source.a, densitySample.a * (1.2 + u_intensity)), 0.0, 1.0);
+  float radius = mix(0.08, 0.48, density) * (0.85 + u_intensity * 0.35);
+  float dotMask = smoothstep(radius, radius - 0.08, length(local));
+
+  vec2 cLocal = fract(rotateUv(gridUv + vec2(0.18, 0.08), 0.26)) - 0.5;
+  vec2 mLocal = fract(rotateUv(gridUv + vec2(-0.11, 0.16), 1.31)) - 0.5;
+  float cyan = smoothstep(radius * 0.9, radius * 0.9 - 0.08, length(cLocal));
+  float magenta = smoothstep(radius * 0.82, radius * 0.82 - 0.08, length(mLocal));
+
+  vec3 base = max(source.rgb, densitySample.rgb);
+  vec3 printColor = base * (0.35 + dotMask * 1.3);
+  printColor += vec3(cyan * 0.06, magenta * 0.03, dotMask * 0.12) * density * u_intensity;
+  float alpha = clamp((dotMask + cyan * 0.22 + magenta * 0.18) * density, 0.0, 1.0);
+  return vec4(printColor, alpha);
+}
+
+vec4 pixelPass(vec2 uv) {
+  float cell = max(u_cellSize, 2.0);
+  vec2 grid = max(u_resolution / cell, vec2(1.0));
+  vec2 pixelUv = (floor(uv * grid) + 0.5) / grid;
+  vec4 source = mapSample(pixelUv);
+  vec4 glow = blurMap(pixelUv, cell * 0.7);
+  float steps = mix(3.0, 9.0, u_intensity);
+  vec3 color = floor((source.rgb + glow.rgb * glow.a * u_intensity) * steps) / steps;
+  vec2 local = abs(fract(uv * grid) - 0.5);
+  float gridLine = smoothstep(0.48, 0.5, max(local.x, local.y));
+  color += vec3(0.12, 0.18, 0.08) * gridLine * source.a * u_intensity;
+  float alpha = clamp(source.a + glow.a * u_intensity * 0.35, 0.0, 1.0);
+  return vec4(color, alpha);
+}
+
+vec4 thresholdPass(vec2 uv) {
+  float t = u_time * mix(0.25, 4.5, u_motion);
+  float drift = (random(vec2(floor(uv.y * 32.0), floor(t * 16.0))) - 0.5) * u_warp * u_intensity * 0.035;
+  vec2 warpedUv = uv + vec2(drift, sin(uv.x * 20.0 + t) * u_warp * u_intensity * 0.004);
+  vec4 source = mapSample(warpedUv);
+  vec4 glow = blurMap(warpedUv, 5.0 + u_intensity * 22.0);
+  float signal = max(source.a, glow.a * 0.72);
+  float grain = (random(uv * u_resolution + floor(t * 30.0)) - 0.5) * u_grain * 0.65;
+  float mask = smoothstep(u_threshold - 0.12, u_threshold + 0.12, signal + grain);
+  vec3 ink = mix(vec3(0.0), vec3(0.84, 1.0, 0.36), mask);
+  ink += vec3(0.1, 0.7, 1.0) * glow.a * u_intensity * 0.45;
+  return vec4(ink, clamp(mask * max(signal, source.a), 0.0, 1.0));
+}
+
+void main() {
+  vec4 color = mapSample(v_uv);
+
+  if (u_effect > 0.5 && u_effect < 1.5) {
+    color = bloomPass(v_uv);
+  } else if (u_effect < 2.5 && u_effect > 1.5) {
+    color = chromaticPass(v_uv);
+  } else if (u_effect < 3.5 && u_effect > 2.5) {
+    color = crtPass(v_uv);
+  } else if (u_effect < 4.5 && u_effect > 3.5) {
+    color = halftonePass(v_uv);
+  } else if (u_effect < 5.5 && u_effect > 4.5) {
+    color = pixelPass(v_uv);
+  } else if (u_effect < 6.5 && u_effect > 5.5) {
+    color = thresholdPass(v_uv);
+  }
+
+  if (u_effect > 0.5 && u_grain > 0.0) {
+    float grain = random(v_uv * u_resolution + floor(u_time * mix(8.0, 48.0, u_motion))) - 0.5;
+    color.rgb += grain * u_grain * u_intensity * 0.28;
+  }
+
+  gl_FragColor = vec4(clamp(color.rgb, 0.0, 1.0), clamp(color.a, 0.0, 1.0));
+}
+`;
+
+function compileShader(gl, type, source) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    const error = gl.getShaderInfoLog(shader) || "Shader compilation failed";
+    gl.deleteShader(shader);
+    throw new Error(error);
+  }
+
+  return shader;
+}
+
+function createShaderProgram(gl) {
+  const vertexShader = compileShader(gl, gl.VERTEX_SHADER, SHADER_VERTEX_SOURCE);
+  const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, SHADER_FRAGMENT_SOURCE);
+  const program = gl.createProgram();
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+  gl.deleteShader(vertexShader);
+  gl.deleteShader(fragmentShader);
+
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    const error = gl.getProgramInfoLog(program) || "Shader link failed";
+    gl.deleteProgram(program);
+    throw new Error(error);
+  }
+
+  return program;
+}
+
+function ShaderCanvas({ svgMarkup, width, height, shaderSettings, canvasHandleRef }) {
+  const canvasRef = useRef(null);
+  const stateRef = useRef(null);
+  const settingsRef = useRef(shaderSettings);
+  settingsRef.current = shaderSettings;
+  const setCanvasNode = useCallback((node) => {
+    canvasRef.current = node;
+    if (canvasHandleRef) {
+      canvasHandleRef.current = node;
+    }
+  }, [canvasHandleRef]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+
+    const gl = canvas.getContext("webgl", {
+      alpha: true,
+      antialias: false,
+      depth: false,
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: true,
+      stencil: false,
+    });
+
+    if (!gl) return undefined;
+
+    const program = createShaderProgram(gl);
+    const positionBuffer = gl.createBuffer();
+    const texture = gl.createTexture();
+    const positions = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]);
+    const locations = {
+      position: gl.getAttribLocation(program, "a_position"),
+      texture: gl.getUniformLocation(program, "u_texture"),
+      resolution: gl.getUniformLocation(program, "u_resolution"),
+      time: gl.getUniformLocation(program, "u_time"),
+      effect: gl.getUniformLocation(program, "u_effect"),
+      intensity: gl.getUniformLocation(program, "u_intensity"),
+      split: gl.getUniformLocation(program, "u_split"),
+      grain: gl.getUniformLocation(program, "u_grain"),
+      scanlines: gl.getUniformLocation(program, "u_scanlines"),
+      cellSize: gl.getUniformLocation(program, "u_cellSize"),
+      threshold: gl.getUniformLocation(program, "u_threshold"),
+      warp: gl.getUniformLocation(program, "u_warp"),
+      motion: gl.getUniformLocation(program, "u_motion"),
+    };
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+
+    stateRef.current = {
+      frame: 0,
+      gl,
+      drawOnce: null,
+      loaded: false,
+      locations,
+      positionBuffer,
+      program,
+      texture,
+    };
+
+    const render = (now) => {
+      const state = stateRef.current;
+      if (!state) return;
+
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      const nextWidth = Math.max(1, Math.floor(canvas.clientWidth * pixelRatio));
+      const nextHeight = Math.max(1, Math.floor(canvas.clientHeight * pixelRatio));
+      if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+        canvas.width = nextWidth;
+        canvas.height = nextHeight;
+      }
+
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      if (state.loaded) {
+        const current = settingsRef.current;
+        const effect = shaderEffectValue[current.effect] ?? 0;
+        const intensity = clampNumber(current.intensity, 0, 100) / 100;
+
+        gl.useProgram(program);
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.enableVertexAttribArray(locations.position);
+        gl.vertexAttribPointer(locations.position, 2, gl.FLOAT, false, 0, 0);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(locations.texture, 0);
+        gl.uniform2f(locations.resolution, canvas.width, canvas.height);
+        gl.uniform1f(locations.time, now / 1000);
+        gl.uniform1f(locations.effect, effect);
+        gl.uniform1f(locations.intensity, intensity);
+        gl.uniform1f(locations.split, clampNumber(current.split, 0, 30) * (0.8 + intensity * 2.8));
+        gl.uniform1f(locations.grain, clampNumber(current.grain, 0, 100) / 100);
+        gl.uniform1f(locations.scanlines, clampNumber(current.scanlines, 0, 100) / 100);
+        gl.uniform1f(locations.cellSize, clampNumber(current.cellSize, 4, 42) * pixelRatio);
+        gl.uniform1f(locations.threshold, clampNumber(current.threshold, 0, 100) / 100);
+        gl.uniform1f(locations.warp, clampNumber(current.warp, 0, 100) / 100);
+        gl.uniform1f(locations.motion, clampNumber(current.motion, 0, 100) / 100);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      }
+    };
+
+    const draw = (now) => {
+      render(now);
+      const state = stateRef.current;
+      if (!state) return;
+
+      state.frame = window.requestAnimationFrame(draw);
+    };
+
+    stateRef.current.drawOnce = () => render(window.performance.now());
+    stateRef.current.drawOnce();
+    stateRef.current.frame = window.requestAnimationFrame(draw);
+
+    return () => {
+      const state = stateRef.current;
+      if (!state) return;
+      window.cancelAnimationFrame(state.frame);
+      gl.deleteBuffer(positionBuffer);
+      gl.deleteTexture(texture);
+      gl.deleteProgram(program);
+      stateRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const state = stateRef.current;
+    if (!state) return undefined;
+
+    let cancelled = false;
+    const { gl, texture } = state;
+    const url = URL.createObjectURL(new Blob([svgMarkup], { type: "image/svg+xml;charset=utf-8" }));
+    const image = new Image();
+
+    image.onload = () => {
+      if (cancelled) return;
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      state.loaded = true;
+      state.drawOnce?.();
+      URL.revokeObjectURL(url);
+    };
+
+    image.onerror = () => {
+      state.loaded = false;
+      URL.revokeObjectURL(url);
+    };
+
+    image.src = url;
+
+    return () => {
+      cancelled = true;
+      URL.revokeObjectURL(url);
+    };
+  }, [svgMarkup]);
+
+  return (
+    <canvas
+      ref={setCanvasNode}
+      className="shader-canvas"
+      aria-hidden="true"
+      style={{ aspectRatio: `${width} / ${height}` }}
+    />
+  );
 }
 
 function IconButton({ children, title, onClick, className = "", active = false }) {
@@ -1004,6 +1438,28 @@ function ControlPanel({
                 />
               </OptionRow>
             )}
+            {effectsWithWarp.has(shaderEffect) && (
+              <OptionRow label="Warp" value={shaderSettings.warp}>
+                <RangeControl
+                  label="Shader warp"
+                  min={0}
+                  max={100}
+                  value={shaderSettings.warp}
+                  onChange={(value) => updateShaderSetting("warp", value)}
+                />
+              </OptionRow>
+            )}
+            {effectsWithMotion.has(shaderEffect) && (
+              <OptionRow label="Motion" value={shaderSettings.motion}>
+                <RangeControl
+                  label="Shader motion"
+                  min={0}
+                  max={100}
+                  value={shaderSettings.motion}
+                  onChange={(value) => updateShaderSetting("motion", value)}
+                />
+              </OptionRow>
+            )}
             <OptionRow label="Grain" value={shaderSettings.grain}>
               <RangeControl
                 label="Grain"
@@ -1057,11 +1513,15 @@ function ControlPanel({
 
 function DottedMapBackground({
   svgMarkup,
+  svgWidth,
+  svgHeight,
   mapOffset,
   setMapOffset,
   setSelectedDots,
   label,
   shaderEffect,
+  shaderSettings,
+  shaderCanvasRef,
 }) {
   const dragState = useRef({
     active: false,
@@ -1148,9 +1608,13 @@ function DottedMapBackground({
     });
   }, [setSelectedDots]);
 
+  const hasWebglShader = shaderEffect && shaderEffect !== "none";
+
   return (
     <div
-      className={`map-background effect-${shaderEffect || "none"} ${isDraggingMap ? "is-dragging" : ""}`}
+      className={`map-background effect-${shaderEffect || "none"} ${hasWebglShader ? "has-webgl-shader" : ""} ${
+        isDraggingMap ? "is-dragging" : ""
+      }`}
       aria-label={label}
       onPointerDown={startDrag}
       onPointerMove={dragMap}
@@ -1165,8 +1629,18 @@ function DottedMapBackground({
       onTouchEnd={stopDrag}
       onTouchCancel={stopDrag}
       onClick={toggleDot}
-      dangerouslySetInnerHTML={{ __html: svgMarkup }}
-    />
+    >
+      <div className="map-svg-layer" dangerouslySetInnerHTML={{ __html: svgMarkup }} />
+      {hasWebglShader && (
+        <ShaderCanvas
+          svgMarkup={svgMarkup}
+          width={svgWidth}
+          height={svgHeight}
+          shaderSettings={shaderSettings}
+          canvasHandleRef={shaderCanvasRef}
+        />
+      )}
+    </div>
   );
 }
 
@@ -1320,6 +1794,7 @@ async function copyTextToClipboard(text) {
 }
 
 function App() {
+  const shaderCanvasRef = useRef(null);
   const [selection, setSelection] = useState("world");
   const [stateSelection, setStateSelection] = useState("all");
   const [canvasScale, setCanvasScale] = useState("1x");
@@ -1383,6 +1858,7 @@ function App() {
         selectedDots,
         mode: selected.mode,
         shaderSettings,
+        includeSvgEffects: false,
         crop: false,
         label: `${selected.label} dotted map`,
       }),
@@ -1457,6 +1933,25 @@ function App() {
   }, [exportSvgData.svg]);
 
   const exportPng = () => {
+    const activeShaderCanvas = shaderSettings.effect !== "none" ? shaderCanvasRef.current : null;
+
+    if (activeShaderCanvas?.width && activeShaderCanvas?.height) {
+      const canvas = document.createElement("canvas");
+      canvas.width = activeShaderCanvas.width;
+      canvas.height = activeShaderCanvas.height;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      if (!transparent) {
+        context.fillStyle = background;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      context.drawImage(activeShaderCanvas, 0, 0);
+      canvas.toBlob((pngBlob) => {
+        if (pngBlob) downloadBlob(pngBlob, "world-in-dots-shader.png");
+      }, "image/png");
+      return;
+    }
+
     const blob = new Blob([exportSvgData.svg], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const image = new Image();
@@ -1500,10 +1995,14 @@ function App() {
     >
       <DottedMapBackground
         svgMarkup={displaySvg.svg}
+        svgWidth={displaySvg.width}
+        svgHeight={displaySvg.height}
         mapOffset={mapOffset}
         setMapOffset={setMapOffset}
         setSelectedDots={setSelectedDots}
         shaderEffect={shaderSettings.effect}
+        shaderSettings={shaderSettings}
+        shaderCanvasRef={shaderCanvasRef}
         label={`${selected.label} dotted map background`}
       />
 

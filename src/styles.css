@@ -84,6 +84,7 @@ button {
 }
 
 .map-background .dot-map {
+  grid-area: 1 / 1;
   display: block;
   width: min(1320px, 106vw);
   height: auto;
@@ -99,6 +100,34 @@ button {
     opacity 180ms ease,
     transform 160ms ease;
   will-change: filter, transform;
+}
+
+.map-svg-layer {
+  grid-area: 1 / 1;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.shader-canvas {
+  grid-area: 1 / 1;
+  z-index: 2;
+  display: block;
+  width: min(1320px, 106vw);
+  height: auto;
+  max-height: 88svh;
+  object-fit: contain;
+  pointer-events: none;
+  transform: translate3d(var(--map-offset-x, 0px), var(--map-offset-y, 0px), 0)
+    rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) scale(var(--map-zoom, 1));
+  transform-origin: center;
+  transform-style: preserve-3d;
+  transition:
+    opacity 180ms ease,
+    transform 160ms ease;
+  will-change: opacity, transform;
 }
 
 .map-background.effect-bloom .dot-map {
@@ -129,12 +158,19 @@ button {
   filter: grayscale(0.6) contrast(2.2);
 }
 
+.map-background.has-webgl-shader .dot-map {
+  opacity: 0.012;
+  filter: none;
+  animation: none;
+}
+
 .map-background.is-dragging,
 .map-background.is-dragging .map-dot {
   cursor: grabbing;
 }
 
-.map-background.is-dragging .dot-map {
+.map-background.is-dragging .dot-map,
+.map-background.is-dragging .shader-canvas {
   transition: none;
 }
 
@@ -602,11 +638,19 @@ input[type="range"] {
     background: rgba(11, 11, 12, 0.42);
   }
 
-  .map-background .dot-map {
+  .map-background .dot-map,
+  .shader-canvas {
     width: 150vw;
     max-width: none;
     max-height: 78svh;
+  }
+
+  .map-background .dot-map {
     opacity: 0.74;
+  }
+
+  .map-background.has-webgl-shader .dot-map {
+    opacity: 0.012;
   }
 
   .control-rail {
