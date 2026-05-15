@@ -1304,6 +1304,36 @@ function ControlPanel({
 
   return (
     <aside className="control-panel">
+      <PanelSection title="Map">
+        <OptionRow label="Area">
+          <SelectControl
+            label="Country or region"
+            value={selection}
+            onChange={(value) => {
+              setSelection(value);
+              if (value !== `country:${US_COUNTRY_ID}`) setStateSelection("all");
+            }}
+            options={areaOptions}
+          />
+        </OptionRow>
+        {showStates && (
+          <OptionRow label="State">
+            <SelectControl
+              label="State"
+              value={stateSelection}
+              onChange={setStateSelection}
+              options={[
+                { value: "all", label: "All States" },
+                ...usStates.map((state) => ({
+                  value: state._id,
+                  label: state._displayName,
+                })),
+              ]}
+            />
+          </OptionRow>
+        )}
+      </PanelSection>
+
       <PanelSection title="Dots">
         <OptionRow label="Shape">
           <SelectControl
@@ -1337,36 +1367,6 @@ function ControlPanel({
         <OptionRow label="Color">
           <ColorSwatch value={dotColor} onChange={setDotColor} label="Select dot color" />
         </OptionRow>
-      </PanelSection>
-
-      <PanelSection title="Map">
-        <OptionRow label="Area">
-          <SelectControl
-            label="Country or region"
-            value={selection}
-            onChange={(value) => {
-              setSelection(value);
-              if (value !== `country:${US_COUNTRY_ID}`) setStateSelection("all");
-            }}
-            options={areaOptions}
-          />
-        </OptionRow>
-        {showStates && (
-          <OptionRow label="State">
-            <SelectControl
-              label="State"
-              value={stateSelection}
-              onChange={setStateSelection}
-              options={[
-                { value: "all", label: "All States" },
-                ...usStates.map((state) => ({
-                  value: state._id,
-                  label: state._displayName,
-                })),
-              ]}
-            />
-          </OptionRow>
-        )}
       </PanelSection>
 
       <PanelSection title="Canvas">
