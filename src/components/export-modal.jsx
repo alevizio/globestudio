@@ -1,0 +1,422 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, Clipboard, Download, Share2, Upload, X } from "./icons.jsx";
+
+const ASPECT_OPTIONS = [
+  { id: "original", label: "Original", ratio: null },
+  { id: "1:1", label: "1:1", ratio: 1 },
+  { id: "4:5", label: "4:5", ratio: 4 / 5 },
+  { id: "16:9", label: "16:9", ratio: 16 / 9 },
+  { id: "9:16", label: "9:16", ratio: 9 / 16 },
+];
+
+const QUALITY_OPTIONS = [
+  { id: "draft", label: "Draft", scale: 1 },
+  { id: "standard", label: "Standard", scale: 2 },
+  { id: "high", label: "High", scale: 3 },
+  { id: "ultra", label: "Ultra", scale: 4 },
+];
+
+const FPS_OPTIONS = [24, 30, 60];
+const DURATION_OPTIONS = [3, 5, 8, 12];
+
+const computeDimensions = (baseW, baseH, aspectId, scale) => {
+  const aspect = ASPECT_OPTIONS.find((a) => a.id === aspectId)?.ratio ?? null;
+  if (!aspect) {
+    return {
+      width: Math.round(baseW * scale),
+      height: Math.round(baseH * scale),
+    };
+  }
+  const baseAspect = baseW / Math.max(baseH, 1);
+  let w;
+  let h;
+  if (baseAspect >= aspect) {
+    // Source is wider than target — crop sides, full height.
+    h = baseH;
+    w = baseH * aspect;
+  } else {
+    // Source is taller than target — crop top/bottom, full width.
+    w = baseW;
+    h = baseW / aspect;
+  }
+  return { width: Math.round(w * scale), height: Math.round(h * scale) };
+};
+
+const Tabs = ({ tab, setTab, hasVideo }) => (
+  <nav className="export-modal-tabs" role="tablist" aria-label="Export type">
+    {[
+      { id: "image", label: "Image" },
+      hasVideo && { id: "video", label: "Video" },
+      { id: "svg", label: "SVG" },
+      { id: "share", label: "Share" },
+    ]
+      .filter(Boolean)
+      .map((t) => (
+        <button
+          key={t.id}
+          type="button"
+          role="tab"
+          aria-selected={tab === t.id}
+          className={`export-modal-tab ${tab === t.id ? "is-active" : ""}`}
+          onClick={() => setTab(t.id)}
+        >
+          {t.label}
+        </button>
+      ))}
+  </nav>
+);
+
+const PillRow = ({ label, options, value, onChange, getKey = (o) => o.id, getLabel = (o) => o.label }) => (
+  <div className="export-modal-field">
+    <label className="export-modal-label">{label}</label>
+    <div className="export-modal-pills">
+      {options.map((option) => {
+        const key = getKey(option);
+        return (
+          <button
+            key={key}
+            type="button"
+            className={`export-modal-pill ${value === key ? "is-active" : ""}`}
+            onClick={() => onChange(key)}
+          >
+            {getLabel(option)}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);
+
+const DimensionInputs = ({ width, height, onWidth, onHeight }) => (
+  <div className="export-modal-dimensions">
+    <div className="export-modal-dimension">
+      <label className="export-modal-label">Width</label>
+      <input
+        type="number"
+        className="export-modal-input"
+        value={width}
+        min={64}
+        max={8192}
+        onChange={(event) => onWidth(Math.max(64, Math.min(8192, Number(event.target.value) || 0)))}
+      />
+    </div>
+    <div className="export-modal-dimension">
+      <label className="export-modal-label">Height</label>
+      <input
+        type="number"
+        className="export-modal-input"
+        value={height}
+        min={64}
+        max={8192}
+        onChange={(event) => onHeight(Math.max(64, Math.min(8192, Number(event.target.value) || 0)))}
+      />
+    </div>
+  </div>
+);
+
+export const ExportModal = ({
+  open,
+  onClose,
+  canvasWidth,
+  canvasHeight,
+  exportPng,
+  pngStatus,
+  exportSvg,
+  svgStatus,
+  copySvg,
+  copyStatus,
+  exportVideo,
+  videoStatus,
+  videoProgress,
+  videoDurationMs,
+  setVideoDurationMs,
+  videoSupported,
+  exportConfig,
+  importConfig,
+}) => {
+  const [tab, setTab] = useState("image");
+  const [aspect, setAspect] = useState("original");
+  const [quality, setQuality] = useState("standard");
+  const [fps, setFps] = useState(60);
+  const [videoSeconds, setVideoSeconds] = useState(Math.round((videoDurationMs ?? 5000) / 1000));
+  const fileInputRef = useRef(null);
+  const dialogRef = useRef(null);
+
+  const baseDims = useMemo(() => {
+    const baseW = Math.max(1, canvasWidth || 1);
+    const baseH = Math.max(1, canvasHeight || 1);
+    const scale = QUALITY_OPTIONS.find((q) => q.id === quality)?.scale ?? 1;
+    return computeDimensions(baseW, baseH, aspect, scale);
+  }, [canvasWidth, canvasHeight, aspect, quality]);
+
+  const [width, setWidth] = useState(baseDims.width);
+  const [height, setHeight] = useState(baseDims.height);
+  const [manualDims, setManualDims] = useState(false);
+
+  // When aspect or quality changes, recompute the suggested dimensions.
+  // User can still override via the inputs (sets manualDims).
+  useEffect(() => {
+    if (manualDims) return;
+    setWidth(baseDims.width);
+    setHeight(baseDims.height);
+  }, [baseDims.width, baseDims.height, manualDims]);
+
+  // Reset to suggested whenever aspect/quality changes.
+  useEffect(() => {
+    setManualDims(false);
+  }, [aspect, quality]);
+
+  // Sync videoSeconds with videoDurationMs and vice versa.
+  useEffect(() => {
+    setVideoSeconds(Math.round((videoDurationMs ?? 5000) / 1000));
+  }, [videoDurationMs]);
+
+  // Keyboard: Escape to close, focus trap minimal.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    // Move focus into the modal so screen readers and keyboard users land here.
+    window.setTimeout(() => dialogRef.current?.focus(), 0);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const scale = QUALITY_OPTIONS.find((q) => q.id === quality)?.scale ?? 1;
+
+  const handlePng = () => {
+    exportPng?.({ scale, width, height, aspect });
+  };
+
+  const handleVideo = () => {
+    setVideoDurationMs?.(videoSeconds * 1000);
+    exportVideo?.({ scale, fps, durationMs: videoSeconds * 1000 });
+  };
+
+  const handleFileImport = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(String(e.target?.result || "{}"));
+        importConfig?.(parsed);
+      } catch (error) {
+        console.warn("Failed to import config", error);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(String(e.target?.result || "{}"));
+        importConfig?.(parsed);
+      } catch (error) {
+        console.warn("Failed to import config", error);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const isRecording = videoStatus === "recording";
+  const recordingPct = Math.round((videoProgress || 0) * 100);
+
+  return (
+    <div className="export-modal-backdrop" onClick={onClose} role="presentation">
+      <div
+        className="export-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Export"
+        tabIndex={-1}
+        ref={dialogRef}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className="export-modal-header">
+          <h2 className="export-modal-title">Export</h2>
+          <button
+            type="button"
+            className="export-modal-close"
+            onClick={onClose}
+            aria-label="Close export dialog"
+          >
+            <X size={16} />
+          </button>
+        </header>
+
+        <Tabs tab={tab} setTab={setTab} hasVideo={videoSupported} />
+
+        <div className="export-modal-body">
+          {tab === "image" && (
+            <>
+              <PillRow label="Aspect" options={ASPECT_OPTIONS} value={aspect} onChange={setAspect} />
+              <PillRow label="Quality" options={QUALITY_OPTIONS} value={quality} onChange={setQuality} />
+              <DimensionInputs
+                width={width}
+                height={height}
+                onWidth={(value) => {
+                  setManualDims(true);
+                  setWidth(value);
+                }}
+                onHeight={(value) => {
+                  setManualDims(true);
+                  setHeight(value);
+                }}
+              />
+              <p className="export-modal-caption">Uses the current globe frame at export time.</p>
+              <button
+                type="button"
+                className={`export-modal-cta ${pngStatus === "saved" ? "is-success" : ""}`}
+                onClick={handlePng}
+              >
+                {pngStatus === "saved" ? <Check size={15} /> : <Download size={15} />}
+                <span>{pngStatus === "saved" ? "PNG saved" : "Export PNG"}</span>
+              </button>
+            </>
+          )}
+
+          {tab === "video" && videoSupported && (
+            <>
+              <PillRow label="Aspect" options={ASPECT_OPTIONS} value={aspect} onChange={setAspect} />
+              <PillRow label="Quality" options={QUALITY_OPTIONS} value={quality} onChange={setQuality} />
+              <DimensionInputs
+                width={width}
+                height={height}
+                onWidth={(value) => {
+                  setManualDims(true);
+                  setWidth(value);
+                }}
+                onHeight={(value) => {
+                  setManualDims(true);
+                  setHeight(value);
+                }}
+              />
+              <div className="export-modal-row">
+                <PillRow
+                  label="FPS"
+                  options={FPS_OPTIONS.map((value) => ({ id: value, label: String(value) }))}
+                  value={fps}
+                  onChange={setFps}
+                />
+                <div className="export-modal-field">
+                  <label className="export-modal-label" htmlFor="export-duration">Duration (s)</label>
+                  <div className="export-modal-pills">
+                    {DURATION_OPTIONS.map((seconds) => (
+                      <button
+                        key={seconds}
+                        type="button"
+                        className={`export-modal-pill ${videoSeconds === seconds ? "is-active" : ""}`}
+                        onClick={() => setVideoSeconds(seconds)}
+                      >
+                        {seconds}s
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              {isRecording && (
+                <div className="export-modal-progress" aria-hidden="true">
+                  <div className="export-modal-progress-fill" style={{ width: `${recordingPct}%` }} />
+                </div>
+              )}
+              <button
+                type="button"
+                className={`export-modal-cta ${isRecording ? "is-recording" : ""}`}
+                onClick={handleVideo}
+                disabled={isRecording}
+              >
+                <Download size={15} />
+                <span>{isRecording ? `Recording… ${recordingPct}%` : "Export WebM"}</span>
+              </button>
+            </>
+          )}
+
+          {tab === "svg" && (
+            <>
+              <p className="export-modal-caption">Vector export — dot positions, shapes, and colors. Effects and atmosphere are not applied (post-effects can't be rasterized into vectors).</p>
+              <button
+                type="button"
+                className={`export-modal-cta ${svgStatus === "saved" ? "is-success" : ""}`}
+                onClick={exportSvg}
+              >
+                {svgStatus === "saved" ? <Check size={15} /> : <Download size={15} />}
+                <span>{svgStatus === "saved" ? "SVG saved" : "Download SVG"}</span>
+              </button>
+              <button
+                type="button"
+                className={`export-modal-cta is-secondary ${copyStatus === "copied" ? "is-success" : ""}`}
+                onClick={copySvg}
+              >
+                {copyStatus === "copied" ? <Check size={15} /> : <Clipboard size={15} />}
+                <span>
+                  {copyStatus === "copied"
+                    ? "SVG copied to clipboard"
+                    : copyStatus === "manual"
+                      ? "Select SVG code"
+                      : "Copy SVG to clipboard"}
+                </span>
+              </button>
+            </>
+          )}
+
+          {tab === "share" && (
+            <>
+              <p className="export-modal-caption">
+                Save your exact configuration as a .json file. Anyone can drag it back into this dialog
+                to load the same look.
+              </p>
+              <button
+                type="button"
+                className="export-modal-cta"
+                onClick={exportConfig}
+              >
+                <Share2 size={15} />
+                <span>Export configuration</span>
+              </button>
+              <div
+                className="export-modal-dropzone"
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={handleDrop}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    fileInputRef.current?.click();
+                  }
+                }}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload size={18} />
+                <div className="export-modal-dropzone-text">
+                  <strong>Import .json configuration</strong>
+                  <span>Drag & drop or click to choose a file.</span>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/json,.json"
+                  hidden
+                  onChange={handleFileImport}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

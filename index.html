@@ -3,14 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0a0a" />
     <meta
       name="description"
-      content="Create vector dotted maps with custom options and download them as SVG or PNG files"
+      content="Generate beautiful dotted maps and animated 3D globes. Customize dots, shapes, effects, and export as PNG, SVG, or animated WebM video."
     />
-    <title>World in Dots | Dotted Maps Generator</title>
+    <meta property="og:title" content="Worlddots — Dotted Maps & Globe Generator" />
+    <meta
+      property="og:description"
+      content="Generate beautiful dotted maps and animated 3D globes. Customize dots, shapes, effects, and export as PNG, SVG, or animated WebM video."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://github.com/alevizio/worlddots" />
+    <title>Worlddots — Dotted Maps & Globe Generator</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <noscript>
+        <p style="font-family: system-ui, sans-serif; padding: 24px; color: #e8e8ea; background: #0a0a0a;">
+          Worlddots needs JavaScript to render the interactive globe and map generator.
+        </p>
+      </noscript>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

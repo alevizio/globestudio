@@ -1,0 +1,785 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import {
+  DEFAULT_GLOBE_SETTINGS,
+  GLOBE_CAMERA_DISTANCE,
+  GLOBE_DEFAULT_GLOW,
+  GLOBE_FLAT_FIT_ASPECT,
+  GLOBE_INITIAL_ROTATION,
+  GLOBE_MORPH_DURATION,
+  GLOBE_ROUND_FIT_ASPECT,
+} from "../config/globe-settings.js";
+import { clampNumber, easeInOutSine, smoothStep } from "../utils/math.js";
+import { disposeThreeObject } from "../three/geometry.js";
+import {
+  applyDotLayerMorph,
+  applyGlobeShellProgress,
+  buildGlobeDotLayer,
+  createAtmosphereMaterial,
+  createBorderlessNetwork,
+  createGraticule,
+  createOuterHaloMaterial,
+  twinkleUniforms,
+  updateBorderlessNetworkMotion,
+} from "../three/globe.js";
+import { createGlobeNetwork, updateGlobeNetwork } from "../three/globe-network.js";
+import { createSpaceBackgroundMesh } from "../three/space-mesh.js";
+import { createWorldTexture } from "../three/world-texture.js";
+import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
+import { loadWorldCountries } from "../data/world-countries-topology.js";
+
+const getClientPoint = (event) => {
+  const touch = event.touches?.[0] || event.changedTouches?.[0];
+  const x = touch?.clientX ?? event.clientX;
+  const y = touch?.clientY ?? event.clientY;
+
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  return { x, y };
+};
+
+export const GlobeBackground = ({
+  mapData,
+  selectedDots,
+  dotColor,
+  dotSize,
+  shape,
+  dotRotation = 0,
+  asciiSymbol,
+  renderMode = "dots",
+  worldFill,
+  worldStroke,
+  dotsVisible,
+  background,
+  interactive = true,
+  morphMode = "globe",
+  morphTransition = null,
+  transparent,
+  mapOffset,
+  setMapOffset,
+  mapZoom,
+  setMapZoom,
+  mapDepth,
+  tiltX,
+  tiltY,
+  setSelectedDots,
+  shaderSettings,
+  globeSettings,
+  spaceSettings,
+  backgroundStyle,
+  reducedMotion = false,
+  label,
+  canvasHandleRef,
+  panelCollapsed,
+}) => {
+  const mountRef = useRef(null);
+  const spaceSettingsRef = useRef(spaceSettings);
+  const backgroundStyleRef = useRef(backgroundStyle);
+  const reducedMotionRef = useRef(reducedMotion);
+  spaceSettingsRef.current = spaceSettings;
+  backgroundStyleRef.current = backgroundStyle;
+  reducedMotionRef.current = reducedMotion;
+  const stateRef = useRef({
+    active: false,
+    baseOffsetX: 0,
+    baseOffsetY: 0,
+    currentX: GLOBE_INITIAL_ROTATION.x,
+    currentY: GLOBE_INITIAL_ROTATION.y,
+    dragMode: "rotate",
+    lastX: 0,
+    lastY: 0,
+    moved: false,
+    startX: 0,
+    startY: 0,
+    targetX: GLOBE_INITIAL_ROTATION.x,
+    targetY: GLOBE_INITIAL_ROTATION.y,
+  });
+  const threeRef = useRef(null);
+  const mapOffsetRef = useRef(mapOffset);
+  const mapZoomRef = useRef(mapZoom);
+  const morphModeRef = useRef(morphMode);
+  const panelCollapsedRef = useRef(panelCollapsed);
+  const initialMorphProgress = morphTransition === "to-globe" ? 0 : morphMode === "globe" ? 1 : 0;
+  const morphRef = useRef({
+    active: false,
+    progress: initialMorphProgress,
+    start: initialMorphProgress,
+    startTime: 0,
+    target: initialMorphProgress,
+  });
+  const settingsRef = useRef(shaderSettings);
+  const globeSettingsRef = useRef(globeSettings);
+  const transformRef = useRef({ mapDepth, tiltX, tiltY });
+  const [isDraggingGlobe, setIsDraggingGlobe] = useState(false);
+
+  mapOffsetRef.current = mapOffset;
+  mapZoomRef.current = mapZoom;
+  morphModeRef.current = morphMode;
+  panelCollapsedRef.current = panelCollapsed;
+  settingsRef.current = shaderSettings;
+  globeSettingsRef.current = globeSettings;
+  transformRef.current = { mapDepth, tiltX, tiltY };
+
+  const startDrag = useCallback((event) => {
+    if (Number.isFinite(event.button) && event.button !== 0) return;
+
+    const point = getClientPoint(event);
+    if (!point) return;
+
+    const shouldPanFlatMap = morphModeRef.current === "flat" && morphRef.current.progress < 0.35;
+    const offset = mapOffsetRef.current || { x: 0, y: 0 };
+    stateRef.current.active = true;
+    stateRef.current.baseOffsetX = offset.x;
+    stateRef.current.baseOffsetY = offset.y;
+    stateRef.current.dragMode = shouldPanFlatMap ? "pan" : "rotate";
+    stateRef.current.lastX = point.x;
+    stateRef.current.lastY = point.y;
+    stateRef.current.moved = false;
+    stateRef.current.startX = point.x;
+    stateRef.current.startY = point.y;
+    setIsDraggingGlobe(true);
+    if (event.pointerId !== undefined) {
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    }
+  }, []);
+
+  const dragGlobe = useCallback((event) => {
+    const state = stateRef.current;
+    if (!state.active) return;
+
+    const point = getClientPoint(event);
+    if (!point) return;
+
+    const dx = point.x - state.lastX;
+    const dy = point.y - state.lastY;
+    state.lastX = point.x;
+    state.lastY = point.y;
+
+    if (state.dragMode === "pan") {
+      const panX = point.x - state.startX;
+      const panY = point.y - state.startY;
+      if (Math.abs(panX) > 3 || Math.abs(panY) > 3) {
+        state.moved = true;
+      }
+      setMapOffset({
+        x: state.baseOffsetX + panX,
+        y: state.baseOffsetY + panY,
+      });
+      event.preventDefault();
+      return;
+    }
+
+    state.targetY += dx * 0.006;
+    state.targetX = clampNumber(state.targetX + dy * 0.0045, -1.18, 1.18);
+    state.moved = state.moved || Math.abs(dx) > 2 || Math.abs(dy) > 2;
+    event.preventDefault();
+  }, [setMapOffset]);
+
+  const stopDrag = useCallback((event) => {
+    if (!stateRef.current.active) return;
+    stateRef.current.active = false;
+    setIsDraggingGlobe(false);
+    if (event.pointerId !== undefined) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
+  }, []);
+
+  const handleGlobeKey = useCallback((event) => {
+    // Keyboard rotation — accessibility win. Arrow keys rotate the globe in
+    // 6° steps, Shift gives a coarser 18° leap. +/-/= zoom. Only fires when
+    // the canvas itself has focus, so panel inputs still work normally.
+    const step = (event.shiftKey ? 0.32 : 0.12);
+    const state = stateRef.current;
+    if (event.key === "ArrowLeft") {
+      state.targetY -= step;
+      event.preventDefault();
+    } else if (event.key === "ArrowRight") {
+      state.targetY += step;
+      event.preventDefault();
+    } else if (event.key === "ArrowUp") {
+      state.targetX = clampNumber(state.targetX - step, -1.3, 1.3);
+      event.preventDefault();
+    } else if (event.key === "ArrowDown") {
+      state.targetX = clampNumber(state.targetX + step, -1.3, 1.3);
+      event.preventDefault();
+    } else if (event.key === "+" || event.key === "=") {
+      const next = clampNumber(mapZoomRef.current + 0.1, 0.5, 3);
+      setMapZoom(Number(next.toFixed(2)));
+      event.preventDefault();
+    } else if (event.key === "-" || event.key === "_") {
+      const next = clampNumber(mapZoomRef.current - 0.1, 0.5, 3);
+      setMapZoom(Number(next.toFixed(2)));
+      event.preventDefault();
+    }
+  }, [setMapZoom]);
+
+  const zoomGlobe = useCallback((event) => {
+    event.preventDefault();
+    const intensity = event.ctrlKey ? 0.01 : 0.0018;
+    const currentZoom = clampNumber(mapZoomRef.current, 0.5, 3);
+    const nextZoom = clampNumber(currentZoom * Math.exp(-event.deltaY * intensity), 0.5, 3);
+
+    if (morphModeRef.current === "flat" && morphRef.current.progress < 0.35) {
+      const point = getClientPoint(event);
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (point && rect.width && rect.height) {
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const pointerX = point.x - centerX;
+        const pointerY = point.y - centerY;
+        const zoomRatio = nextZoom / currentZoom;
+        setMapOffset((offset) => ({
+          x: pointerX - (pointerX - offset.x) * zoomRatio,
+          y: pointerY - (pointerY - offset.y) * zoomRatio,
+        }));
+      }
+    }
+
+    setMapZoom(Number(nextZoom.toFixed(3)));
+  }, [setMapOffset, setMapZoom]);
+
+  const toggleNearestDot = useCallback((event) => {
+    if (stateRef.current.moved) {
+      stateRef.current.moved = false;
+      return;
+    }
+
+    const refs = threeRef.current;
+    if (!refs?.camera || !refs?.renderer || !refs?.dotLayer) return;
+
+    const rect = refs.renderer.domElement.getBoundingClientRect();
+    const pointer = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1,
+    );
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(pointer, refs.camera);
+    const hits = raycaster.intersectObjects(refs.dotLayer.children, true);
+    const instanceId = hits[0]?.instanceId;
+    const pointMap = hits[0]?.object?.userData?.pointIds;
+    const dotId = Array.isArray(pointMap) ? pointMap[instanceId] : null;
+    if (!dotId) return;
+
+    refs.setSelectedDots?.((current) => {
+      const next = new Set(current);
+      if (next.has(dotId)) next.delete(dotId);
+      else next.add(dotId);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return undefined;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+    camera.position.set(0, 0, GLOBE_CAMERA_DISTANCE);
+
+    // Space background lives in the scene (not globeGroup) so it stays fixed
+    // when the globe rotates, and is processed by the post-effect chain.
+    const spaceBackground = createSpaceBackgroundMesh();
+    scene.add(spaceBackground);
+
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      preserveDrawingBuffer: true,
+    });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setClearColor(0x000000, 0);
+    // Cap initial DPR — phones and high-DPI laptops are the perf cliff. The
+    // adaptive loop below can step it down further if FPS slips.
+    const isCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches;
+    const dprCap = isCoarsePointer ? 1.5 : 2;
+    const initialDpr = Math.min(window.devicePixelRatio || 1, dprCap);
+    renderer.setPixelRatio(initialDpr);
+    mount.appendChild(renderer.domElement);
+
+    // Make the canvas keyboard-focusable so arrow keys can rotate the globe.
+    // The aria-label + role announce intent to screen readers; users who don't
+    // want to engage can Tab past it.
+    renderer.domElement.tabIndex = 0;
+    renderer.domElement.setAttribute("role", "application");
+    renderer.domElement.setAttribute("aria-label", label || "Interactive dotted globe");
+
+    if (canvasHandleRef) {
+      canvasHandleRef.current = renderer.domElement;
+    }
+
+    const globeGroup = new THREE.Group();
+    scene.add(globeGroup);
+
+    // Unlit base sphere so there's no directional-light terminator visible
+    // through gaps in the dot field. Stripe-style flat shading on the ocean.
+    const baseMaterial = new THREE.MeshBasicMaterial({
+      color: new THREE.Color("#18191d"),
+      transparent: true,
+      opacity: 0.28,
+    });
+    const globeMesh = new THREE.Mesh(new THREE.SphereGeometry(2, 96, 96), baseMaterial);
+    globeGroup.add(globeMesh);
+
+    const atmosphereMaterial = createAtmosphereMaterial();
+    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(2 + 0.18, 96, 96), atmosphereMaterial);
+    globeGroup.add(atmosphere);
+
+    // Outer halo — wider, softer secondary atmosphere for deep cinematic glow.
+    const outerHaloMaterial = createOuterHaloMaterial();
+    const outerHalo = new THREE.Mesh(new THREE.SphereGeometry(2 + 0.55, 64, 64), outerHaloMaterial);
+    globeGroup.add(outerHalo);
+
+    const graticule = createGraticule();
+    globeGroup.add(graticule);
+
+    const borderlessNetwork = createBorderlessNetwork();
+    globeGroup.add(borderlessNetwork);
+
+    const globeNetwork = createGlobeNetwork();
+    globeGroup.add(globeNetwork);
+
+    // Slightly more directional lighting — a key light and a soft rim from the back
+    // for atmospheric scattering depth.
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(2.4, 1.9, 4);
+    scene.add(keyLight);
+    const rimLight = new THREE.DirectionalLight(0x88c8ff, 0.55);
+    rimLight.position.set(-3, -0.6, -2.4);
+    scene.add(rimLight);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.68));
+
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    const initialRect = mount.getBoundingClientRect();
+    const initialWidth = Math.max(1, Math.floor(initialRect.width));
+    const initialHeight = Math.max(1, Math.floor(initialRect.height));
+    const postHandle = createPostComposer({
+      renderer,
+      scene,
+      camera,
+      width: initialWidth,
+      height: initialHeight,
+      pixelRatio,
+    });
+
+    threeRef.current = {
+      atmosphereMaterial,
+      outerHaloMaterial,
+      spaceBackground,
+      atmosphereIntensity: 0.42,
+      baseDistance: GLOBE_CAMERA_DISTANCE,
+      baseMaterial,
+      baseOpacity: 0.3,
+      borderlessNetwork,
+      globeNetwork,
+      camera,
+      dotLayer: null,
+      flatDistance: GLOBE_CAMERA_DISTANCE,
+      globeDistance: GLOBE_CAMERA_DISTANCE,
+      globeGroup,
+      graticule,
+      graticuleOpacity: 0.13,
+      postHandle,
+      renderer,
+      scene,
+      setSelectedDots,
+    };
+    applyGlobeShellProgress(threeRef.current, morphRef.current.progress, globeSettingsRef.current);
+
+    const resize = () => {
+      const rect = mount.getBoundingClientRect();
+      const width = Math.max(1, Math.floor(rect.width));
+      const height = Math.max(1, Math.floor(rect.height));
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      const aspect = Math.max(camera.aspect, 0.1);
+      const narrowFit = clampNumber((760 - width) / 260, 0, 1);
+      const flatFitAspect = GLOBE_FLAT_FIT_ASPECT + narrowFit * 0.18;
+      const globeFitAspect = GLOBE_ROUND_FIT_ASPECT + narrowFit * 0.32;
+      threeRef.current.flatDistance = GLOBE_CAMERA_DISTANCE * Math.max(1, flatFitAspect / aspect);
+      threeRef.current.globeDistance = GLOBE_CAMERA_DISTANCE * Math.max(1, globeFitAspect / aspect);
+      threeRef.current.baseDistance = threeRef.current.globeDistance;
+      renderer.setSize(width, height, false);
+      postHandle.setSize(width, height);
+    };
+
+    const observer = new ResizeObserver(resize);
+    observer.observe(mount);
+    resize();
+
+    let frame = 0;
+    let lastTime = window.performance.now();
+    const animate = (now) => {
+      const delta = Math.min(48, now - lastTime);
+      lastTime = now;
+      const state = stateRef.current;
+      const settings = settingsRef.current;
+      const currentGlobeSettings = { ...DEFAULT_GLOBE_SETTINGS, ...globeSettingsRef.current };
+      const effectMotion = clampNumber(settings.motion ?? 35, 0, 100);
+      const spin = 0.00008 + effectMotion * 0.0000035;
+
+      const spinProgress = currentGlobeSettings.autoSpin ? smoothStep(0.28, 1, morphRef.current.progress) : 0;
+      if (!state.active) {
+        state.targetY += spin * delta * spinProgress;
+      }
+
+      state.currentX += (state.targetX - state.currentX) * 0.095;
+      state.currentY += (state.targetY - state.currentY) * 0.095;
+
+      const morph = morphRef.current;
+      if (morph.active) {
+        const elapsed = now - morph.startTime;
+        const progress = easeInOutSine(elapsed / GLOBE_MORPH_DURATION);
+        morph.progress = morph.start + (morph.target - morph.start) * progress;
+        if (progress >= 1) {
+          morph.progress = morph.target;
+          morph.active = false;
+        }
+      }
+
+      const flatProgress = 1 - smoothStep(0.06, 0.82, morph.progress);
+      const rotationProgress = smoothStep(0.18, 1, morph.progress);
+      const transform = transformRef.current;
+      const targetFov = clampNumber(42 + (transform.mapDepth - 55) * 0.12 * flatProgress, 34, 54);
+      const targetDistance = THREE.MathUtils.lerp(
+        threeRef.current.flatDistance || threeRef.current.baseDistance,
+        threeRef.current.globeDistance || threeRef.current.baseDistance,
+        rotationProgress,
+      );
+      camera.fov += (targetFov - camera.fov) * 0.12;
+      camera.position.z = targetDistance / clampNumber(mapZoomRef.current, 0.5, 3);
+      camera.updateProjectionMatrix();
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.z;
+      const visibleWidth = visibleHeight * camera.aspect;
+      const offset = mapOffsetRef.current || { x: 0, y: 0 };
+      const narrowFocus = clampNumber((760 - rect.width) / 260, 0, 1);
+      const panelFocusPixels = panelCollapsedRef.current ? 0 : narrowFocus * 104;
+      const globeFocusOffset = (panelFocusPixels / Math.max(rect.width, 1)) * visibleWidth;
+
+      globeGroup.position.x = (offset.x / Math.max(rect.width, 1)) * visibleWidth * flatProgress + globeFocusOffset * rotationProgress;
+      globeGroup.position.y = (-offset.y / Math.max(rect.height, 1)) * visibleHeight * flatProgress;
+      globeGroup.position.z = 0;
+      globeGroup.rotation.x = THREE.MathUtils.degToRad(transform.tiltX || 0) * flatProgress + state.currentX * rotationProgress;
+      globeGroup.rotation.y = THREE.MathUtils.degToRad(transform.tiltY || 0) * flatProgress + state.currentY * rotationProgress;
+
+      if (
+        threeRef.current.dotLayer
+        && Math.abs((threeRef.current.dotLayer.userData.morphProgress ?? -1) - morph.progress) > 0.0005
+      ) {
+        applyDotLayerMorph(threeRef.current.dotLayer, morph.progress);
+      }
+      applyGlobeShellProgress(threeRef.current, morph.progress, currentGlobeSettings);
+      // Freeze the clock that drives long-running ambient motion when reduced
+      // motion is preferred. The scene still renders, it just doesn't animate.
+      const ambientTime = reducedMotionRef.current ? 0 : now / 1000;
+      updateBorderlessNetworkMotion(threeRef.current.borderlessNetwork, reducedMotionRef.current ? 0 : now);
+      updateGlobeNetwork(threeRef.current.globeNetwork, ambientTime);
+
+      if (threeRef.current?.atmosphereMaterial?.uniforms?.uTime) {
+        threeRef.current.atmosphereMaterial.uniforms.uTime.value = ambientTime;
+      }
+      if (threeRef.current?.outerHaloMaterial?.uniforms?.uTime) {
+        threeRef.current.outerHaloMaterial.uniforms.uTime.value = ambientTime;
+      }
+      twinkleUniforms.uTime.value = ambientTime;
+      twinkleUniforms.twinkleAmount.value = reducedMotionRef.current ? 0 : 0.18;
+
+      const sbg = threeRef.current?.spaceBackground;
+      if (sbg) {
+        const wantsSpace = backgroundStyleRef.current === "space";
+        sbg.visible = wantsSpace;
+        if (wantsSpace) {
+          const settings = spaceSettingsRef.current || {};
+          const rect = renderer.domElement.getBoundingClientRect();
+          const u = sbg.material.uniforms;
+          u.uTime.value = ambientTime;
+          u.uResolution.value.set(Math.max(1, rect.width), Math.max(1, rect.height));
+          u.uDensity.value = (settings.density ?? 65) / 100;
+          u.uMotion.value = (settings.motion ?? 35) / 100;
+          u.uNebula.value = (settings.nebula ?? 55) / 100;
+          u.uHue.value = (settings.hue ?? 0) / 50;
+          u.uBrightness.value = (settings.brightness ?? 100) / 100;
+        }
+      }
+
+      updatePostEffects(threeRef.current?.postHandle, settingsRef.current, now / 1000);
+      threeRef.current?.postHandle?.composer.render();
+
+      // Adaptive DPR — track sustained FPS in a 60-frame window. When the
+      // average drops below 50 FPS, step DPR down by 0.25; when it climbs
+      // back above 58 FPS, allow it to recover up to the initial cap. Hold
+      // 2.5s between adjustments so we don't oscillate.
+      perfState.frames++;
+      perfState.accum += delta;
+      if (perfState.frames >= 60) {
+        const fps = (perfState.frames * 1000) / Math.max(perfState.accum, 1);
+        if (now - perfState.lastAdjustAt > 2500) {
+          const currentPR = renderer.getPixelRatio();
+          if (fps < 50 && currentPR > 1) {
+            const next = Math.max(1, currentPR - 0.25);
+            renderer.setPixelRatio(next);
+            const w = renderer.domElement.clientWidth || renderer.domElement.width;
+            const h = renderer.domElement.clientHeight || renderer.domElement.height;
+            renderer.setSize(w, h, false);
+            postHandle.setSize(w * next, h * next);
+            perfState.lastAdjustAt = now;
+          } else if (fps > 58 && currentPR < initialDpr - 0.001) {
+            const next = Math.min(initialDpr, currentPR + 0.25);
+            renderer.setPixelRatio(next);
+            const w = renderer.domElement.clientWidth || renderer.domElement.width;
+            const h = renderer.domElement.clientHeight || renderer.domElement.height;
+            renderer.setSize(w, h, false);
+            postHandle.setSize(w * next, h * next);
+            perfState.lastAdjustAt = now;
+          }
+        }
+        perfState.frames = 0;
+        perfState.accum = 0;
+      }
+
+      frame = window.requestAnimationFrame(animate);
+    };
+    const perfState = { frames: 0, accum: 0, lastAdjustAt: 0 };
+    frame = window.requestAnimationFrame(animate);
+
+    // Pause the render loop when the tab is hidden. Saves CPU/GPU/battery and
+    // prevents the requestAnimationFrame throttling from causing a backlog of
+    // catch-up frames when the user returns. Resume cleanly on visibility change.
+    const handleVisibility = () => {
+      if (document.hidden) {
+        window.cancelAnimationFrame(frame);
+        frame = 0;
+      } else if (!frame) {
+        // Reset lastTime so the first delta after resume isn't a giant jump.
+        lastTime = window.performance.now();
+        frame = window.requestAnimationFrame(animate);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    // True high-res capture: pause animation, resize renderer + composer to N×
+    // the display resolution, render one frame at that resolution, capture the
+    // pixels via toBlob, then restore everything. Gives 2×/3×/4× output that's
+    // genuinely higher resolution rather than a Canvas2D upscale.
+    const captureAtScale = (scale) =>
+      new Promise((resolve, reject) => {
+        const refs = threeRef.current;
+        if (!refs?.postHandle) {
+          reject(new Error("Composer not ready"));
+          return;
+        }
+        window.cancelAnimationFrame(frame);
+        const originalPixelRatio = renderer.getPixelRatio();
+        const rect = renderer.domElement.getBoundingClientRect();
+        const displayW = Math.max(1, Math.floor(rect.width));
+        const displayH = Math.max(1, Math.floor(rect.height));
+        const targetPR = Math.max(1, scale);
+
+        try {
+          renderer.setPixelRatio(targetPR);
+          renderer.setSize(displayW, displayH, false);
+          refs.postHandle.setSize(displayW * targetPR, displayH * targetPR);
+          if (refs.spaceBackground?.material?.uniforms?.uResolution) {
+            refs.spaceBackground.material.uniforms.uResolution.value.set(
+              displayW * targetPR,
+              displayH * targetPR,
+            );
+          }
+          refs.postHandle.composer.render();
+          renderer.domElement.toBlob((blob) => {
+            // Restore original render size regardless of toBlob outcome.
+            renderer.setPixelRatio(originalPixelRatio);
+            renderer.setSize(displayW, displayH, false);
+            refs.postHandle.setSize(displayW * originalPixelRatio, displayH * originalPixelRatio);
+            if (refs.spaceBackground?.material?.uniforms?.uResolution) {
+              refs.spaceBackground.material.uniforms.uResolution.value.set(
+                displayW * originalPixelRatio,
+                displayH * originalPixelRatio,
+              );
+            }
+            frame = window.requestAnimationFrame(animate);
+            if (blob) resolve(blob);
+            else reject(new Error("toBlob returned null"));
+          }, "image/png");
+        } catch (error) {
+          renderer.setPixelRatio(originalPixelRatio);
+          renderer.setSize(displayW, displayH, false);
+          refs.postHandle.setSize(displayW * originalPixelRatio, displayH * originalPixelRatio);
+          frame = window.requestAnimationFrame(animate);
+          reject(error);
+        }
+      });
+
+    if (canvasHandleRef) {
+      renderer.domElement.captureAtScale = captureAtScale;
+    }
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      observer.disconnect();
+      if (canvasHandleRef) {
+        canvasHandleRef.current = null;
+      }
+      disposeThreeObject(scene);
+      threeRef.current?.postHandle?.dispose?.();
+      renderer.dispose();
+      renderer.domElement.remove();
+      threeRef.current = null;
+    };
+  }, [canvasHandleRef, setSelectedDots]);
+
+  useEffect(() => {
+    const refs = threeRef.current;
+    if (!refs) return;
+
+    const showDots = renderMode === "dots" && dotsVisible;
+
+    if (!showDots) {
+      if (refs.dotLayer) {
+        refs.globeGroup.remove(refs.dotLayer);
+        disposeThreeObject(refs.dotLayer);
+        refs.dotLayer = null;
+      }
+      return;
+    }
+
+    const nextLayer = buildGlobeDotLayer({
+      mapData,
+      selectedDots,
+      dotColor,
+      dotSize,
+      shape,
+      dotRotation,
+      asciiSymbol,
+      shaderSettings,
+      globeSettings,
+      morphProgress: morphRef.current.progress,
+    });
+
+    if (refs.dotLayer) {
+      refs.globeGroup.remove(refs.dotLayer);
+      disposeThreeObject(refs.dotLayer);
+    }
+
+    refs.dotLayer = nextLayer;
+    refs.globeGroup.add(nextLayer);
+  }, [asciiSymbol, dotColor, dotRotation, dotSize, dotsVisible, globeSettings, mapData, renderMode, selectedDots, shaderSettings, shape]);
+
+  useEffect(() => {
+    const refs = threeRef.current;
+    if (!refs?.baseMaterial) return undefined;
+
+    if (renderMode !== "solid") {
+      refs.baseMaterial.map = null;
+      refs.baseMaterial.needsUpdate = true;
+      refs.solidActive = false;
+      applyGlobeShellProgress(refs, morphRef.current.progress, globeSettingsRef.current);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const applySolid = (texture) => {
+      if (cancelled || !threeRef.current) return;
+      const liveRefs = threeRef.current;
+      liveRefs.solidTexture?.dispose?.();
+      liveRefs.solidTexture = texture;
+      liveRefs.baseMaterial.map = texture;
+      liveRefs.baseMaterial.color.set("#ffffff");
+      liveRefs.baseMaterial.metalness = 0;
+      liveRefs.baseMaterial.roughness = 0.6;
+      liveRefs.baseMaterial.needsUpdate = true;
+      liveRefs.solidActive = true;
+      liveRefs.baseOpacity = 1;
+      applyGlobeShellProgress(liveRefs, morphRef.current.progress, globeSettingsRef.current);
+    };
+
+    loadWorldCountries().then((countries) => {
+      if (cancelled) return;
+      const texture = createWorldTexture(countries, {
+        fill: worldFill,
+        stroke: worldStroke,
+      });
+      if (texture) applySolid(texture);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [renderMode, worldFill, worldStroke]);
+
+  useEffect(() => {
+    const target = morphMode === "globe" ? 1 : 0;
+    const morph = morphRef.current;
+    if (Math.abs(morph.progress - target) < 0.001) {
+      morph.progress = target;
+      morph.target = target;
+      morph.active = false;
+      applyDotLayerMorph(threeRef.current?.dotLayer, target);
+      applyGlobeShellProgress(threeRef.current, target, globeSettingsRef.current);
+      return;
+    }
+
+    morph.start = morph.progress;
+    morph.target = target;
+    morph.startTime = window.performance.now();
+    morph.active = true;
+  }, [morphMode]);
+
+  useEffect(() => {
+    const refs = threeRef.current;
+    if (!refs) return;
+
+    const look = globeSettings?.look ?? DEFAULT_GLOBE_SETTINGS.look;
+    const isBorderless = look === "borderless";
+    const bgColor = new THREE.Color(transparent ? "#151517" : background);
+    const surfaceColor = isBorderless
+      ? new THREE.Color("#091326").lerp(bgColor, transparent ? 0.12 : 0.22)
+      : bgColor.clone().lerp(new THREE.Color("#23262d"), transparent ? 0.52 : 0.36);
+    const glowColor = isBorderless
+      ? new THREE.Color("#7fe4ff").lerp(new THREE.Color("#ac8cff"), 0.28)
+      : new THREE.Color(dotColor === "#ffffff" ? GLOBE_DEFAULT_GLOW : dotColor);
+    const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
+
+    const solidActive = refs.solidActive;
+    refs.baseMaterial.color.copy(solidActive ? new THREE.Color("#ffffff") : surfaceColor);
+    refs.baseMaterial.metalness = solidActive ? 0 : isBorderless ? 0.22 : 0.12;
+    refs.baseMaterial.roughness = solidActive ? 0.92 : isBorderless ? 0.46 : 0.78;
+    refs.baseOpacity = solidActive ? 1 : isBorderless ? (transparent ? 0.18 : 0.34) : (transparent ? 0.2 : 0.3);
+    refs.atmosphereMaterial.uniforms.glowColor.value.copy(glowColor);
+    refs.atmosphereIntensity = isBorderless ? 0.52 + intensity * 0.3 : 0.32 + intensity * 0.24;
+    refs.graticuleOpacity = isBorderless ? 0.035 + intensity * 0.045 : 0.08 + intensity * 0.08;
+    refs.graticule.children.forEach((line) => {
+      line.material.color.copy(isBorderless ? new THREE.Color("#7bdcff") : glowColor.clone().lerp(new THREE.Color("#ffffff"), 0.62));
+    });
+    applyGlobeShellProgress(refs, morphRef.current.progress, globeSettingsRef.current);
+  }, [background, dotColor, globeSettings, renderMode, shaderSettings.intensity, transparent]);
+
+  return (
+    <div
+      ref={mountRef}
+      className={`globe-background look-${globeSettings?.look ?? "classic"} effect-${shaderSettings.effect || "none"} ${
+        isDraggingGlobe ? "is-dragging" : ""
+      } ${
+        interactive ? "" : "is-passive"
+      }`}
+      aria-label={label}
+      onPointerDown={startDrag}
+      onPointerMove={dragGlobe}
+      onPointerUp={stopDrag}
+      onPointerCancel={stopDrag}
+      onMouseDown={startDrag}
+      onMouseMove={dragGlobe}
+      onMouseUp={stopDrag}
+      onMouseLeave={stopDrag}
+      onTouchStart={startDrag}
+      onTouchMove={dragGlobe}
+      onTouchEnd={stopDrag}
+      onTouchCancel={stopDrag}
+      onWheel={zoomGlobe}
+      onClick={toggleNearestDot}
+      onKeyDown={handleGlobeKey}
+    />
+  );
+};
