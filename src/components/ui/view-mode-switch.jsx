@@ -17,6 +17,7 @@ export const ViewModeSwitch = ({ viewMode, setViewMode }) => (
           className={`view-mode-button ${active ? "is-active" : ""}`}
           onClick={() => setViewMode(mode.value)}
           aria-pressed={active}
+          title={`${mode.label} view (G)`}
         >
           <Icon size={15} />
           {mode.label}

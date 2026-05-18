@@ -14,11 +14,24 @@ export const MapZoomControls = ({ value, onChange }) => {
         className="map-zoom-button"
         onClick={() => updateZoom(Number((value - 0.1).toFixed(2)))}
         aria-label="Zoom out"
-        title="Zoom out"
+        title="Zoom out (−)"
       >
         <ZoomOut size={14} />
       </button>
-      <output className="map-zoom-display" aria-label="Map zoom value">
+      <output
+        className="map-zoom-display"
+        aria-label="Map zoom value"
+        title="Press 0 to reset"
+        onClick={() => updateZoom(1)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            updateZoom(1);
+          }
+        }}
+      >
         {Math.round(value * 100)}%
       </output>
       <button
@@ -26,7 +39,7 @@ export const MapZoomControls = ({ value, onChange }) => {
         className="map-zoom-button"
         onClick={() => updateZoom(Number((value + 0.1).toFixed(2)))}
         aria-label="Zoom in"
-        title="Zoom in"
+        title="Zoom in (+)"
       >
         <ZoomIn size={14} />
       </button>

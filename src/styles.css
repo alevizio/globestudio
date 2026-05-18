@@ -547,12 +547,32 @@ button {
 .looks-bar {
   display: flex;
   gap: 4px;
-  margin: 0 0 6px;
-  padding: 2px 0 8px;
+  margin: 0;
+  padding: 2px 0;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  /* Soft edge fades hint at scrollable content. Mask gets composed from the
+     two attribute states (at-start hides the left fade, at-end hides the
+     right fade), so the indicator only appears in the direction you can
+     actually scroll. */
+  mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+}
+
+.looks-bar[data-at-start="true"] {
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%);
+}
+
+.looks-bar[data-at-end="true"] {
+  mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 100%);
+}
+
+.looks-bar[data-at-start="true"][data-at-end="true"] {
+  mask-image: none;
+  -webkit-mask-image: none;
 }
 
 .looks-bar::-webkit-scrollbar {
@@ -644,6 +664,26 @@ button {
 @keyframes reset-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(-360deg); }
+}
+
+/* Shuffle does a brief tumble — the arrows visually cross over and back, which
+   evokes the "rearranging" semantics of the action. */
+.panel-shuffle-button.is-shuffling .lucide-shuffle {
+  animation: shuffle-tumble 620ms var(--ease);
+}
+
+@keyframes shuffle-tumble {
+  0% { transform: rotate(0) scale(1); }
+  30% { transform: rotate(-18deg) scale(1.1); }
+  60% { transform: rotate(18deg) scale(1.1); }
+  100% { transform: rotate(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-shuffle-button.is-shuffling .lucide-shuffle,
+  .panel-reset-button.is-resetting .lucide-rotate-ccw {
+    animation: none;
+  }
 }
 
 .panel-icon-button {
@@ -772,6 +812,177 @@ button {
   gap: 4px;
   padding: 12px 16px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.shortcuts-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(6, 6, 8, 0.62);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: export-modal-fade-in 180ms var(--ease);
+}
+
+.shortcuts-overlay {
+  width: min(380px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: rgba(14, 14, 16, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  animation: export-modal-rise-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.shortcuts-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px 20px;
+}
+
+.shortcuts-overlay-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--text);
+}
+
+.shortcuts-overlay-close {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease);
+}
+
+.shortcuts-overlay-close:hover {
+  background: var(--panel-3);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.shortcuts-overlay-list {
+  margin: 0;
+  padding: 4px 8px 16px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shortcuts-overlay-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.shortcuts-overlay-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+}
+
+.shortcuts-overlay-key {
+  flex: 0 0 auto;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.shortcuts-overlay-label {
+  flex: 1 1 auto;
+}
+
+.keyboard-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 55;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(14, 14, 16, 0.92);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: keyboard-hint-pop 1400ms var(--ease);
+}
+
+.keyboard-hint-key {
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+@keyframes keyboard-hint-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.96);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  85% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 4px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .keyboard-hint {
+    animation: none;
+  }
 }
 
 .export-modal-tab {
@@ -1162,6 +1373,18 @@ button {
   color: var(--text);
 }
 
+/* Help button uses a typographic "?" glyph instead of an icon, so style it
+   for monospaced kbd-like clarity. The trailing margin nudges social links
+   slightly away to read as a separate cluster. */
+.social-help-button {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  margin-right: 2px;
+  cursor: pointer;
+}
+
 .view-mode-switch {
   position: fixed;
   top: 12px;
@@ -1252,6 +1475,20 @@ button {
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  outline: 0;
+  transition: background 140ms var(--ease);
+}
+
+.map-zoom-display:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.map-zoom-display:focus-visible {
+  outline: 2px solid var(--accent, #f6f2ea);
+  outline-offset: 2px;
 }
 
 .export-menu {
@@ -1373,7 +1610,6 @@ button {
   align-items: center;
   gap: 10px;
   padding: 6px 8px 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .panel-meta {
@@ -1396,6 +1632,57 @@ button {
   color: var(--text);
 }
 
+.panel-meta-icon svg {
+  animation: panel-meta-icon-spin 24s linear infinite;
+}
+
+@keyframes panel-meta-icon-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* When a preset is freshly applied, the brand mark itself ripples outward —
+   inner dots pop first, then concentric rings follow. Subtle at 28×28 so it
+   reads as personality, not noise. Stagger via :nth-child since the circles
+   render in a roughly inside-out order matching the favicon source. */
+.panel-meta-icon.is-rippling svg circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: panel-meta-icon-ripple 520ms var(--ease);
+}
+/* Inner band (y=14, y=18 rows — indices 9-18) — fires immediately */
+.panel-meta-icon.is-rippling svg circle:nth-child(n+9):nth-child(-n+18) {
+  animation-delay: 0ms;
+}
+/* Mid band (y=11, y=21 rows — indices 5-8, 19-22) */
+.panel-meta-icon.is-rippling svg circle:nth-child(n+5):nth-child(-n+8),
+.panel-meta-icon.is-rippling svg circle:nth-child(n+19):nth-child(-n+22) {
+  animation-delay: 80ms;
+}
+/* Outer band (y=8, y=24 rows — indices 2-4, 23-25) */
+.panel-meta-icon.is-rippling svg circle:nth-child(n+2):nth-child(-n+4),
+.panel-meta-icon.is-rippling svg circle:nth-child(n+23):nth-child(-n+25) {
+  animation-delay: 160ms;
+}
+/* Poles (top and bottom — indices 1, 26) */
+.panel-meta-icon.is-rippling svg circle:nth-child(1),
+.panel-meta-icon.is-rippling svg circle:nth-child(26) {
+  animation-delay: 240ms;
+}
+
+@keyframes panel-meta-icon-ripple {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-meta-icon svg,
+  .panel-meta-icon.is-rippling svg circle {
+    animation: none;
+  }
+}
+
 .panel-meta-text {
   min-width: 0;
   display: flex;
@@ -1408,6 +1695,27 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.panel-meta-count {
+  transition: color 180ms var(--ease);
+}
+
+.panel-meta-count.is-pulsing {
+  color: var(--text);
+  animation: panel-meta-count-pulse 420ms var(--ease);
+}
+
+@keyframes panel-meta-count-pulse {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-meta-count.is-pulsing {
+    animation: none;
+  }
 }
 
 .panel-meta-text span:first-child {
@@ -1426,20 +1734,8 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
-.panel-reset-button {
-  min-height: 28px;
-  padding: 0 10px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--muted);
-  background: transparent;
-  border-color: transparent;
-}
-
-.panel-reset-button:hover {
-  background: var(--panel-3);
-  color: var(--text);
-}
+/* .panel-reset-button is just a marker for the rotation animation now —
+   visual styles come from .panel-icon-button. */
 
 @media (max-width: 480px) {
   .panel-meta-text span:last-child {
@@ -1681,6 +1977,129 @@ select:hover {
   flex: 0 0 auto;
 }
 
+.searchable-select {
+  position: relative;
+  width: 100%;
+  /* 250+ country labels — give the trigger room so country names don't get
+     truncated and the popover sits over a comfortably wide search field. */
+  min-width: 180px;
+}
+
+.searchable-select-trigger {
+  width: 100%;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 180ms var(--ease), background 180ms var(--ease);
+}
+
+.searchable-select-trigger:hover {
+  border-color: var(--border-strong);
+}
+
+.searchable-select.is-open .searchable-select-trigger {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.searchable-select-value {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchable-select-trigger svg {
+  flex: 0 0 auto;
+  opacity: 0.6;
+}
+
+.searchable-select-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(18, 18, 20, 0.96);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.searchable-select-search {
+  width: 100%;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  outline: 0;
+}
+
+.searchable-select-search::placeholder {
+  color: var(--dim);
+}
+
+.searchable-select-list {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-3) transparent;
+}
+
+.searchable-select-option {
+  padding: 6px 8px;
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 140ms var(--ease), color 140ms var(--ease);
+}
+
+.searchable-select-option.is-active {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.searchable-select-option.is-selected {
+  color: var(--accent);
+}
+
+.searchable-select-empty {
+  padding: 10px 8px;
+  color: var(--dim);
+  font-size: 12px;
+  text-align: center;
+}
+
 .ascii-symbol-input {
   width: 100%;
   min-height: 32px;
@@ -1727,6 +2146,8 @@ input[type="range"]:focus-visible,
 .looks-chip:focus-visible,
 .export-action-button:focus-visible,
 .map-zoom-button:focus-visible,
+.searchable-select-trigger:focus-visible,
+.searchable-select-search:focus-visible,
 .social-link:focus-visible {
   outline: 2px solid var(--accent, #f6f2ea);
   outline-offset: 2px;

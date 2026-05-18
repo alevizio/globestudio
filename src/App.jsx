@@ -9,6 +9,7 @@ import {
   GLOBE_MORPH_DURATION,
 } from "./config/globe-settings.js";
 import { areaOptionByValue, areaOptions } from "./data/geography.js";
+import { lookPresets } from "./data/look-presets.js";
 import { loadUsStates } from "./data/us-states.js";
 import { clampNumber } from "./utils/math.js";
 import {
@@ -31,7 +32,8 @@ import { ControlPanel } from "./components/control-panel.jsx";
 import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
-import { Download, Github, Globe, Globe2, PanelLeftClose, PanelLeftOpen, RotateCcw, Twitter } from "./components/icons.jsx";
+import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
+import { DottedGlobe, Download, Github, Globe2, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Twitter } from "./components/icons.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
 import { ViewModeSwitch } from "./components/ui/view-mode-switch.jsx";
@@ -95,11 +97,25 @@ const App = () => {
   // Brief acknowledgments after destructive/successful actions. Each is a
   // single-shot flag that auto-clears so the button can be re-pressed.
   const [resetFlash, setResetFlash] = useState(false);
+  const [shuffleFlash, setShuffleFlash] = useState(false);
   const [pngStatus, setPngStatus] = useState("idle");
   const [svgStatus, setSvgStatus] = useState("idle");
   const [appliedLookId, setAppliedLookId] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  // Transient toast shown when a keyboard shortcut fires. Auto-clears after a
+  // short delay; the ref tracks the latest timeout so successive keys reset it
+  // instead of stacking.
+  const [keyboardHint, setKeyboardHint] = useState(null);
+  const keyboardHintTimeoutRef = useRef(0);
+  const flashKeyboardHint = useCallback((key, label) => {
+    setKeyboardHint({ key, label });
+    window.clearTimeout(keyboardHintTimeoutRef.current);
+    keyboardHintTimeoutRef.current = window.setTimeout(() => {
+      setKeyboardHint(null);
+    }, 1400);
+  }, []);
   const prefersReducedMotion = usePrefersReducedMotion();
   // Animations are frozen when either the OS setting requests reduced motion
   // OR the user has flipped the in-app toggle off.
@@ -122,6 +138,23 @@ const App = () => {
 
   mapZoomRef.current = mapZoom;
   viewModeRef.current = viewMode;
+
+  // Read /looks/:id from the URL on first mount and apply that preset.
+  // Also listen for popstate so browser back/forward navigates between presets.
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const applyFromPath = () => {
+      const match = window.location.pathname.match(/^\/looks\/([a-z0-9-]+)\/?$/i);
+      if (!match) return;
+      const preset = lookPresets.find((p) => p.id === match[1]);
+      if (preset) applyLook(preset);
+    };
+    applyFromPath();
+    window.addEventListener("popstate", applyFromPath);
+    return () => window.removeEventListener("popstate", applyFromPath);
+    // applyLook is stable via useCallback([]) so safe to depend on identity only at mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const selectedCountryId = selection.startsWith("country:") ? selection.replace("country:", "") : "";
@@ -169,6 +202,17 @@ const App = () => {
   }, [density, selected, shape]);
 
   const dotCount = dotsVisible ? mapData.points.length : 0;
+  // Pulse the dot count whenever it changes — confirms that adjusting density
+  // or the area selection had an effect, even when the visual diff is subtle.
+  const dotCountRef = useRef(dotCount);
+  const [dotCountPulse, setDotCountPulse] = useState(false);
+  useEffect(() => {
+    if (dotCountRef.current === dotCount) return;
+    dotCountRef.current = dotCount;
+    setDotCountPulse(true);
+    const t = window.setTimeout(() => setDotCountPulse(false), 420);
+    return () => window.clearTimeout(t);
+  }, [dotCount]);
 
   const exportSvgData = useMemo(
     () =>
@@ -266,13 +310,65 @@ const App = () => {
     setAppliedLookId(preset.id);
     setStatusMessage(`Applied ${preset.name}`);
     window.setTimeout(() => setAppliedLookId((id) => (id === preset.id ? null : id)), 700);
+    // Sync the URL so the look becomes a shareable, indexable surface.
+    if (typeof window !== "undefined" && window.history?.pushState) {
+      const url = `/looks/${preset.id}`;
+      if (window.location.pathname !== url) {
+        window.history.pushState({ lookId: preset.id }, "", url);
+      }
+      document.title = `${preset.name} — Worlddots dotted globe`;
+      const meta = document.querySelector('meta[name="description"]');
+      if (meta) {
+        meta.setAttribute(
+          "content",
+          `${preset.blurb}. Generate dotted maps and animated 3D globes with the ${preset.name} preset. Export as PNG, SVG, or WebM.`,
+        );
+      }
+    }
   }, []);
+
+  // Curated palette + size sweet-spots. Picked to look good across most
+  // preset combinations, not chaotic random hex codes that produce ugly mud.
+  const SHUFFLE_COLORS = useMemo(
+    () => ["#ffffff", "#f6f2ea", "#9adfff", "#ffd58a", "#ff9ef3", "#b793ff", "#b7ffef", "#ffb8a3", "#a8ffaf"],
+    [],
+  );
+  const SHUFFLE_SHAPES = useMemo(
+    () => ["Circle", "Hexagon", "Square", "Triangle", "Diamond", "Pentagon"],
+    [],
+  );
+
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  const shuffleLook = useCallback(() => {
+    const preset = pick(lookPresets);
+    applyLook(preset);
+    // Brief flash class so the shuffle icon does a tumble — confirms the
+    // action even when the resulting visual change is subtle.
+    setShuffleFlash(true);
+    window.setTimeout(() => setShuffleFlash(false), 620);
+    // Layer extra randomness on top of the preset for variety. The preset gives
+    // us a tested aesthetic; the overrides give the reroll some surprise.
+    window.setTimeout(() => {
+      if (preset.settings.renderMode !== "solid") {
+        setDotColor(pick(SHUFFLE_COLORS));
+        if (preset.id === "default" || Math.random() < 0.4) {
+          setShape(pick(SHUFFLE_SHAPES));
+        }
+      }
+      setStatusMessage(`Shuffled to ${preset.name}`);
+    }, 50);
+  }, [SHUFFLE_COLORS, SHUFFLE_SHAPES, applyLook]);
 
   const handleReset = useCallback(() => {
     reset();
     setResetFlash(true);
     setStatusMessage("Reset to defaults");
     window.setTimeout(() => setResetFlash(false), 600);
+    if (typeof window !== "undefined" && window.location.pathname !== "/") {
+      window.history.pushState({}, "", "/");
+      document.title = "Worlddots — Dotted Map & 3D Globe Generator";
+    }
   }, []);
 
   const changeViewMode = useCallback((nextMode) => {
@@ -285,6 +381,80 @@ const App = () => {
       setViewTransition(null);
     }, GLOBE_MORPH_DURATION + 80);
   }, [viewMode]);
+
+  // Single-key shortcuts for the common panel actions. We bail when the user
+  // is in a field so typing in the country search / color picker still works,
+  // and when a modifier is held so OS chords (cmd+r reload, etc.) pass through.
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        const tag = target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if (target.isContentEditable) return;
+      }
+      const key = event.key.toLowerCase();
+      if (key === "s") {
+        event.preventDefault();
+        shuffleLook();
+        flashKeyboardHint("S", "Shuffle");
+      } else if (key === "d") {
+        event.preventDefault();
+        setExportModalOpen(true);
+        flashKeyboardHint("D", "Export");
+      } else if (key === "r") {
+        event.preventDefault();
+        handleReset();
+        flashKeyboardHint("R", "Reset");
+      } else if (key === "h") {
+        event.preventDefault();
+        setPanelCollapsed((collapsed) => {
+          flashKeyboardHint("H", collapsed ? "Show panel" : "Hide panel");
+          return !collapsed;
+        });
+      } else if (key === "g") {
+        event.preventDefault();
+        const next = viewModeRef.current === "globe" ? "flat" : "globe";
+        changeViewMode(next);
+        flashKeyboardHint("G", next === "globe" ? "Globe view" : "Flat view");
+      } else if (event.key === "+" || event.key === "=" || event.key === "-" || event.key === "_") {
+        // +/= zoom in, -/_ zoom out. Including the unshifted = and _ so users
+        // don't need to hold Shift on US keyboards. 0 resets.
+        event.preventDefault();
+        const direction = event.key === "+" || event.key === "=" ? 1 : -1;
+        setMapZoom((current) => {
+          const next = Math.max(0.5, Math.min(3, +(current + direction * 0.1).toFixed(2)));
+          return next;
+        });
+        flashKeyboardHint(direction > 0 ? "+" : "−", direction > 0 ? "Zoom in" : "Zoom out");
+      } else if (event.key === "0") {
+        event.preventDefault();
+        setMapZoom(1);
+        flashKeyboardHint("0", "Reset zoom");
+      } else if (event.key === "[" || event.key === "]") {
+        // Cycle through look presets. Anchor on the URL (/looks/:id) when
+        // available — that's the canonical "last applied" — otherwise start
+        // from index 0 so the first press always lands somewhere predictable.
+        event.preventDefault();
+        const direction = event.key === "]" ? 1 : -1;
+        const pathMatch = window.location.pathname.match(/^\/looks\/([^/]+)/);
+        const anchorIndex = pathMatch
+          ? lookPresets.findIndex((p) => p.id === pathMatch[1])
+          : -1;
+        const startIndex = anchorIndex >= 0 ? anchorIndex : 0;
+        const nextIndex = (startIndex + direction + lookPresets.length) % lookPresets.length;
+        const next = lookPresets[nextIndex];
+        applyLook(next);
+        flashKeyboardHint(event.key, next.name);
+      } else if (event.key === "?" || (event.key === "/" && event.shiftKey)) {
+        event.preventDefault();
+        setShortcutsOpen((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [shuffleLook, handleReset, changeViewMode, setPanelCollapsed, flashKeyboardHint, applyLook]);
 
   useEffect(() => {
     const shouldIgnoreTrackpadZoom = (event) => {
@@ -641,6 +811,15 @@ const App = () => {
       <MapZoomControls value={mapZoom} onChange={setMapZoom} />
 
       <nav className="social-links" aria-label="Project links">
+        <button
+          type="button"
+          className="social-link social-help-button"
+          onClick={() => setShortcutsOpen(true)}
+          aria-label="Show keyboard shortcuts"
+          title="Keyboard shortcuts (?)"
+        >
+          <span aria-hidden="true">?</span>
+        </button>
         <a
           className="social-link"
           href="https://github.com/alevizio/worlddots"
@@ -679,7 +858,7 @@ const App = () => {
           className="panel-toggle"
           onClick={() => setPanelCollapsed(false)}
           aria-label="Show panel"
-          title="Show panel"
+          title="Show panel (H)"
         >
           <PanelLeftOpen size={15} />
         </button>
@@ -691,38 +870,53 @@ const App = () => {
       >
         <div className="panel-header">
           <div className="panel-meta">
-            <span className="panel-meta-icon" aria-hidden="true">
-              <Globe size={20} strokeWidth={1.5} />
+            <span
+              className={`panel-meta-icon ${appliedLookId ? "is-rippling" : ""}`}
+              aria-hidden="true"
+            >
+              <DottedGlobe size={20} />
             </span>
             <div className="panel-meta-text">
               <span>{selected.label}</span>
-              <span>{dotsVisible ? `${dotCount.toLocaleString()} dots` : "Dots off"}</span>
+              <span className={dotCountPulse ? "panel-meta-count is-pulsing" : "panel-meta-count"}>
+                {dotsVisible ? `${dotCount.toLocaleString()} dots` : "Dots off"}
+              </span>
             </div>
           </div>
           <div className="panel-header-actions">
             <button
               type="button"
+              className={`panel-icon-button panel-shuffle-button ${shuffleFlash ? "is-shuffling" : ""}`}
+              onClick={shuffleLook}
+              aria-label="Shuffle to a random look"
+              title="Shuffle (S)"
+            >
+              <Shuffle size={14} />
+            </button>
+            <button
+              type="button"
               className="panel-icon-button"
               onClick={() => setExportModalOpen(true)}
               aria-label="Open export dialog"
-              title="Export"
+              title="Export (D)"
             >
               <Download size={14} />
             </button>
-            <IconButton
-              title="Reset view"
+            <button
+              type="button"
+              className={`panel-icon-button panel-reset-button ${resetFlash ? "is-resetting" : ""}`}
               onClick={handleReset}
-              className={`panel-reset-button ${resetFlash ? "is-resetting" : ""}`}
+              aria-label="Reset view"
+              title="Reset view (R)"
             >
-              <RotateCcw size={15} />
-              Reset
-            </IconButton>
+              <RotateCcw size={14} />
+            </button>
             <button
               type="button"
               className="panel-icon-button"
               onClick={() => setPanelCollapsed(true)}
               aria-label="Hide panel"
-              title="Hide panel"
+              title="Hide panel (H)"
             >
               <PanelLeftClose size={14} />
             </button>
@@ -806,6 +1000,15 @@ const App = () => {
         exportConfig={exportConfig}
         importConfig={importConfig}
       />
+
+      <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+
+      {keyboardHint && (
+        <div className="keyboard-hint" role="status" aria-live="polite">
+          <kbd className="keyboard-hint-key">{keyboardHint.key}</kbd>
+          <span className="keyboard-hint-label">{keyboardHint.label}</span>
+        </div>
+      )}
     </main>
   );
 };

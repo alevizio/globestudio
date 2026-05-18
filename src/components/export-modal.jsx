@@ -42,29 +42,57 @@ const computeDimensions = (baseW, baseH, aspectId, scale) => {
   return { width: Math.round(w * scale), height: Math.round(h * scale) };
 };
 
-const Tabs = ({ tab, setTab, hasVideo }) => (
-  <nav className="export-modal-tabs" role="tablist" aria-label="Export type">
-    {[
-      { id: "image", label: "Image" },
-      hasVideo && { id: "video", label: "Video" },
-      { id: "svg", label: "SVG" },
-      { id: "share", label: "Share" },
-    ]
-      .filter(Boolean)
-      .map((t) => (
+const Tabs = ({ tab, setTab, hasVideo }) => {
+  const tabs = [
+    { id: "image", label: "Image" },
+    hasVideo && { id: "video", label: "Video" },
+    { id: "svg", label: "SVG" },
+    { id: "share", label: "Share" },
+  ].filter(Boolean);
+
+  // ARIA tablist convention: ArrowLeft/Right move selection, Home/End jump to
+  // ends. We wrap around so power users can hold the arrow key.
+  const onKeyDown = (event) => {
+    const currentIndex = tabs.findIndex((t) => t.id === tab);
+    if (currentIndex < 0) return;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      setTab(tabs[(currentIndex - 1 + tabs.length) % tabs.length].id);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      setTab(tabs[(currentIndex + 1) % tabs.length].id);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      setTab(tabs[0].id);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      setTab(tabs[tabs.length - 1].id);
+    }
+  };
+
+  return (
+    <nav
+      className="export-modal-tabs"
+      role="tablist"
+      aria-label="Export type"
+      onKeyDown={onKeyDown}
+    >
+      {tabs.map((t) => (
         <button
           key={t.id}
           type="button"
           role="tab"
           aria-selected={tab === t.id}
+          tabIndex={tab === t.id ? 0 : -1}
           className={`export-modal-tab ${tab === t.id ? "is-active" : ""}`}
           onClick={() => setTab(t.id)}
         >
           {t.label}
         </button>
       ))}
-  </nav>
-);
+    </nav>
+  );
+};
 
 const PillRow = ({ label, options, value, onChange, getKey = (o) => o.id, getLabel = (o) => o.label }) => (
   <div className="export-modal-field">
@@ -139,6 +167,17 @@ export const ExportModal = ({
   const [quality, setQuality] = useState("standard");
   const [fps, setFps] = useState(60);
   const [videoSeconds, setVideoSeconds] = useState(Math.round((videoDurationMs ?? 5000) / 1000));
+  const [linkStatus, setLinkStatus] = useState("idle");
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkStatus("copied");
+      window.setTimeout(() => setLinkStatus("idle"), 1800);
+    } catch {
+      setLinkStatus("manual");
+      window.setTimeout(() => setLinkStatus("idle"), 3000);
+    }
+  };
   const fileInputRef = useRef(null);
   const dialogRef = useRef(null);
 
@@ -174,6 +213,7 @@ export const ExportModal = ({
   // Keyboard: Escape to close, focus trap minimal.
   useEffect(() => {
     if (!open) return undefined;
+    const previous = document.activeElement;
     const onKey = (event) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -183,7 +223,14 @@ export const ExportModal = ({
     window.addEventListener("keydown", onKey);
     // Move focus into the modal so screen readers and keyboard users land here.
     window.setTimeout(() => dialogRef.current?.focus(), 0);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      // Restore focus to whatever triggered the modal — usually the Export
+      // button in the panel header.
+      if (previous instanceof HTMLElement && document.body.contains(previous)) {
+        previous.focus();
+      }
+    };
   }, [open, onClose]);
 
   if (!open) return null;
@@ -375,12 +422,26 @@ export const ExportModal = ({
           {tab === "share" && (
             <>
               <p className="export-modal-caption">
-                Save your exact configuration as a .json file. Anyone can drag it back into this dialog
-                to load the same look.
+                Copy the current URL — anyone who opens it lands on the same look. For exact
+                customizations beyond a preset, export the configuration as JSON below.
               </p>
               <button
                 type="button"
-                className="export-modal-cta"
+                className={`export-modal-cta ${linkStatus === "copied" ? "is-success" : ""}`}
+                onClick={handleCopyLink}
+              >
+                {linkStatus === "copied" ? <Check size={15} /> : <Clipboard size={15} />}
+                <span>
+                  {linkStatus === "copied"
+                    ? "Link copied to clipboard"
+                    : linkStatus === "manual"
+                      ? "Copy the address bar URL"
+                      : "Copy share link"}
+                </span>
+              </button>
+              <button
+                type="button"
+                className="export-modal-cta is-secondary"
                 onClick={exportConfig}
               >
                 <Share2 size={15} />
