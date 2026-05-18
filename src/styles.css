@@ -1788,8 +1788,7 @@ button {
   padding: 8px 4px 12px;
 }
 
-.option-block + .option-block,
-.map-area-section + .option-block {
+.option-block + .option-block {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -2509,9 +2508,7 @@ input[type="range"]:active::-moz-range-thumb {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.025);
+  padding: 10px 12px 6px 14px;
   cursor: grab;
   user-select: none;
   flex: 0 0 auto;
@@ -2864,45 +2861,77 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .color-picker-gradient-track {
-  position: relative;
   width: 100%;
-  height: 28px;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-  /* Checkerboard so semi-transparent stops show their alpha cleanly later. */
-  background-clip: padding-box;
+  height: 18px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.color-picker-gradient-stop {
-  position: absolute;
-  top: 50%;
+.color-picker-stops {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.color-picker-stop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--field);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 140ms var(--ease), background 140ms var(--ease);
+}
+
+.color-picker-stop:hover {
+  border-color: var(--border-strong);
+}
+
+.color-picker-stop.is-active {
+  border-color: rgba(246, 242, 234, 0.32);
+  background: rgba(246, 242, 234, 0.06);
+}
+
+.color-picker-stop-swatch {
   width: 22px;
   height: 22px;
-  padding: 0;
-  border-radius: 999px;
-  border: 2px solid #ffffff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.4);
-  cursor: pointer;
-  transform: translate(-50%, -50%);
-  transition: transform 140ms var(--ease), box-shadow 140ms var(--ease);
+  flex: 0 0 auto;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 
-.color-picker-gradient-stop.is-from {
-  left: 0%;
-  margin-left: 11px;
+.color-picker-stop-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
 }
 
-.color-picker-gradient-stop.is-to {
-  left: 100%;
-  margin-left: -11px;
+.color-picker-stop-label {
+  color: var(--dim);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.color-picker-gradient-stop:hover {
-  transform: translate(-50%, -50%) scale(1.08);
+.color-picker-stop-value {
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.color-picker-gradient-stop.is-active {
-  box-shadow: 0 0 0 2px var(--accent), 0 2px 6px rgba(0, 0, 0, 0.5);
+.color-picker-stop.is-active .color-picker-stop-value {
+  color: var(--text);
 }
 
 .color-picker-angle {
@@ -2974,7 +3003,7 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .toggle-track {
-  width: 30px;
+  width: 40px;
   height: 18px;
   display: inline-flex;
   align-items: center;
@@ -3010,7 +3039,7 @@ input[type="range"]:active::-moz-range-thumb {
 
 .toggle-control.is-active .toggle-knob {
   background: #18171a;
-  transform: translateX(12px);
+  transform: translateX(22px);
 }
 
 @media (max-width: 620px) {

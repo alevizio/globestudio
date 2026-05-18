@@ -204,6 +204,7 @@ export const ControlPanel = ({
             </OptionRow>
           </>
         )}
+        {renderMode === "dots" && (<>
         <OptionRow label="Shape">
           <ShapeSelect
             label="Dot shape"
@@ -359,6 +360,7 @@ export const ControlPanel = ({
             onChange={(value) => setRotateAnimating?.(value)}
           />
         </OptionRow>
+        </>)}
       </PanelSection>
 
       {viewMode === "globe" && (

@@ -337,23 +337,35 @@ export const ColorPicker = ({
           <div
             className="color-picker-gradient-track"
             style={{ background: `linear-gradient(90deg, ${gradient.from}, ${gradient.to})` }}
-          >
+            aria-hidden="true"
+          />
+          <div className="color-picker-stops" role="tablist" aria-label="Gradient stops">
             <button
               type="button"
-              className={`color-picker-gradient-stop is-from ${activeStop === "from" ? "is-active" : ""}`}
-              style={{ background: gradient.from }}
-              aria-label={`Edit start color ${gradient.from}`}
-              aria-pressed={activeStop === "from"}
+              role="tab"
+              className={`color-picker-stop ${activeStop === "from" ? "is-active" : ""}`}
+              aria-selected={activeStop === "from"}
               onClick={() => setActiveStop("from")}
-            />
+            >
+              <span className="color-picker-stop-swatch" style={{ background: gradient.from }} aria-hidden="true" />
+              <span className="color-picker-stop-meta">
+                <span className="color-picker-stop-label">From</span>
+                <span className="color-picker-stop-value">{gradient.from}</span>
+              </span>
+            </button>
             <button
               type="button"
-              className={`color-picker-gradient-stop is-to ${activeStop === "to" ? "is-active" : ""}`}
-              style={{ background: gradient.to }}
-              aria-label={`Edit end color ${gradient.to}`}
-              aria-pressed={activeStop === "to"}
+              role="tab"
+              className={`color-picker-stop ${activeStop === "to" ? "is-active" : ""}`}
+              aria-selected={activeStop === "to"}
               onClick={() => setActiveStop("to")}
-            />
+            >
+              <span className="color-picker-stop-swatch" style={{ background: gradient.to }} aria-hidden="true" />
+              <span className="color-picker-stop-meta">
+                <span className="color-picker-stop-label">To</span>
+                <span className="color-picker-stop-value">{gradient.to}</span>
+              </span>
+            </button>
           </div>
           <label className="color-picker-angle">
             <span>Angle</span>
