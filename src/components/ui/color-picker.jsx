@@ -16,6 +16,15 @@ const MODES = ["HEX", "RGB", "HSB", "HSL"];
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
+// 0–1 alpha → 2-char hex byte for #RRGGBBAA strings.
+const alphaToHexByte = (a) =>
+  Math.round(Math.max(0, Math.min(1, a ?? 1)) * 255).toString(16).padStart(2, "0");
+
+// Checkerboard tile painted behind any color/gradient preview that can be
+// semi-transparent. Reads as the canonical "this area is transparent" cue.
+const CHECKERBOARD_PATTERN =
+  "conic-gradient(rgba(255, 255, 255, 0.7) 25%, rgba(150, 150, 150, 0.7) 0 50%, rgba(255, 255, 255, 0.7) 0 75%, rgba(150, 150, 150, 0.7) 0)";
+
 export const ColorPicker = ({
   value,
   onChange,
@@ -332,59 +341,80 @@ export const ColorPicker = ({
         </div>
       )}
 
-      {fillMode === "gradient" && gradient && (
-        <div className="color-picker-gradient">
-          <div
-            className="color-picker-gradient-track"
-            // The track is the live angle preview: as the user moves the
-            // slider, the same gradient is re-applied at the new angle so
-            // they see the rotation immediately.
-            style={{ background: `linear-gradient(${gradient.angle ?? 90}deg, ${gradient.from}, ${gradient.to})` }}
-            aria-hidden="true"
-          />
-          <div className="color-picker-stops" role="tablist" aria-label="Gradient stops">
-            <button
-              type="button"
-              role="tab"
-              className={`color-picker-stop ${activeStop === "from" ? "is-active" : ""}`}
-              aria-selected={activeStop === "from"}
-              onClick={() => setActiveStop("from")}
-            >
-              <span className="color-picker-stop-swatch" style={{ background: gradient.from }} aria-hidden="true" />
-              <span className="color-picker-stop-meta">
-                <span className="color-picker-stop-label">From</span>
-                <span className="color-picker-stop-value">{gradient.from}</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              className={`color-picker-stop ${activeStop === "to" ? "is-active" : ""}`}
-              aria-selected={activeStop === "to"}
-              onClick={() => setActiveStop("to")}
-            >
-              <span className="color-picker-stop-swatch" style={{ background: gradient.to }} aria-hidden="true" />
-              <span className="color-picker-stop-meta">
-                <span className="color-picker-stop-label">To</span>
-                <span className="color-picker-stop-value">{gradient.to}</span>
-              </span>
-            </button>
-          </div>
-          <label className="color-picker-angle">
-            <span>Angle</span>
-            <input
-              type="range"
-              min={0}
-              max={360}
-              step={1}
-              value={gradient.angle ?? 90}
-              aria-label="Gradient angle"
-              onChange={(event) => updateGradientAngle(event.target.value)}
+      {fillMode === "gradient" && gradient && (() => {
+        // Compose the live track preview with alpha-aware stops + a
+        // checkerboard backdrop so transparency reads visually.
+        const fromHex = `${gradient.from}${alphaToHexByte(gradient.fromAlpha ?? 1)}`;
+        const toHex = `${gradient.to}${alphaToHexByte(gradient.toAlpha ?? 1)}`;
+        const trackStyle = {
+          backgroundImage: `linear-gradient(${gradient.angle ?? 90}deg, ${fromHex}, ${toHex}), ${CHECKERBOARD_PATTERN}`,
+          backgroundSize: "100% 100%, 12px 12px",
+        };
+        return (
+          <div className="color-picker-gradient">
+            <div
+              className="color-picker-gradient-track"
+              style={trackStyle}
+              aria-hidden="true"
             />
-            <output>{gradient.angle ?? 90}°</output>
-          </label>
-        </div>
-      )}
+            <div className="color-picker-stops" role="tablist" aria-label="Gradient stops">
+              <button
+                type="button"
+                role="tab"
+                className={`color-picker-stop ${activeStop === "from" ? "is-active" : ""}`}
+                aria-selected={activeStop === "from"}
+                onClick={() => setActiveStop("from")}
+              >
+                <span
+                  className="color-picker-stop-swatch"
+                  style={{
+                    backgroundImage: `linear-gradient(${gradient.from}${alphaToHexByte(gradient.fromAlpha ?? 1)}, ${gradient.from}${alphaToHexByte(gradient.fromAlpha ?? 1)}), ${CHECKERBOARD_PATTERN}`,
+                    backgroundSize: "100% 100%, 8px 8px",
+                  }}
+                  aria-hidden="true"
+                />
+                <span className="color-picker-stop-meta">
+                  <span className="color-picker-stop-label">From</span>
+                  <span className="color-picker-stop-value">{gradient.from}</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                className={`color-picker-stop ${activeStop === "to" ? "is-active" : ""}`}
+                aria-selected={activeStop === "to"}
+                onClick={() => setActiveStop("to")}
+              >
+                <span
+                  className="color-picker-stop-swatch"
+                  style={{
+                    backgroundImage: `linear-gradient(${gradient.to}${alphaToHexByte(gradient.toAlpha ?? 1)}, ${gradient.to}${alphaToHexByte(gradient.toAlpha ?? 1)}), ${CHECKERBOARD_PATTERN}`,
+                    backgroundSize: "100% 100%, 8px 8px",
+                  }}
+                  aria-hidden="true"
+                />
+                <span className="color-picker-stop-meta">
+                  <span className="color-picker-stop-label">To</span>
+                  <span className="color-picker-stop-value">{gradient.to}</span>
+                </span>
+              </button>
+            </div>
+            <label className="color-picker-angle">
+              <span>Angle</span>
+              <input
+                type="range"
+                min={0}
+                max={360}
+                step={1}
+                value={gradient.angle ?? 90}
+                aria-label="Gradient angle"
+                onChange={(event) => updateGradientAngle(event.target.value)}
+              />
+              <output>{gradient.angle ?? 90}°</output>
+            </label>
+          </div>
+        );
+      })()}
 
       <div
         ref={svRef}

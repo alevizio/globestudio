@@ -28,11 +28,23 @@ export const ColorSwatch = ({
   const supportsGradient = typeof onGradientChange === "function";
   const supportsAlpha = typeof onAlphaChange === "function";
   const stopAlpha = (a) => Math.max(0, Math.min(1, a ?? 1));
-  const swatchStyle = supportsGradient && gradient
-    ? {
-        background: `linear-gradient(${gradient.angle ?? 90}deg, ${gradient.from}${gradient.fromAlpha != null ? alphaToHex(gradient.fromAlpha) : ""}, ${gradient.to}${gradient.toAlpha != null ? alphaToHex(gradient.toAlpha) : ""})`,
-      }
-    : { backgroundColor: value === "transparent" ? "#18171a" : value, opacity: supportsAlpha ? stopAlpha(alpha) : 1 };
+  // Always layer the preview on top of a checkerboard so transparency reads
+  // correctly. Without it, a 30% alpha just looks like a slightly dimmer
+  // color against the dark panel.
+  const checker =
+    "conic-gradient(rgba(255, 255, 255, 0.7) 25%, rgba(150, 150, 150, 0.7) 0 50%, rgba(255, 255, 255, 0.7) 0 75%, rgba(150, 150, 150, 0.7) 0)";
+  const hasGradient = supportsGradient && gradient;
+  const hasTransparency = hasGradient
+    ? ((gradient.fromAlpha ?? 1) < 1 || (gradient.toAlpha ?? 1) < 1)
+    : (supportsAlpha && stopAlpha(alpha) < 1);
+  const colorLayer = hasGradient
+    ? `linear-gradient(${gradient.angle ?? 90}deg, ${gradient.from}${alphaToHex(gradient.fromAlpha ?? 1)}, ${gradient.to}${alphaToHex(gradient.toAlpha ?? 1)})`
+    : value === "transparent"
+      ? "linear-gradient(#18171a, #18171a)"
+      : `linear-gradient(${value}${alphaToHex(supportsAlpha ? stopAlpha(alpha) : 1)}, ${value}${alphaToHex(supportsAlpha ? stopAlpha(alpha) : 1)})`;
+  const swatchStyle = hasTransparency
+    ? { backgroundImage: `${colorLayer}, ${checker}`, backgroundSize: "100% 100%, 8px 8px" }
+    : { backgroundImage: colorLayer };
 
   useLayoutEffect(() => {
     if (!open || !swatchRef.current) return undefined;
