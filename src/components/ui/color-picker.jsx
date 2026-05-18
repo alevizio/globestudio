@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { GripHorizontal, X } from "../icons.jsx";
+import { GripVertical, X } from "../icons.jsx";
 import {
   hexToRgb,
   hsbToRgb,
@@ -294,7 +294,7 @@ export const ColorPicker = ({
         aria-label="Drag to move"
       >
         <span className="color-picker-grip" aria-hidden="true">
-          <GripHorizontal size={16} />
+          <GripVertical size={16} />
         </span>
         <h2 className="color-picker-title">
           {supportsGradient && fillMode === "gradient" ? "Gradient" : "Color"}

@@ -2481,6 +2481,7 @@ input[type="range"]:active::-moz-range-thumb {
   position: absolute;
   z-index: 70;
   width: min(398px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
@@ -2513,6 +2514,7 @@ input[type="range"]:active::-moz-range-thumb {
   background: rgba(255, 255, 255, 0.025);
   cursor: grab;
   user-select: none;
+  flex: 0 0 auto;
 }
 
 .color-picker-header:active {
@@ -2568,6 +2570,34 @@ input[type="range"]:active::-moz-range-thumb {
   display: grid;
   gap: 14px;
   padding: 10px;
+  overflow: hidden auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-3, rgba(255, 255, 255, 0.18)) transparent;
+  /* Anchor scroll-y to nearest scroll container so the page doesn't scroll
+     when the picker reaches its top/bottom limit. */
+  overscroll-behavior: contain;
+}
+
+.color-picker-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.color-picker-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.color-picker-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.color-picker-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+  background-clip: padding-box;
 }
 
 .color-picker-sv {

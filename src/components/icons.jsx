@@ -6,6 +6,7 @@ export {
   Globe,
   Globe2,
   GripHorizontal,
+  GripVertical,
   Minus,
   Move,
   PanelLeftClose,
