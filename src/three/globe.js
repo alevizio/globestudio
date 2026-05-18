@@ -295,10 +295,12 @@ const applyDotInstances = (mesh, points, image, scale, radiusOffset = 0, morphPr
 
 // Shared per-frame uniform so every dot material twinkles in sync against the same clock.
 // Set in the animation loop via twinkleUniforms.uTime.value = now / 1000.
+// uSizeVary toggles the per-instance size jitter (0 = uniform dots, 1 = jitter on).
 export const twinkleUniforms = {
   uTime: { value: 0 },
   twinkleAmount: { value: 0.18 },
   twinkleRate: { value: 1.3 },
+  uSizeVary: { value: 0 },
 };
 
 // Attach the twinkle hook to a material: injects per-instance phase + sine modulation
@@ -315,6 +317,7 @@ const wireTwinkleMaterial = (material, cacheKey) => {
     shader.uniforms.uTime = twinkleUniforms.uTime;
     shader.uniforms.uTwinkleAmount = twinkleUniforms.twinkleAmount;
     shader.uniforms.uTwinkleRate = twinkleUniforms.twinkleRate;
+    shader.uniforms.uSizeVary = twinkleUniforms.uSizeVary;
 
     shader.vertexShader = `
       attribute float aPhase;
@@ -322,6 +325,7 @@ const wireTwinkleMaterial = (material, cacheKey) => {
       uniform float uTime;
       uniform float uTwinkleAmount;
       uniform float uTwinkleRate;
+      uniform float uSizeVary;
       ${shader.vertexShader}
     `.replace(
       "#include <begin_vertex>",
@@ -329,9 +333,10 @@ const wireTwinkleMaterial = (material, cacheKey) => {
       #include <begin_vertex>
       float twPhase = aPhase * 6.2831853;
       vTwinkle = (1.0 - uTwinkleAmount) + uTwinkleAmount * (0.5 + 0.5 * sin(uTime * uTwinkleRate + twPhase));
-      // Subtle per-instance size variation (0.82 → 1.18) so the dot field doesn't
-      // look mechanically uniform. Static per dot, reads as organic density.
-      float sizeJitter = 0.82 + 0.36 * aPhase;
+      // Per-instance size variation (0.82 → 1.18). Gated by uSizeVary so the
+      // default reads as a uniform grid; toggling the control re-introduces
+      // the organic density variation.
+      float sizeJitter = mix(1.0, 0.82 + 0.36 * aPhase, uSizeVary);
       transformed *= sizeJitter;
       `,
     );
@@ -410,10 +415,67 @@ export const applyDotLayerMorph = (group, morphProgress) => {
   group.userData.morphProgress = morphProgress;
 };
 
+// Re-apply instance matrices with an animated rotation override without
+// rebuilding the dot layer. Used by the per-frame loop when the user toggles
+// on rotation animation — the static userData.dotRotation stays untouched so
+// turning the animation off restores the slider's chosen angle.
+export const applyDotLayerSpin = (group, rotation, morphProgress) => {
+  if (!group) return;
+  group.children.forEach((child) => {
+    if (!child.isInstancedMesh || !child.userData.points) return;
+    applyDotInstances(
+      child,
+      child.userData.points,
+      child.userData.image,
+      child.userData.scale,
+      child.userData.radiusOffset,
+      morphProgress,
+      rotation,
+    );
+  });
+};
+
+// Linear gradient sampler. Projects each dot's image-space coordinate onto
+// the gradient direction vector, normalizes to [0, 1] using the image's
+// bounding box (so the gradient always fully sweeps from one corner to
+// the opposite), then lerps between `from` and `to` colors.
+const buildGradientColorSampler = (gradient, imageWidth, imageHeight) => {
+  const angleRad = ((gradient.angle ?? 90) * Math.PI) / 180;
+  const dirX = Math.sin(angleRad);
+  const dirY = -Math.cos(angleRad);
+  // Project the four image corners onto the direction to get the actual
+  // gradient extent. Avoids the gradient flattening to a single midtone for
+  // off-axis angles.
+  const corners = [
+    [0, 0],
+    [imageWidth, 0],
+    [0, imageHeight],
+    [imageWidth, imageHeight],
+  ];
+  let minProj = Infinity;
+  let maxProj = -Infinity;
+  corners.forEach(([x, y]) => {
+    const p = x * dirX + y * dirY;
+    if (p < minProj) minProj = p;
+    if (p > maxProj) maxProj = p;
+  });
+  const range = Math.max(1e-6, maxProj - minProj);
+  const fromColor = new THREE.Color(gradient.from);
+  const toColor = new THREE.Color(gradient.to);
+  const result = new THREE.Color();
+  return (point) => {
+    const proj = point.x * dirX + point.y * dirY;
+    const t = Math.max(0, Math.min(1, (proj - minProj) / range));
+    return result.copy(fromColor).lerp(toColor, t);
+  };
+};
+
 export const buildGlobeDotLayer = ({
   mapData,
   selectedDots,
   dotColor,
+  dotColorAlpha = 1,
+  dotGradient = null,
   dotSize,
   shape,
   dotRotation = 0,
@@ -421,6 +483,7 @@ export const buildGlobeDotLayer = ({
   shaderSettings,
   globeSettings,
   morphProgress = 1,
+  customShapeTexture = null,
 }) => {
   const group = new THREE.Group();
   const points = buildGlobePoints(mapData, selectedDots);
@@ -459,14 +522,28 @@ export const buildGlobeDotLayer = ({
   // each dot reads as a uniform painted shape rather than a tiny lit hemisphere.
   // The color carries both the chosen dot color and a slight brightening for
   // borderless mode that the old emissive path used to do.
-  const flatColor = isBorderless
-    ? color.clone().lerp(new THREE.Color("#ffffff"), 0.18)
-    : color;
+  // When a gradient is set we paint each instance individually via instanceColor,
+  // so the material color is forced to white to avoid double-multiplying.
+  const gradientActive = dotGradient && dotGradient.from && dotGradient.to;
+  const gradientSampler = gradientActive
+    ? buildGradientColorSampler(dotGradient, mapData.image.width, mapData.image.height)
+    : null;
+  const flatColor = gradientActive
+    ? new THREE.Color(1, 1, 1)
+    : isBorderless
+      ? color.clone().lerp(new THREE.Color("#ffffff"), 0.18)
+      : color;
+  // Effective material opacity. For gradients we average the two stops (a
+  // single material can only hold one opacity value); per-dot fidelity is
+  // available in the SVG export path via fill-opacity.
+  const effectiveOpacity = gradientActive
+    ? clampNumber(((dotGradient.fromAlpha ?? 1) + (dotGradient.toAlpha ?? 1)) / 2, 0, 1)
+    : clampNumber(dotColorAlpha, 0, 1);
   const standardMaterial = wireTwinkleMaterial(
     new THREE.MeshBasicMaterial({
       color: flatColor,
       transparent: true,
-      opacity: 1,
+      opacity: effectiveOpacity,
     }),
     `flat:${isBorderless ? "b" : "c"}`,
   );
@@ -521,9 +598,36 @@ export const buildGlobeDotLayer = ({
     if (mesh) group.add(mesh);
   };
 
+  const isCustomShape = shape === "Custom" && customShapeTexture;
+
   if (isAsciiText) {
     addAsciiMeshes(normalPoints, color, size, baseRadiusOffset);
     addAsciiMeshes(selectedPoints, accentColor, size * 1.18, baseRadiusOffset + 0.01);
+  } else if (isCustomShape) {
+    const customMaterial = makeAsciiMaterial(customShapeTexture, color);
+    const customSelectedMaterial = makeAsciiMaterial(customShapeTexture, accentColor);
+    const normalMesh = createInstancedDotMesh(
+      normalPoints,
+      mapData.image,
+      geometry,
+      customMaterial,
+      size,
+      baseRadiusOffset,
+      morphProgress,
+      dotRotation,
+    );
+    const selectedMesh = createInstancedDotMesh(
+      selectedPoints,
+      mapData.image,
+      geometry.clone(),
+      customSelectedMaterial,
+      size * 1.18,
+      baseRadiusOffset + 0.01,
+      morphProgress,
+      dotRotation,
+    );
+    if (normalMesh) group.add(normalMesh);
+    if (selectedMesh) group.add(selectedMesh);
   } else {
     const normalMesh = createInstancedDotMesh(
       normalPoints,
@@ -545,7 +649,15 @@ export const buildGlobeDotLayer = ({
       morphProgress,
       dotRotation,
     );
-    if (normalMesh) group.add(normalMesh);
+    if (normalMesh) {
+      if (gradientSampler) {
+        normalPoints.forEach((point, index) => {
+          normalMesh.setColorAt(index, gradientSampler(point));
+        });
+        if (normalMesh.instanceColor) normalMesh.instanceColor.needsUpdate = true;
+      }
+      group.add(normalMesh);
+    }
     if (selectedMesh) group.add(selectedMesh);
   }
 

@@ -1,0 +1,506 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { GripHorizontal, X } from "../icons.jsx";
+import {
+  hexToRgb,
+  hsbToRgb,
+  hslToRgb,
+  isValidHex,
+  normalizeHex,
+  rgbToHex,
+  rgbToHsb,
+  rgbToHsl,
+} from "../../utils/color.js";
+
+const MODES = ["HEX", "RGB", "HSB", "HSL"];
+
+const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+export const ColorPicker = ({
+  value,
+  onChange,
+  onClose,
+  position = null,
+  supportsAlpha = false,
+  alpha = 1,
+  onAlphaChange,
+  supportsGradient = false,
+  gradient = null,
+  onGradientChange,
+}) => {
+  const initialHex = value && value !== "transparent" ? normalizeHex(value) : "#ffffff";
+  const [hsb, setHsb] = useState(() => rgbToHsb(hexToRgb(initialHex)));
+  const [hex, setHex] = useState(initialHex);
+  const [mode, setMode] = useState("HEX");
+  // When the picker is opened on a gradient-capable swatch, the user can flip
+  // between "Solid" (paints the regular dotColor) and "Gradient" (writes to
+  // the separate dotGradient prop). The currently-edited stop is tracked so
+  // the SV grid / sliders edit the right end of the gradient.
+  const [fillMode, setFillMode] = useState(supportsGradient && gradient ? "gradient" : "solid");
+  const [activeStop, setActiveStop] = useState("from");
+  const popoverRef = useRef(null);
+  const svRef = useRef(null);
+  const draggingRef = useRef(false);
+  // Card position. Initialized from the parent-provided `position` (computed
+  // relative to the swatch) and then becomes user-controlled once they drag
+  // the header. Stored locally so a drag survives unrelated re-renders.
+  const [dragPosition, setDragPosition] = useState(position);
+  const dragStateRef = useRef(null);
+  useEffect(() => {
+    if (!dragStateRef.current && position) setDragPosition(position);
+  }, [position]);
+
+  // Source of truth for what the SV grid + hue slider edit. In gradient mode
+  // this is the currently-active stop's color; in solid mode it's the
+  // dotColor itself.
+  const editedHex = fillMode === "gradient" && gradient
+    ? normalizeHex(gradient[activeStop] || "#ffffff")
+    : hex;
+
+  // Sync local hex/hsb when (a) the parent solid value changes externally
+  // (preset click, shuffle), or (b) the user switches gradient stops.
+  useEffect(() => {
+    const next = editedHex;
+    if (!next) return;
+    if (next === hex) return;
+    setHex(next);
+    setHsb(rgbToHsb(hexToRgb(next)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editedHex]);
+
+  const commit = useCallback((nextHsb) => {
+    const rgb = hsbToRgb(nextHsb);
+    const nextHex = rgbToHex(rgb);
+    setHsb(nextHsb);
+    setHex(nextHex);
+    if (fillMode === "gradient" && gradient && onGradientChange) {
+      onGradientChange({ ...gradient, [activeStop]: nextHex });
+    } else {
+      onChange(nextHex);
+    }
+  }, [activeStop, fillMode, gradient, onChange, onGradientChange]);
+
+  const updateFromPointer = useCallback((event) => {
+    const node = svRef.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    const x = clamp(event.clientX - rect.left, 0, rect.width);
+    const y = clamp(event.clientY - rect.top, 0, rect.height);
+    const s = Math.round((x / rect.width) * 100);
+    const v = Math.round(100 - (y / rect.height) * 100);
+    commit({ ...hsb, s, v });
+  }, [commit, hsb]);
+
+  const handlePointerDown = (event) => {
+    event.preventDefault();
+    draggingRef.current = true;
+    svRef.current?.setPointerCapture?.(event.pointerId);
+    updateFromPointer(event);
+  };
+
+  const handlePointerMove = (event) => {
+    if (!draggingRef.current) return;
+    updateFromPointer(event);
+  };
+
+  const handlePointerUp = (event) => {
+    draggingRef.current = false;
+    svRef.current?.releasePointerCapture?.(event.pointerId);
+  };
+
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose?.();
+      }
+    };
+    const onPointerDown = (event) => {
+      if (!popoverRef.current?.contains(event.target)) {
+        onClose?.();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    // Defer to next tick so the click that opened the picker doesn't
+    // immediately close it.
+    const id = window.setTimeout(() => {
+      window.addEventListener("mousedown", onPointerDown, true);
+    }, 0);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("mousedown", onPointerDown, true);
+      window.clearTimeout(id);
+    };
+  }, [onClose]);
+
+  const emitColor = (nextHex) => {
+    if (fillMode === "gradient" && gradient && onGradientChange) {
+      onGradientChange({ ...gradient, [activeStop]: nextHex });
+    } else {
+      onChange(nextHex);
+    }
+  };
+
+  const onHexInput = (event) => {
+    const next = event.target.value;
+    setHex(next.startsWith("#") ? next : `#${next}`);
+    if (isValidHex(next)) {
+      const normalized = normalizeHex(next);
+      const nextHsb = rgbToHsb(hexToRgb(normalized));
+      setHsb(nextHsb);
+      emitColor(normalized);
+    }
+  };
+
+  const rgb = hsbToRgb(hsb);
+  const hsl = rgbToHsl(rgb);
+
+  const updateRgb = (key, raw) => {
+    const n = clamp(parseInt(raw, 10) || 0, 0, 255);
+    const next = { ...rgb, [key]: n };
+    const nextHex = rgbToHex(next);
+    setHex(nextHex);
+    setHsb(rgbToHsb(next));
+    emitColor(nextHex);
+  };
+
+  const updateHsbField = (key, raw) => {
+    const max = key === "h" ? 360 : 100;
+    const n = clamp(parseInt(raw, 10) || 0, 0, max);
+    commit({ ...hsb, [key]: n });
+  };
+
+  const updateHsl = (key, raw) => {
+    const max = key === "h" ? 360 : 100;
+    const n = clamp(parseInt(raw, 10) || 0, 0, max);
+    const next = { ...hsl, [key]: n };
+    const nextRgb = hslToRgb(next);
+    const nextHex = rgbToHex(nextRgb);
+    setHex(nextHex);
+    setHsb(rgbToHsb(nextRgb));
+    emitColor(nextHex);
+  };
+
+  const hueColor = `hsl(${hsb.h}, 100%, 50%)`;
+  const svCursorLeft = `${hsb.s}%`;
+  const svCursorTop = `${100 - hsb.v}%`;
+
+  const body = typeof document !== "undefined" ? document.body : null;
+
+  const enterGradientMode = () => {
+    if (!onGradientChange) return;
+    const next = gradient || {
+      from: hex,
+      to: rgbToHex(hsbToRgb({ h: (hsb.h + 180) % 360, s: hsb.s, v: hsb.v })),
+      angle: 90,
+    };
+    onGradientChange(next);
+    setFillMode("gradient");
+    setActiveStop("from");
+  };
+
+  const exitGradientMode = () => {
+    if (onGradientChange) onGradientChange(null);
+    setFillMode("solid");
+  };
+
+  const updateGradientAngle = (raw) => {
+    if (!gradient || !onGradientChange) return;
+    const n = clamp(parseInt(raw, 10) || 0, 0, 360);
+    onGradientChange({ ...gradient, angle: n });
+  };
+
+  // Alpha for the currently-edited target (solid color, or the active
+  // gradient stop). Gradient alphas live on the gradient object, so each
+  // stop has its own opacity that's interpolated per dot at render time.
+  const editedAlpha = fillMode === "gradient" && gradient
+    ? (activeStop === "from" ? (gradient.fromAlpha ?? 1) : (gradient.toAlpha ?? 1))
+    : alpha;
+
+  const updateAlpha = (next) => {
+    const n = clamp(typeof next === "number" ? next : parseFloat(next) || 0, 0, 1);
+    if (fillMode === "gradient" && gradient && onGradientChange) {
+      const key = activeStop === "from" ? "fromAlpha" : "toAlpha";
+      onGradientChange({ ...gradient, [key]: n });
+    } else if (onAlphaChange) {
+      onAlphaChange(n);
+    }
+  };
+
+  // Drag the card around. Snapshot the cursor + current position on
+  // pointerdown, then track deltas on move. Constrains to the viewport so
+  // users can't lose the card off-screen.
+  const handleHeaderPointerDown = (event) => {
+    if (event.button !== 0) return;
+    if (event.target.closest("button")) return;
+    event.preventDefault();
+    const start = dragPosition || { top: 0, left: 0 };
+    const node = popoverRef.current;
+    const rect = node?.getBoundingClientRect();
+    dragStateRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startLeft: start.left,
+      startTop: start.top,
+      width: rect?.width || 0,
+      height: rect?.height || 0,
+    };
+    document.body.style.userSelect = "none";
+  };
+
+  useEffect(() => {
+    const onMove = (event) => {
+      const state = dragStateRef.current;
+      if (!state) return;
+      const dx = event.clientX - state.startX;
+      const dy = event.clientY - state.startY;
+      const pad = 8;
+      const left = clamp(
+        state.startLeft + dx,
+        pad,
+        Math.max(pad, window.innerWidth - state.width - pad),
+      );
+      const top = clamp(
+        state.startTop + dy,
+        pad,
+        Math.max(pad, window.innerHeight - state.height - pad),
+      );
+      setDragPosition({ top, left });
+    };
+    const onUp = () => {
+      dragStateRef.current = null;
+      document.body.style.userSelect = "";
+    };
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    return () => {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+    };
+  }, []);
+
+  const activePos = dragPosition || position;
+  const content = (
+    <div
+      ref={popoverRef}
+      className="color-picker"
+      role="dialog"
+      aria-label="Color picker"
+      style={activePos ? { position: "fixed", top: activePos.top, left: activePos.left, right: "auto" } : undefined}
+    >
+      <header
+        className="color-picker-header"
+        onPointerDown={handleHeaderPointerDown}
+        aria-label="Drag to move"
+      >
+        <span className="color-picker-grip" aria-hidden="true">
+          <GripHorizontal size={16} />
+        </span>
+        <h2 className="color-picker-title">
+          {supportsGradient && fillMode === "gradient" ? "Gradient" : "Color"}
+        </h2>
+        <button
+          type="button"
+          className="color-picker-close"
+          onClick={onClose}
+          aria-label="Close color picker"
+        >
+          <X size={12} />
+        </button>
+      </header>
+      <div className="color-picker-body">
+      {supportsGradient && (
+        <div className="color-picker-fill" role="tablist" aria-label="Fill type">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={fillMode === "solid"}
+            className={`color-picker-fill-tab ${fillMode === "solid" ? "is-active" : ""}`}
+            onClick={exitGradientMode}
+          >
+            Solid
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={fillMode === "gradient"}
+            className={`color-picker-fill-tab ${fillMode === "gradient" ? "is-active" : ""}`}
+            onClick={enterGradientMode}
+          >
+            Gradient
+          </button>
+        </div>
+      )}
+
+      {fillMode === "gradient" && gradient && (
+        <div className="color-picker-gradient">
+          <div
+            className="color-picker-gradient-track"
+            style={{ background: `linear-gradient(90deg, ${gradient.from}, ${gradient.to})` }}
+          >
+            <button
+              type="button"
+              className={`color-picker-gradient-stop is-from ${activeStop === "from" ? "is-active" : ""}`}
+              style={{ background: gradient.from }}
+              aria-label={`Edit start color ${gradient.from}`}
+              aria-pressed={activeStop === "from"}
+              onClick={() => setActiveStop("from")}
+            />
+            <button
+              type="button"
+              className={`color-picker-gradient-stop is-to ${activeStop === "to" ? "is-active" : ""}`}
+              style={{ background: gradient.to }}
+              aria-label={`Edit end color ${gradient.to}`}
+              aria-pressed={activeStop === "to"}
+              onClick={() => setActiveStop("to")}
+            />
+          </div>
+          <label className="color-picker-angle">
+            <span>Angle</span>
+            <input
+              type="range"
+              min={0}
+              max={360}
+              step={1}
+              value={gradient.angle ?? 90}
+              aria-label="Gradient angle"
+              onChange={(event) => updateGradientAngle(event.target.value)}
+            />
+            <output>{gradient.angle ?? 90}°</output>
+          </label>
+        </div>
+      )}
+
+      <div
+        ref={svRef}
+        className="color-picker-sv"
+        style={{ background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, ${hueColor})` }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+      >
+        <div
+          className="color-picker-sv-cursor"
+          style={{ left: svCursorLeft, top: svCursorTop, background: hex }}
+        />
+      </div>
+
+      <div className="color-picker-hue">
+        <input
+          type="range"
+          min={0}
+          max={360}
+          step={1}
+          value={hsb.h}
+          aria-label="Hue"
+          onChange={(event) => commit({ ...hsb, h: Number(event.target.value) })}
+        />
+      </div>
+
+      {(supportsAlpha || (fillMode === "gradient" && gradient)) && (
+        <div
+          className="color-picker-alpha"
+          style={{
+            // Color stripe under the slider — transparent on the left, opaque
+            // on the right, atop a checkerboard so semi-transparent feels
+            // real to the user.
+            "--alpha-color": editedHex,
+          }}
+        >
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={editedAlpha}
+            aria-label="Opacity"
+            onChange={(event) => updateAlpha(event.target.value)}
+          />
+        </div>
+      )}
+
+      <div className="color-picker-modes" role="tablist">
+        {MODES.map((m) => (
+          <button
+            key={m}
+            type="button"
+            role="tab"
+            aria-selected={mode === m}
+            className={`color-picker-mode ${mode === m ? "is-active" : ""}`}
+            onClick={() => setMode(m)}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
+      <div className="color-picker-fields">
+        {mode === "HEX" && (
+          <label className="color-picker-field is-wide">
+            <span>Hex</span>
+            <input
+              type="text"
+              value={hex}
+              spellCheck={false}
+              onChange={onHexInput}
+              aria-label="Hex value"
+            />
+          </label>
+        )}
+        {mode === "RGB" && (
+          <>
+            <label className="color-picker-field">
+              <span>R</span>
+              <input type="number" min={0} max={255} value={rgb.r} onChange={(e) => updateRgb("r", e.target.value)} aria-label="Red 0-255" />
+            </label>
+            <label className="color-picker-field">
+              <span>G</span>
+              <input type="number" min={0} max={255} value={rgb.g} onChange={(e) => updateRgb("g", e.target.value)} aria-label="Green 0-255" />
+            </label>
+            <label className="color-picker-field">
+              <span>B</span>
+              <input type="number" min={0} max={255} value={rgb.b} onChange={(e) => updateRgb("b", e.target.value)} aria-label="Blue 0-255" />
+            </label>
+          </>
+        )}
+        {mode === "HSB" && (
+          <>
+            <label className="color-picker-field">
+              <span>H</span>
+              <input type="number" min={0} max={360} value={hsb.h} onChange={(e) => updateHsbField("h", e.target.value)} aria-label="Hue 0-360" />
+            </label>
+            <label className="color-picker-field">
+              <span>S</span>
+              <input type="number" min={0} max={100} value={hsb.s} onChange={(e) => updateHsbField("s", e.target.value)} aria-label="Saturation 0-100" />
+            </label>
+            <label className="color-picker-field">
+              <span>B</span>
+              <input type="number" min={0} max={100} value={hsb.v} onChange={(e) => updateHsbField("v", e.target.value)} aria-label="Brightness 0-100" />
+            </label>
+          </>
+        )}
+        {mode === "HSL" && (
+          <>
+            <label className="color-picker-field">
+              <span>H</span>
+              <input type="number" min={0} max={360} value={hsl.h} onChange={(e) => updateHsl("h", e.target.value)} aria-label="Hue 0-360" />
+            </label>
+            <label className="color-picker-field">
+              <span>S</span>
+              <input type="number" min={0} max={100} value={hsl.s} onChange={(e) => updateHsl("s", e.target.value)} aria-label="Saturation 0-100" />
+            </label>
+            <label className="color-picker-field">
+              <span>L</span>
+              <input type="number" min={0} max={100} value={hsl.l} onChange={(e) => updateHsl("l", e.target.value)} aria-label="Lightness 0-100" />
+            </label>
+          </>
+        )}
+      </div>
+
+      </div>
+    </div>
+  );
+
+  return body ? createPortal(content, body) : content;
+};

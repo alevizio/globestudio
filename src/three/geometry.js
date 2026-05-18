@@ -120,6 +120,45 @@ export const createAsciiPlaneGeometry = () => {
   return geometry;
 };
 
+// Rasterize a user-uploaded image (SVG / PNG / JPG data URL) into a canvas
+// texture. Returns a Promise so callers can await the image-load before
+// creating the dot mesh. The result is alpha-keyed so the dotColor tint
+// applies the way it does for ASCII glyphs.
+export const createCustomShapeTexture = (dataUrl) => new Promise((resolve) => {
+  if (!dataUrl) {
+    resolve(null);
+    return;
+  }
+  const image = new Image();
+  image.crossOrigin = "anonymous";
+  image.onload = () => {
+    const size = 256;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      resolve(null);
+      return;
+    }
+    // Fit the source image into the square canvas while preserving aspect.
+    const sw = image.naturalWidth || image.width || size;
+    const sh = image.naturalHeight || image.height || size;
+    const scale = Math.min(size / sw, size / sh);
+    const dw = sw * scale;
+    const dh = sh * scale;
+    ctx.clearRect(0, 0, size, size);
+    ctx.drawImage(image, (size - dw) / 2, (size - dh) / 2, dw, dh);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = 4;
+    texture.needsUpdate = true;
+    resolve(texture);
+  };
+  image.onerror = () => resolve(null);
+  image.src = dataUrl;
+});
+
 // All dot geometries lie flat (tangent to the sphere). The instance-rotation logic
 // aligns each geometry's local +Y with the sphere normal, so rotating each shape
 // -PI/2 around X puts its surface in the XZ plane with +Y normal — flat against
@@ -145,6 +184,7 @@ export const createGlobeDotGeometry = (shape, asciiSymbol = "*") => {
     if (!asciiSymbol || asciiSymbol === "*") return createAsciiAsteriskGeometry();
     return createAsciiPlaneGeometry();
   }
+  if (shape === "Custom") return createAsciiPlaneGeometry();
   if (shape === "Ring") {
     return tangentFlat(new THREE.RingGeometry(0.5, 1, 24));
   }

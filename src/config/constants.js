@@ -30,7 +30,12 @@ export const dotShapeOptions = [
   "Plus",
   "Ring",
   "ASCII",
+  "Custom",
 ];
+
+// Cap stored custom-shape data URLs so we don't blow past the ~5MB localStorage
+// budget. SVG icons are usually <10KB; PNG icons under 200KB is generous.
+export const CUSTOM_SHAPE_MAX_BYTES = 200 * 1024;
 
 export const UNSUPPORTED_DOTTED_MAP_CODES = new Set([
   "ABW",

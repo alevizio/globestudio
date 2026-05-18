@@ -2,6 +2,16 @@
 // dot clusters in each preset's color palette and shape. Effect-specific accents
 // (bloom halo, scanlines, glitch RGB-split, etc.) hint at the look.
 
+import { useId } from "react";
+import {
+  createDiamondPoints,
+  createHexagonPoints,
+  createPlusPointArray,
+  createRegularPolygonPointArray,
+  createStarPointArray,
+  formatPointList,
+} from "../utils/svg-shapes.js";
+
 // Dot positions in unit space (0–1). Loosely arranged to suggest the visible
 // hemisphere of a globe (Eurasia + Africa + the Americas edge).
 const GLOBE_DOTS = [
@@ -35,8 +45,46 @@ const renderShape = (cx, cy, shape, color, asciiSymbol, key) => {
     return <rect key={key} x={cx - r} y={cy - r} width={r * 2} height={r * 2} fill={color} />;
   }
   if (shape === "Hexagon") {
+    return <polygon key={key} points={createHexagonPoints(cx, cy, r * 0.55)} fill={color} />;
+  }
+  if (shape === "Triangle") {
     return (
-      <circle key={key} cx={cx} cy={cy} r={r * 1.05} fill={color} fillOpacity="0.95" stroke={color} strokeWidth="0.1" />
+      <polygon
+        key={key}
+        points={formatPointList(createRegularPolygonPointArray(cx, cy, r * 1.1, 3))}
+        fill={color}
+      />
+    );
+  }
+  if (shape === "Pentagon") {
+    return (
+      <polygon
+        key={key}
+        points={formatPointList(createRegularPolygonPointArray(cx, cy, r * 1.05, 5))}
+        fill={color}
+      />
+    );
+  }
+  if (shape === "Diamond") {
+    return <polygon key={key} points={createDiamondPoints(cx, cy, r)} fill={color} />;
+  }
+  if (shape === "Star") {
+    return (
+      <polygon
+        key={key}
+        points={formatPointList(createStarPointArray(cx, cy, r * 1.1, r * 0.52))}
+        fill={color}
+      />
+    );
+  }
+  if (shape === "Plus") {
+    return (
+      <polygon key={key} points={formatPointList(createPlusPointArray(cx, cy, r * 0.85))} fill={color} />
+    );
+  }
+  if (shape === "Ring") {
+    return (
+      <circle key={key} cx={cx} cy={cy} r={r * 0.78} fill="none" stroke={color} strokeWidth="0.22" />
     );
   }
   if (shape === "ASCII") {
@@ -56,6 +104,8 @@ const renderShape = (cx, cy, shape, color, asciiSymbol, key) => {
       </text>
     );
   }
+  // Voxel and Particle Grid are too detailed to read at chip scale —
+  // fall through to a clean circle so the preview stays legible.
   return <circle key={key} cx={cx} cy={cy} r={r} fill={color} />;
 };
 
@@ -111,8 +161,8 @@ const renderStars = (count, seed) => {
   return stars;
 };
 
-const renderContent = (preset) => {
-  const { settings, id } = preset;
+const renderContent = (preset, clipId) => {
+  const { settings } = preset;
   const dotColor = settings.dotColor || "#ffffff";
   const shape = settings.shape || "Circle";
   const ascii = settings.asciiSymbol || "*";
@@ -170,13 +220,18 @@ const renderContent = (preset) => {
         strokeWidth="0.3"
         strokeOpacity="0.18"
       />
-      <g clipPath="url(#globeClip)">{dots}</g>
+      <g clipPath={`url(#${clipId})`}>{dots}</g>
       {renderEffectOverlay(shaderEffect)}
     </g>
   );
 };
 
 export const LookPreview = ({ preset, size = 22 }) => {
+  // Each chip renders its own <clipPath>; without a unique id every chip on the
+  // looks bar would share the same DOM id, so url(#…) refs resolve ambiguously.
+  const reactId = useId();
+  const clipId = `globeClip-${reactId.replace(/:/g, "")}`;
+
   const bg = preset.settings.transparent
     ? "#1c1c1f"
     : preset.settings.backgroundStyle === "space"
@@ -193,12 +248,12 @@ export const LookPreview = ({ preset, size = 22 }) => {
       focusable="false"
     >
       <defs>
-        <clipPath id="globeClip">
+        <clipPath id={clipId}>
           <circle cx="15" cy="15" r="12" />
         </clipPath>
       </defs>
       <rect x="0.5" y="0.5" width="29" height="29" rx="6" fill={bg} stroke="rgba(255,255,255,0.12)" />
-      {renderContent(preset)}
+      {renderContent(preset, clipId)}
     </svg>
   );
 };

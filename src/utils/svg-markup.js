@@ -3,7 +3,42 @@ import {
   DEFAULT_SHADER_SETTINGS,
   effectsWithScanlines,
 } from "../config/shader-effects.js";
+import { hexToRgb, rgbToHex } from "./color.js";
 import { clampNumber, formatSvgNumber, hashString } from "./math.js";
+
+// Mirrors three/globe.js's gradient sampler so the SVG export looks identical
+// to the canvas. Each dot picks its color by projecting (x, y) onto the
+// gradient's direction vector, normalized to the image's corner-to-corner span.
+const buildSvgGradientSampler = (gradient, imageWidth, imageHeight) => {
+  const angleRad = ((gradient.angle ?? 90) * Math.PI) / 180;
+  const dirX = Math.sin(angleRad);
+  const dirY = -Math.cos(angleRad);
+  const corners = [
+    [0, 0],
+    [imageWidth, 0],
+    [0, imageHeight],
+    [imageWidth, imageHeight],
+  ];
+  let minProj = Infinity;
+  let maxProj = -Infinity;
+  corners.forEach(([x, y]) => {
+    const p = x * dirX + y * dirY;
+    if (p < minProj) minProj = p;
+    if (p > maxProj) maxProj = p;
+  });
+  const range = Math.max(1e-6, maxProj - minProj);
+  const from = hexToRgb(gradient.from);
+  const to = hexToRgb(gradient.to);
+  return (point) => {
+    const proj = point.x * dirX + point.y * dirY;
+    const t = Math.max(0, Math.min(1, (proj - minProj) / range));
+    return rgbToHex({
+      r: from.r + (to.r - from.r) * t,
+      g: from.g + (to.g - from.g) * t,
+      b: from.b + (to.b - from.b) * t,
+    });
+  };
+};
 import {
   createDiamondPoints,
   createHexagonPoints,
@@ -175,10 +210,16 @@ const escapeXml = (value) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 
-const createDotMarkup = (point, radius, shape, color, selectedDots, asciiSymbol = "*") => {
+const createDotMarkup = (point, radius, shape, color, selectedDots, asciiSymbol = "*", customShape = null, opacity = 1) => {
   const fill = selectedDots.has(point.id) ? CLICK_HIGHLIGHT : color;
-  const data = `class="map-dot" data-dot-id="${point.id}" fill="${fill}"`;
-  const plainData = `class="map-dot" data-dot-id="${point.id}"`;
+  const op = opacity < 1 ? ` fill-opacity="${formatSvgNumber(opacity, 3)}"` : "";
+  const data = `class="map-dot" data-dot-id="${point.id}" fill="${fill}"${op}`;
+  const plainData = `class="map-dot" data-dot-id="${point.id}"${op}`;
+
+  if (shape === "Custom" && customShape?.dataUrl) {
+    const size = radius * 2.6;
+    return `<image ${plainData} href="${customShape.dataUrl}" x="${formatSvgNumber(point.x - size / 2)}" y="${formatSvgNumber(point.y - size / 2)}" width="${formatSvgNumber(size)}" height="${formatSvgNumber(size)}" preserveAspectRatio="xMidYMid meet" />`;
+  }
 
   if (shape === "ASCII") {
     const symbol = asciiSymbol && asciiSymbol.length > 0 ? asciiSymbol : "*";
@@ -253,11 +294,50 @@ export const createDottedSvg = ({
   selectedDots,
   mode,
   shaderSettings,
+  sizeVary = false,
+  customShape = null,
+  dotGradient = null,
+  dotColorAlpha = 1,
   includeSvgEffects = true,
   crop = false,
   scale = 1,
   label = "Dotted map",
 }) => {
+  const gradientSampler = dotGradient && dotGradient.from && dotGradient.to
+    ? buildSvgGradientSampler(dotGradient, mapData.image.width, mapData.image.height)
+    : null;
+  // Per-dot alpha sampler — mirrors the color sampler so each dot gets the
+  // interpolated opacity between the two stops. Solid mode emits a single
+  // alpha for every dot.
+  const alphaSampler = (() => {
+    if (gradientSampler) {
+      const fromA = dotGradient.fromAlpha ?? 1;
+      const toA = dotGradient.toAlpha ?? 1;
+      // Reuse projection math: build a tiny mirror that interpolates alpha.
+      const angleRad = ((dotGradient.angle ?? 90) * Math.PI) / 180;
+      const dirX = Math.sin(angleRad);
+      const dirY = -Math.cos(angleRad);
+      const corners = [
+        [0, 0],
+        [mapData.image.width, 0],
+        [0, mapData.image.height],
+        [mapData.image.width, mapData.image.height],
+      ];
+      let minProj = Infinity;
+      let maxProj = -Infinity;
+      corners.forEach(([x, y]) => {
+        const p = x * dirX + y * dirY;
+        if (p < minProj) minProj = p;
+        if (p > maxProj) maxProj = p;
+      });
+      const range = Math.max(1e-6, maxProj - minProj);
+      return (point) => {
+        const t = Math.max(0, Math.min(1, (point.x * dirX + point.y * dirY - minProj) / range));
+        return fromA + (toA - fromA) * t;
+      };
+    }
+    return () => dotColorAlpha;
+  })();
   const radius = getDotRadius(dotSize, mode);
   const bounds = crop
     ? getPointsBounds(mapData.points, radius, shape, mapData.image)
@@ -280,9 +360,18 @@ export const createDottedSvg = ({
   const width = Math.round((aspect > 1 ? 1000 * scale : 1000 * aspect * scale) * 1000) / 1000;
   const height = Math.round((aspect > 1 ? (1000 / aspect) * scale : 1000 * scale) * 1000) / 1000;
   const backgroundColor = transparent ? "transparent" : background;
+  // When sizeVary is on, jitter each dot's radius by ±18% using a stable
+  // per-index seed so the SVG mirrors what the WebGL canvas shows.
   const dots = dotsVisible
     ? mapData.points
-        .map((point) => createDotMarkup(point, radius, shape, dotColor, selectedDots, asciiSymbol))
+        .map((point, index) => {
+          const r = sizeVary
+            ? radius * (0.82 + 0.36 * ((index * 9301 + 49297) % 233280) / 233280)
+            : radius;
+          const fill = gradientSampler ? gradientSampler(point) : dotColor;
+          const opacity = alphaSampler(point);
+          return createDotMarkup(point, r, shape, fill, selectedDots, asciiSymbol, customShape, opacity);
+        })
         .join("\n")
     : "";
   const backgroundRect = transparent

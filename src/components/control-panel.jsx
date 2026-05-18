@@ -1,4 +1,6 @@
+import { useRef, useState } from "react";
 import { US_COUNTRY_ID, dotShapeOptions } from "../config/constants.js";
+import { readCustomShapeFile, readCustomShapeText } from "../utils/custom-shape.js";
 import {
   effectsWithCellSize,
   effectsWithMotion,
@@ -62,10 +64,20 @@ export const ControlPanel = ({
   setDotSize,
   dotColor,
   setDotColor,
+  dotColorAlpha = 1,
+  setDotColorAlpha,
+  dotGradient = null,
+  setDotGradient,
   shape,
   setShape,
   dotRotation,
   setDotRotation,
+  rotateAnimating = false,
+  setRotateAnimating,
+  sizeVary = false,
+  setSizeVary,
+  customShape = null,
+  setCustomShape,
   asciiSymbol,
   setAsciiSymbol,
   renderMode,
@@ -110,57 +122,78 @@ export const ControlPanel = ({
     });
   };
 
+  const customShapeInputRef = useRef(null);
+  const [customShapeError, setCustomShapeError] = useState("");
+  const [pastedSvg, setPastedSvg] = useState("");
+  const handleCustomShapeFile = async (file) => {
+    setCustomShapeError("");
+    if (!file) return;
+    try {
+      const next = await readCustomShapeFile(file);
+      setCustomShape?.(next);
+      setPastedSvg("");
+    } catch (error) {
+      setCustomShapeError(error?.message || "Couldn’t load that file.");
+    }
+  };
+  const handleApplyPastedSvg = () => {
+    setCustomShapeError("");
+    try {
+      const next = readCustomShapeText(pastedSvg);
+      setCustomShape?.(next);
+      setPastedSvg("");
+    } catch (error) {
+      setCustomShapeError(error?.message || "Couldn’t parse that SVG.");
+    }
+  };
+
   return (
     <aside className="control-panel">
-      <PanelSection title="Map">
-        <OptionRow label="Area" stacked>
-          <SearchableSelect
-            label="Country or region"
-            value={selection}
-            onChange={(value) => {
-              setSelection(value);
-              if (value !== `country:${US_COUNTRY_ID}`) setStateSelection("all");
-            }}
-            options={areaOptions}
-            placeholder="Search countries…"
-          />
-        </OptionRow>
+      <div className="map-area-section">
+        <SearchableSelect
+          label="Country or region"
+          value={selection}
+          onChange={(value) => {
+            setSelection(value);
+            if (value !== `country:${US_COUNTRY_ID}`) setStateSelection("all");
+          }}
+          options={areaOptions}
+          placeholder="Search countries…"
+        />
         {showStates && (
-          <OptionRow label="State" stacked>
-            <SearchableSelect
-              label="State"
-              value={stateSelection}
-              onChange={setStateSelection}
-              options={[
-                { value: "all", label: "All States" },
-                ...usStates.map((state) => ({
-                  value: state._id,
-                  label: state._displayName,
-                })),
-              ]}
-              placeholder="Search states…"
-            />
-          </OptionRow>
+          <SearchableSelect
+            label="State"
+            value={stateSelection}
+            onChange={setStateSelection}
+            options={[
+              { value: "all", label: "All States" },
+              ...usStates.map((state) => ({
+                value: state._id,
+                label: state._displayName,
+              })),
+            ]}
+            placeholder="Search states…"
+          />
         )}
-      </PanelSection>
+      </div>
 
       <PanelSection title="Surface">
+        {renderMode === "dots" && (
+          <OptionRow label="Show map">
+            <ToggleControl checked={dotsVisible} onChange={setDotsVisible} label="Show or hide the map" />
+          </OptionRow>
+        )}
         <OptionRow label="Style">
           <SelectControl
             label="World style"
             value={renderMode}
             onChange={setRenderMode}
             options={[
-              { value: "dots", label: "Dots" },
+              { value: "dots", label: "Shape" },
               { value: "solid", label: "Solid" },
             ]}
           />
         </OptionRow>
-        {renderMode === "dots" && (
-          <OptionRow label="Dots">
-            <ToggleControl checked={dotsVisible} onChange={setDotsVisible} label="Toggle dots" />
-          </OptionRow>
-        )}
         {renderMode === "solid" && (
           <>
             <OptionRow label="Land">
@@ -178,6 +211,7 @@ export const ControlPanel = ({
             onChange={setShape}
             options={dotShapeOptions}
             asciiSymbol={asciiSymbol}
+            customShape={customShape}
           />
         </OptionRow>
         {shape === "ASCII" && (
@@ -193,6 +227,95 @@ export const ControlPanel = ({
             />
           </OptionRow>
         )}
+        {shape === "Custom" && (
+          <OptionRow label="Upload" stacked>
+            <div className="custom-shape-upload">
+              <input
+                ref={customShapeInputRef}
+                type="file"
+                accept="image/svg+xml,image/png,image/jpeg,image/webp"
+                aria-label="Upload custom shape"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) handleCustomShapeFile(file);
+                  event.target.value = "";
+                }}
+              />
+              <button
+                type="button"
+                className="custom-shape-pick"
+                onClick={() => customShapeInputRef.current?.click()}
+              >
+                {customShape?.dataUrl ? (
+                  <img
+                    src={customShape.dataUrl}
+                    alt=""
+                    className="custom-shape-thumb"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <span className="custom-shape-pick-icon" aria-hidden="true">+</span>
+                )}
+                <span className="custom-shape-pick-label">
+                  {customShape?.name || "Choose SVG or PNG…"}
+                </span>
+              </button>
+              {customShape?.dataUrl && (
+                <button
+                  type="button"
+                  className="custom-shape-clear"
+                  onClick={() => {
+                    setCustomShape?.(null);
+                    setCustomShapeError("");
+                    setPastedSvg("");
+                  }}
+                >
+                  Clear
+                </button>
+              )}
+              <div className="custom-shape-paste">
+                <textarea
+                  className="custom-shape-paste-input"
+                  placeholder="…or paste SVG code"
+                  aria-label="Paste SVG code"
+                  value={pastedSvg}
+                  rows={3}
+                  spellCheck={false}
+                  onChange={(event) => setPastedSvg(event.target.value)}
+                  onKeyDown={(event) => {
+                    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                      event.preventDefault();
+                      handleApplyPastedSvg();
+                    }
+                  }}
+                />
+                {pastedSvg.trim().length > 0 && (
+                  <button
+                    type="button"
+                    className="custom-shape-apply"
+                    onClick={handleApplyPastedSvg}
+                  >
+                    Apply SVG
+                  </button>
+                )}
+              </div>
+              {customShapeError && (
+                <p className="custom-shape-error" role="alert">{customShapeError}</p>
+              )}
+            </div>
+          </OptionRow>
+        )}
+        <OptionRow label="Color">
+          <ColorSwatch
+            value={dotColor}
+            onChange={setDotColor}
+            label="Select dot color"
+            alpha={dotColorAlpha}
+            onAlphaChange={setDotColorAlpha}
+            gradient={dotGradient}
+            onGradientChange={setDotGradient}
+          />
+        </OptionRow>
         <OptionRow label="Density" value={density}>
           <RangeControl
             label="Density"
@@ -212,6 +335,13 @@ export const ControlPanel = ({
             onChange={setDotSize}
           />
         </OptionRow>
+        <OptionRow label="Vary size">
+          <ToggleControl
+            label="Vary dot sizes"
+            checked={sizeVary}
+            onChange={(value) => setSizeVary?.(value)}
+          />
+        </OptionRow>
         <OptionRow label="Rotation" value={`${dotRotation ?? 0}°`}>
           <RangeControl
             label="Dot rotation"
@@ -222,8 +352,12 @@ export const ControlPanel = ({
             onChange={setDotRotation}
           />
         </OptionRow>
-        <OptionRow label="Color">
-          <ColorSwatch value={dotColor} onChange={setDotColor} label="Select dot color" />
+        <OptionRow label="Animate rotation">
+          <ToggleControl
+            label="Animate dot rotation"
+            checked={rotateAnimating}
+            onChange={(value) => setRotateAnimating?.(value)}
+          />
         </OptionRow>
       </PanelSection>
 

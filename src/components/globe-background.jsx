@@ -10,9 +10,10 @@ import {
   GLOBE_ROUND_FIT_ASPECT,
 } from "../config/globe-settings.js";
 import { clampNumber, easeInOutSine, smoothStep } from "../utils/math.js";
-import { disposeThreeObject } from "../three/geometry.js";
+import { createCustomShapeTexture, disposeThreeObject } from "../three/geometry.js";
 import {
   applyDotLayerMorph,
+  applyDotLayerSpin,
   applyGlobeShellProgress,
   buildGlobeDotLayer,
   createAtmosphereMaterial,
@@ -27,6 +28,10 @@ import { createSpaceBackgroundMesh } from "../three/space-mesh.js";
 import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
 import { loadWorldCountries } from "../data/world-countries-topology.js";
+
+// Speed of the optional dot spin animation. One full rotation takes ~12s —
+// fast enough to read as motion, slow enough to stay calm on a static map.
+const SPIN_DEGREES_PER_SECOND = 30;
 
 const getClientPoint = (event) => {
   const touch = event.touches?.[0] || event.changedTouches?.[0];
@@ -44,7 +49,12 @@ export const GlobeBackground = ({
   dotSize,
   shape,
   dotRotation = 0,
+  rotateAnimating = false,
+  sizeVary = false,
   asciiSymbol,
+  customShape = null,
+  dotGradient = null,
+  dotColorAlpha = 1,
   renderMode = "dots",
   worldFill,
   worldStroke,
@@ -75,9 +85,16 @@ export const GlobeBackground = ({
   const spaceSettingsRef = useRef(spaceSettings);
   const backgroundStyleRef = useRef(backgroundStyle);
   const reducedMotionRef = useRef(reducedMotion);
+  const rotateAnimatingRef = useRef(rotateAnimating);
+  const dotRotationRef = useRef(dotRotation);
+  const spinAngleRef = useRef(0);
+  const sizeVaryRef = useRef(sizeVary);
   spaceSettingsRef.current = spaceSettings;
   backgroundStyleRef.current = backgroundStyle;
   reducedMotionRef.current = reducedMotion;
+  rotateAnimatingRef.current = rotateAnimating;
+  dotRotationRef.current = dotRotation;
+  sizeVaryRef.current = sizeVary;
   const stateRef = useRef({
     active: false,
     baseOffsetX: 0,
@@ -490,6 +507,23 @@ export const GlobeBackground = ({
       ) {
         applyDotLayerMorph(threeRef.current.dotLayer, morph.progress);
       }
+      // Animated dot rotation. Advances spinAngleRef by elapsed time when the
+      // user toggle is on; when the toggle is off we re-bake matrices once so
+      // dots return to the static slider angle, then leave them alone.
+      if (threeRef.current.dotLayer) {
+        const animating = rotateAnimatingRef.current && !reducedMotionRef.current;
+        if (animating) {
+          spinAngleRef.current = (spinAngleRef.current + (delta / 1000) * SPIN_DEGREES_PER_SECOND) % 360;
+          applyDotLayerSpin(
+            threeRef.current.dotLayer,
+            (dotRotationRef.current + spinAngleRef.current) % 360,
+            morph.progress,
+          );
+        } else if (spinAngleRef.current !== 0) {
+          spinAngleRef.current = 0;
+          applyDotLayerSpin(threeRef.current.dotLayer, dotRotationRef.current, morph.progress);
+        }
+      }
       applyGlobeShellProgress(threeRef.current, morph.progress, currentGlobeSettings);
       // Freeze the clock that drives long-running ambient motion when reduced
       // motion is preferred. The scene still renders, it just doesn't animate.
@@ -505,6 +539,7 @@ export const GlobeBackground = ({
       }
       twinkleUniforms.uTime.value = ambientTime;
       twinkleUniforms.twinkleAmount.value = reducedMotionRef.current ? 0 : 0.18;
+      twinkleUniforms.uSizeVary.value = sizeVaryRef.current ? 1 : 0;
 
       const sbg = threeRef.current?.spaceBackground;
       if (sbg) {
@@ -672,30 +707,50 @@ export const GlobeBackground = ({
         disposeThreeObject(refs.dotLayer);
         refs.dotLayer = null;
       }
-      return;
+      return undefined;
     }
 
-    const nextLayer = buildGlobeDotLayer({
-      mapData,
-      selectedDots,
-      dotColor: effectiveDotColor,
-      dotSize,
-      shape,
-      dotRotation,
-      asciiSymbol,
-      shaderSettings,
-      globeSettings,
-      morphProgress: morphRef.current.progress,
-    });
+    let cancelled = false;
+    const swap = (customShapeTexture) => {
+      if (cancelled) {
+        customShapeTexture?.dispose?.();
+        return;
+      }
+      const nextLayer = buildGlobeDotLayer({
+        mapData,
+        selectedDots,
+        dotColor: effectiveDotColor,
+        dotColorAlpha,
+        dotGradient: solidFallback ? null : dotGradient,
+        dotSize,
+        shape,
+        dotRotation,
+        asciiSymbol,
+        shaderSettings,
+        globeSettings,
+        morphProgress: morphRef.current.progress,
+        customShapeTexture,
+      });
 
-    if (refs.dotLayer) {
-      refs.globeGroup.remove(refs.dotLayer);
-      disposeThreeObject(refs.dotLayer);
+      if (refs.dotLayer) {
+        refs.globeGroup.remove(refs.dotLayer);
+        disposeThreeObject(refs.dotLayer);
+      }
+
+      refs.dotLayer = nextLayer;
+      refs.globeGroup.add(nextLayer);
+    };
+
+    if (shape === "Custom" && customShape?.dataUrl) {
+      createCustomShapeTexture(customShape.dataUrl).then(swap);
+    } else {
+      swap(null);
     }
 
-    refs.dotLayer = nextLayer;
-    refs.globeGroup.add(nextLayer);
-  }, [asciiSymbol, dotColor, dotRotation, dotSize, dotsVisible, globeSettings, mapData, morphMode, renderMode, selectedDots, shaderSettings, shape, worldFill]);
+    return () => {
+      cancelled = true;
+    };
+  }, [asciiSymbol, customShape, dotColor, dotColorAlpha, dotGradient, dotRotation, dotSize, dotsVisible, globeSettings, mapData, morphMode, renderMode, selectedDots, shaderSettings, shape, worldFill]);
 
   useEffect(() => {
     const refs = threeRef.current;

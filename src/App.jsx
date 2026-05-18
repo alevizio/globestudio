@@ -34,6 +34,7 @@ import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
 import { DottedGlobe, Download, Github, Globe2, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Twitter } from "./components/icons.jsx";
+import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
 import { ViewModeSwitch } from "./components/ui/view-mode-switch.jsx";
@@ -71,10 +72,21 @@ const App = () => {
   const [density, setDensity] = usePersistedState("density", 40);
   const [dotSize, setDotSize] = usePersistedState("dotSize", 10);
   const [dotColor, setDotColor] = usePersistedState("dotColor", "#ffffff");
+  // Solid-color opacity, 0–1. Separate state so the persisted dotColor stays
+  // a clean 6-char hex.
+  const [dotColorAlpha, setDotColorAlpha] = usePersistedState("dotColorAlpha", 1);
+  // Optional linear-gradient color fill. When set, every dot is recolored
+  // based on its position on the map (lat/lng projected onto the angle
+  // vector). Stored as { from, to, angle, fromAlpha, toAlpha } so it
+  // survives reloads with per-stop opacity.
+  const [dotGradient, setDotGradient] = usePersistedState("dotGradient", null);
   const [dotsVisible, setDotsVisible] = usePersistedState("dotsVisible", true);
   const [shape, setShape] = usePersistedState("shape", "Circle");
   const [dotRotation, setDotRotation] = usePersistedState("dotRotation", 0);
+  const [rotateAnimating, setRotateAnimating] = usePersistedState("rotateAnimating", false);
+  const [sizeVary, setSizeVary] = usePersistedState("sizeVary", false);
   const [asciiSymbol, setAsciiSymbol] = usePersistedState("asciiSymbol", "*");
+  const [customShape, setCustomShape] = usePersistedState("customShape", null);
   const [renderMode, setRenderMode] = usePersistedState("renderMode", "dots");
   const [worldFill, setWorldFill] = usePersistedState("worldFill", "#5a5a64");
   const [worldStroke, setWorldStroke] = usePersistedState("worldStroke", "#f6f2ea");
@@ -219,6 +231,8 @@ const App = () => {
       createDottedSvg({
         mapData,
         dotColor,
+        dotColorAlpha,
+        dotGradient,
         dotSize,
         shape,
         asciiSymbol,
@@ -228,6 +242,8 @@ const App = () => {
         selectedDots,
         mode: selected.mode,
         shaderSettings,
+        sizeVary,
+        customShape,
         crop: true,
         scale: exportScaleValue(canvasScale),
         label: `${selected.label} dotted map`,
@@ -236,7 +252,10 @@ const App = () => {
       asciiSymbol,
       background,
       canvasScale,
+      customShape,
       dotColor,
+      dotColorAlpha,
+      dotGradient,
       dotSize,
       dotsVisible,
       mapData,
@@ -245,6 +264,7 @@ const App = () => {
       selectedDots,
       shaderSettings,
       shape,
+      sizeVary,
       transparent,
     ],
   );
@@ -272,6 +292,11 @@ const App = () => {
     setDotsVisible(true);
     setShape("Circle");
     setDotRotation(0);
+    setRotateAnimating(false);
+    setSizeVary(false);
+    setCustomShape(null);
+    setDotGradient(null);
+    setDotColorAlpha(1);
     setAsciiSymbol("*");
     setRenderMode("dots");
     setWorldFill("#5a5a64");
@@ -294,9 +319,14 @@ const App = () => {
     if (s.density !== undefined) setDensity(s.density);
     if (s.dotSize !== undefined) setDotSize(s.dotSize);
     if (s.dotColor !== undefined) setDotColor(s.dotColor);
+    if (s.dotColorAlpha !== undefined) setDotColorAlpha(s.dotColorAlpha);
+    if (s.dotGradient !== undefined) setDotGradient(s.dotGradient);
     if (s.dotsVisible !== undefined) setDotsVisible(s.dotsVisible);
     if (s.shape !== undefined) setShape(s.shape);
     if (s.dotRotation !== undefined) setDotRotation(s.dotRotation);
+    if (s.rotateAnimating !== undefined) setRotateAnimating(s.rotateAnimating);
+    if (s.sizeVary !== undefined) setSizeVary(s.sizeVary);
+    if (s.customShape !== undefined) setCustomShape(s.customShape);
     if (s.asciiSymbol !== undefined) setAsciiSymbol(s.asciiSymbol);
     if (s.renderMode !== undefined) setRenderMode(s.renderMode);
     if (s.worldFill !== undefined) setWorldFill(s.worldFill);
@@ -576,10 +606,15 @@ const App = () => {
       density,
       dotSize,
       dotColor,
+      dotColorAlpha,
+      dotGradient,
       dotsVisible,
       shape,
       dotRotation,
+      rotateAnimating,
+      sizeVary,
       asciiSymbol,
+      customShape,
       renderMode,
       worldFill,
       worldStroke,
@@ -609,9 +644,14 @@ const App = () => {
     set("density", setDensity);
     set("dotSize", setDotSize);
     set("dotColor", setDotColor);
+    set("dotColorAlpha", setDotColorAlpha);
+    set("dotGradient", setDotGradient);
     set("dotsVisible", setDotsVisible);
     set("shape", setShape);
     set("dotRotation", setDotRotation);
+    set("rotateAnimating", setRotateAnimating);
+    set("sizeVary", setSizeVary);
+    set("customShape", setCustomShape);
     set("asciiSymbol", setAsciiSymbol);
     set("renderMode", setRenderMode);
     set("worldFill", setWorldFill);
@@ -778,7 +818,12 @@ const App = () => {
             dotsVisible={dotsVisible}
             shape={shape}
             dotRotation={dotRotation}
+            rotateAnimating={rotateAnimating && !motionFrozen}
+            sizeVary={sizeVary}
             asciiSymbol={asciiSymbol}
+            customShape={customShape}
+            dotGradient={dotGradient}
+            dotColorAlpha={dotColorAlpha}
             renderMode={renderMode}
             worldFill={worldFill}
             worldStroke={worldStroke}
@@ -816,7 +861,7 @@ const App = () => {
           className="social-link social-help-button"
           onClick={() => setShortcutsOpen(true)}
           aria-label="Show keyboard shortcuts"
-          title="Keyboard shortcuts (?)"
+          data-tooltip="Keyboard shortcuts (?)"
         >
           <span aria-hidden="true">?</span>
         </button>
@@ -826,7 +871,7 @@ const App = () => {
           target="_blank"
           rel="noreferrer noopener"
           aria-label="View source on GitHub"
-          title="View source on GitHub"
+          data-tooltip="View source on GitHub"
         >
           <Github size={15} />
         </a>
@@ -836,7 +881,7 @@ const App = () => {
           target="_blank"
           rel="noreferrer noopener"
           aria-label="Follow on Twitter"
-          title="Follow on Twitter"
+          data-tooltip="Follow on Twitter"
         >
           <Twitter size={13} />
         </a>
@@ -846,7 +891,7 @@ const App = () => {
           target="_blank"
           rel="noreferrer noopener"
           aria-label="Visit alevizio.com"
-          title="Visit alevizio.com"
+          data-tooltip="Visit alevizio.com"
         >
           <Globe2 size={15} />
         </a>
@@ -858,7 +903,7 @@ const App = () => {
           className="panel-toggle"
           onClick={() => setPanelCollapsed(false)}
           aria-label="Show panel"
-          title="Show panel (H)"
+          data-tooltip="Show panel (H)"
         >
           <PanelLeftOpen size={15} />
         </button>
@@ -889,7 +934,7 @@ const App = () => {
               className={`panel-icon-button panel-shuffle-button ${shuffleFlash ? "is-shuffling" : ""}`}
               onClick={shuffleLook}
               aria-label="Shuffle to a random look"
-              title="Shuffle (S)"
+              data-tooltip="Shuffle (S)"
             >
               <Shuffle size={14} />
             </button>
@@ -898,7 +943,7 @@ const App = () => {
               className="panel-icon-button"
               onClick={() => setExportModalOpen(true)}
               aria-label="Open export dialog"
-              title="Export (D)"
+              data-tooltip="Export (D)"
             >
               <Download size={14} />
             </button>
@@ -907,7 +952,7 @@ const App = () => {
               className={`panel-icon-button panel-reset-button ${resetFlash ? "is-resetting" : ""}`}
               onClick={handleReset}
               aria-label="Reset view"
-              title="Reset view (R)"
+              data-tooltip="Reset view (R)"
             >
               <RotateCcw size={14} />
             </button>
@@ -916,7 +961,7 @@ const App = () => {
               className="panel-icon-button"
               onClick={() => setPanelCollapsed(true)}
               aria-label="Hide panel"
-              title="Hide panel (H)"
+              data-tooltip="Hide panel (H)"
             >
               <PanelLeftClose size={14} />
             </button>
@@ -955,13 +1000,23 @@ const App = () => {
             setDotSize={setDotSize}
             dotColor={dotColor}
             setDotColor={setDotColor}
+            dotColorAlpha={dotColorAlpha}
+            setDotColorAlpha={setDotColorAlpha}
+            dotGradient={dotGradient}
+            setDotGradient={setDotGradient}
             dotsVisible={dotsVisible}
             setDotsVisible={setDotsVisible}
             shape={shape}
             dotRotation={dotRotation}
             setShape={setShape}
             setDotRotation={setDotRotation}
+            rotateAnimating={rotateAnimating}
+            setRotateAnimating={setRotateAnimating}
+            sizeVary={sizeVary}
+            setSizeVary={setSizeVary}
             asciiSymbol={asciiSymbol}
+            customShape={customShape}
+            setCustomShape={setCustomShape}
             setAsciiSymbol={setAsciiSymbol}
             renderMode={renderMode}
             setRenderMode={setRenderMode}
@@ -1009,6 +1064,7 @@ const App = () => {
           <span className="keyboard-hint-label">{keyboardHint.label}</span>
         </div>
       )}
+      <FollowTooltip />
     </main>
   );
 };

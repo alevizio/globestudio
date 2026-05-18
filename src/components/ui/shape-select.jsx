@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "../icons.jsx";
 import { ShapePreview } from "./shape-preview.jsx";
 
-export const ShapeSelect = ({ value, onChange, options, asciiSymbol = "*", label = "Shape" }) => {
+export const ShapeSelect = ({ value, onChange, options, asciiSymbol = "*", customShape = null, label = "Shape" }) => {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -34,7 +34,7 @@ export const ShapeSelect = ({ value, onChange, options, asciiSymbol = "*", label
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
       >
-        <ShapePreview shape={value} asciiSymbol={asciiSymbol} />
+        <ShapePreview shape={value} asciiSymbol={asciiSymbol} customShape={customShape} />
         <span className="shape-select-label">{value}</span>
         <ChevronDown size={12} />
       </button>
@@ -52,7 +52,7 @@ export const ShapeSelect = ({ value, onChange, options, asciiSymbol = "*", label
                     setOpen(false);
                   }}
                 >
-                  <ShapePreview shape={option} asciiSymbol={asciiSymbol} />
+                  <ShapePreview shape={option} asciiSymbol={asciiSymbol} customShape={customShape} />
                   <span>{option}</span>
                 </button>
               </li>

@@ -10,7 +10,7 @@ import {
 
 const STROKE_WIDTH = 1;
 
-export const ShapePreview = ({ shape, asciiSymbol = "*", size = 14, color = "currentColor" }) => {
+export const ShapePreview = ({ shape, asciiSymbol = "*", size = 14, color = "currentColor", customShape = null }) => {
   const cx = size / 2;
   const cy = size / 2;
   const radius = size * 0.36;
@@ -27,6 +27,17 @@ export const ShapePreview = ({ shape, asciiSymbol = "*", size = 14, color = "cur
       {children}
     </svg>
   );
+
+  if (shape === "Custom") {
+    if (customShape?.dataUrl) {
+      return wrap(
+        <image href={customShape.dataUrl} x="1" y="1" width={size - 2} height={size - 2} preserveAspectRatio="xMidYMid meet" />,
+      );
+    }
+    return wrap(
+      <rect x="2" y="2" width={size - 4} height={size - 4} rx="2" fill="none" stroke={color} strokeOpacity="0.5" strokeWidth="1" strokeDasharray="2 2" />,
+    );
+  }
 
   if (shape === "Circle") {
     return wrap(<circle cx={cx} cy={cy} r={radius} fill={color} />);
