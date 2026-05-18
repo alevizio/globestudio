@@ -17,6 +17,7 @@ import { DepthControl } from "./ui/depth-control.jsx";
 import { OptionRow } from "./ui/option-row.jsx";
 import { PanelSection } from "./ui/panel-section.jsx";
 import { RangeControl } from "./ui/range-control.jsx";
+import { SearchableSelect } from "./ui/searchable-select.jsx";
 import { SelectControl } from "./ui/select-control.jsx";
 import { ShapeSelect } from "./ui/shape-select.jsx";
 import { TiltControl } from "./ui/tilt-control.jsx";
@@ -112,8 +113,8 @@ export const ControlPanel = ({
   return (
     <aside className="control-panel">
       <PanelSection title="Map">
-        <OptionRow label="Area">
-          <SelectControl
+        <OptionRow label="Area" stacked>
+          <SearchableSelect
             label="Country or region"
             value={selection}
             onChange={(value) => {
@@ -121,11 +122,12 @@ export const ControlPanel = ({
               if (value !== `country:${US_COUNTRY_ID}`) setStateSelection("all");
             }}
             options={areaOptions}
+            placeholder="Search countries…"
           />
         </OptionRow>
         {showStates && (
-          <OptionRow label="State">
-            <SelectControl
+          <OptionRow label="State" stacked>
+            <SearchableSelect
               label="State"
               value={stateSelection}
               onChange={setStateSelection}
@@ -136,6 +138,7 @@ export const ControlPanel = ({
                   label: state._displayName,
                 })),
               ]}
+              placeholder="Search states…"
             />
           </OptionRow>
         )}
@@ -366,15 +369,31 @@ export const ControlPanel = ({
             />
           </OptionRow>
           {(globeSettings.network ?? true) && (
-            <OptionRow label="Network" value={globeSettings.networkStrength ?? 70}>
-              <RangeControl
-                label="Network strength"
-                min={0}
-                max={100}
-                value={globeSettings.networkStrength ?? 70}
-                onChange={(value) => updateGlobeSetting("networkStrength", value)}
-              />
-            </OptionRow>
+            <>
+              <OptionRow label="Arcs">
+                <ToggleControl
+                  label="Toggle flying route arcs"
+                  checked={globeSettings.networkArcs ?? true}
+                  onChange={(value) => updateGlobeSetting("networkArcs", value)}
+                />
+              </OptionRow>
+              <OptionRow label="Pulses">
+                <ToggleControl
+                  label="Toggle city pulse rings"
+                  checked={globeSettings.networkPulses ?? true}
+                  onChange={(value) => updateGlobeSetting("networkPulses", value)}
+                />
+              </OptionRow>
+              <OptionRow label="Strength" value={globeSettings.networkStrength ?? 70}>
+                <RangeControl
+                  label="Network strength"
+                  min={0}
+                  max={100}
+                  value={globeSettings.networkStrength ?? 70}
+                  onChange={(value) => updateGlobeSetting("networkStrength", value)}
+                />
+              </OptionRow>
+            </>
           )}
           <OptionRow label="Auto Spin">
             <ToggleControl
@@ -397,7 +416,7 @@ export const ControlPanel = ({
         </PanelSection>
       )}
 
-      <PanelSection title="Effects">
+      <PanelSection title="Shaders">
         <OptionRow label="Pass">
           <SelectControl
             label="Shader effect"
