@@ -16,6 +16,16 @@ export const countries = countryData
   }))
   .sort((a, b) => a._displayName.localeCompare(b._displayName));
 
+// Lookup from cca3 ("USA") → un-padded ccn3 numeric string ("840"). The
+// world-atlas topology keys its feature ids by the un-padded numeric, so we
+// normalize here once at import time and let the solid-texture renderer just
+// do `cca3ToCcn3.get(code)` to figure out which atlas feature to keep.
+export const cca3ToCcn3 = new Map(
+  countryData
+    .filter((country) => country.cca3 && country.ccn3)
+    .map((country) => [country.cca3, String(parseInt(country.ccn3, 10))]),
+);
+
 const buildGroupedOptions = (field, typeLabel) => {
   const groups = new Map();
   countries.forEach((item) => {

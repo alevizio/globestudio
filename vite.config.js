@@ -10,6 +10,10 @@ const slimCountries = JSON.parse(
   readFileSync(resolve(projectDir, "node_modules/world-countries/countries.json"), "utf8"),
 ).map((country) => ({
   cca3: country.cca3,
+  // ccn3 is the numeric ISO 3166-1 code. world-atlas keys its features by the
+  // same numeric (un-padded). We need it to filter the solid-mode texture
+  // down to the user's selected countries.
+  ccn3: country.ccn3,
   name: { common: country.name?.common },
   region: country.region,
   subregion: country.subregion,

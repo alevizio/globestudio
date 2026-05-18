@@ -869,6 +869,8 @@ const App = () => {
             worldStrokeGradient={worldStrokeGradient}
             worldStrokeVisible={worldStrokeVisible}
             worldStrokeWidth={worldStrokeWidth}
+            selectionCountryCodes={selected.countryCodes}
+            selectionCollection={selected.collection}
             background={isSpaceBackground ? "#03030a" : background}
             transparent={effectiveTransparent}
             morphMode={viewMode === "globe" ? "globe" : "flat"}

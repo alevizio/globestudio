@@ -28,6 +28,7 @@ import { createSpaceBackgroundMesh } from "../three/space-mesh.js";
 import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
 import { loadWorldCountries } from "../data/world-countries-topology.js";
+import { cca3ToCcn3 } from "../data/geography.js";
 
 // Speed of the optional dot spin animation. One full rotation takes ~12s —
 // fast enough to read as motion, slow enough to stay calm on a static map.
@@ -65,6 +66,8 @@ export const GlobeBackground = ({
   worldStrokeGradient = null,
   worldStrokeVisible = true,
   worldStrokeWidth = 1.8,
+  selectionCountryCodes = [],
+  selectionCollection = null,
   dotsVisible,
   background,
   interactive = true,
@@ -790,7 +793,29 @@ export const GlobeBackground = ({
 
     loadWorldCountries().then((countries) => {
       if (cancelled) return;
-      const texture = createWorldTexture(countries, {
+      // Mirror the dot-pipeline's filtering on the solid texture so the
+      // selected region/country/state actually shows up here too.
+      //   - state mode: use the state feature collection directly
+      //   - country/region mode: keep only the atlas features whose
+      //     un-padded ccn3 numeric id matches one of the selected cca3s
+      //   - world: render the full atlas
+      let featureCollection = countries;
+      if (selectionCollection?.features?.length) {
+        featureCollection = selectionCollection;
+      } else if (selectionCountryCodes && selectionCountryCodes.length > 0) {
+        const keepCcn3 = new Set(
+          selectionCountryCodes
+            .map((code) => cca3ToCcn3.get(code))
+            .filter(Boolean),
+        );
+        featureCollection = {
+          type: "FeatureCollection",
+          features: countries.features.filter((feature) =>
+            keepCcn3.has(String(parseInt(feature.id, 10))),
+          ),
+        };
+      }
+      const texture = createWorldTexture(featureCollection, {
         fill: worldFill,
         fillAlpha: worldFillAlpha,
         fillGradient: worldFillGradient,
@@ -807,7 +832,7 @@ export const GlobeBackground = ({
     return () => {
       cancelled = true;
     };
-  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth]);
+  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection]);
 
   useEffect(() => {
     const target = morphMode === "globe" ? 1 : 0;
