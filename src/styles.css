@@ -23,6 +23,8 @@
   --accent-softer: rgba(246, 242, 234, 0.08);
   --radius: 8px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-mono-2: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 output,
@@ -912,7 +914,7 @@ button {
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono-2);
   font-size: 11px;
   font-weight: 600;
 }
@@ -988,7 +990,7 @@ button {
   border-bottom-width: 2px;
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.04);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono-2);
   font-size: 11px;
   font-weight: 600;
 }
@@ -1118,7 +1120,7 @@ button {
   border-radius: 8px;
   background: var(--field);
   color: var(--text);
-  font: 500 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 500 13px var(--font-mono-2);
   font-variant-numeric: tabular-nums;
   transition: border-color 160ms var(--ease), background 160ms var(--ease);
 }
@@ -1410,7 +1412,7 @@ button {
    for monospaced kbd-like clarity. The trailing margin nudges social links
    slightly away to read as a separate cluster. */
 .social-help-button {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono-2);
   font-size: 14px;
   font-weight: 600;
   line-height: 1;
@@ -1594,7 +1596,7 @@ button {
   border-radius: 8px;
   background: var(--field);
   color: var(--text);
-  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-family: var(--font-mono-2);
   font-size: 11px;
   line-height: 1.45;
   outline: 0;
@@ -2147,7 +2149,7 @@ select:hover {
   border-radius: 6px;
   background: var(--field);
   color: var(--text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono-2);
   font-size: 12px;
   font-weight: 700;
   text-align: center;
@@ -2275,7 +2277,7 @@ select:hover {
   border-radius: 6px;
   background: var(--field);
   color: var(--text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono-2);
   font-size: 11px;
   line-height: 1.4;
   resize: vertical;
@@ -2797,7 +2799,7 @@ input[type="range"]:active::-moz-range-thumb {
   border-radius: 6px;
   background: var(--field);
   color: var(--text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono-2);
   font-size: 11px;
   font-weight: 500;
   text-align: center;
@@ -2864,7 +2866,6 @@ input[type="range"]:active::-moz-range-thumb {
   width: 100%;
   height: 64px;
   border-radius: 10px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .color-picker-stops {
@@ -2922,7 +2923,7 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-stop-value {
   color: var(--muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono-2);
   font-size: 11px;
   font-weight: 500;
   overflow: hidden;
@@ -2951,7 +2952,7 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-angle > output {
   color: var(--muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono-2);
   font-size: 11px;
   text-align: right;
   font-variant-numeric: tabular-nums;
