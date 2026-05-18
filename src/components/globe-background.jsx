@@ -57,7 +57,14 @@ export const GlobeBackground = ({
   dotColorAlpha = 1,
   renderMode = "dots",
   worldFill,
+  worldFillAlpha = 1,
+  worldFillGradient = null,
+  worldFillVisible = true,
   worldStroke,
+  worldStrokeAlpha = 1,
+  worldStrokeGradient = null,
+  worldStrokeVisible = true,
+  worldStrokeWidth = 1.8,
   dotsVisible,
   background,
   interactive = true,
@@ -785,7 +792,14 @@ export const GlobeBackground = ({
       if (cancelled) return;
       const texture = createWorldTexture(countries, {
         fill: worldFill,
+        fillAlpha: worldFillAlpha,
+        fillGradient: worldFillGradient,
+        fillVisible: worldFillVisible,
         stroke: worldStroke,
+        strokeAlpha: worldStrokeAlpha,
+        strokeGradient: worldStrokeGradient,
+        strokeVisible: worldStrokeVisible,
+        strokeWidth: worldStrokeWidth,
       });
       if (texture) applySolid(texture);
     });
@@ -793,7 +807,7 @@ export const GlobeBackground = ({
     return () => {
       cancelled = true;
     };
-  }, [renderMode, worldFill, worldStroke]);
+  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth]);
 
   useEffect(() => {
     const target = morphMode === "globe" ? 1 : 0;

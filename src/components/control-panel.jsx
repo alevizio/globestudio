@@ -84,8 +84,22 @@ export const ControlPanel = ({
   setRenderMode,
   worldFill,
   setWorldFill,
+  worldFillAlpha = 1,
+  setWorldFillAlpha,
+  worldFillGradient = null,
+  setWorldFillGradient,
+  worldFillVisible = true,
+  setWorldFillVisible,
   worldStroke,
   setWorldStroke,
+  worldStrokeAlpha = 1,
+  setWorldStrokeAlpha,
+  worldStrokeGradient = null,
+  setWorldStrokeGradient,
+  worldStrokeVisible = true,
+  setWorldStrokeVisible,
+  worldStrokeWidth = 1.8,
+  setWorldStrokeWidth,
   dotsVisible,
   setDotsVisible,
   shaderSettings,
@@ -197,11 +211,57 @@ export const ControlPanel = ({
         {renderMode === "solid" && (
           <>
             <OptionRow label="Land">
-              <ColorSwatch value={worldFill} onChange={setWorldFill} label="Land fill" />
+              <ToggleControl
+                label="Show land"
+                checked={worldFillVisible}
+                onChange={(value) => setWorldFillVisible?.(value)}
+              />
             </OptionRow>
+            {worldFillVisible && (
+              <OptionRow label="Land color">
+                <ColorSwatch
+                  value={worldFill}
+                  onChange={setWorldFill}
+                  label="Land fill"
+                  alpha={worldFillAlpha}
+                  onAlphaChange={setWorldFillAlpha}
+                  gradient={worldFillGradient}
+                  onGradientChange={setWorldFillGradient}
+                />
+              </OptionRow>
+            )}
             <OptionRow label="Stroke">
-              <ColorSwatch value={worldStroke} onChange={setWorldStroke} label="Country stroke" />
+              <ToggleControl
+                label="Show country stroke"
+                checked={worldStrokeVisible}
+                onChange={(value) => setWorldStrokeVisible?.(value)}
+              />
             </OptionRow>
+            {worldStrokeVisible && (
+              <>
+                <OptionRow label="Stroke color">
+                  <ColorSwatch
+                    value={worldStroke}
+                    onChange={setWorldStroke}
+                    label="Country stroke"
+                    alpha={worldStrokeAlpha}
+                    onAlphaChange={setWorldStrokeAlpha}
+                    gradient={worldStrokeGradient}
+                    onGradientChange={setWorldStrokeGradient}
+                  />
+                </OptionRow>
+                <OptionRow label="Stroke width" value={formatSvgNumber(worldStrokeWidth, 1)}>
+                  <RangeControl
+                    label="Stroke width"
+                    min={0.1}
+                    max={8}
+                    step={0.1}
+                    value={worldStrokeWidth}
+                    onChange={setWorldStrokeWidth}
+                  />
+                </OptionRow>
+              </>
+            )}
           </>
         )}
         {renderMode === "dots" && (<>

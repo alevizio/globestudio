@@ -89,7 +89,14 @@ const App = () => {
   const [customShape, setCustomShape] = usePersistedState("customShape", null);
   const [renderMode, setRenderMode] = usePersistedState("renderMode", "dots");
   const [worldFill, setWorldFill] = usePersistedState("worldFill", "#5a5a64");
+  const [worldFillAlpha, setWorldFillAlpha] = usePersistedState("worldFillAlpha", 1);
+  const [worldFillGradient, setWorldFillGradient] = usePersistedState("worldFillGradient", null);
+  const [worldFillVisible, setWorldFillVisible] = usePersistedState("worldFillVisible", true);
   const [worldStroke, setWorldStroke] = usePersistedState("worldStroke", "#f6f2ea");
+  const [worldStrokeAlpha, setWorldStrokeAlpha] = usePersistedState("worldStrokeAlpha", 1);
+  const [worldStrokeGradient, setWorldStrokeGradient] = usePersistedState("worldStrokeGradient", null);
+  const [worldStrokeVisible, setWorldStrokeVisible] = usePersistedState("worldStrokeVisible", true);
+  const [worldStrokeWidth, setWorldStrokeWidth] = usePersistedState("worldStrokeWidth", 1.8);
   const [shaderSettings, setShaderSettings] = usePersistedState("shaderSettings", DEFAULT_SHADER_SETTINGS);
   const [globeSettings, setGlobeSettings] = usePersistedState("globeSettings", DEFAULT_GLOBE_SETTINGS);
   // First-time mobile visitors land on the globe with the panel hidden so the
@@ -300,7 +307,14 @@ const App = () => {
     setAsciiSymbol("*");
     setRenderMode("dots");
     setWorldFill("#5a5a64");
+    setWorldFillAlpha(1);
+    setWorldFillGradient(null);
+    setWorldFillVisible(true);
     setWorldStroke("#f6f2ea");
+    setWorldStrokeAlpha(1);
+    setWorldStrokeGradient(null);
+    setWorldStrokeVisible(true);
+    setWorldStrokeWidth(1.8);
     setShaderSettings({ ...DEFAULT_SHADER_SETTINGS });
     setGlobeSettings({ ...DEFAULT_GLOBE_SETTINGS });
     setPanelCollapsed(false);
@@ -330,7 +344,14 @@ const App = () => {
     if (s.asciiSymbol !== undefined) setAsciiSymbol(s.asciiSymbol);
     if (s.renderMode !== undefined) setRenderMode(s.renderMode);
     if (s.worldFill !== undefined) setWorldFill(s.worldFill);
+    if (s.worldFillAlpha !== undefined) setWorldFillAlpha(s.worldFillAlpha);
+    if (s.worldFillGradient !== undefined) setWorldFillGradient(s.worldFillGradient);
+    if (s.worldFillVisible !== undefined) setWorldFillVisible(s.worldFillVisible);
     if (s.worldStroke !== undefined) setWorldStroke(s.worldStroke);
+    if (s.worldStrokeAlpha !== undefined) setWorldStrokeAlpha(s.worldStrokeAlpha);
+    if (s.worldStrokeGradient !== undefined) setWorldStrokeGradient(s.worldStrokeGradient);
+    if (s.worldStrokeVisible !== undefined) setWorldStrokeVisible(s.worldStrokeVisible);
+    if (s.worldStrokeWidth !== undefined) setWorldStrokeWidth(s.worldStrokeWidth);
     if (s.shaderSettings) setShaderSettings(s.shaderSettings);
     if (s.globeSettings) setGlobeSettings(s.globeSettings);
     if (s.mapDepth !== undefined) setMapDepth(s.mapDepth);
@@ -617,7 +638,14 @@ const App = () => {
       customShape,
       renderMode,
       worldFill,
+      worldFillAlpha,
+      worldFillGradient,
+      worldFillVisible,
       worldStroke,
+      worldStrokeAlpha,
+      worldStrokeGradient,
+      worldStrokeVisible,
+      worldStrokeWidth,
       mapDepth,
       tiltX,
       tiltY,
@@ -655,7 +683,14 @@ const App = () => {
     set("asciiSymbol", setAsciiSymbol);
     set("renderMode", setRenderMode);
     set("worldFill", setWorldFill);
+    set("worldFillAlpha", setWorldFillAlpha);
+    set("worldFillGradient", setWorldFillGradient);
+    set("worldFillVisible", setWorldFillVisible);
     set("worldStroke", setWorldStroke);
+    set("worldStrokeAlpha", setWorldStrokeAlpha);
+    set("worldStrokeGradient", setWorldStrokeGradient);
+    set("worldStrokeVisible", setWorldStrokeVisible);
+    set("worldStrokeWidth", setWorldStrokeWidth);
     set("mapDepth", setMapDepth);
     set("tiltX", setTiltX);
     set("tiltY", setTiltY);
@@ -826,7 +861,14 @@ const App = () => {
             dotColorAlpha={dotColorAlpha}
             renderMode={renderMode}
             worldFill={worldFill}
+            worldFillAlpha={worldFillAlpha}
+            worldFillGradient={worldFillGradient}
+            worldFillVisible={worldFillVisible}
             worldStroke={worldStroke}
+            worldStrokeAlpha={worldStrokeAlpha}
+            worldStrokeGradient={worldStrokeGradient}
+            worldStrokeVisible={worldStrokeVisible}
+            worldStrokeWidth={worldStrokeWidth}
             background={isSpaceBackground ? "#03030a" : background}
             transparent={effectiveTransparent}
             morphMode={viewMode === "globe" ? "globe" : "flat"}
@@ -1022,8 +1064,22 @@ const App = () => {
             setRenderMode={setRenderMode}
             worldFill={worldFill}
             setWorldFill={setWorldFill}
+            worldFillAlpha={worldFillAlpha}
+            setWorldFillAlpha={setWorldFillAlpha}
+            worldFillGradient={worldFillGradient}
+            setWorldFillGradient={setWorldFillGradient}
+            worldFillVisible={worldFillVisible}
+            setWorldFillVisible={setWorldFillVisible}
             worldStroke={worldStroke}
             setWorldStroke={setWorldStroke}
+            worldStrokeAlpha={worldStrokeAlpha}
+            setWorldStrokeAlpha={setWorldStrokeAlpha}
+            worldStrokeGradient={worldStrokeGradient}
+            setWorldStrokeGradient={setWorldStrokeGradient}
+            worldStrokeVisible={worldStrokeVisible}
+            setWorldStrokeVisible={setWorldStrokeVisible}
+            worldStrokeWidth={worldStrokeWidth}
+            setWorldStrokeWidth={setWorldStrokeWidth}
             shaderSettings={shaderSettings}
             setShaderSettings={setShaderSettings}
             globeSettings={globeSettings}
