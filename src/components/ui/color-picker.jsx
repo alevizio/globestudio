@@ -336,7 +336,10 @@ export const ColorPicker = ({
         <div className="color-picker-gradient">
           <div
             className="color-picker-gradient-track"
-            style={{ background: `linear-gradient(90deg, ${gradient.from}, ${gradient.to})` }}
+            // The track is the live angle preview: as the user moves the
+            // slider, the same gradient is re-applied at the new angle so
+            // they see the rotation immediately.
+            style={{ background: `linear-gradient(${gradient.angle ?? 90}deg, ${gradient.from}, ${gradient.to})` }}
             aria-hidden="true"
           />
           <div className="color-picker-stops" role="tablist" aria-label="Gradient stops">
