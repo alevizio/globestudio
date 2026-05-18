@@ -11,6 +11,7 @@ export {
   Plus,
   RotateCcw,
   Share2,
+  Shuffle,
   Upload,
   X,
   ZoomIn,
@@ -18,6 +19,32 @@ export {
 } from "lucide-react";
 
 export { Map as MapIcon } from "lucide-react";
+
+// Branded dotted-globe mark — mirrors the favicon at /public/favicon.svg so
+// the icon used in the panel header reads as the wordmark, not a generic
+// outline. Dots are positioned on a roughly Fibonacci-sphere grid clipped to
+// a 32x32 viewBox; the surrounding rect is omitted because the icon container
+// already provides the chrome.
+export const DottedGlobe = ({ size = 20, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 32 32"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <circle cx="16" cy="6" r="1.1" />
+    <circle cx="11" cy="8" r="1.1" /><circle cx="16" cy="8" r="1.1" /><circle cx="21" cy="8" r="1.1" />
+    <circle cx="8" cy="11" r="1.1" /><circle cx="13" cy="11" r="1.1" /><circle cx="19" cy="11" r="1.1" /><circle cx="24" cy="11" r="1.1" />
+    <circle cx="6" cy="14" r="1.1" /><circle cx="11" cy="14" r="1.1" /><circle cx="16" cy="14" r="1.1" /><circle cx="21" cy="14" r="1.1" /><circle cx="26" cy="14" r="1.1" />
+    <circle cx="6" cy="18" r="1.1" /><circle cx="11" cy="18" r="1.1" /><circle cx="16" cy="18" r="1.1" /><circle cx="21" cy="18" r="1.1" /><circle cx="26" cy="18" r="1.1" />
+    <circle cx="8" cy="21" r="1.1" /><circle cx="13" cy="21" r="1.1" /><circle cx="19" cy="21" r="1.1" /><circle cx="24" cy="21" r="1.1" />
+    <circle cx="11" cy="24" r="1.1" /><circle cx="16" cy="24" r="1.1" /><circle cx="21" cy="24" r="1.1" />
+    <circle cx="16" cy="26" r="1.1" />
+  </svg>
+);
 
 export const Github = ({ size = 24, ...props }) => (
   <svg
