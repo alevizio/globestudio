@@ -302,6 +302,25 @@ export const GlobeBackground = ({
     renderer.domElement.setAttribute("role", "application");
     renderer.domElement.setAttribute("aria-label", label || "Interactive dotted globe");
 
+    // WebGL context can be lost when the OS reclaims GPU resources (tab
+    // backgrounded too long, GPU driver reset, mobile thermal throttle).
+    // Three.js dispatches "webglcontextlost" — we cancel the animation loop
+    // to avoid burning CPU on a dead context. On restore, we re-trigger a
+    // full reload because rebuilding every material/geometry is more code
+    // than this is worth at our complexity.
+    const handleContextLost = (event) => {
+      event.preventDefault();
+      window.cancelAnimationFrame(frame);
+      frame = 0;
+      console.warn("WebGL context lost — pausing render loop");
+    };
+    const handleContextRestored = () => {
+      console.warn("WebGL context restored — reloading to rebuild GPU resources");
+      window.location.reload();
+    };
+    renderer.domElement.addEventListener("webglcontextlost", handleContextLost, false);
+    renderer.domElement.addEventListener("webglcontextrestored", handleContextRestored, false);
+
     if (canvasHandleRef) {
       canvasHandleRef.current = renderer.domElement;
     }
@@ -362,13 +381,16 @@ export const GlobeBackground = ({
 
     threeRef.current = {
       atmosphereMaterial,
+      atmosphere,
       outerHaloMaterial,
+      outerHalo,
       spaceBackground,
       atmosphereIntensity: 0.42,
       baseDistance: GLOBE_CAMERA_DISTANCE,
       baseMaterial,
       baseOpacity: 0.3,
       borderlessNetwork,
+      globeMesh,
       globeNetwork,
       camera,
       dotLayer: null,
@@ -617,6 +639,8 @@ export const GlobeBackground = ({
     return () => {
       window.cancelAnimationFrame(frame);
       document.removeEventListener("visibilitychange", handleVisibility);
+      renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
+      renderer.domElement.removeEventListener("webglcontextrestored", handleContextRestored);
       observer.disconnect();
       if (canvasHandleRef) {
         canvasHandleRef.current = null;
@@ -633,7 +657,14 @@ export const GlobeBackground = ({
     const refs = threeRef.current;
     if (!refs) return;
 
-    const showDots = renderMode === "dots" && dotsVisible;
+    // In flat view, solid mode has no native rendering path (a textured sphere
+    // can't unwrap to 2D). Fall back to rendering the dot field colored with
+    // the worldFill so users see the world map in the preset's intended palette
+    // rather than an empty canvas.
+    const isFlat = morphMode === "flat";
+    const solidFallback = isFlat && renderMode === "solid";
+    const showDots = (renderMode === "dots" && dotsVisible) || solidFallback;
+    const effectiveDotColor = solidFallback ? worldFill : dotColor;
 
     if (!showDots) {
       if (refs.dotLayer) {
@@ -647,7 +678,7 @@ export const GlobeBackground = ({
     const nextLayer = buildGlobeDotLayer({
       mapData,
       selectedDots,
-      dotColor,
+      dotColor: effectiveDotColor,
       dotSize,
       shape,
       dotRotation,
@@ -664,7 +695,7 @@ export const GlobeBackground = ({
 
     refs.dotLayer = nextLayer;
     refs.globeGroup.add(nextLayer);
-  }, [asciiSymbol, dotColor, dotRotation, dotSize, dotsVisible, globeSettings, mapData, renderMode, selectedDots, shaderSettings, shape]);
+  }, [asciiSymbol, dotColor, dotRotation, dotSize, dotsVisible, globeSettings, mapData, morphMode, renderMode, selectedDots, shaderSettings, shape, worldFill]);
 
   useEffect(() => {
     const refs = threeRef.current;

@@ -632,6 +632,15 @@ export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEF
   refs.graticule.children.forEach((line) => {
     line.material.opacity = refs.graticuleOpacity * shellProgress * gridStrength;
   });
+  // Hard-hide the sphere meshes when we're effectively in flat mode. Even with
+  // opacity 0 + transparent: true, three.js still issues draw calls for the
+  // mesh — combined with the world texture in solid mode that can leave a
+  // visible "black circle" artifact in the middle of the flat map.
+  const sphereVisible = shellProgress > 0.005;
+  if (refs.globeMesh) refs.globeMesh.visible = sphereVisible && surfaceStrength > 0.001;
+  if (refs.atmosphere) refs.atmosphere.visible = sphereVisible && glowStrength > 0.001;
+  if (refs.outerHalo) refs.outerHalo.visible = sphereVisible && glowStrength > 0.001;
+  if (refs.graticule) refs.graticule.visible = sphereVisible && gridStrength > 0.001;
   if (refs.borderlessNetwork) {
     const routeOpacity = shellProgress * routeStrength;
     refs.borderlessNetwork.visible = routeOpacity > 0.001;
@@ -644,5 +653,7 @@ export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEF
   if (refs.globeNetwork) {
     const networkStrength = settings.network ? clampNumber(settings.networkStrength, 0, 100) / 100 : 0;
     refs.globeNetwork.userData.opacity = shellProgress * networkStrength;
+    refs.globeNetwork.userData.arcs = settings.networkArcs ?? true;
+    refs.globeNetwork.userData.pulses = settings.networkPulses ?? true;
   }
 };

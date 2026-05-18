@@ -19,6 +19,8 @@ export const DEFAULT_GLOBE_SETTINGS = {
   look: "classic",
   network: true,
   networkStrength: 70,
+  networkArcs: true,
+  networkPulses: true,
   routes: true,
   routesStrength: 82,
   surface: true,

@@ -16,7 +16,12 @@ const VERTEX_SHADER = /* glsl */ `
 `;
 
 const FRAGMENT_SHADER = /* glsl */ `
-  precision highp float;
+  // mediump is sufficient — the math operates on 0–1 UV ranges, small-magnitude
+  // hash outputs, and bounded color values. Dropping from highp gives a real
+  // perf win on mobile/integrated GPUs (MDN WebGL best-practices recommendation)
+  // while being visually identical on desktop hardware that treats mediump
+  // as highp anyway.
+  precision mediump float;
 
   varying vec2 vUv;
   uniform vec2 uResolution;

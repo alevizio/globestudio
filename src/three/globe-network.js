@@ -235,9 +235,15 @@ export const updateGlobeNetwork = (root, nowSeconds) => {
   if (!visible) return;
 
   const opacity = root.userData.opacity;
+  const showArcs = root.userData.arcs !== false;
+  const showPulses = root.userData.pulses !== false;
 
-  // City pulse nodes — animate shockwave rings.
-  root.userData.cityGroup?.children.forEach((cityGroup) => {
+  // Toggle sub-group visibility based on the individual flags.
+  if (root.userData.cityGroup) root.userData.cityGroup.visible = showPulses;
+  if (root.userData.routeGroup) root.userData.routeGroup.visible = showArcs;
+
+  // City pulse nodes — animate shockwave rings (skip math if hidden).
+  if (showPulses) root.userData.cityGroup?.children.forEach((cityGroup) => {
     cityGroup.children.forEach((child) => {
       if (child.userData.role === "core") {
         const base = child.userData.basePulse;
@@ -256,7 +262,7 @@ export const updateGlobeNetwork = (root, nowSeconds) => {
   });
 
   // Routes — sliding trail along great-circle, traveling head, faint baseline.
-  root.userData.routeGroup?.children.forEach((routeGroup) => {
+  if (showArcs) root.userData.routeGroup?.children.forEach((routeGroup) => {
     const points = routeGroup.userData.routePoints;
     if (!points) return;
     const speed = routeGroup.userData.travelSpeed;
