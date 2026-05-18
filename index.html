@@ -4,26 +4,115 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0a0a0a" />
+    <meta name="color-scheme" content="dark" />
+
+    <title>Worlddots — Dotted Map &amp; 3D Globe Generator</title>
     <meta
       name="description"
-      content="Generate beautiful dotted maps and animated 3D globes. Customize dots, shapes, effects, and export as PNG, SVG, or animated WebM video."
+      content="Free dotted map generator and animated 3D globe maker. Pick any country or the whole world, customize dots and shapes, apply shader effects, and export as PNG, SVG, or animated WebM video."
     />
-    <meta property="og:title" content="Worlddots — Dotted Maps & Globe Generator" />
+    <meta
+      name="keywords"
+      content="dotted map generator, dot map maker, world map dots, 3D globe generator, interactive globe, dotted world map, stripe globe alternative, github globe alternative, dotted map svg, dotted map png"
+    />
+    <meta name="author" content="alevizio" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Worlddots" />
+    <meta property="og:title" content="Worlddots — Dotted Map &amp; 3D Globe Generator" />
     <meta
       property="og:description"
-      content="Generate beautiful dotted maps and animated 3D globes. Customize dots, shapes, effects, and export as PNG, SVG, or animated WebM video."
+      content="Generate dotted maps and animated 3D globes. Customize dots, shapes, shaders, and export as PNG, SVG, or WebM video."
     />
-    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://worlddots.app/" />
+    <meta property="og:image" content="https://worlddots.app/og.svg" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Worlddots — a dotted globe rendered with white dots on a dark background, with the wordmark beside it." />
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="canonical" href="https://github.com/alevizio/worlddots" />
-    <title>Worlddots — Dotted Maps & Globe Generator</title>
+    <meta name="twitter:title" content="Worlddots — Dotted Map &amp; 3D Globe Generator" />
+    <meta
+      name="twitter:description"
+      content="Generate dotted maps and animated 3D globes. Customize dots, shapes, shaders, export as PNG, SVG, or WebM."
+    />
+    <meta name="twitter:image" content="https://worlddots.app/og.svg" />
+    <meta name="twitter:image:alt" content="Worlddots — a dotted globe on a dark background." />
+    <meta name="twitter:creator" content="@alevizio" />
+
+    <link rel="canonical" href="https://worlddots.app/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- JSON-LD: SoftwareApplication + WebSite -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://worlddots.app/#website",
+            "url": "https://worlddots.app/",
+            "name": "Worlddots",
+            "description": "Free dotted map and animated 3D globe generator.",
+            "publisher": { "@id": "https://worlddots.app/#publisher" },
+            "inLanguage": "en"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://worlddots.app/#app",
+            "name": "Worlddots",
+            "applicationCategory": "DesignApplication",
+            "operatingSystem": "Web Browser",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+            "description": "Generate dotted maps and animated 3D globes. Pick any country or the whole world, customize dots, shapes, and shaders, and export as PNG, SVG, or WebM video.",
+            "url": "https://worlddots.app/",
+            "image": "https://worlddots.app/og.svg",
+            "softwareVersion": "1.0",
+            "creator": { "@id": "https://worlddots.app/#publisher" },
+            "featureList": [
+              "Country, region, and US state selection",
+              "Custom dot shapes (circle, hexagon, square, ASCII)",
+              "Shader effects (bloom, chromatic, CRT, glitch, halftone, more)",
+              "Animated WebM video export",
+              "High-resolution PNG and SVG export",
+              "Animated route arcs and city pulse network",
+              "Deep-space background",
+              "Configurable atmosphere glow and grid"
+            ]
+          },
+          {
+            "@type": "Person",
+            "@id": "https://worlddots.app/#publisher",
+            "name": "alevizio",
+            "url": "https://alevizio.com"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root">
       <noscript>
-        <p style="font-family: system-ui, sans-serif; padding: 24px; color: #e8e8ea; background: #0a0a0a;">
-          Worlddots needs JavaScript to render the interactive globe and map generator.
-        </p>
+        <div style="font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 640px; margin: 0 auto; color: #e8e8ea; background: #0a0a0a; min-height: 100vh;">
+          <h1 style="font-size: 28px; margin: 0 0 12px;">Worlddots</h1>
+          <p style="font-size: 16px; line-height: 1.6; color: #aaa; margin: 0 0 16px;">
+            A free dotted map and animated 3D globe generator. Pick any country or the whole world,
+            customize dots and shapes, apply shader effects (bloom, chromatic, glitch, more), and export
+            as PNG, SVG, or WebM video. Built with Three.js + React.
+          </p>
+          <p style="font-size: 16px; line-height: 1.6; color: #aaa; margin: 0 0 16px;">
+            JavaScript is required to render the interactive globe and map. Please enable JavaScript
+            and reload, or visit
+            <a href="https://github.com/alevizio/worlddots" style="color: #f6f2ea;">the GitHub repo</a>
+            for source and screenshots.
+          </p>
+        </div>
       </noscript>
     </div>
     <script type="module" src="/src/main.jsx"></script>
