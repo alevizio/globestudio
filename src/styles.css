@@ -638,16 +638,16 @@ button {
 
 .looks-chip {
   flex: 0 0 auto;
-  min-height: 32px;
-  padding: 3px 12px 3px 3px;
+  min-height: 64px;
+  padding: 6px 22px 6px 6px;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 12px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--field);
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
@@ -656,9 +656,9 @@ button {
 
 .looks-chip-preview {
   flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
-  border-radius: 7px;
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
   overflow: hidden;
   transition: transform 220ms var(--ease);
 }
