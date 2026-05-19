@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { geoEquirectangular, geoPath } from "d3-geo";
+import { geoEquirectangular, geoMercator, geoPath } from "d3-geo";
 
 // Build a Canvas2D linear gradient that spans the full texture along the
 // supplied angle. Matches the dot-color gradient math so a single gradient
@@ -47,10 +47,33 @@ const applyAlphaToHex = (hex, alpha) => {
   return `${hex}${alphaHex(alpha)}`;
 };
 
+// Synthetic feature carrying just the lat/lng bounding box of the dotted-map
+// region. Fed to projection.fitExtent so the Mercator transform pins exactly
+// to dotted-map's framing (e.g. world: lat [-56, 71], lng [-168, 168]) instead
+// of defaulting to the geojson's full extent (which would include Antarctica
+// and chop the Arctic differently than dotted-map does).
+const regionExtentFeature = (region) => ({
+  type: "Feature",
+  properties: {},
+  geometry: {
+    type: "Polygon",
+    coordinates: [
+      [
+        [region.lng.min, region.lat.min],
+        [region.lng.max, region.lat.min],
+        [region.lng.max, region.lat.max],
+        [region.lng.min, region.lat.max],
+        [region.lng.min, region.lat.min],
+      ],
+    ],
+  },
+});
+
 export const createWorldTexture = (countriesFeatureCollection, options = {}) => {
   const {
-    width = 2048,
-    height = 1024,
+    region = null,
+    aspect = null,
+    targetWidth = 2048,
     ocean = "#0a0a0c",
     fill = "#5a5a64",
     fillAlpha = 1,
@@ -63,6 +86,15 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
     strokeWidth = 1.8,
   } = options;
 
+  // Resolve canvas dimensions. When the caller supplies an aspect (from the
+  // dotted-map's image.width / image.height), the texture matches the flat
+  // plane and dot field pixel-for-pixel. Falls back to a flat 2:1 sheet for
+  // the legacy globe-only path that has no dotted-map context yet.
+  const width = targetWidth;
+  const height = aspect && Number.isFinite(aspect) && aspect > 0
+    ? Math.round(width / aspect)
+    : 1024;
+
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -72,9 +104,22 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
   ctx.fillStyle = ocean;
   ctx.fillRect(0, 0, width, height);
 
-  const projection = geoEquirectangular()
-    .scale(width / (2 * Math.PI))
-    .translate([width / 2, height / 2]);
+  // Match dotted-map's projection / framing when a region is supplied.
+  // Mercator + fitExtent to the region's bounding box reproduces exactly
+  // what the dotted-map library does internally (see node_modules/
+  // dotted-map/dist/index.mjs — DEFAULT_PROJECTION is "mercator", and the
+  // map is auto-sized from the projected bounds of the region). Without a
+  // region we keep the previous equirectangular full-world behaviour for
+  // backward compatibility.
+  let projection;
+  if (region?.lat && region?.lng) {
+    projection = geoMercator();
+    projection.fitExtent([[0, 0], [width, height]], regionExtentFeature(region));
+  } else {
+    projection = geoEquirectangular()
+      .scale(width / (2 * Math.PI))
+      .translate([width / 2, height / 2]);
+  }
   const path = geoPath(projection, ctx);
 
   if (fillVisible) {

@@ -840,23 +840,49 @@ export const GlobeBackground = ({
 
     let cancelled = false;
 
-    const applySolid = (texture) => {
+    // Mirror the dotted-map's exact framing for the flat plane. dotted-map
+    // uses Mercator clipped to a region (DEFAULT_WORLD_REGION = lat [-56,71],
+    // lng [-168,168] for the world; computeGeojsonBox(features) for any
+    // country/region selection — see node_modules/dotted-map/dist/index.mjs).
+    // Reading these straight from mapData.image guarantees the solid view
+    // lines up pixel-for-pixel with the dot field.
+    const mapImage = mapData?.image;
+    const region = mapImage?.region ?? null;
+    const aspect = mapImage?.width && mapImage?.height
+      ? mapImage.width / mapImage.height
+      : null;
+
+    // Resize the flat plane to match the dotted-map's aspect exactly. The
+    // flat width is the same 5.35 units the dot field uses in
+    // pointToFlatVector3, so dots and plane share an identical bounding box.
+    if (refs.flatSolidMesh && aspect && Number.isFinite(aspect)) {
+      const flatWidth = 5.35;
+      const flatHeight = flatWidth / aspect;
+      refs.flatSolidMesh.geometry?.dispose?.();
+      refs.flatSolidMesh.geometry = new THREE.PlaneGeometry(flatWidth, flatHeight);
+    }
+
+    const applySolid = (sphereTexture, flatTexture) => {
       if (cancelled || !threeRef.current) return;
       const liveRefs = threeRef.current;
+      // Sphere texture — equirectangular full-world (the sphere geometry's
+      // UVs assume a flat 2:1 lat/lng layout, anything else stretches at
+      // the poles).
       liveRefs.solidTexture?.dispose?.();
-      liveRefs.solidTexture = texture;
-      liveRefs.baseMaterial.map = texture;
+      liveRefs.solidTexture = sphereTexture;
+      liveRefs.baseMaterial.map = sphereTexture;
       liveRefs.baseMaterial.color.set("#ffffff");
       liveRefs.baseMaterial.metalness = 0;
       liveRefs.baseMaterial.roughness = 0.6;
       liveRefs.baseMaterial.needsUpdate = true;
       liveRefs.solidActive = true;
       liveRefs.baseOpacity = 1;
-      // Share the same canvas texture with the flat plane — one source of
-      // truth means the flat and globe views always agree, and the cross-
-      // fade reads as a single object morphing rather than a swap.
+      // Flat plane texture — Mercator clipped to the dotted-map region so
+      // the framing and aspect match the dot field exactly.
+      liveRefs.flatSolidTexture?.dispose?.();
+      liveRefs.flatSolidTexture = flatTexture;
       if (liveRefs.flatSolidMaterial) {
-        liveRefs.flatSolidMaterial.map = texture;
+        liveRefs.flatSolidMaterial.map = flatTexture;
         liveRefs.flatSolidMaterial.needsUpdate = true;
       }
       applyGlobeShellProgress(liveRefs, morphRef.current.progress, globeSettingsRef.current);
@@ -869,7 +895,9 @@ export const GlobeBackground = ({
       //   - state mode: use the state feature collection directly
       //   - country/region mode: keep only the atlas features whose
       //     un-padded ccn3 numeric id matches one of the selected cca3s
-      //   - world: render the full atlas
+      //   - world: render the full atlas, minus Antarctica (id 10) — the
+      //     dotted-map clips at lat -56, so this keeps the two views in
+      //     agreement
       let featureCollection = countries;
       if (selectionCollection?.features?.length) {
         featureCollection = selectionCollection;
@@ -885,8 +913,15 @@ export const GlobeBackground = ({
             keepCcn3.has(String(parseInt(feature.id, 10))),
           ),
         };
+      } else {
+        featureCollection = {
+          type: "FeatureCollection",
+          features: countries.features.filter(
+            (feature) => String(parseInt(feature.id, 10)) !== "10",
+          ),
+        };
       }
-      const texture = createWorldTexture(featureCollection, {
+      const textureOptions = {
         fill: worldFill,
         fillAlpha: worldFillAlpha,
         fillGradient: worldFillGradient,
@@ -896,13 +931,25 @@ export const GlobeBackground = ({
         strokeGradient: worldStrokeGradient,
         strokeVisible: worldStrokeVisible,
         strokeWidth: worldStrokeWidth,
-      });
-      if (texture) applySolid(texture);
+      };
+      const sphereTexture = createWorldTexture(featureCollection, textureOptions);
+      const flatTexture = region && aspect
+        ? createWorldTexture(featureCollection, {
+            ...textureOptions,
+            region,
+            aspect,
+          })
+        : sphereTexture;
+      if (sphereTexture) applySolid(sphereTexture, flatTexture);
     });
 
     return () => {
       cancelled = true;
     };
+    // mapData isn't a dep — we only read region/aspect from it, both of
+    // which are stable when the selection doesn't change. The selection
+    // deps cover the only mutations that actually matter here, and
+    // leaving mapData out avoids a texture rebuild every density slide.
   }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection]);
 
   useEffect(() => {
