@@ -1806,6 +1806,82 @@ button {
   padding: 14px 8px 2px;
 }
 
+/* Layer accordion — collapsible sub-section with an on/off toggle in
+   the header. Used to group the globe's optional layers (Glow, Surface,
+   Grid, Routes, Network, Auto spin) into independent cards inside the
+   Globe panel section. Clicking the chevron region toggles open/closed;
+   the toggle on the right flips the layer's state without disturbing
+   the open/closed view. */
+.layer-accordion {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+
+.layer-accordion + .layer-accordion {
+  margin-top: 8px;
+}
+
+.layer-accordion-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  min-height: 36px;
+}
+
+.layer-accordion-trigger {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+}
+
+.layer-accordion-title {
+  flex: 1 1 auto;
+}
+
+.layer-accordion-chevron {
+  flex: 0 0 auto;
+  opacity: 0.55;
+  transition: transform 200ms var(--ease), opacity 180ms var(--ease);
+}
+
+.layer-accordion-trigger:hover .layer-accordion-chevron {
+  opacity: 0.9;
+}
+
+.layer-accordion.is-open .layer-accordion-chevron {
+  transform: rotate(180deg);
+}
+
+.layer-accordion-content {
+  display: grid;
+  gap: 12px;
+  padding: 8px 12px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Disabled layer dims the content so users can still see / preview the
+   options, but the layer is clearly off. Kept interactive so they can
+   pre-set values before flipping the toggle on. */
+.layer-accordion.is-disabled .layer-accordion-title {
+  opacity: 0.55;
+}
+
+.layer-accordion.is-disabled .layer-accordion-content {
+  opacity: 0.55;
+}
+
 .option-row {
   min-width: 0;
 }
