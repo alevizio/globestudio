@@ -33,7 +33,7 @@ import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
-import { DottedGlobe, Download, Github, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Sun } from "./components/icons.jsx";
+import { DottedGlobe, Download, Github, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
@@ -961,30 +961,12 @@ const App = () => {
             </button>
             <button
               type="button"
-              className={`panel-icon-button panel-shuffle-button ${shuffleFlash ? "is-shuffling" : ""}`}
-              onClick={shuffleLook}
-              aria-label="Shuffle to a random look"
-              data-tooltip="Shuffle (S)"
-            >
-              <Shuffle size={14} />
-            </button>
-            <button
-              type="button"
               className="panel-icon-button"
               onClick={() => setExportModalOpen(true)}
               aria-label="Open export dialog"
               data-tooltip="Export (D)"
             >
               <Download size={14} />
-            </button>
-            <button
-              type="button"
-              className={`panel-icon-button panel-reset-button ${resetFlash ? "is-resetting" : ""}`}
-              onClick={handleReset}
-              aria-label="Reset view"
-              data-tooltip="Reset view (R)"
-            >
-              <RotateCcw size={14} />
             </button>
             <button
               type="button"
