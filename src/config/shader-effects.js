@@ -22,6 +22,7 @@ export const shaderEffectOptions = [
   { value: "edge", label: "Edge" },
   { value: "wave", label: "Wave" },
   { value: "metal", label: "Metal" },
+  { value: "pencil", label: "Pencil" },
 ];
 
 export const effectsWithSplit = new Set(["bloom", "chromatic", "crt", "glitch", "wave"]);
@@ -54,6 +55,7 @@ export const effectPresets = {
   edge: { ...baseDefaults, intensity: 60, threshold: 18, grain: 0, motion: 0 },
   wave: { ...baseDefaults, intensity: 55, split: 18, warp: 60, motion: 50, grain: 4 },
   metal: { ...baseDefaults, intensity: 70, grain: 0, scanlines: 0, motion: 30 },
+  pencil: { ...baseDefaults, intensity: 60, grain: 0, scanlines: 0, motion: 0 },
 };
 
 export const presetForEffect = (effect) => effectPresets[effect] ?? effectPresets.none;

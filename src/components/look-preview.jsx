@@ -143,6 +143,54 @@ const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 30, sphereC
   return <g clipPath={`url(#${clipId})`}>{dots}</g>;
 };
 
+// Pencil sketch — two sets of crossing diagonal strokes clipped to the
+// sphere, drawn in graphite tones on a paper-white background. Matches
+// the cross-hatching aesthetic of the pencil shader.
+const renderPencilHatch = (clipId) => {
+  const lines = [];
+  // First set: ~20° angle, denser
+  for (let i = -8; i < 16; i += 1) {
+    const y = i * 2.4;
+    lines.push(
+      <line
+        key={`p1-${i}`}
+        x1="-4"
+        y1={y}
+        x2="34"
+        y2={y + 14}
+        stroke="rgba(28, 22, 18, 0.55)"
+        strokeWidth="0.5"
+        strokeLinecap="round"
+      />,
+    );
+  }
+  // Second set: ~-30° angle, slightly less dense, lighter
+  for (let i = -8; i < 16; i += 1) {
+    const y = i * 2.8 + 4;
+    lines.push(
+      <line
+        key={`p2-${i}`}
+        x1="-4"
+        y1={y}
+        x2="34"
+        y2={y - 18}
+        stroke="rgba(28, 22, 18, 0.35)"
+        strokeWidth="0.4"
+        strokeLinecap="round"
+      />,
+    );
+  }
+  return (
+    <>
+      {/* Paper-white sphere underneath the hatching */}
+      <circle cx="22" cy="15" r="14" fill="rgba(248, 244, 232, 0.95)" />
+      <g clipPath={`url(#${clipId})`} pointerEvents="none">
+        {lines}
+      </g>
+    </>
+  );
+};
+
 // Metal / chrome — three horizontal layered bands across the sphere that
 // suggest a polished reflective surface catching light. Clipped to the
 // sphere so the bands wrap with the silhouette. Bright top, cool mid,
@@ -163,6 +211,9 @@ const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
   }
   if (shaderEffect === "metal") {
     return renderMetalSheen(clipId);
+  }
+  if (shaderEffect === "pencil") {
+    return renderPencilHatch(clipId);
   }
   if (shaderEffect === "crt") {
     // Scanlines across the full cell + a subtle vignette ring so the

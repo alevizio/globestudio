@@ -116,4 +116,16 @@ export const lookPresets = [
       globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
     }),
   },
+  {
+    id: "pencil",
+    name: "Pencil",
+    blurb: "Cross-hatched sketch",
+    settings: merge({
+      density: 60,
+      dotSize: 14,
+      shape: "Circle",
+      shaderSettings: { ...effectPresets.pencil, effect: "pencil", intensity: 65 },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
+    }),
+  },
 ];

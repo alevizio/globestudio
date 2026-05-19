@@ -16,6 +16,7 @@ export const EFFECT_INDEX = {
   wave: 8,
   bloomEnhance: 9,
   metal: 10,
+  pencil: 11,
 };
 
 const VERTEX_SHADER = /* glsl */ `
@@ -63,6 +64,13 @@ const FRAGMENT_SHADER = /* glsl */ `
   vec4 sampleTex(vec2 uv) {
     if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return vec4(0.0);
     return texture2D(tDiffuse, uv);
+  }
+
+  // Returns 1 inside a horizontal stroke of the given width centred at
+  // yPos, smoothly anti-aliased over a 2-pixel feather. Lifted from the
+  // canonical webgl-shaders pencil example.
+  float horizontalLine(vec2 pixel, float yPos, float width) {
+    return 1.0 - smoothstep(-1.0, 1.0, abs(pixel.y - yPos) - 0.5 * width);
   }
 
   vec2 barrelWarp(vec2 uv, float k) {
@@ -352,6 +360,77 @@ const FRAGMENT_SHADER = /* glsl */ `
     return vec4(metal, max(src.a, signal));
   }
 
+  // Pencil sketch — adapted from webgl-shaders.com/pencil-example.html.
+  // Four cross-hatching line layers at 20° / 20° + half-step offset /
+  // -30° / -30° + half-step offset (the second pair rotated -50° from
+  // the first). The reference modulates line width by surface diffuse
+  // factor (light direction). We don't have surface normals in the
+  // post-process pass — but we do have the source content's
+  // luminance, which acts as the "darkness factor" in our case: where
+  // the dot field draws something, the cross-hatching kicks in. The
+  // background is paper-white so it reads as a sketch on a page.
+  vec4 pencilPass(vec2 uv) {
+    vec2 px = 1.0 / max(uResolution, vec2(1.0));
+    vec4 src = sampleTex(uv);
+    vec4 blur = (
+      src * 0.4 +
+      sampleTex(uv + vec2(px.x * 2.0, 0.0)) * 0.15 +
+      sampleTex(uv - vec2(px.x * 2.0, 0.0)) * 0.15 +
+      sampleTex(uv + vec2(0.0, px.y * 2.0)) * 0.15 +
+      sampleTex(uv - vec2(0.0, px.y * 2.0)) * 0.15
+    );
+    float signal = max(luma(blur.rgb), blur.a);
+
+    // Pixel-space coords centred — line spacing reads consistently across
+    // resolutions because we work in actual pixels, not normalised uv.
+    vec2 pos = (uv - 0.5) * uResolution;
+
+    // Line width grows with signal (more content → darker → thicker
+    // strokes), tuned via uIntensity. +0.5 keeps the lightest areas
+    // still showing a faint trace.
+    float lineWidth = (5.0 + uIntensity * 6.0) * signal + 0.5;
+
+    // First group: 20°, spacing 16px
+    pos = rotateUv(pos, radians(20.0));
+    float linesSep1 = 16.0;
+    vec2 gridPos = vec2(pos.x, mod(pos.y, linesSep1));
+    float line1 = horizontalLine(gridPos, linesSep1 * 0.5, lineWidth);
+    gridPos.y = mod(pos.y + linesSep1 * 0.5, linesSep1);
+    float line2 = horizontalLine(gridPos, linesSep1 * 0.5, lineWidth);
+
+    // Second group: another -50° (= 20° + -50° = -30° absolute), spacing 12px
+    pos = rotateUv(pos, radians(-50.0));
+    float linesSep2 = 12.0;
+    gridPos = vec2(pos.x, mod(pos.y, linesSep2));
+    float line3 = horizontalLine(gridPos, linesSep2 * 0.5, lineWidth);
+    gridPos.y = mod(pos.y + linesSep2 * 0.5, linesSep2);
+    float line4 = horizontalLine(gridPos, linesSep2 * 0.5, lineWidth);
+
+    // Paper-white base, then each line layer kicks in at a progressively
+    // higher signal threshold — same pattern as the reference shader,
+    // gives the layered cross-hatching effect (light fills get one layer,
+    // mid-tones two, dark zones all four).
+    float surface = 1.0;
+    surface -= 0.8 * line1 * smoothstep(0.04, 0.25, signal);
+    surface -= 0.8 * line2 * smoothstep(0.12, 0.35, signal);
+    surface -= 0.8 * line3 * smoothstep(0.22, 0.5, signal);
+    surface -= 0.8 * line4 * smoothstep(0.35, 0.65, signal);
+    surface = clamp(surface, 0.06, 1.0);
+
+    // Very subtle paper grain — sells the sketched feel without
+    // overpowering the line work.
+    float grain = (rand(uv * uResolution * 0.5) - 0.5) * 0.04;
+    surface += grain;
+    surface = clamp(surface, 0.0, 1.0);
+
+    // Warm off-white paper tone instead of pure 1.0 grey.
+    vec3 paper = vec3(0.97, 0.94, 0.88);
+    vec3 graphite = vec3(0.12, 0.10, 0.08);
+    vec3 color = mix(graphite, paper, surface);
+
+    return vec4(color, 1.0);
+  }
+
   vec4 wavePass(vec2 uv) {
     float t = uTime * mix(0.3, 4.0, uMotion);
     float amp = uWarp * uIntensity * 0.05;
@@ -389,6 +468,8 @@ const FRAGMENT_SHADER = /* glsl */ `
       color = bloomEnhancePass(vUv);
     } else if (uEffect > 9.5 && uEffect < 10.5) {
       color = metalPass(vUv);
+    } else if (uEffect > 10.5 && uEffect < 11.5) {
+      color = pencilPass(vUv);
     }
 
     if (uEffect > 0.5 && uGrain > 0.0) {
