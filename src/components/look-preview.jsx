@@ -163,27 +163,22 @@ const Continent = ({ fill, stroke }) => (
   <path d={CONTINENT_PATH} fill={fill} stroke={stroke} strokeWidth="0.3" strokeLinejoin="round" />
 );
 
-// Halftone — dense uniform grid covering the whole sphere, matching how
-// the actual halftone shader pass renders. Dot size stays constant
-// (no radial taper), but a right-side terminator shading is applied
-// via opacity so the chip still reads as a curved surface with a
-// "lit hemisphere on the left" suggestion.
+// Halftone — uniform grid of dots covering the entire sphere edge-to-
+// edge with NO opacity falloff. Matches the actual halftone pass which
+// downsamples to a constant-radius dot grid regardless of surface
+// curvature. The clipPath does the sphere-shape clipping; everything
+// inside reads as a flat halftone plate, just like the still.
 const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 15, sphereCy = 15, sphereR = 13) => {
   const dots = [];
-  const spacing = 1.55;
-  const dotR = 0.45;
-  for (let row = 0; row < 24; row += 1) {
-    for (let col = 0; col < 24; col += 1) {
+  const spacing = 1.4;
+  const dotR = 0.48;
+  for (let row = 0; row < 26; row += 1) {
+    for (let col = 0; col < 26; col += 1) {
       const x = col * spacing;
       const y = row * spacing;
       const dx = x - sphereCx;
       const dy = y - sphereCy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist > sphereR) continue;
-      // Terminator shading — dots toward the right limb fade slightly
-      // so the dotted plate reads as a lit sphere from the upper-left.
-      const lit = (sphereCx - dx * 0.55 - dy * 0.25) / (sphereR * 1.5) + 0.35;
-      const opacity = Math.max(0.28, Math.min(0.95, lit));
+      if (Math.sqrt(dx * dx + dy * dy) > sphereR) continue;
       dots.push(
         <circle
           key={`h${row}-${col}`}
@@ -191,7 +186,7 @@ const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 15, sphereC
           cy={y.toFixed(2)}
           r={dotR}
           fill={color}
-          opacity={opacity.toFixed(2)}
+          opacity="0.92"
         />,
       );
     }
@@ -207,16 +202,16 @@ const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 15, sphereC
 // silhouette pops.
 const renderPixelGrid = (clipId, color = "#ffffff", sphereCx = 15, sphereCy = 15, sphereR = 13) => {
   const cells = [];
-  const cellSize = 1.5;
-  const gap = 0.18;
+  const cellSize = 1.3;
+  const gap = 0.14;
   // Pre-convert VISIBLE_DOTS to viewBox-space points centred on the
   // sphere so the hit-test below can match them quickly.
   const landPts = VISIBLE_DOTS.map(([x, y]) => [
     sphereCx + (x - 0.5) * sphereR * 2,
     sphereCy + (y - 0.5) * sphereR * 2,
   ]);
-  for (let row = -2; row < 22; row += 1) {
-    for (let col = -2; col < 22; col += 1) {
+  for (let row = -2; row < 25; row += 1) {
+    for (let col = -2; col < 25; col += 1) {
       const x = col * cellSize;
       const y = row * cellSize;
       const cx = x + cellSize * 0.5;
@@ -225,8 +220,10 @@ const renderPixelGrid = (clipId, color = "#ffffff", sphereCx = 15, sphereCy = 15
       const dy = cy - sphereCy;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > sphereR) continue;
-      // Hit-test: how close is the nearest continent dot to this cell?
-      // If within ~1.3 viewBox units, mark as "land".
+      // Squared distance to the nearest continent dot. Threshold of 3.3
+      // (≈ 1.8 viewBox units) so cells "between" two adjacent continent
+      // dots are still counted as land — gives a much fuller continent
+      // silhouette than a tighter threshold would.
       let nearest = Infinity;
       for (let i = 0; i < landPts.length; i += 1) {
         const lx = landPts[i][0] - cx;
@@ -234,8 +231,8 @@ const renderPixelGrid = (clipId, color = "#ffffff", sphereCx = 15, sphereCy = 15
         const d = lx * lx + ly * ly;
         if (d < nearest) nearest = d;
       }
-      const isLand = nearest < 1.7;
-      const opacity = isLand ? 0.92 : 0.16;
+      const isLand = nearest < 3.3;
+      const opacity = isLand ? 0.96 : 0.2;
       cells.push(
         <rect
           key={`px${row}-${col}`}
@@ -494,29 +491,45 @@ const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
     return renderPencilHatch(clipId);
   }
   if (shaderEffect === "crt") {
-    // Scanlines + RGB chromatic fringe (R offset right of dotColor, B
-    // offset left) + subtle vignette so the chip reads as CRT phosphor
-    // scan with shadow-mask aberration, not just stripes. The fringe
-    // sits on top of the underlying dots — slightly visible offsets
-    // give the "trinitron tube" feel.
+    // Dense scanlines (every 1.4 viewBox units, matches the still's tube
+    // texture) + RGB chromatic ghost on the actual continent dots (not
+    // just the sphere silhouette) + radial vignette darkening the limb.
+    // The continent ghosts use VISIBLE_DOTS so each dot gets a red copy
+    // shifted right and a cyan copy shifted left — the same trinitron
+    // shadow-mask fringe the canvas pass produces.
+    const lines = [];
+    for (let y = 1; y < 30; y += 1.4) {
+      lines.push(
+        <line
+          key={`crts${y.toFixed(1)}`}
+          x1="-2"
+          y1={y}
+          x2="32"
+          y2={y}
+          stroke="rgba(255,255,255,0.28)"
+          strokeWidth="0.45"
+        />,
+      );
+    }
+    const ghosts = VISIBLE_DOTS.map(([ux, uy], i) => {
+      const px = 15 + (ux - 0.5) * 26;
+      const py = 15 + (uy - 0.5) * 26;
+      return (
+        <g key={`crtg${i}`}>
+          <circle cx={px + 0.7} cy={py} r="0.55" fill="#ff3838" opacity="0.85" />
+          <circle cx={px - 0.7} cy={py} r="0.55" fill="#34d0ff" opacity="0.85" />
+        </g>
+      );
+    });
     return (
       <g pointerEvents="none">
-        {/* Vignette gradient — darkens edges toward the silhouette */}
         <radialGradient id={`crtVig-${clipId}`} cx="0.5" cy="0.5" r="0.55">
-          <stop offset="0.55" stopColor="rgba(0,0,0,0)" />
-          <stop offset="1" stopColor="rgba(0,0,0,0.45)" />
+          <stop offset="0.45" stopColor="rgba(0,0,0,0)" />
+          <stop offset="1" stopColor="rgba(0,0,0,0.55)" />
         </radialGradient>
         <circle cx="15" cy="15" r="13" fill={`url(#crtVig-${clipId})`} />
-        {/* Faint chromatic ghost — red shifted right, blue shifted left,
-            inside the sphere clip, so the silhouette gets RGB fringe */}
-        <g clipPath={`url(#${clipId})`} opacity="0.55">
-          <circle cx="16" cy="15" r="13" fill="none" stroke="#ff3434" strokeWidth="0.6" />
-          <circle cx="14" cy="15" r="13" fill="none" stroke="#34a8ff" strokeWidth="0.6" />
-        </g>
-        {/* Scanlines */}
-        {[3, 5.5, 8, 10.5, 13, 15.5, 18, 20.5, 23, 25.5].map((y, i) => (
-          <line key={i} x1="-2" y1={y} x2="32" y2={y} stroke="rgba(255,255,255,0.22)" strokeWidth="0.5" />
-        ))}
+        <g clipPath={`url(#${clipId})`}>{ghosts}</g>
+        {lines}
       </g>
     );
   }
@@ -544,16 +557,28 @@ const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
   return null;
 };
 
-// Bloom: oversized layered halo behind the sphere — three concentric
-// glow rings + an outermost wash, all in the dot colour, so the chip
-// reads as a strong glowing aurora the way the actual bloom shader
-// renders. Drawn underneath the dots in renderContent's render order.
+// Bloom: dramatic layered halo — five concentric glow rings + an inner
+// hot rim, all in dot colour, so the chip reads as the strong aurora
+// the still shows. Drawn underneath the dots so the dots themselves
+// punch through brightly.
 const renderBloomHalo = (cx, cy, radius, dotColor) => (
   <g pointerEvents="none">
-    <circle cx={cx} cy={cy} r={radius + 12} fill={dotColor} opacity="0.05" />
-    <circle cx={cx} cy={cy} r={radius + 8} fill={dotColor} opacity="0.1" />
-    <circle cx={cx} cy={cy} r={radius + 5} fill={dotColor} opacity="0.18" />
-    <circle cx={cx} cy={cy} r={radius + 2.5} fill={dotColor} opacity="0.28" />
+    <circle cx={cx} cy={cy} r={radius + 16} fill={dotColor} opacity="0.04" />
+    <circle cx={cx} cy={cy} r={radius + 11} fill={dotColor} opacity="0.08" />
+    <circle cx={cx} cy={cy} r={radius + 7} fill={dotColor} opacity="0.16" />
+    <circle cx={cx} cy={cy} r={radius + 4} fill={dotColor} opacity="0.28" />
+    <circle cx={cx} cy={cy} r={radius + 1.5} fill={dotColor} opacity="0.42" />
+    {/* Inner bright rim — sits just inside the silhouette so the
+        sphere edge itself has a hot glowing band. */}
+    <circle
+      cx={cx}
+      cy={cy}
+      r={radius - 0.8}
+      fill="none"
+      stroke={dotColor}
+      strokeWidth="1.6"
+      strokeOpacity="0.32"
+    />
   </g>
 );
 
