@@ -235,11 +235,16 @@ export const LookPreview = ({ preset }) => {
   const reactId = useId();
   const clipId = `globeClip-${reactId.replace(/:/g, "")}`;
 
-  // The chip's left-cell background — the preset's own canvas backdrop
-  // (e.g. black for Default, bone for Print, deep space for the space
-  // backdrop). Set on the wrapping span so the whole 40 × chip-height cell
-  // is filled, then the globe SVG sits on top of it. Transparent presets
-  // get a neutral chip-friendly tone instead of fully see-through.
+  // Outer frame uses the preset's primary fill (dotColor in dots mode,
+  // worldFill in solid) — the coloured "card" backdrop the user asked
+  // to keep. Inner globe SVG renders the actual mini scene with its own
+  // dark / canvas-colour background, sized smaller so the outer frame
+  // stays visible as a border of colour around the globe.
+  const renderMode = preset.settings.renderMode || "dots";
+  const frame = renderMode === "solid"
+    ? preset.settings.worldFill || "#5a5a64"
+    : preset.settings.dotColor || "#ffffff";
+
   const bg = preset.settings.transparent
     ? "#1c1c1f"
     : preset.settings.backgroundStyle === "space"
@@ -249,7 +254,7 @@ export const LookPreview = ({ preset }) => {
   return (
     <span
       className="looks-chip-preview"
-      style={{ background: bg }}
+      style={{ background: frame }}
       aria-hidden="true"
     >
       <svg
@@ -264,6 +269,7 @@ export const LookPreview = ({ preset }) => {
             <circle cx="15" cy="15" r="12" />
           </clipPath>
         </defs>
+        <rect x="0" y="0" width="30" height="30" rx="6" fill={bg} />
         {renderContent(preset, clipId)}
       </svg>
     </span>
