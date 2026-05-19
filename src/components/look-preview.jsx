@@ -163,58 +163,84 @@ const Continent = ({ fill, stroke }) => (
   <path d={CONTINENT_PATH} fill={fill} stroke={stroke} strokeWidth="0.3" strokeLinejoin="round" />
 );
 
-// Tight grid of small dots with sizes that fall off toward the sphere's
-// edge — the characteristic look of a halftone print plate. Iterates
-// the full viewBox; the clipPath does the sphere-shape clipping so this
-// works at any sphere position. Dot size still falls off radially from
-// the sphere centre so the pattern reads as wrapping a curved surface.
-const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 30, sphereCy = 15, sphereR = 18) => {
+// Halftone — dense uniform grid covering the whole sphere, matching how
+// the actual halftone shader pass renders. Dot size stays constant
+// (no radial taper), but a right-side terminator shading is applied
+// via opacity so the chip still reads as a curved surface with a
+// "lit hemisphere on the left" suggestion.
+const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 15, sphereCy = 15, sphereR = 13) => {
   const dots = [];
-  const spacing = 2.4;
-  for (let row = 0; row < 14; row += 1) {
-    for (let col = 0; col < 14; col += 1) {
-      const x = 1.5 + col * spacing;
-      const y = 1.5 + row * spacing;
+  const spacing = 1.55;
+  const dotR = 0.45;
+  for (let row = 0; row < 24; row += 1) {
+    for (let col = 0; col < 24; col += 1) {
+      const x = col * spacing;
+      const y = row * spacing;
       const dx = x - sphereCx;
       const dy = y - sphereCy;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > sphereR) continue;
-      // Larger dots toward the centre, smaller toward the silhouette.
-      const r = 0.7 - (dist / sphereR) * 0.5;
-      if (r < 0.1) continue;
+      // Terminator shading — dots toward the right limb fade slightly
+      // so the dotted plate reads as a lit sphere from the upper-left.
+      const lit = (sphereCx - dx * 0.55 - dy * 0.25) / (sphereR * 1.5) + 0.35;
+      const opacity = Math.max(0.28, Math.min(0.95, lit));
       dots.push(
-        <circle key={`h${row}-${col}`} cx={x} cy={y} r={r} fill={color} opacity="0.9" />,
+        <circle
+          key={`h${row}-${col}`}
+          cx={x.toFixed(2)}
+          cy={y.toFixed(2)}
+          r={dotR}
+          fill={color}
+          opacity={opacity.toFixed(2)}
+        />,
       );
     }
   }
   return <g clipPath={`url(#${clipId})`}>{dots}</g>;
 };
 
-// Pixel — uniform grid of small squares clipped to the sphere. Unlike
-// the halftone pattern (which varies dot size radially), every cell
-// here is the same size and the falloff comes from opacity instead,
-// matching the look of the pixel shader downsampling everything to a
-// coarse grid.
-const renderPixelGrid = (clipId, color = "#ffffff", sphereCx = 22, sphereCy = 15, sphereR = 18) => {
+// Pixel — coarse square cells where the lit cells trace the continent
+// shapes (using the VISIBLE_DOTS pattern as a hit-test) instead of a
+// uniform "everything's lit" grid. Matches how the actual pixel pass
+// preserves the underlying dot field's geometry while downsampling to
+// chunky squares. Ocean cells stay empty / very dim so the continent
+// silhouette pops.
+const renderPixelGrid = (clipId, color = "#ffffff", sphereCx = 15, sphereCy = 15, sphereR = 13) => {
   const cells = [];
-  const cellSize = 2.0;
-  const gap = 0.3;
-  for (let row = -2; row < 18; row += 1) {
-    for (let col = -2; col < 18; col += 1) {
+  const cellSize = 1.5;
+  const gap = 0.18;
+  // Pre-convert VISIBLE_DOTS to viewBox-space points centred on the
+  // sphere so the hit-test below can match them quickly.
+  const landPts = VISIBLE_DOTS.map(([x, y]) => [
+    sphereCx + (x - 0.5) * sphereR * 2,
+    sphereCy + (y - 0.5) * sphereR * 2,
+  ]);
+  for (let row = -2; row < 22; row += 1) {
+    for (let col = -2; col < 22; col += 1) {
       const x = col * cellSize;
       const y = row * cellSize;
-      const dx = x + cellSize * 0.5 - sphereCx;
-      const dy = y + cellSize * 0.5 - sphereCy;
+      const cx = x + cellSize * 0.5;
+      const cy = y + cellSize * 0.5;
+      const dx = cx - sphereCx;
+      const dy = cy - sphereCy;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > sphereR) continue;
-      // Radial opacity falloff — softer at the silhouette, full at centre.
-      const t = 1 - dist / sphereR;
-      const opacity = (0.55 + 0.45 * t).toFixed(2);
+      // Hit-test: how close is the nearest continent dot to this cell?
+      // If within ~1.3 viewBox units, mark as "land".
+      let nearest = Infinity;
+      for (let i = 0; i < landPts.length; i += 1) {
+        const lx = landPts[i][0] - cx;
+        const ly = landPts[i][1] - cy;
+        const d = lx * lx + ly * ly;
+        if (d < nearest) nearest = d;
+      }
+      const isLand = nearest < 1.7;
+      const opacity = isLand ? 0.92 : 0.16;
       cells.push(
         <rect
           key={`px${row}-${col}`}
-          x={x}
-          y={y}
+          x={x.toFixed(2)}
+          y={y.toFixed(2)}
           width={cellSize - gap}
           height={cellSize - gap}
           fill={color}
@@ -252,50 +278,76 @@ const corruptHash = (n) => {
   return x - Math.floor(x);
 };
 
-const renderCorruptBlocks = (clipId, sphereCx = 22, sphereCy = 15, sphereR = 18) => {
+const renderCorruptBlocks = (clipId, sphereCx = 15, sphereCy = 15, sphereR = 13) => {
   const cells = [];
-  const cellSize = 2.5;
-  for (let row = -2; row < 18; row += 1) {
-    const rowShift = (corruptHash(row * 17.3) - 0.5) * 2.4;
-    for (let col = -2; col < 18; col += 1) {
-      const x = col * cellSize + rowShift;
-      const y = row * cellSize;
-      const dx = x + cellSize * 0.5 - sphereCx;
-      const dy = y + cellSize * 0.5 - sphereCy;
+  // Smaller blocks + horizontal streaks: every ~3rd row gets a wider
+  // cascading streak to mimic the actual corrupt shader's row-shift
+  // smearing seen in the reference still. Block height stays small so
+  // we get many bands of colour rather than chunky squares.
+  const blockH = 1.1;
+  const baseW = 1.6;
+  for (let row = -3; row < 28; row += 1) {
+    const rowSeed = corruptHash(row * 17.3);
+    const rowShift = (rowSeed - 0.5) * 3.6;
+    // Every few rows: a horizontal cascade — many narrow horizontally-
+    // adjacent cells get the SAME colour, smearing the row.
+    const cascade = corruptHash(row * 9.97) > 0.78;
+    let runColor = null;
+    let runRemaining = 0;
+    for (let col = -3; col < 28; col += 1) {
+      const x = col * baseW + rowShift;
+      const y = row * blockH;
+      const cxCell = x + baseW * 0.5;
+      const cyCell = y + blockH * 0.5;
+      const dx = cxCell - sphereCx;
+      const dy = cyCell - sphereCy;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > sphereR) continue;
-      // Palette weighting — heavy on blue + black (40 % combined), then
-      // the rest spread across R/G/Y/C/M/W. Matches the reference image
-      // where deep blue dominates with scattered primaries.
+
       const seed = corruptHash(row * 31.71 + col * 53.13);
-      let idx;
-      if (seed < 0.42) idx = 3;          // B
-      else if (seed < 0.62) idx = 0;     // K
-      else if (seed < 0.74) idx = 7;     // W
-      else if (seed < 0.82) idx = 1;     // R
-      else if (seed < 0.9) idx = 4;      // Y
-      else if (seed < 0.95) idx = 2;     // G
-      else if (seed < 0.98) idx = 5;     // C
-      else idx = 6;                       // M
-      const fill = CORRUPT_PALETTE[idx];
+      let fill;
+      if (cascade && runRemaining > 0) {
+        // Continue the cascade run with the same colour.
+        fill = runColor;
+        runRemaining -= 1;
+      } else {
+        // Palette weighting — heavy on blue + black + white, rest thin
+        // across the primaries. Matches the deep-blue-dominant
+        // reference still.
+        let idx;
+        if (seed < 0.42) idx = 3;        // B
+        else if (seed < 0.6) idx = 0;    // K
+        else if (seed < 0.72) idx = 7;   // W
+        else if (seed < 0.82) idx = 1;   // R
+        else if (seed < 0.9) idx = 4;    // Y
+        else if (seed < 0.95) idx = 2;   // G
+        else if (seed < 0.98) idx = 5;   // C
+        else idx = 6;                     // M
+        fill = CORRUPT_PALETTE[idx];
+        if (cascade && fill) {
+          // Start a 3–6 cell horizontal run with this colour.
+          runColor = fill;
+          runRemaining = 2 + Math.floor(corruptHash(row * 7 + col) * 4);
+        }
+      }
       if (!fill) continue;
       cells.push(
         <rect
           key={`co${row}-${col}`}
           x={x.toFixed(2)}
-          y={y}
-          width={cellSize - 0.3}
-          height={cellSize - 0.3}
+          y={y.toFixed(2)}
+          width={baseW - 0.12}
+          height={blockH - 0.12}
           fill={fill}
         />,
       );
     }
   }
-  // Subtle horizontal scanline darkening overlaid on the blocks.
+  // Subtle scanline darkening on top of the blocks.
   const scans = [];
-  for (let y = 0; y < 30; y += 2) {
+  for (let y = 0; y < 30; y += 2.2) {
     scans.push(
-      <rect key={`cs${y}`} x="-4" y={y} width="40" height="0.6" fill="rgba(0, 0, 0, 0.35)" />,
+      <rect key={`cs${y}`} x="-4" y={y} width="40" height="0.5" fill="rgba(0, 0, 0, 0.32)" />,
     );
   }
   return (
@@ -346,7 +398,7 @@ const renderPencilHatch = (clipId) => {
   return (
     <>
       {/* Paper-white sphere underneath the hatching */}
-      <circle cx="22" cy="15" r="14" fill="rgba(248, 244, 232, 0.95)" />
+      <circle cx="15" cy="15" r="13" fill="rgba(248, 244, 232, 0.95)" />
       <g clipPath={`url(#${clipId})`} pointerEvents="none">
         {lines}
       </g>
@@ -385,11 +437,27 @@ const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
     return renderPencilHatch(clipId);
   }
   if (shaderEffect === "crt") {
-    // Scanlines across the full cell + a subtle vignette ring so the
-    // chip reads as a CRT phosphor scan, not just a striped overlay.
+    // Scanlines + RGB chromatic fringe (R offset right of dotColor, B
+    // offset left) + subtle vignette so the chip reads as CRT phosphor
+    // scan with shadow-mask aberration, not just stripes. The fringe
+    // sits on top of the underlying dots — slightly visible offsets
+    // give the "trinitron tube" feel.
     return (
       <g pointerEvents="none">
-        {[3, 6, 9, 12, 15, 18, 21, 24, 27].map((y, i) => (
+        {/* Vignette gradient — darkens edges toward the silhouette */}
+        <radialGradient id={`crtVig-${clipId}`} cx="0.5" cy="0.5" r="0.55">
+          <stop offset="0.55" stopColor="rgba(0,0,0,0)" />
+          <stop offset="1" stopColor="rgba(0,0,0,0.45)" />
+        </radialGradient>
+        <circle cx="15" cy="15" r="13" fill={`url(#crtVig-${clipId})`} />
+        {/* Faint chromatic ghost — red shifted right, blue shifted left,
+            inside the sphere clip, so the silhouette gets RGB fringe */}
+        <g clipPath={`url(#${clipId})`} opacity="0.55">
+          <circle cx="16" cy="15" r="13" fill="none" stroke="#ff3434" strokeWidth="0.6" />
+          <circle cx="14" cy="15" r="13" fill="none" stroke="#34a8ff" strokeWidth="0.6" />
+        </g>
+        {/* Scanlines */}
+        {[3, 5.5, 8, 10.5, 13, 15.5, 18, 20.5, 23, 25.5].map((y, i) => (
           <line key={i} x1="-2" y1={y} x2="32" y2={y} stroke="rgba(255,255,255,0.22)" strokeWidth="0.5" />
         ))}
       </g>
@@ -419,14 +487,16 @@ const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
   return null;
 };
 
-// Bloom: oversized soft halo behind the sphere — rendered at a low
-// opacity in the dot colour so it reads as a glowing aurora at the
-// chip's scale. Separate from renderEffectOverlay because it draws
-// underneath the dots, not above them.
+// Bloom: oversized layered halo behind the sphere — three concentric
+// glow rings + an outermost wash, all in the dot colour, so the chip
+// reads as a strong glowing aurora the way the actual bloom shader
+// renders. Drawn underneath the dots in renderContent's render order.
 const renderBloomHalo = (cx, cy, radius, dotColor) => (
   <g pointerEvents="none">
-    <circle cx={cx} cy={cy} r={radius + 6} fill={dotColor} opacity="0.12" />
-    <circle cx={cx} cy={cy} r={radius + 3} fill={dotColor} opacity="0.22" />
+    <circle cx={cx} cy={cy} r={radius + 12} fill={dotColor} opacity="0.05" />
+    <circle cx={cx} cy={cy} r={radius + 8} fill={dotColor} opacity="0.1" />
+    <circle cx={cx} cy={cy} r={radius + 5} fill={dotColor} opacity="0.18" />
+    <circle cx={cx} cy={cy} r={radius + 2.5} fill={dotColor} opacity="0.28" />
   </g>
 );
 
@@ -456,13 +526,13 @@ const renderContent = (preset, clipId) => {
   const shaderEffect = settings.shaderSettings?.effect;
   const isSpace = settings.backgroundStyle === "space";
 
-  // Sphere shifted to the right side of the 30 × 30 viewBox so the
-  // globe's right edge bleeds further off the cell while the left side
-  // shows the limb curving in. y stays centred; radius still oversized
-  // so all edges crop.
-  const cx = 30;
+  // Sphere centred in the 30 × 30 viewBox with breathing room on every
+  // side. Matches how the actual canvas renders the globe (centred with
+  // halo / vignette around it), so the chip reads as a true miniature
+  // of the rendered scene rather than a cropped fragment.
+  const cx = 15;
   const cy = 15;
-  const radius = 18;
+  const radius = 13;
 
   // Solid mode: filled continent
   if (renderMode === "solid") {
@@ -640,7 +710,7 @@ export const LookPreview = ({ preset }) => {
       >
         <defs>
           <clipPath id={clipId}>
-            <circle cx="30" cy="15" r="18" />
+            <circle cx="15" cy="15" r="13" />
           </clipPath>
         </defs>
         {renderContent(preset, clipId)}
