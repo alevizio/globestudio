@@ -29,3 +29,4 @@ file tree.
 | [Webflow code components / DevLink](2026-05-webflow-devlink.md) | 2026-05 | Plan written, not implemented |
 | [Mobile + Safari WebGL compatibility](2026-05-mobile-safari-webgl.md) | 2026-05 | Recommendations folded into integrations plan |
 | [Shader effect candidates](2026-05-shader-effect-candidates.md) | 2026-05 | Plan written, not implemented |
+| [Accessibility audit (WCAG 2.2 AA)](2026-05-accessibility-audit.md) | 2026-05 | Plan written, not implemented |
