@@ -475,6 +475,13 @@ export const GlobeBackground = ({
       threeRef.current.flatDistance = GLOBE_CAMERA_DISTANCE * Math.max(1, flatFitAspect / aspect);
       threeRef.current.globeDistance = GLOBE_CAMERA_DISTANCE * Math.max(1, globeFitAspect / aspect);
       threeRef.current.baseDistance = threeRef.current.globeDistance;
+      // Cache canvas dimensions so the animate loop doesn't have to call
+      // getBoundingClientRect every frame — that call forces a synchronous
+      // layout flush, which at 60fps would be 60 forced reflows/sec on top
+      // of whatever the rest of the page is doing. ResizeObserver fires
+      // any time the mount node actually changes size, so this stays fresh.
+      threeRef.current.canvasWidth = rect.width;
+      threeRef.current.canvasHeight = rect.height;
       renderer.setSize(width, height, false);
       postHandle.setSize(width, height);
     };
@@ -555,16 +562,19 @@ export const GlobeBackground = ({
       camera.position.z = targetDistance / clampNumber(mapZoomRef.current, 0.5, 3);
       camera.updateProjectionMatrix();
 
-      const rect = renderer.domElement.getBoundingClientRect();
+      // Pull cached dimensions written by `resize()` instead of calling
+      // getBoundingClientRect — avoids a forced layout flush each frame.
+      const rectWidth = threeRef.current.canvasWidth ?? renderer.domElement.clientWidth ?? 1;
+      const rectHeight = threeRef.current.canvasHeight ?? renderer.domElement.clientHeight ?? 1;
       const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.z;
       const visibleWidth = visibleHeight * camera.aspect;
       const offset = mapOffsetRef.current || { x: 0, y: 0 };
-      const narrowFocus = clampNumber((760 - rect.width) / 260, 0, 1);
+      const narrowFocus = clampNumber((760 - rectWidth) / 260, 0, 1);
       const panelFocusPixels = panelCollapsedRef.current ? 0 : narrowFocus * 104;
-      const globeFocusOffset = (panelFocusPixels / Math.max(rect.width, 1)) * visibleWidth;
+      const globeFocusOffset = (panelFocusPixels / Math.max(rectWidth, 1)) * visibleWidth;
 
-      globeGroup.position.x = (offset.x / Math.max(rect.width, 1)) * visibleWidth * flatProgress + globeFocusOffset * rotationProgress;
-      globeGroup.position.y = (-offset.y / Math.max(rect.height, 1)) * visibleHeight * flatProgress;
+      globeGroup.position.x = (offset.x / Math.max(rectWidth, 1)) * visibleWidth * flatProgress + globeFocusOffset * rotationProgress;
+      globeGroup.position.y = (-offset.y / Math.max(rectHeight, 1)) * visibleHeight * flatProgress;
       globeGroup.position.z = 0;
       globeGroup.rotation.x = THREE.MathUtils.degToRad(transform.tiltX || 0) * flatProgress + state.currentX * rotationProgress;
       // Extra Z-axis roll mid-morph adds character — direction-aware so the
@@ -644,10 +654,13 @@ export const GlobeBackground = ({
         sbg.visible = wantsSpace;
         if (wantsSpace) {
           const settings = spaceSettingsRef.current || {};
-          const rect = renderer.domElement.getBoundingClientRect();
+          // Reuse the cached dimensions captured by `resize()` rather than
+          // forcing a per-frame layout flush.
+          const sbgWidth = threeRef.current.canvasWidth ?? renderer.domElement.clientWidth ?? 1;
+          const sbgHeight = threeRef.current.canvasHeight ?? renderer.domElement.clientHeight ?? 1;
           const u = sbg.material.uniforms;
           u.uTime.value = ambientTime;
-          u.uResolution.value.set(Math.max(1, rect.width), Math.max(1, rect.height));
+          u.uResolution.value.set(Math.max(1, sbgWidth), Math.max(1, sbgHeight));
           u.uDensity.value = (settings.density ?? 65) / 100;
           u.uMotion.value = (settings.motion ?? 35) / 100;
           u.uNebula.value = (settings.nebula ?? 55) / 100;
@@ -656,8 +669,27 @@ export const GlobeBackground = ({
         }
       }
 
+      // Uniform writes are cheap and keep the composer chain ready for an
+      // instant switch when the user picks a non-default effect.
       updatePostEffects(threeRef.current?.postHandle, settingsRef.current, now / 1000);
-      threeRef.current?.postHandle?.composer.render();
+      // Fast path: when no post-processing is active, skip the composer
+      // entirely and call renderer.render directly. The composer chain in
+      // the "none" case is renderPass + (disabled bloom) + customPass-as-
+      // passthrough — that final passthrough shader is a full-screen
+      // fragment job that does no useful work. Bypassing it saves ~1 ms
+      // per frame on an iGPU at 1080p. The setRenderTarget(null) call is
+      // defensive: composer.render may leave the target pointing at one
+      // of its internal buffers depending on three.js version.
+      const activeEffect = settingsRef.current?.effect || "none";
+      const refsNow = threeRef.current;
+      if (refsNow) {
+        if (activeEffect !== "none") {
+          refsNow.postHandle?.composer.render();
+        } else {
+          refsNow.renderer.setRenderTarget(null);
+          refsNow.renderer.render(refsNow.scene, refsNow.camera);
+        }
+      }
 
       // Dev-only perf HUD feed. Cheap: a few field writes per frame, no
       // allocation, no React touches. Vite strips the HUD mount in prod,
