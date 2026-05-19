@@ -391,6 +391,27 @@ const App = () => {
       setMeta('meta[name="twitter:title"]', title);
       setMeta('meta[name="twitter:description"]', description);
       setMeta('meta[name="twitter:image"]', previewImage);
+      // BreadcrumbList JSON-LD for the preset route. Helps Google + AI Overview
+      // understand "this preset page is two levels deep from home". Replaces
+      // any existing breadcrumb tag so we don't accrete duplicates on rapid
+      // preset switches. See docs/research/2026-05-seo-playbook.md Finding 1.
+      const breadcrumb = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://worlddots.app/" },
+          { "@type": "ListItem", position: 2, name: "Looks", item: "https://worlddots.app/#looks-list" },
+          { "@type": "ListItem", position: 3, name: preset.name, item: absoluteUrl },
+        ],
+      };
+      let breadcrumbScript = document.getElementById("breadcrumb-ld");
+      if (!breadcrumbScript) {
+        breadcrumbScript = document.createElement("script");
+        breadcrumbScript.type = "application/ld+json";
+        breadcrumbScript.id = "breadcrumb-ld";
+        document.head.appendChild(breadcrumbScript);
+      }
+      breadcrumbScript.textContent = JSON.stringify(breadcrumb);
     }
   }, []);
 
@@ -452,6 +473,10 @@ const App = () => {
       setMeta('meta[name="twitter:title"]', "Worlddots — Open-Source Dotted Maps and 3D Globes");
       setMeta('meta[name="twitter:description"]', homeDescription);
       setMeta('meta[name="twitter:image"]', homeImage);
+      // Remove the per-route breadcrumb script when navigating back to root
+      // so the homepage doesn't carry stale breadcrumb context.
+      const breadcrumbScript = document.getElementById("breadcrumb-ld");
+      if (breadcrumbScript) breadcrumbScript.remove();
     }
   }, []);
 

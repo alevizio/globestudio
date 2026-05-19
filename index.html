@@ -130,6 +130,102 @@
               "https://github.com/alevizio",
               "https://twitter.com/alevizio"
             ]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://worlddots.app/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is Worlddots?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Worlddots is a designer-first, open-source web tool for creating dotted maps and animated 3D globes. Pick any country, region, or US state, customize dot shapes, gradients, and WebGL shader effects, then export as PNG, SVG, WebM video, or shareable JSON config. It runs in the browser with no account or install."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is Worlddots free to use commercially?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Worlddots is MIT-licensed, which means you can use it commercially without payment or attribution. The whole tool runs client-side in your browser; nothing is sent to a server."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I export a dotted globe?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Press D or click the Export button to open the export dialog. PNG exports re-render the canvas at any resolution; SVG exports produce vector output for print or further editing; WebM exports record the live animation; JSON exports save the full config so others can reproduce your look."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does Worlddots work on mobile?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Worlddots works on modern mobile browsers (iOS Safari 15.4+, Chrome for Android, Samsung Internet) that support WebGL 2. The interface adapts to small viewports; the panel hides on first visit so the visual is the first impression."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What design tools does Worlddots integrate with?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Worlddots supports paste-in embed via iframe for Webflow and Framer. Native Framer code component and Figma plugin are on the roadmap. PNG and SVG export means output can be brought into any design tool — Figma, Sketch, Adobe Illustrator, Affinity Designer."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I animate the globe?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. The globe view supports auto-spin, dot rotation, twinkle, size variance, and animated network arcs. WebM export captures the live animation; all motion respects the user's prefers-reduced-motion preference automatically."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What browsers are supported?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Worlddots requires WebGL 2 (~95% global support as of 2026). Chrome 56+, Firefox 51+, Safari 15.2+, Edge 79+, Samsung Internet 7.2+, and Chrome for Android 58+ all work. On older hardware (e.g. Intel HD 3000) WebGL 2 may not be available; in that case the tool shows a fallback message."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How is Worlddots different from a generic map library?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Worlddots is not a GIS tool. It is a curated motion-design tool focused on one aesthetic — dotted maps and animated globes — with deep control over visual styling (shaders, gradients, shapes). Generic libraries like Mapbox or Leaflet target geocoding, tile servers, and routing; Worlddots targets designers shipping landing pages, decks, and motion graphics."
+                }
+              }
+            ]
+          },
+          {
+            "@type": "ItemList",
+            "@id": "https://worlddots.app/#looks-list",
+            "name": "Look presets",
+            "description": "Visual aesthetics shipped with Worlddots, each with its own shareable URL.",
+            "itemListOrder": "Unordered",
+            "numberOfItems": 16,
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "url": "https://worlddots.app/looks/default", "name": "Default" },
+              { "@type": "ListItem", "position": 2, "url": "https://worlddots.app/looks/halftone", "name": "Halftone" },
+              { "@type": "ListItem", "position": 3, "url": "https://worlddots.app/looks/risograph", "name": "Risograph" },
+              { "@type": "ListItem", "position": 4, "url": "https://worlddots.app/looks/newsprint", "name": "Newsprint" },
+              { "@type": "ListItem", "position": 5, "url": "https://worlddots.app/looks/aurora", "name": "Aurora" },
+              { "@type": "ListItem", "position": 6, "url": "https://worlddots.app/looks/pixel", "name": "Pixel" },
+              { "@type": "ListItem", "position": 7, "url": "https://worlddots.app/looks/bayer", "name": "Bayer" },
+              { "@type": "ListItem", "position": 8, "url": "https://worlddots.app/looks/iridescent", "name": "Iridescent" },
+              { "@type": "ListItem", "position": 9, "url": "https://worlddots.app/looks/wireframe", "name": "Wireframe" },
+              { "@type": "ListItem", "position": 10, "url": "https://worlddots.app/looks/crt", "name": "CRT" },
+              { "@type": "ListItem", "position": 11, "url": "https://worlddots.app/looks/glitch", "name": "Glitch" },
+              { "@type": "ListItem", "position": 12, "url": "https://worlddots.app/looks/badtv", "name": "Bad TV" },
+              { "@type": "ListItem", "position": 13, "url": "https://worlddots.app/looks/bloom", "name": "Bloom" },
+              { "@type": "ListItem", "position": 14, "url": "https://worlddots.app/looks/metal", "name": "Metal" },
+              { "@type": "ListItem", "position": 15, "url": "https://worlddots.app/looks/pencil", "name": "Pencil" },
+              { "@type": "ListItem", "position": 16, "url": "https://worlddots.app/looks/corrupt", "name": "Corrupt" }
+            ]
           }
         ]
       }
