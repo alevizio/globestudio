@@ -27,3 +27,4 @@ file tree.
 | [Designer-tool integration paths](2026-05-integrations.md) | 2026-05 | Plan written, not implemented |
 | [Framer code component API deep dive](2026-05-framer-code-component.md) | 2026-05 | Plan written, not implemented |
 | [Webflow code components / DevLink](2026-05-webflow-devlink.md) | 2026-05 | Plan written, not implemented |
+| [Mobile + Safari WebGL compatibility](2026-05-mobile-safari-webgl.md) | 2026-05 | Recommendations folded into integrations plan |
