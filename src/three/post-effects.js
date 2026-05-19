@@ -24,6 +24,8 @@ export const EFFECT_INDEX = {
   chroma: 16,
   corrupt: 17,
   bayer: 18,
+  iridescent: 19,
+  risograph: 20,
 };
 
 const VERTEX_SHADER = /* glsl */ `
@@ -216,6 +218,72 @@ const FRAGMENT_SHADER = /* glsl */ `
     // Intensity blends from passthrough (0) to pure dither (1).
     vec3 outRgb = mix(src.rgb, dithered, uIntensity);
     return vec4(outRgb, max(src.a, quantized * uIntensity));
+  }
+
+  // Iridescent / foil — Fresnel-driven HSV cycle plus procedural sparkle.
+  // The "Fresnel" here is faked from screen-space luminance (dots far from
+  // light = "thicker material" = more colour shift). Hue cycles over time
+  // unless uTime is frozen by the reduced-motion gate. Single-pass; sparkle
+  // is computed per-cell via rand() and a steep power curve so only the
+  // brightest seeds survive.
+  vec4 iridescentPass(vec2 uv) {
+    vec4 src = sampleTex(uv);
+    float lum = dot(src.rgb, vec3(0.299, 0.587, 0.114));
+    // Mask the effect to the dot field so the ocean stays dark — without this
+    // the entire background takes on the pearl colour and we lose the silhouette.
+    float mask = smoothstep(0.06, 0.35, lum);
+    float fresnel = 1.0 - lum;
+    float t = uTime * mix(0.15, 0.6, uMotion);
+    // Three sin waves at offsets 0/120/240° produce a smooth RGB cycle.
+    vec3 hue = vec3(
+      sin(fresnel * 6.28318 + t),
+      sin(fresnel * 6.28318 + t + 2.09439),
+      sin(fresnel * 6.28318 + t + 4.18879)
+    ) * 0.5 + 0.5;
+    // Procedural sparkle — only the brightest random seeds light up.
+    float sparkleCell = max(uCellSize * 0.25, 2.0);
+    vec2 sparkleSeed = floor(uv * uResolution / sparkleCell);
+    float sparkle = pow(rand(sparkleSeed * 0.4), 14.0) * (0.6 + uGrain * 1.5);
+    vec3 pearl = clamp(hue + sparkle, 0.0, 1.2);
+    vec3 outRgb = mix(src.rgb, pearl, mask * uIntensity);
+    return vec4(outRgb, src.a);
+  }
+
+  // Risograph — pink + cyan ink channels with misregistration offset and
+  // paper grain. Designed to evoke the print press look that's everywhere
+  // in 2025-2026 illustration. The two ink layers sample the source at
+  // slightly different positions, quantise to 2-tone via the per-channel
+  // luminance threshold, then composite as additive light on a paper
+  // ground. Misregistration distance scales with uSplit (so designers can
+  // tune from "perfectly registered" to "wildly off").
+  vec4 risographPass(vec2 uv) {
+    vec4 src = sampleTex(uv);
+    // Each ink offsets in its own direction by uSplit pixels.
+    vec2 pinkOff = vec2(uSplit, 0.0) / max(uResolution, vec2(1.0));
+    vec2 cyanOff = vec2(-uSplit * 0.6, uSplit * 0.4) / max(uResolution, vec2(1.0));
+    vec4 srcPink = sampleTex(uv + pinkOff);
+    vec4 srcCyan = sampleTex(uv + cyanOff);
+    // Quantise each ink layer — at 0.5 threshold it's hard binary, soften
+    // a touch with smoothstep so very thin features (single-pixel strokes)
+    // don't disappear entirely.
+    float lumPink = dot(srcPink.rgb, vec3(0.299, 0.587, 0.114));
+    float lumCyan = dot(srcCyan.rgb, vec3(0.299, 0.587, 0.114));
+    float maskPink = smoothstep(0.18, 0.42, lumPink);
+    float maskCyan = smoothstep(0.22, 0.46, lumCyan);
+    // Classic riso "fluoro pink" + "federal blue" ink palette.
+    vec3 pinkInk = vec3(1.0, 0.36, 0.62);
+    vec3 cyanInk = vec3(0.25, 0.46, 0.95);
+    // Paper grain — low-frequency noise that breaks up the flats.
+    float grainScale = max(uCellSize * 0.5, 2.0);
+    vec2 grainSeed = floor(uv * uResolution / grainScale);
+    float grain = (rand(grainSeed * 0.7) - 0.5) * uGrain * 0.4;
+    vec3 inked = pinkInk * maskPink + cyanInk * maskCyan + grain;
+    // Where neither ink prints we keep the original colour (ocean stays
+    // black for the dark theme). uIntensity blends toward full riso.
+    float anyInk = max(maskPink, maskCyan);
+    vec3 outRgb = mix(src.rgb, clamp(inked, 0.0, 1.0), anyInk * uIntensity);
+    // The "src" alpha — keep what was there + boost where ink covers.
+    return vec4(outRgb, max(srcPink.a, max(srcCyan.a, anyInk)));
   }
 
   vec4 pixelPass(vec2 uv) {
@@ -743,6 +811,10 @@ const FRAGMENT_SHADER = /* glsl */ `
       color = corruptPass(vUv);
     } else if (uEffect > 17.5 && uEffect < 18.5) {
       color = bayerPass(vUv);
+    } else if (uEffect > 18.5 && uEffect < 19.5) {
+      color = iridescentPass(vUv);
+    } else if (uEffect > 19.5 && uEffect < 20.5) {
+      color = risographPass(vUv);
     }
 
     if (uEffect > 0.5 && uGrain > 0.0) {
