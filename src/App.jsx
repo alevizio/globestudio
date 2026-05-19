@@ -364,14 +364,29 @@ const App = () => {
       if (window.location.pathname !== url) {
         window.history.pushState({ lookId: preset.id }, "", url);
       }
-      document.title = `${preset.name} — Worlddots dotted globe`;
-      const meta = document.querySelector('meta[name="description"]');
-      if (meta) {
-        meta.setAttribute(
-          "content",
-          `${preset.blurb}. Generate dotted maps and animated 3D globes with the ${preset.name} preset. Export as PNG, SVG, or WebM.`,
-        );
-      }
+      // Per-preset SEO + share metadata. The chip preview image (if any) doubles
+      // as the OG card so each preset has a distinct link preview. Falls back to
+      // the homepage og.svg when no previewImage is present. Wired into
+      // docs/research/2026-05-seo-playbook.md Finding 3.
+      const title = `${preset.name} — Worlddots dotted globe`;
+      const description = `${preset.blurb}. Generate dotted maps and animated 3D globes with the ${preset.name} preset. Export as PNG, SVG, or WebM.`;
+      const absoluteUrl = `https://worlddots.app/looks/${preset.id}`;
+      const previewImage = preset.previewImage
+        ? `https://worlddots.app${preset.previewImage}`
+        : "https://worlddots.app/og.svg";
+      document.title = title;
+      const setMeta = (selector, content) => {
+        const el = document.querySelector(selector);
+        if (el) el.setAttribute("content", content);
+      };
+      setMeta('meta[name="description"]', description);
+      setMeta('meta[property="og:title"]', title);
+      setMeta('meta[property="og:description"]', description);
+      setMeta('meta[property="og:url"]', absoluteUrl);
+      setMeta('meta[property="og:image"]', previewImage);
+      setMeta('meta[name="twitter:title"]', title);
+      setMeta('meta[name="twitter:description"]', description);
+      setMeta('meta[name="twitter:image"]', previewImage);
     }
   }, []);
 
@@ -415,7 +430,24 @@ const App = () => {
     window.setTimeout(() => setResetFlash(false), 600);
     if (typeof window !== "undefined" && window.location.pathname !== "/") {
       window.history.pushState({}, "", "/");
-      document.title = "Worlddots — Dotted Map & 3D Globe Generator";
+      // Restore the homepage SEO + share metadata (mirrors the applyLook block
+      // above). Keeps link previews accurate when users navigate back to root.
+      const homeTitle = "Worlddots — Open-Source Dotted Maps and 3D Globes for Designers";
+      const homeDescription = "Designer-first tool for dotted maps and animated 3D globes. Pick any country, region, or US state. Customize shapes, gradients, shader effects. Export PNG, SVG, WebM. Open source under MIT.";
+      const homeImage = "https://worlddots.app/og.svg";
+      document.title = homeTitle;
+      const setMeta = (selector, content) => {
+        const el = document.querySelector(selector);
+        if (el) el.setAttribute("content", content);
+      };
+      setMeta('meta[name="description"]', homeDescription);
+      setMeta('meta[property="og:title"]', homeTitle);
+      setMeta('meta[property="og:description"]', homeDescription);
+      setMeta('meta[property="og:url"]', "https://worlddots.app/");
+      setMeta('meta[property="og:image"]', homeImage);
+      setMeta('meta[name="twitter:title"]', "Worlddots — Open-Source Dotted Maps and 3D Globes");
+      setMeta('meta[name="twitter:description"]', homeDescription);
+      setMeta('meta[name="twitter:image"]', homeImage);
     }
   }, []);
 

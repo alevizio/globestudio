@@ -11,7 +11,12 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://worlddots.app/looks/print</loc>
+    <loc>https://worlddots.app/looks/halftone</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://worlddots.app/looks/pixel</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -31,27 +36,27 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://worlddots.app/looks/badtv</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://worlddots.app/looks/bloom</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://worlddots.app/looks/pixel</loc>
+    <loc>https://worlddots.app/looks/metal</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://worlddots.app/looks/ascii</loc>
+    <loc>https://worlddots.app/looks/pencil</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://worlddots.app/looks/topographic</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://worlddots.app/looks/particles</loc>
+    <loc>https://worlddots.app/looks/corrupt</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

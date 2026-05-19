@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "prebuild": "node scripts/generate-sitemap.js",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "sitemap": "node scripts/generate-sitemap.js"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",
