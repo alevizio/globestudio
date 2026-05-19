@@ -235,6 +235,11 @@ export const LookPreview = ({ preset }) => {
   const reactId = useId();
   const clipId = `globeClip-${reactId.replace(/:/g, "")}`;
 
+  // The chip's left-cell background — the preset's own canvas backdrop
+  // (e.g. black for Default, bone for Print, deep space for the space
+  // backdrop). Set on the wrapping span so the whole 40 × chip-height cell
+  // is filled, then the globe SVG sits on top of it. Transparent presets
+  // get a neutral chip-friendly tone instead of fully see-through.
   const bg = preset.settings.transparent
     ? "#1c1c1f"
     : preset.settings.backgroundStyle === "space"
@@ -242,20 +247,25 @@ export const LookPreview = ({ preset }) => {
       : preset.settings.background || "#0a0a0a";
 
   return (
-    <svg
+    <span
       className="looks-chip-preview"
-      viewBox="0 0 30 30"
-      preserveAspectRatio="xMidYMid slice"
+      style={{ background: bg }}
       aria-hidden="true"
-      focusable="false"
     >
-      <defs>
-        <clipPath id={clipId}>
-          <circle cx="15" cy="15" r="12" />
-        </clipPath>
-      </defs>
-      <rect x="0" y="0" width="30" height="30" fill={bg} />
-      {renderContent(preset, clipId)}
-    </svg>
+      <svg
+        className="looks-chip-preview-globe"
+        viewBox="0 0 30 30"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <defs>
+          <clipPath id={clipId}>
+            <circle cx="15" cy="15" r="12" />
+          </clipPath>
+        </defs>
+        {renderContent(preset, clipId)}
+      </svg>
+    </span>
   );
 };

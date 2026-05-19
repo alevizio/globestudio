@@ -662,18 +662,18 @@ button {
   transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
 }
 
-/* Mini globe SVG anchored to the chip's left edge — only the globe
-   scene (sphere + dots + effect overlays + the preset's backdrop) is
-   visible, no surrounding coloured frame. Fills the full 40 × 40
-   cell via align-self: stretch; the chip's overflow: hidden + 10px
-   border-radius clips the outer corners cleanly.
-   Slightly desaturated by default so the row stays calm, pops to
-   full strength on hover / .is-applied. */
+/* Chip's left-cell preview frame. Background carries the preset's own
+   canvas backdrop (set inline). Hosts the globe SVG centred inside —
+   only the globe (sphere + dots + effect overlays) is rendered on top
+   of the backdrop, no extra coloured swatch. Chip's overflow:
+   hidden + 10px border-radius clips the outer corners cleanly. */
 .looks-chip-preview {
   flex: 0 0 auto;
   align-self: stretch;
   width: 40px;
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   filter: saturate(0.8);
   transition: filter 220ms var(--ease), transform 220ms var(--ease);
 }
@@ -681,6 +681,12 @@ button {
 .looks-chip:hover .looks-chip-preview,
 .looks-chip.is-applied .looks-chip-preview {
   filter: saturate(1);
+}
+
+.looks-chip-preview-globe {
+  width: 32px;
+  height: 32px;
+  display: block;
 }
 
 .looks-chip:hover {
