@@ -40,3 +40,5 @@ research.
 | [Accessibility rollout](accessibility-rollout.md) | Draft |
 | [SEO rollout](seo-rollout.md) | Draft |
 | [Map data rollout](map-data-rollout.md) | Draft |
+| [Growth rollout (community + funding + examples)](growth-rollout.md) | Draft |
+| [Internationalization rollout](i18n-rollout.md) | Draft |

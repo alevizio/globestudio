@@ -32,3 +32,10 @@ file tree.
 | [Accessibility audit (WCAG 2.2 AA)](2026-05-accessibility-audit.md) | 2026-05 | Plan written, not implemented |
 | [Post-launch SEO playbook](2026-05-seo-playbook.md) | 2026-05 | Plan written, not implemented |
 | [Map data alternatives](2026-05-map-data-alternatives.md) | 2026-05 | Plan written, not implemented |
+| [OSS community building](2026-05-community-building.md) | 2026-05 | Plan written (growth-rollout), not implemented |
+| [Examples directory strategy](2026-05-examples-directory.md) | 2026-05 | Plan written (growth-rollout), not implemented |
+| [Funding / sponsorship paths](2026-05-funding-sponsorship.md) | 2026-05 | Plan written (growth-rollout), not implemented |
+| [Browser matrix beyond mobile](2026-05-browser-matrix-expanded.md) | 2026-05 | Recommendations folded into accessibility plan |
+| [Designer use-case stories](2026-05-designer-use-cases.md) | 2026-05 | Feeds into SEO + examples plans |
+| [Premium addons without violating MIT](2026-05-premium-addons.md) | 2026-05 | Deferred — no plan, gated on traction |
+| [Internationalization](2026-05-internationalization.md) | 2026-05 | Plan written, not implemented |
