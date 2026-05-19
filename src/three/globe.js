@@ -728,10 +728,21 @@ export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEF
   if (!refs) return;
   const settings = { ...DEFAULT_GLOBE_SETTINGS, ...globeSettings };
   syncGraticule(refs, settings);
-  const shellProgress = smoothStep(0.18, 0.92, morphProgress);
+  // Sphere shell fades only during the final 40% of the morph (rather than
+  // the previous 18%–92% window) so the textured globe stays visible long
+  // enough for the dot field to settle into its flat positions before the
+  // sphere vanishes. Fixes the "solid mode disappears mid-morph then
+  // reappears" complaint — the gap was the sphere fading out before the
+  // dot fallback had time to read as the world.
+  const shellProgress = smoothStep(0.05, 0.5, morphProgress);
   const glowStrength = settings.glow ? clampNumber(settings.glowStrength, 0, 100) / 100 : 0;
   const gridStrength = settings.grid ? clampNumber(settings.gridStrength, 0, 100) / 100 : 0;
-  const surfaceStrength = settings.surface ? clampNumber(settings.surfaceStrength, 0, 100) / 100 : 0;
+  // In solid render mode the world texture lives on the base material — its
+  // visibility should NOT depend on the Surface toggle (which controls the
+  // dot-mode shell layer). Force-on the strength when solidActive so the
+  // textured sphere always renders in globe view regardless of the toggle.
+  const surfaceStrengthBase = settings.surface ? clampNumber(settings.surfaceStrength, 0, 100) / 100 : 0;
+  const surfaceStrength = refs.solidActive ? Math.max(1, surfaceStrengthBase) : surfaceStrengthBase;
   const routeStrength = settings.look === "borderless" && settings.routes
     ? clampNumber(settings.routesStrength, 0, 100) / 100
     : 0;

@@ -33,7 +33,7 @@ import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
-import { DottedGlobe, Download, Github, Globe2, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Twitter } from "./components/icons.jsx";
+import { DottedGlobe, Download, Github, Moon, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Sun, Twitter } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
@@ -106,6 +106,14 @@ const App = () => {
     typeof window !== "undefined" && window.innerWidth < 720,
   );
   const [animationsEnabled, setAnimationsEnabled] = usePersistedState("animationsEnabled", true);
+  // UI theme: "dark" (default) or "light". Only swaps the panel/picker tokens —
+  // the canvas/globe rendering stays on its dark base because the artwork
+  // is colored independently and reads best against the canvas's own background.
+  const [uiTheme, setUiTheme] = usePersistedState("uiTheme", "dark");
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.setAttribute("data-theme", uiTheme);
+  }, [uiTheme]);
   const [copyStatus, setCopyStatus] = useState("idle");
   const [selectedDots, setSelectedDots] = useState(new Set());
   const [usStates, setUsStates] = useState([]);
@@ -909,6 +917,16 @@ const App = () => {
         >
           <span aria-hidden="true">?</span>
         </button>
+        <button
+          type="button"
+          className="social-link"
+          onClick={() => setUiTheme((current) => (current === "dark" ? "light" : "dark"))}
+          aria-label={uiTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+          aria-pressed={uiTheme === "light"}
+          data-tooltip={uiTheme === "dark" ? "Switch to light UI" : "Switch to dark UI"}
+        >
+          {uiTheme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+        </button>
         <a
           className="social-link"
           href="https://github.com/alevizio/worlddots"
@@ -937,7 +955,7 @@ const App = () => {
           aria-label="Visit alevizio.com"
           data-tooltip="Visit alevizio.com"
         >
-          <Globe2 size={15} />
+          <DottedGlobe size={15} />
         </a>
       </nav>
 

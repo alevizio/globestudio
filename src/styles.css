@@ -27,6 +27,26 @@
   --font-mono-2: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+/* Light-theme UI tokens. Applied to <html data-theme="light">. Only the
+   panel / picker / overlay chrome flips — the canvas stays on its own dark
+   --bg so the artwork (dots, gradients, presets) reads the same regardless
+   of which UI theme the user is in. */
+[data-theme="light"] {
+  color-scheme: light;
+  --panel: rgba(252, 251, 248, 0.92);
+  --panel-2: rgba(0, 0, 0, 0.045);
+  --panel-3: rgba(0, 0, 0, 0.085);
+  --field: rgba(255, 255, 255, 0.78);
+  --border: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --text: #18171a;
+  --muted: #4a4742;
+  --dim: #6d6962;
+  --accent: #18171a;
+  --accent-soft: rgba(24, 23, 26, 0.16);
+  --accent-softer: rgba(24, 23, 26, 0.06);
+}
+
 output,
 .range-number,
 .map-zoom-input {
@@ -208,6 +228,26 @@ button {
   width: 100%;
   height: 100%;
   outline: none;
+  /* Spring-back from the drag scale lives here so release always animates
+     even though .is-dragging removes the modifier instantly. */
+  transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.globe-background.is-dragging canvas {
+  /* Stripe-style "picking it up" feel. Quick ease-out into the scale, then
+     the spring above carries the release back to 1.0. */
+  transform: scale(1.05);
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .globe-background canvas,
+  .globe-background.is-dragging canvas {
+    transition: none;
+    transform: none;
+  }
 }
 
 .globe-background canvas:focus-visible {
@@ -2962,9 +3002,14 @@ input[type="range"]:active::-moz-range-thumb {
   align-items: center;
   padding: 2px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  background: var(--toggle-track-off, rgba(0, 0, 0, 0.55));
+  box-shadow: inset 0 0 0 1px var(--toggle-track-border, rgba(255, 255, 255, 0.1));
   transition: background 180ms var(--ease), box-shadow 180ms var(--ease);
+}
+
+[data-theme="light"] {
+  --toggle-track-off: rgba(0, 0, 0, 0.16);
+  --toggle-track-border: rgba(0, 0, 0, 0.08);
 }
 
 .toggle-knob {
