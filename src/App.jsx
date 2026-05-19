@@ -975,7 +975,7 @@ const App = () => {
                 dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
               }`}
             >
-              <DottedGlobe size={40} />
+              <DottedGlobe size={56} />
             </span>
           </div>
           <div className="panel-header-actions">
