@@ -121,7 +121,7 @@ const Continent = ({ fill, stroke }) => (
 // the full viewBox; the clipPath does the sphere-shape clipping so this
 // works at any sphere position. Dot size still falls off radially from
 // the sphere centre so the pattern reads as wrapping a curved surface.
-const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 22, sphereCy = 15, sphereR = 18) => {
+const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 26, sphereCy = 15, sphereR = 18) => {
   const dots = [];
   const spacing = 2.4;
   for (let row = 0; row < 14; row += 1) {
@@ -207,7 +207,7 @@ const renderContent = (preset, clipId) => {
   // globe's right edge bleeds further off the cell while the left side
   // shows the limb curving in. y stays centred; radius still oversized
   // so all edges crop.
-  const cx = 22;
+  const cx = 26;
   const cy = 15;
   const radius = 18;
 
@@ -285,7 +285,7 @@ export const LookPreview = ({ preset }) => {
       >
         <defs>
           <clipPath id={clipId}>
-            <circle cx="22" cy="15" r="18" />
+            <circle cx="26" cy="15" r="18" />
           </clipPath>
         </defs>
         {renderContent(preset, clipId)}
