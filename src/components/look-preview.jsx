@@ -235,9 +235,16 @@ export const LookPreview = ({ preset }) => {
   const reactId = useId();
   const clipId = `globeClip-${reactId.replace(/:/g, "")}`;
 
-  // The chip's overflow: hidden clips the SVG to the chip's left-side
-  // corners; backgroundStyle "transparent" gets a neutral chip-friendly
-  // tone instead of fully see-through.
+  // Outer square keeps the coloured "frame" the user asked for — uses the
+  // preset's primary fill (dotColor in dots mode, worldFill in solid).
+  // Inner SVG sits inside that frame and renders the actual mini globe in
+  // the preset's own backdrop colour, so the user gets both signals at a
+  // glance: the surrounding swatch + a tiny rendered preview of the look.
+  const renderMode = preset.settings.renderMode || "dots";
+  const frame = renderMode === "solid"
+    ? preset.settings.worldFill || "#5a5a64"
+    : preset.settings.dotColor || "#ffffff";
+
   const bg = preset.settings.transparent
     ? "#1c1c1f"
     : preset.settings.backgroundStyle === "space"
@@ -245,20 +252,26 @@ export const LookPreview = ({ preset }) => {
       : preset.settings.background || "#0a0a0a";
 
   return (
-    <svg
+    <span
       className="looks-chip-preview"
-      viewBox="0 0 30 30"
-      preserveAspectRatio="xMidYMid slice"
+      style={{ background: frame }}
       aria-hidden="true"
-      focusable="false"
     >
-      <defs>
-        <clipPath id={clipId}>
-          <circle cx="15" cy="15" r="12" />
-        </clipPath>
-      </defs>
-      <rect x="0" y="0" width="30" height="30" fill={bg} />
-      {renderContent(preset, clipId)}
-    </svg>
+      <svg
+        className="looks-chip-preview-globe"
+        viewBox="0 0 30 30"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <defs>
+          <clipPath id={clipId}>
+            <circle cx="15" cy="15" r="12" />
+          </clipPath>
+        </defs>
+        <rect x="0" y="0" width="30" height="30" rx="6" fill={bg} />
+        {renderContent(preset, clipId)}
+      </svg>
+    </span>
   );
 };

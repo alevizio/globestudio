@@ -662,24 +662,33 @@ button {
   transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
 }
 
-/* Mini globe rendering anchored to the chip's left edge. Fills the
-   chip's full height (align-self: stretch); the chip's overflow:
-   hidden + 10px border-radius clips its outer corners cleanly.
-   Slightly desaturated by default so the row of chips stays calm,
-   pops to full strength on hover / on the active chip. */
+/* Coloured square frame anchored to the chip's left edge. Background
+   carries the preset's primary fill (set inline). Hosts a smaller
+   globe preview SVG inside so the user gets two cues at a glance —
+   the surrounding swatch + a tiny rendered scene. The chip's
+   overflow: hidden + 10px border-radius clips the outer corners. */
 .looks-chip-preview {
   flex: 0 0 auto;
   align-self: stretch;
   width: 40px;
-  height: auto;
-  display: block;
-  filter: saturate(0.7);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: saturate(0.8);
   transition: filter 220ms var(--ease), transform 220ms var(--ease);
 }
 
 .looks-chip:hover .looks-chip-preview,
 .looks-chip.is-applied .looks-chip-preview {
   filter: saturate(1);
+}
+
+.looks-chip-preview-globe {
+  width: 28px;
+  height: 28px;
+  display: block;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .looks-chip:hover {
