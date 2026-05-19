@@ -863,6 +863,10 @@ const App = () => {
         "--tilt-y": `${tiltY}deg`,
       }}
     >
+      {/* Skip link — visible only when keyboard-focused, lands on the canvas
+          so keyboard users don't have to tab through chrome to reach the
+          globe. WCAG 2.4.1 Bypass Blocks (Level A). */}
+      <a href="#globe-canvas" className="skip-link">Skip to globe</a>
       <h1 className="visually-hidden">Worlddots — dotted maps and globe generator</h1>
       <div className="visually-hidden" role="status" aria-live="polite">{statusMessage}</div>
 

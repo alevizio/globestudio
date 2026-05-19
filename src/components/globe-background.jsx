@@ -1092,6 +1092,7 @@ export const GlobeBackground = ({
 
   return (
     <div
+      id="globe-canvas"
       ref={mountRef}
       className={`globe-background look-${globeSettings?.look ?? "classic"} effect-${shaderSettings.effect || "none"} ${
         isDraggingGlobe ? "is-dragging" : ""

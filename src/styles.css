@@ -17,7 +17,10 @@
   --border-strong: rgba(255, 255, 255, 0.22);
   --text: #f6f2ea;
   --muted: #a8a39b;
-  --dim: #78736c;
+  /* WCAG AA contrast against --bg (#0b0b0c) — bumped from #78736c (3.8:1)
+     to #8d887e (5.7:1) to clear the 4.5:1 normal-text threshold. Light
+     theme --dim is already compliant (~5.5:1 against the light panel). */
+  --dim: #8d887e;
   --accent: #f6f2ea;
   --accent-soft: rgba(246, 242, 234, 0.22);
   --accent-softer: rgba(246, 242, 234, 0.08);
@@ -252,6 +255,35 @@ button {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Skip link — hidden offscreen until keyboard-focused, then animates into
+   view top-left. WCAG 2.4.1 Bypass Blocks. The href="#globe-canvas" lands
+   focus on the canvas wrapper so users can immediately interact with the
+   globe via the existing keyboard handlers. */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
+  transform: translateY(-200%);
+  transition: transform 180ms var(--ease);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .globe-background::before {
