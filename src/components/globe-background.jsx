@@ -320,6 +320,14 @@ export const GlobeBackground = ({
     });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
+    // EffectComposer calls renderer.render multiple times per frame (one per
+    // pass). With autoReset = true (default), info.render.calls gets zeroed
+    // before each pass, so only the LAST pass's count survives — the dev HUD
+    // reads "1" no matter how many draw calls actually happened. Switching
+    // to manual reset gives us an accurate per-frame total; we reset once at
+    // the start of each frame, right before the chunked update + render
+    // section.
+    renderer.info.autoReset = false;
     // Cap initial DPR — phones and high-DPI laptops are the perf cliff. The
     // adaptive loop below can step it down further if FPS slips.
     const isCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches;
@@ -672,6 +680,10 @@ export const GlobeBackground = ({
       // Uniform writes are cheap and keep the composer chain ready for an
       // instant switch when the user picks a non-default effect.
       updatePostEffects(threeRef.current?.postHandle, settingsRef.current, now / 1000);
+      // Manual reset — accumulates draw call totals across the full
+      // render path (composer or direct) for the dev HUD. See
+      // `renderer.info.autoReset = false` at renderer init for context.
+      renderer.info.reset();
       // Fast path: when no post-processing is active, skip the composer
       // entirely and call renderer.render directly. The composer chain in
       // the "none" case is renderPass + (disabled bloom) + customPass-as-
