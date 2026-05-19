@@ -272,23 +272,14 @@ export const LookPreview = ({ preset }) => {
 
   // Outer frame uses the preset's primary fill (dotColor in dots mode,
   // worldFill in solid) — the coloured "card" backdrop the user asked
-  // to keep. Inner globe SVG renders the actual mini scene with its own
-  // dark / canvas-colour background, sized smaller so the outer frame
-  // stays visible as a border of colour around the globe.
+  // to keep, softened to a tint via color-mix. The inner globe SVG
+  // renders on top of that tint with NO own background rect, so the
+  // chip's tinted frame is what shows through behind the globe.
   const renderMode = preset.settings.renderMode || "dots";
   const frame = renderMode === "solid"
     ? preset.settings.worldFill || "#5a5a64"
     : preset.settings.dotColor || "#ffffff";
 
-  const bg = preset.settings.transparent
-    ? "#1c1c1f"
-    : preset.settings.backgroundStyle === "space"
-      ? "#03030a"
-      : preset.settings.background || "#0a0a0a";
-
-  // Soften the frame colour against the chip's own field tone via
-  // color-mix so the swatch reads as a tinted background rather than a
-  // bold block — keeps the row of chips calm.
   const frameTint = `color-mix(in srgb, ${frame} 25%, transparent)`;
 
   return (
@@ -309,7 +300,6 @@ export const LookPreview = ({ preset }) => {
             <circle cx="15" cy="15" r="12" />
           </clipPath>
         </defs>
-        <rect x="0" y="0" width="30" height="30" rx="6" fill={bg} />
         {renderContent(preset, clipId)}
       </svg>
     </span>
