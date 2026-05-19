@@ -6,18 +6,35 @@ import react from "@vitejs/plugin-react";
 
 const projectDir = dirname(fileURLToPath(import.meta.url));
 
+// Priority locales for the country search. Each adds ~5KB raw to the slim
+// bundle. Picked from largest non-English designer audiences. Add more here
+// when analytics justify; remove any to trim bundle size.
+const I18N_LOCALES = ["spa", "fra", "deu", "zho", "ara", "por"];
+
 const slimCountries = JSON.parse(
   readFileSync(resolve(projectDir, "node_modules/world-countries/countries.json"), "utf8"),
-).map((country) => ({
-  cca3: country.cca3,
-  // ccn3 is the numeric ISO 3166-1 code. world-atlas keys its features by the
-  // same numeric (un-padded). We need it to filter the solid-mode texture
-  // down to the user's selected countries.
-  ccn3: country.ccn3,
-  name: { common: country.name?.common },
-  region: country.region,
-  subregion: country.subregion,
-}));
+).map((country) => {
+  // Pick just the `common` field from each priority translation. Drops the
+  // `official` form to keep the slim bundle, well, slim.
+  const translations = {};
+  if (country.translations) {
+    for (const locale of I18N_LOCALES) {
+      const t = country.translations[locale];
+      if (t?.common) translations[locale] = t.common;
+    }
+  }
+  return {
+    cca3: country.cca3,
+    // ccn3 is the numeric ISO 3166-1 code. world-atlas keys its features by the
+    // same numeric (un-padded). We need it to filter the solid-mode texture
+    // down to the user's selected countries.
+    ccn3: country.ccn3,
+    name: { common: country.name?.common },
+    translations,
+    region: country.region,
+    subregion: country.subregion,
+  };
+});
 
 const slimCountriesPlugin = () => {
   const virtualId = "virtual:slim-countries";

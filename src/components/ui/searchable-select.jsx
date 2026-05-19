@@ -19,7 +19,18 @@ export const SearchableSelect = ({ value, onChange, options, label, placeholder 
   const filtered = useMemo(() => {
     const trimmed = query.trim().toLowerCase();
     if (!trimmed) return options;
-    return options.filter((option) => option.label.toLowerCase().includes(trimmed));
+    return options.filter((option) => {
+      if (option.label.toLowerCase().includes(trimmed)) return true;
+      // searchTokens is a per-option array of additional strings the filter
+      // should match against (e.g. localized country names for i18n search).
+      // Already lowercased upstream by the option builder.
+      if (option.searchTokens) {
+        for (const token of option.searchTokens) {
+          if (token.includes(trimmed)) return true;
+        }
+      }
+      return false;
+    });
   }, [options, query]);
 
   // Reset query + scroll-active when the popover closes.
