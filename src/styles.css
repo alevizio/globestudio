@@ -673,13 +673,13 @@ button {
   flex: 0 0 auto;
   align-self: stretch;
   width: 40px;
-  opacity: 0.3;
+  opacity: 0.15;
   transition: transform 220ms var(--ease), opacity 220ms var(--ease);
 }
 
 .looks-chip:hover .looks-chip-preview,
 .looks-chip.is-applied .looks-chip-preview {
-  opacity: 0.7;
+  opacity: 0.5;
 }
 
 .looks-chip:hover {
