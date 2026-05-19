@@ -897,15 +897,6 @@ const App = () => {
       <MapZoomControls value={mapZoom} onChange={setMapZoom} />
 
       <nav className="social-links" aria-label="Project links">
-        <button
-          type="button"
-          className="social-link"
-          onClick={() => setShortcutsOpen(true)}
-          aria-label="Show keyboard shortcuts"
-          data-tooltip="Keyboard shortcuts (?)"
-        >
-          <Keyboard size={14} />
-        </button>
         <a
           className="social-link"
           href="https://github.com/alevizio/worlddots"
@@ -978,6 +969,15 @@ const App = () => {
               data-tooltip={uiTheme === "dark" ? "Switch to light UI" : "Switch to dark UI"}
             >
               {uiTheme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
+            <button
+              type="button"
+              className="panel-icon-button"
+              onClick={() => setShortcutsOpen(true)}
+              aria-label="Show keyboard shortcuts"
+              data-tooltip="Keyboard shortcuts (?)"
+            >
+              <Keyboard size={14} />
             </button>
             <button
               type="button"

@@ -1432,33 +1432,34 @@ button {
   z-index: 4;
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  padding: 5px;
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  background: var(--panel);
-  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.38);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  gap: 6px;
 }
 
+/* Each link is its own self-contained chip — same panel chrome as the
+   view-mode-switch / segmented controls (border, blur, shadow), just
+   one icon wide. Reads as a cluster of independent shortcuts rather
+   than a single grouped card. */
 .social-link {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 0;
-  border-radius: 17px;
-  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   color: var(--muted);
   text-decoration: none;
   cursor: pointer;
-  transition: background 180ms var(--ease), color 180ms var(--ease);
+  transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
 }
 
 .social-link:hover {
-  background: rgba(255, 255, 255, 0.055);
+  background: var(--panel-3);
+  border-color: var(--border-strong);
   color: var(--text);
 }
 
