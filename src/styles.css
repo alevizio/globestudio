@@ -181,45 +181,6 @@ button {
   border: 0;
 }
 
-.brand-mark {
-  position: fixed;
-  top: 22px;
-  left: 22px;
-  z-index: 5;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 12px 6px 10px;
-  border-radius: 999px;
-  background: rgba(12, 12, 14, 0.55);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-  pointer-events: none;
-  user-select: none;
-}
-
-.brand-mark-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px rgba(246, 242, 234, 0.32);
-}
-
-@media (max-width: 480px) {
-  .brand-mark {
-    top: 14px;
-    left: 14px;
-    padding: 5px 10px 5px 9px;
-    font-size: 11px;
-  }
-}
-
 .globe-background::before {
   content: "";
   position: absolute;
@@ -1676,45 +1637,36 @@ button {
   to { transform: rotate(360deg); }
 }
 
-/* When a preset is freshly applied, the brand mark itself ripples outward —
-   inner dots pop first, then concentric rings follow. Subtle at 28×28 so it
-   reads as personality, not noise. Stagger via :nth-child since the circles
-   render in a roughly inside-out order matching the favicon source. */
-.panel-meta-icon.is-rippling svg circle {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: panel-meta-icon-ripple 520ms var(--ease);
-}
-/* Inner band (y=14, y=18 rows — indices 9-18) — fires immediately */
-.panel-meta-icon.is-rippling svg circle:nth-child(n+9):nth-child(-n+18) {
-  animation-delay: 0ms;
-}
-/* Mid band (y=11, y=21 rows — indices 5-8, 19-22) */
-.panel-meta-icon.is-rippling svg circle:nth-child(n+5):nth-child(-n+8),
-.panel-meta-icon.is-rippling svg circle:nth-child(n+19):nth-child(-n+22) {
-  animation-delay: 80ms;
-}
-/* Outer band (y=8, y=24 rows — indices 2-4, 23-25) */
-.panel-meta-icon.is-rippling svg circle:nth-child(n+2):nth-child(-n+4),
-.panel-meta-icon.is-rippling svg circle:nth-child(n+23):nth-child(-n+25) {
-  animation-delay: 160ms;
-}
-/* Poles (top and bottom — indices 1, 26) */
-.panel-meta-icon.is-rippling svg circle:nth-child(1),
-.panel-meta-icon.is-rippling svg circle:nth-child(26) {
-  animation-delay: 240ms;
+/* When a preset is freshly applied, the brand mark gives a quick pulse —
+   the icon scales up briefly with a soft accent halo, then settles. The
+   previous staggered per-circle ripple relied on concentric dot indices
+   that the new orbital-globe mark no longer has, so this is the whole-icon
+   pulse variant — same intent, simpler implementation. */
+.panel-meta-icon.is-rippling svg {
+  animation: panel-meta-icon-pulse 620ms var(--ease);
 }
 
-@keyframes panel-meta-icon-ripple {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.35); }
-  100% { transform: scale(1); }
+.panel-meta-icon.is-rippling {
+  box-shadow:
+    0 0 0 1px var(--accent-soft, rgba(246, 242, 234, 0.22)),
+    0 0 16px rgba(246, 242, 234, 0.18);
+  transition: box-shadow 280ms var(--ease);
+}
+
+@keyframes panel-meta-icon-pulse {
+  0%   { transform: scale(1) rotate(0deg); }
+  35%  { transform: scale(1.15) rotate(8deg); }
+  70%  { transform: scale(0.98) rotate(-4deg); }
+  100% { transform: scale(1) rotate(0deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .panel-meta-icon svg,
-  .panel-meta-icon.is-rippling svg circle {
+  .panel-meta-icon.is-rippling svg {
     animation: none;
+  }
+  .panel-meta-icon.is-rippling {
+    box-shadow: 0 0 0 1px var(--accent-soft, rgba(246, 242, 234, 0.22));
   }
 }
 
