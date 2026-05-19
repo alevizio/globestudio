@@ -17,6 +17,10 @@ export const EFFECT_INDEX = {
   bloomEnhance: 9,
   metal: 10,
   pencil: 11,
+  toon: 12,
+  stripes: 13,
+  badtv: 14,
+  rgb: 15,
 };
 
 const VERTEX_SHADER = /* glsl */ `
@@ -49,6 +53,19 @@ const FRAGMENT_SHADER = /* glsl */ `
 
   float rand(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+  }
+
+  float random1d(float dt) {
+    return fract(sin(mod(dt, 3.14)) * 43758.5453);
+  }
+
+  // 1-D smooth value noise — interpolates between random1d at integer
+  // anchors via smoothstep. Used by the badtv pass for slow-amplitude
+  // noise that drives the UV jitter.
+  float noise1d(float value) {
+    float i = floor(value);
+    float f = fract(value);
+    return mix(random1d(i), random1d(i + 1.0), smoothstep(0.0, 1.0, f));
   }
 
   float luma(vec3 c) {
@@ -431,6 +448,95 @@ const FRAGMENT_SHADER = /* glsl */ `
     return vec4(color, 1.0);
   }
 
+  // Toon / cartoon — quantises source luminance into discrete bands for a
+  // posterised cel-shaded look. Adapted from webgl-shaders.com/toon-
+  // example.html — the reference uses surface diffuse factor as the
+  // value to quantise; our post-process pass uses source signal
+  // (max of luma and alpha) instead so the bands appear wherever the
+  // dot field has content. Number of steps scales with uIntensity
+  // (3 bands at min → 6 bands at max).
+  vec4 toonPass(vec2 uv) {
+    vec4 src = sampleTex(uv);
+    vec2 px = 1.0 / max(uResolution, vec2(1.0));
+    // Small blur so sparse dots get filled into the value ramp.
+    vec4 blur = (
+      src * 0.36 +
+      sampleTex(uv + vec2(px.x * 1.5, 0.0)) * 0.16 +
+      sampleTex(uv - vec2(px.x * 1.5, 0.0)) * 0.16 +
+      sampleTex(uv + vec2(0.0, px.y * 1.5)) * 0.16 +
+      sampleTex(uv - vec2(0.0, px.y * 1.5)) * 0.16
+    );
+    float signal = max(luma(blur.rgb), blur.a);
+
+    float nSteps = 3.0 + floor(uIntensity * 3.5);
+    float s = sqrt(signal) * nSteps;
+    s = (floor(s) + smoothstep(0.45, 0.55, fract(s))) / nSteps;
+    float shaded = s * s;
+
+    return vec4(vec3(shaded), max(src.a, signal));
+  }
+
+  // Stripes — discards horizontal bands so the source content shows
+  // through only between the strokes. Adapted from webgl-shaders.com/
+  // stripes-example.html. Band frequency comes from uCellSize (wider
+  // cellSize → fewer thicker stripes); animation speed from uMotion.
+  vec4 stripesPass(vec2 uv) {
+    vec4 src = sampleTex(uv);
+    float t = uTime * mix(0.3, 3.5, uMotion);
+    float bandSize = max(uCellSize * 0.6, 3.0);
+    float stripe = cos(uv.y * uResolution.y / bandSize + t * 1.7);
+    // Threshold edges with intensity so high-intensity = thicker stripes
+    // (smaller gaps); low-intensity = thinner stripes (larger gaps).
+    float gap = mix(0.05, -0.4, uIntensity);
+    if (stripe < gap) {
+      return vec4(0.0, 0.0, 0.0, 0.0);
+    }
+    return src;
+  }
+
+  // Bad TV / VHS — noise-driven UV jitter + line jumps + white-noise
+  // grain. Adapted from webgl-shaders.com/badtv-example.html. The
+  // reference takes its strength from mouse.x; we tie it to uIntensity
+  // and uMotion instead so it sits in the slider grid.
+  vec4 badtvPass(vec2 uv) {
+    float t = uTime * mix(0.3, 4.0, uMotion);
+    float strength = (0.3 + 0.7 * noise1d(0.3 * t)) * uIntensity;
+    float jump = 500.0 * floor(0.3 * uIntensity * (t + noise1d(t)));
+
+    vec2 distorted = uv;
+    distorted.y += 0.2 * strength * (noise1d(5.0 * uv.y + 2.0 * t + jump) - 0.5);
+    distorted.x += 0.1 * strength * (noise1d(100.0 * strength * distorted.y + 3.0 * t + jump) - 0.5);
+
+    vec4 src = sampleTex(distorted);
+    vec3 color = src.rgb;
+    // Coarse white-noise overlay — looks like analog snow on top of the
+    // distorted feed.
+    color += vec3(5.0 * strength * (rand(uv + 1.133 * vec2(t, 1.13)) - 0.5));
+    return vec4(color, src.a);
+  }
+
+  // RGB — chromatic aberration with the three channels offset along
+  // axes rotating around the centre. Adapted from webgl-shaders.com/
+  // rgb-example.html. Offset size grows with distance to the centre so
+  // the fringing is strongest at the corners (just like the reference).
+  vec4 rgbPass(vec2 uv) {
+    float angle = uTime * mix(0.3, 2.4, uMotion);
+    vec2 rOff = vec2(cos(angle), sin(angle));
+    angle += radians(120.0);
+    vec2 gOff = vec2(cos(angle), sin(angle));
+    angle += radians(120.0);
+    vec2 bOff = vec2(cos(angle), sin(angle));
+
+    vec2 frag = uv * uResolution;
+    float offsetSize = 0.08 * length(frag - 0.5 * uResolution) * uIntensity;
+
+    float r = sampleTex(uv - offsetSize * rOff / uResolution).r;
+    float g = sampleTex(uv - offsetSize * gOff / uResolution).g;
+    float b = sampleTex(uv - offsetSize * bOff / uResolution).b;
+    vec4 src = sampleTex(uv);
+    return vec4(r, g, b, max(src.a, max(max(r, g), b)));
+  }
+
   vec4 wavePass(vec2 uv) {
     float t = uTime * mix(0.3, 4.0, uMotion);
     float amp = uWarp * uIntensity * 0.05;
@@ -470,6 +576,14 @@ const FRAGMENT_SHADER = /* glsl */ `
       color = metalPass(vUv);
     } else if (uEffect > 10.5 && uEffect < 11.5) {
       color = pencilPass(vUv);
+    } else if (uEffect > 11.5 && uEffect < 12.5) {
+      color = toonPass(vUv);
+    } else if (uEffect > 12.5 && uEffect < 13.5) {
+      color = stripesPass(vUv);
+    } else if (uEffect > 13.5 && uEffect < 14.5) {
+      color = badtvPass(vUv);
+    } else if (uEffect > 14.5 && uEffect < 15.5) {
+      color = rgbPass(vUv);
     }
 
     if (uEffect > 0.5 && uGrain > 0.0) {
