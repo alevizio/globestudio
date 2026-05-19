@@ -5,7 +5,7 @@
 // square; the chip's overflow: hidden + 10px border-radius does the
 // rounded-corner clipping so this SVG can render edge-to-edge.
 
-import { useId } from "react";
+import { memo, useId } from "react";
 import {
   createDiamondPoints,
   createHexagonPoints,
@@ -775,7 +775,13 @@ const renderContent = (preset, clipId) => {
   );
 };
 
-export const LookPreview = ({ preset }) => {
+// Wrapped in React.memo because chip presets are module-scoped (defined in
+// look-presets.js) — every render passes the exact same preset reference,
+// so shallow equality short-circuits every re-render the looks bar would
+// otherwise propagate when an unrelated piece of app state changes. With 11
+// chips visible at once and the surrounding control panel re-rendering on
+// every slider tick, this is a big React-side win.
+const LookPreviewInner = ({ preset }) => {
   // Each chip renders its own <clipPath>; without a unique id every chip on the
   // looks bar would share the same DOM id, so url(#…) refs resolve ambiguously.
   const reactId = useId();
@@ -827,3 +833,5 @@ export const LookPreview = ({ preset }) => {
     </span>
   );
 };
+
+export const LookPreview = memo(LookPreviewInner);
