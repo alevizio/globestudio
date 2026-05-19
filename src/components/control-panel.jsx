@@ -425,6 +425,7 @@ export const ControlPanel = ({
 
       {viewMode === "globe" && (
         <PanelSection title="Globe">
+          {/* Top-level pivots — affect everything else in the section */}
           <OptionRow label="Animations">
             <ToggleControl
               label="Toggle globe animations"
@@ -440,6 +441,8 @@ export const ControlPanel = ({
               options={globeLookOptions}
             />
           </OptionRow>
+
+          {/* Glow layer */}
           <OptionRow label="Glow">
             <ToggleControl
               label="Toggle globe glow"
@@ -449,7 +452,7 @@ export const ControlPanel = ({
           </OptionRow>
           {globeSettings.glow && (
             <>
-              <OptionRow label="Glow" value={globeSettings.glowStrength}>
+              <OptionRow label="Strength" value={globeSettings.glowStrength}>
                 <RangeControl
                   label="Glow strength"
                   min={0}
@@ -469,6 +472,8 @@ export const ControlPanel = ({
               </OptionRow>
             </>
           )}
+
+          {/* Surface (sphere fill) layer */}
           <OptionRow label="Surface">
             <ToggleControl
               label="Toggle globe surface"
@@ -477,7 +482,7 @@ export const ControlPanel = ({
             />
           </OptionRow>
           {globeSettings.surface && (
-            <OptionRow label="Surface" value={globeSettings.surfaceStrength}>
+            <OptionRow label="Strength" value={globeSettings.surfaceStrength}>
               <RangeControl
                 label="Surface strength"
                 min={0}
@@ -487,6 +492,8 @@ export const ControlPanel = ({
               />
             </OptionRow>
           )}
+
+          {/* Grid layer */}
           <OptionRow label="Grid">
             <ToggleControl
               label="Toggle globe grid"
@@ -496,7 +503,7 @@ export const ControlPanel = ({
           </OptionRow>
           {globeSettings.grid && (
             <>
-              <OptionRow label="Grid" value={globeSettings.gridStrength}>
+              <OptionRow label="Strength" value={globeSettings.gridStrength}>
                 <RangeControl
                   label="Grid strength"
                   min={0}
@@ -505,7 +512,7 @@ export const ControlPanel = ({
                   onChange={(value) => updateGlobeSetting("gridStrength", value)}
                 />
               </OptionRow>
-              <OptionRow label="Grid Size" value={`${globeSettings.gridSize} deg`}>
+              <OptionRow label="Size" value={`${globeSettings.gridSize}°`}>
                 <RangeControl
                   label="Grid size"
                   min={12}
@@ -515,7 +522,7 @@ export const ControlPanel = ({
                   onChange={(value) => updateGlobeSetting("gridSize", value)}
                 />
               </OptionRow>
-              <OptionRow label="Grid Lift" value={globeSettings.gridLift}>
+              <OptionRow label="Lift" value={globeSettings.gridLift}>
                 <RangeControl
                   label="Grid lift"
                   min={0}
@@ -526,15 +533,8 @@ export const ControlPanel = ({
               </OptionRow>
             </>
           )}
-          <OptionRow label="Dot Lift" value={globeSettings.dotLift}>
-            <RangeControl
-              label="Globe dot lift"
-              min={0}
-              max={100}
-              value={globeSettings.dotLift}
-              onChange={(value) => updateGlobeSetting("dotLift", value)}
-            />
-          </OptionRow>
+
+          {/* Routes — only relevant in the borderless look */}
           {globeSettings.look === "borderless" && (
             <>
               <OptionRow label="Routes">
@@ -545,7 +545,7 @@ export const ControlPanel = ({
                 />
               </OptionRow>
               {globeSettings.routes && (
-                <OptionRow label="Routes" value={globeSettings.routesStrength}>
+                <OptionRow label="Strength" value={globeSettings.routesStrength}>
                   <RangeControl
                     label="Route strength"
                     min={0}
@@ -557,6 +557,8 @@ export const ControlPanel = ({
               )}
             </>
           )}
+
+          {/* Live network animation */}
           <OptionRow label="Network">
             <ToggleControl
               label="Toggle live network"
@@ -591,7 +593,9 @@ export const ControlPanel = ({
               </OptionRow>
             </>
           )}
-          <OptionRow label="Auto Spin">
+
+          {/* Auto spin */}
+          <OptionRow label="Auto spin">
             <ToggleControl
               label="Toggle globe auto spin"
               checked={globeSettings.autoSpin}
@@ -599,9 +603,9 @@ export const ControlPanel = ({
             />
           </OptionRow>
           {globeSettings.autoSpin && (
-            <OptionRow label="Spin" value={shaderSettings.motion}>
+            <OptionRow label="Speed" value={shaderSettings.motion}>
               <RangeControl
-                label="Globe spin"
+                label="Globe spin speed"
                 min={0}
                 max={100}
                 value={shaderSettings.motion}
@@ -609,6 +613,17 @@ export const ControlPanel = ({
               />
             </OptionRow>
           )}
+
+          {/* Global adjustments — sit at the bottom because they're not gated */}
+          <OptionRow label="Dot lift" value={globeSettings.dotLift}>
+            <RangeControl
+              label="Globe dot lift"
+              min={0}
+              max={100}
+              value={globeSettings.dotLift}
+              onChange={(value) => updateGlobeSetting("dotLift", value)}
+            />
+          </OptionRow>
         </PanelSection>
       )}
 
