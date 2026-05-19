@@ -143,9 +143,26 @@ const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 30, sphereC
   return <g clipPath={`url(#${clipId})`}>{dots}</g>;
 };
 
+// Metal / chrome — three horizontal layered bands across the sphere that
+// suggest a polished reflective surface catching light. Clipped to the
+// sphere so the bands wrap with the silhouette. Bright top, cool mid,
+// dark bottom — the same metal ramp the GLSL pass uses.
+const renderMetalSheen = (clipId) => (
+  <g clipPath={`url(#${clipId})`} pointerEvents="none">
+    <rect x="-2" y="-2" width="34" height="34" fill="rgba(220, 232, 245, 0.32)" />
+    <rect x="-2" y="9" width="34" height="9" fill="rgba(110, 130, 160, 0.55)" />
+    <rect x="-2" y="18" width="34" height="14" fill="rgba(20, 26, 38, 0.7)" />
+    <rect x="-2" y="4" width="34" height="1.2" fill="rgba(255, 255, 255, 0.45)" />
+    <rect x="-2" y="14" width="34" height="0.8" fill="rgba(255, 255, 255, 0.25)" />
+  </g>
+);
+
 const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
   if (shaderEffect === "halftone") {
     return renderHalftonePattern(clipId, dotColor);
+  }
+  if (shaderEffect === "metal") {
+    return renderMetalSheen(clipId);
   }
   if (shaderEffect === "crt") {
     // Scanlines across the full cell + a subtle vignette ring so the

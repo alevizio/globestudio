@@ -15,6 +15,7 @@ export const EFFECT_INDEX = {
   edge: 7,
   wave: 8,
   bloomEnhance: 9,
+  metal: 10,
 };
 
 const VERTEX_SHADER = /* glsl */ `
@@ -290,6 +291,52 @@ const FRAGMENT_SHADER = /* glsl */ `
     return vec4(final, base.a);
   }
 
+  // Chrome / metal — remaps source luminance through a polished-metal
+  // ramp (cool steel-blue valleys → silver mids → bright specular peaks)
+  // with subtle horizontal banding that breathes with uTime, mimicking
+  // the layered reflective look of Evil Rabbit's metal shader. Preserves
+  // source alpha so dots / sphere outline still read on the canvas.
+  vec4 metalPass(vec2 uv) {
+    vec2 px = 1.0 / max(uResolution, vec2(1.0));
+    // Average a small neighbourhood so sparse dot fields fill the metal
+    // ramp instead of producing a noisy single-pixel-wide highlight.
+    vec4 src = sampleTex(uv);
+    vec4 blur = (
+      src * 0.36 +
+      sampleTex(uv + vec2(px.x * 1.5, 0.0)) * 0.16 +
+      sampleTex(uv - vec2(px.x * 1.5, 0.0)) * 0.16 +
+      sampleTex(uv + vec2(0.0, px.y * 1.5)) * 0.16 +
+      sampleTex(uv - vec2(0.0, px.y * 1.5)) * 0.16
+    );
+    float signal = max(luma(blur.rgb), blur.a);
+
+    // Three-stop metal ramp.
+    vec3 dark = vec3(0.06, 0.09, 0.14);
+    vec3 mid = vec3(0.52, 0.58, 0.68);
+    vec3 hi = vec3(1.02, 1.04, 1.1);
+    vec3 metal = signal < 0.5
+      ? mix(dark, mid, signal * 2.0)
+      : mix(mid, hi, (signal - 0.5) * 2.0);
+
+    // Layered chrome banding — slow horizontal sweeps that suggest a
+    // polished surface catching light. Modulated by signal so the bands
+    // only show where there's something to reflect off.
+    float bandPhase = uv.y * 28.0 + uTime * mix(0.4, 2.2, uMotion);
+    float band = sin(bandPhase) * 0.5 + 0.5;
+    float bandStrength = smoothstep(0.15, 0.65, signal) * uIntensity;
+    metal += vec3(0.12, 0.14, 0.18) * (band - 0.5) * bandStrength;
+
+    // Subtle directional specular streak for the brightest spots —
+    // anamorphic highlight reads as a glint across the chrome surface.
+    float spec = smoothstep(0.78, 1.0, signal);
+    metal += vec3(0.9, 0.95, 1.05) * spec * uIntensity * 0.35;
+
+    // Preserve alpha so the background composites cleanly behind the
+    // metal-toned content (no flat fill bleed across empty space).
+    float alpha = max(src.a, signal);
+    return vec4(metal, alpha);
+  }
+
   vec4 wavePass(vec2 uv) {
     float t = uTime * mix(0.3, 4.0, uMotion);
     float amp = uWarp * uIntensity * 0.05;
@@ -325,6 +372,8 @@ const FRAGMENT_SHADER = /* glsl */ `
       color = wavePass(vUv);
     } else if (uEffect > 8.5 && uEffect < 9.5) {
       color = bloomEnhancePass(vUv);
+    } else if (uEffect > 9.5 && uEffect < 10.5) {
+      color = metalPass(vUv);
     }
 
     if (uEffect > 0.5 && uGrain > 0.0) {

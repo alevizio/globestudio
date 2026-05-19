@@ -104,4 +104,16 @@ export const lookPresets = [
       globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: true, glowStrength: 85 },
     }),
   },
+  {
+    id: "metal",
+    name: "Metal",
+    blurb: "Polished chrome",
+    settings: merge({
+      density: 70,
+      dotSize: 13,
+      shape: "Hexagon",
+      shaderSettings: { ...effectPresets.metal, effect: "metal", intensity: 78, motion: 30 },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
+    }),
+  },
 ];

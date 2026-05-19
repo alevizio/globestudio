@@ -21,13 +21,14 @@ export const shaderEffectOptions = [
   { value: "glitch", label: "Glitch" },
   { value: "edge", label: "Edge" },
   { value: "wave", label: "Wave" },
+  { value: "metal", label: "Metal" },
 ];
 
 export const effectsWithSplit = new Set(["bloom", "chromatic", "crt", "glitch", "wave"]);
 export const effectsWithScanlines = new Set(["crt", "pixel", "halftone", "glitch"]);
 export const effectsWithCellSize = new Set(["pixel", "halftone", "crt"]);
 export const effectsWithWarp = new Set(["bloom", "chromatic", "crt", "threshold", "wave"]);
-export const effectsWithMotion = new Set(["bloom", "chromatic", "crt", "halftone", "threshold", "glitch", "wave"]);
+export const effectsWithMotion = new Set(["bloom", "chromatic", "crt", "halftone", "threshold", "glitch", "wave", "metal"]);
 export const effectsWithThreshold = new Set(["threshold", "edge"]);
 
 const baseDefaults = {
@@ -52,6 +53,7 @@ export const effectPresets = {
   glitch: { ...baseDefaults, intensity: 55, split: 28, grain: 14, scanlines: 32, motion: 80 },
   edge: { ...baseDefaults, intensity: 60, threshold: 18, grain: 0, motion: 0 },
   wave: { ...baseDefaults, intensity: 55, split: 18, warp: 60, motion: 50, grain: 4 },
+  metal: { ...baseDefaults, intensity: 70, grain: 0, scanlines: 0, motion: 30 },
 };
 
 export const presetForEffect = (effect) => effectPresets[effect] ?? effectPresets.none;
