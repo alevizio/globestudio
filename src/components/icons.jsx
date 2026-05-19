@@ -7,6 +7,7 @@ export {
   Globe2,
   GripHorizontal,
   GripVertical,
+  Keyboard,
   Minus,
   Moon,
   Move,

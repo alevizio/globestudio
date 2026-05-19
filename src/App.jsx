@@ -33,7 +33,7 @@ import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
-import { DottedGlobe, Download, Github, Globe2, Moon, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Sun, Twitter } from "./components/icons.jsx";
+import { DottedGlobe, Download, Github, Globe2, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Sun, Twitter } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
@@ -899,22 +899,12 @@ const App = () => {
       <nav className="social-links" aria-label="Project links">
         <button
           type="button"
-          className="social-link social-help-button"
+          className="social-link"
           onClick={() => setShortcutsOpen(true)}
           aria-label="Show keyboard shortcuts"
           data-tooltip="Keyboard shortcuts (?)"
         >
-          <span aria-hidden="true">?</span>
-        </button>
-        <button
-          type="button"
-          className="social-link"
-          onClick={() => setUiTheme((current) => (current === "dark" ? "light" : "dark"))}
-          aria-label={uiTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-          aria-pressed={uiTheme === "light"}
-          data-tooltip={uiTheme === "dark" ? "Switch to light UI" : "Switch to dark UI"}
-        >
-          {uiTheme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+          <Keyboard size={14} />
         </button>
         <a
           className="social-link"
@@ -979,6 +969,16 @@ const App = () => {
             </span>
           </div>
           <div className="panel-header-actions">
+            <button
+              type="button"
+              className="panel-icon-button"
+              onClick={() => setUiTheme((current) => (current === "dark" ? "light" : "dark"))}
+              aria-label={uiTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+              aria-pressed={uiTheme === "light"}
+              data-tooltip={uiTheme === "dark" ? "Switch to light UI" : "Switch to dark UI"}
+            >
+              {uiTheme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
             <button
               type="button"
               className={`panel-icon-button panel-shuffle-button ${shuffleFlash ? "is-shuffling" : ""}`}

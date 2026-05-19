@@ -1425,16 +1425,6 @@ button {
   color: var(--text);
 }
 
-/* Help button uses a typographic "?" glyph instead of an icon, so style it
-   for monospaced kbd-like clarity. */
-.social-help-button {
-  font-family: var(--font-mono-2);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
-}
-
 .view-mode-switch {
   position: fixed;
   top: 12px;
@@ -1452,7 +1442,38 @@ button {
   transform: translateX(-50%);
 }
 
+/* Sliding indicator pill — sits behind the buttons and animates between
+   the two grid slots driven by the .view-mode-switch[data-active="…"]
+   attribute. Spring-y cubic-bezier gives it a SwiftUI segmented-control
+   feel without overshooting past the slot edges. */
+.view-mode-indicator {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc((100% - 15px) / 2);
+  border-radius: 17px;
+  border: 1px solid rgba(246, 242, 234, 0.32);
+  background: rgba(246, 242, 234, 0.06);
+  transform: translateX(0);
+  transition: transform 360ms cubic-bezier(0.34, 1.3, 0.5, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.view-mode-switch[data-active="globe"] .view-mode-indicator {
+  transform: translateX(calc(100% + 5px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-mode-indicator {
+    transition: none;
+  }
+}
+
 .view-mode-button {
+  position: relative;
+  z-index: 1;
   min-height: 34px;
   display: inline-flex;
   align-items: center;
@@ -1465,17 +1486,15 @@ button {
   font-size: 12px;
   font-weight: 780;
   cursor: pointer;
+  transition: color 220ms var(--ease);
 }
 
 .view-mode-button:hover,
 .view-mode-button:focus-visible {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.055);
 }
 
 .view-mode-button.is-active {
-  border-color: rgba(246, 242, 234, 0.32);
-  background: rgba(246, 242, 234, 0.06);
   color: var(--accent);
 }
 

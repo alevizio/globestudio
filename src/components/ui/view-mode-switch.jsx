@@ -6,7 +6,12 @@ const modes = [
 ];
 
 export const ViewModeSwitch = ({ viewMode, setViewMode }) => (
-  <div className="view-mode-switch" aria-label="View mode">
+  <div
+    className="view-mode-switch"
+    data-active={viewMode}
+    aria-label="View mode"
+  >
+    <span className="view-mode-indicator" aria-hidden="true" />
     {modes.map((mode) => {
       const Icon = mode.icon;
       const active = viewMode === mode.value;
