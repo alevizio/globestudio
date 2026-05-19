@@ -638,28 +638,31 @@ button {
 
 .looks-chip {
   flex: 0 0 auto;
-  min-height: 64px;
-  padding: 6px 22px 6px 6px;
+  min-height: 40px;
+  padding: 4px 16px 4px 10px;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--field);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
 }
 
+/* Horizontal bar preview — a flat colored strip that communicates the
+   preset's primary fill at a glance. Replaces the tiny SVG globe
+   thumbnail (which read as a bordered square next to the label) with
+   a single 6px-tall bar. */
 .looks-chip-preview {
   flex: 0 0 auto;
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
-  overflow: hidden;
+  width: 32px;
+  height: 6px;
+  border-radius: 3px;
   transition: transform 220ms var(--ease);
 }
 
@@ -1721,18 +1724,25 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  padding: 10px 8px 6px;
+  gap: 10px;
+  padding: 6px 8px 4px;
 }
 
-/* Slim horizontal rule that fills the panel-header's left column. Replaces
-   the brand-mark slot so the row reads as a single divider with the
-   utility actions docked to the right. */
-.panel-header-divider {
-  display: block;
-  width: 100%;
-  height: 1px;
-  background: var(--border);
+.panel-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-meta-icon {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
 }
 
 /* .panel-reset-button is just a marker for the rotation animation now —
