@@ -13,6 +13,7 @@ import {
 } from "../config/shader-effects.js";
 import { globeLookOptions } from "../config/globe-settings.js";
 import { areaOptions } from "../data/geography.js";
+import { FLAT_PROJECTION_OPTIONS } from "../three/world-texture.js";
 import { formatSvgNumber } from "../utils/math.js";
 import { ColorSwatch } from "./ui/color-swatch.jsx";
 import { DepthControl } from "./ui/depth-control.jsx";
@@ -101,6 +102,8 @@ export const ControlPanel = ({
   setWorldStrokeVisible,
   worldStrokeWidth = 1.8,
   setWorldStrokeWidth,
+  flatProjection = "mercator",
+  setFlatProjection,
   dotsVisible,
   setDotsVisible,
   shaderSettings,
@@ -262,6 +265,21 @@ export const ControlPanel = ({
                   />
                 </OptionRow>
               </>
+            )}
+            {/* Flat-plane projection picker. Only visible in flat view since
+                the sphere always uses equirectangular for UV unwrap. Solid
+                mode only — when dots are active they're stuck in Mercator
+                via dotted-map. See docs/research/2026-05-map-data-alternatives.md
+                Finding 3. */}
+            {viewMode === "flat" && (
+              <OptionRow label="Projection">
+                <SearchableSelect
+                  label="Flat plane projection"
+                  value={flatProjection}
+                  onChange={setFlatProjection}
+                  options={FLAT_PROJECTION_OPTIONS}
+                />
+              </OptionRow>
             )}
           </>
         )}

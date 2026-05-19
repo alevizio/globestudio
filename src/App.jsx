@@ -97,6 +97,10 @@ const App = () => {
   const [worldStrokeGradient, setWorldStrokeGradient] = usePersistedState("worldStrokeGradient", null);
   const [worldStrokeVisible, setWorldStrokeVisible] = usePersistedState("worldStrokeVisible", true);
   const [worldStrokeWidth, setWorldStrokeWidth] = usePersistedState("worldStrokeWidth", 1.8);
+  // Flat-plane projection used when render mode is Solid. Sphere always uses
+  // equirectangular regardless. See docs/research/2026-05-map-data-alternatives.md
+  // Finding 3 for the projection inventory.
+  const [flatProjection, setFlatProjection] = usePersistedState("flatProjection", "mercator");
   const [shaderSettings, setShaderSettings] = usePersistedState("shaderSettings", DEFAULT_SHADER_SETTINGS);
   const [globeSettings, setGlobeSettings] = usePersistedState("globeSettings", DEFAULT_GLOBE_SETTINGS);
   // First-time mobile visitors land on the globe with the panel hidden so the
@@ -898,6 +902,7 @@ const App = () => {
             worldStrokeGradient={worldStrokeGradient}
             worldStrokeVisible={worldStrokeVisible}
             worldStrokeWidth={worldStrokeWidth}
+            flatProjection={flatProjection}
             selectionCountryCodes={selected.countryCodes}
             selectionCollection={selected.collection}
             background={isSpaceBackground ? "#03030a" : background}
@@ -1082,6 +1087,8 @@ const App = () => {
             setWorldStrokeVisible={setWorldStrokeVisible}
             worldStrokeWidth={worldStrokeWidth}
             setWorldStrokeWidth={setWorldStrokeWidth}
+            flatProjection={flatProjection}
+            setFlatProjection={setFlatProjection}
             shaderSettings={shaderSettings}
             setShaderSettings={setShaderSettings}
             globeSettings={globeSettings}

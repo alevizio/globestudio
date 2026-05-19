@@ -1,6 +1,41 @@
 import * as THREE from "three";
-import { geoEquirectangular, geoMercator, geoPath } from "d3-geo";
+// geoEqualEarth + geoNaturalEarth1 live in d3-geo core; geoWinkel3 +
+// geoRobinson are in the heavier d3-geo-projection extension package.
+import { geoEqualEarth, geoEquirectangular, geoMercator, geoNaturalEarth1, geoPath } from "d3-geo";
+import { geoRobinson, geoWinkel3 } from "d3-geo-projection";
 import { hexToRgb, rgbToHex } from "../utils/color.js";
+
+// Alternative flat-plane projections beyond Mercator. Sphere texture stays
+// equirectangular always — that's the natural UV unwrap for a sphere geometry,
+// not a designer choice.
+//
+// - mercator: default, matches dotted-map's internal projection so dots
+//   align pixel-for-pixel with the texture
+// - equalEarth: modern (2018) equal-area, designer-loved. Best replacement
+//   for Mercator's well-known size distortion.
+// - winkel3: National Geographic standard since 1998 (Winkel Tripel).
+//   Compromise that balances area, direction, and distance distortion.
+// - robinson: pre-1998 NatGeo standard. Compromise, looks "natural" to
+//   anyone who learned geography before 2000.
+//
+// When a non-Mercator projection is picked AND dots are visible, the dots
+// will misalign with the texture (dotted-map only knows Mercator). The UI
+// gates the projection picker to Solid mode for this reason.
+const FLAT_PROJECTIONS = {
+  mercator: geoMercator,
+  equalEarth: geoEqualEarth,
+  naturalEarth1: geoNaturalEarth1,
+  winkel3: geoWinkel3,
+  robinson: geoRobinson,
+};
+
+export const FLAT_PROJECTION_OPTIONS = [
+  { value: "mercator", label: "Mercator" },
+  { value: "equalEarth", label: "Equal Earth" },
+  { value: "naturalEarth1", label: "Natural Earth" },
+  { value: "winkel3", label: "Winkel Tripel" },
+  { value: "robinson", label: "Robinson" },
+];
 
 // Build a Canvas2D linear gradient that spans the full texture along the
 // supplied angle. Matches the dot-color gradient math so a single gradient
@@ -109,6 +144,10 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
     strokeGradient = null,
     strokeVisible = true,
     strokeWidth = 1.8,
+    // Projection only matters for the flat plane texture (when region is
+    // supplied). Sphere always uses equirectangular regardless. Default is
+    // mercator to match dotted-map's internal projection.
+    projection: projectionKey = "mercator",
   } = options;
 
   // Resolve canvas dimensions. When the caller supplies an aspect (from the
@@ -138,9 +177,13 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
   // backward compatibility.
   let projection;
   if (region?.lat && region?.lng) {
-    projection = geoMercator();
+    // Flat plane texture: honor the selected projection. Falls back to
+    // Mercator if the key is unknown.
+    const factory = FLAT_PROJECTIONS[projectionKey] ?? FLAT_PROJECTIONS.mercator;
+    projection = factory();
     projection.fitExtent([[0, 0], [width, height]], regionExtentFeature(region));
   } else {
+    // Sphere texture path — always equirectangular for natural UV unwrap.
     projection = geoEquirectangular()
       .scale(width / (2 * Math.PI))
       .translate([width / 2, height / 2]);

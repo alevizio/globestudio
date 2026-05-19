@@ -67,6 +67,9 @@ export const GlobeBackground = ({
   worldStrokeGradient = null,
   worldStrokeVisible = true,
   worldStrokeWidth = 1.8,
+  // Solid-mode flat-plane projection. Only affects the flat texture; sphere
+  // always uses equirectangular. See FLAT_PROJECTION_OPTIONS in world-texture.js.
+  flatProjection = "mercator",
   selectionCountryCodes = [],
   selectionCollection = null,
   dotsVisible,
@@ -1022,6 +1025,10 @@ export const GlobeBackground = ({
             ...textureOptions,
             region,
             aspect,
+            // Sphere always uses equirectangular; flat plane honors the user's
+            // projection pick. Threaded only into the flat texture so the
+            // sphere UV unwrap stays correct.
+            projection: flatProjection,
           })
         : sphereTexture;
       if (sphereTexture) applySolid(sphereTexture, flatTexture);
@@ -1034,7 +1041,7 @@ export const GlobeBackground = ({
     // which are stable when the selection doesn't change. The selection
     // deps cover the only mutations that actually matter here, and
     // leaving mapData out avoids a texture rebuild every density slide.
-  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection]);
+  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection, flatProjection]);
 
   useEffect(() => {
     const target = morphMode === "globe" ? 1 : 0;
