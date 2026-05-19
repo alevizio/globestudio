@@ -598,8 +598,14 @@ button {
 .looks-bar {
   display: flex;
   gap: 4px;
-  margin: 0;
-  padding: 2px 0;
+  /* Negative horizontal margins extend the scroll container all the way
+     to the card's inner edges (cancelling the .control-panel's 10px
+     padding), so chips fade in and out at the card edges instead of 10px
+     inside them. Padding then pushes the first chip back in to 18px from
+     the card edge — same column as the panel-header text, looks-section
+     summaries, and every OptionRow below. */
+  margin: 0 -10px;
+  padding: 2px 18px;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
