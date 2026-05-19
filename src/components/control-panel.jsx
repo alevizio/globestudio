@@ -20,6 +20,7 @@ import { OptionRow } from "./ui/option-row.jsx";
 import { PanelSection } from "./ui/panel-section.jsx";
 import { RangeControl } from "./ui/range-control.jsx";
 import { SearchableSelect } from "./ui/searchable-select.jsx";
+import { SegmentedControl } from "./ui/segmented-control.jsx";
 import { SelectControl } from "./ui/select-control.jsx";
 import { ShapeSelect } from "./ui/shape-select.jsx";
 import { TiltControl } from "./ui/tilt-control.jsx";
@@ -198,7 +199,7 @@ export const ControlPanel = ({
           </OptionRow>
         )}
         <OptionRow label="Style">
-          <SelectControl
+          <SegmentedControl
             label="World style"
             value={renderMode}
             onChange={setRenderMode}
