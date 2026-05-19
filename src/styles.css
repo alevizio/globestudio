@@ -639,30 +639,38 @@ button {
 .looks-chip {
   flex: 0 0 auto;
   min-height: 40px;
-  padding: 4px 16px 4px 10px;
+  /* No right padding — the preview block takes the entire right end
+     of the chip and is flush with the chip's top, right and bottom
+     edges. Left padding still buffers the label from the chip border. */
+  padding: 0 0 0 14px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  /* Soft-cornered rectangle (not a full pill) so the right-side square
+     preview reads as a square — the chip's small 10px corner radius
+     clips just the outer corners of the preview, keeping it
+     unmistakably square overall. */
+  border-radius: 10px;
   background: var(--field);
   color: var(--muted);
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
+  overflow: hidden;
   transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
 }
 
-/* Horizontal bar preview — a flat colored strip that communicates the
-   preset's primary fill at a glance. Replaces the tiny SVG globe
-   thumbnail (which read as a bordered square next to the label) with
-   a single 6px-tall bar. */
+/* Solid coloured square anchored to the chip's right edge — fills the
+   chip's full height (align-self: stretch) and is ordered after the
+   label so it docks on the right. Inline background style on the
+   element carries the preset's primary fill. */
 .looks-chip-preview {
   flex: 0 0 auto;
-  width: 32px;
-  height: 6px;
-  border-radius: 3px;
+  order: 2;
+  align-self: stretch;
+  width: 40px;
   transition: transform 220ms var(--ease);
 }
 
