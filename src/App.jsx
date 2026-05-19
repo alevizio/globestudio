@@ -33,7 +33,7 @@ import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
-import { DottedGlobe, Download, Github, Globe2, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Sun, Twitter } from "./components/icons.jsx";
+import { DottedGlobe, Download, Github, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
@@ -906,26 +906,6 @@ const App = () => {
           data-tooltip="View source on GitHub"
         >
           <Github size={15} />
-        </a>
-        <a
-          className="social-link"
-          href="https://twitter.com/alevizio"
-          target="_blank"
-          rel="noreferrer noopener"
-          aria-label="Follow on Twitter"
-          data-tooltip="Follow on Twitter"
-        >
-          <Twitter size={13} />
-        </a>
-        <a
-          className="social-link"
-          href="https://alevizio.com"
-          target="_blank"
-          rel="noreferrer noopener"
-          aria-label="Visit alevizio.com"
-          data-tooltip="Visit alevizio.com"
-        >
-          <Globe2 size={15} />
         </a>
       </nav>
 
