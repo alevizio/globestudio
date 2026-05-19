@@ -1,0 +1,88 @@
+name: 🐛 Bug report
+description: Something is broken or doesn't match the docs
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. The clearer your report, the
+        faster we can land a fix.
+
+        **Before filing**: try the [live site](https://worlddots.app/) and
+        confirm the bug still reproduces there. If it's a performance issue
+        (lag, freeze, crash), use the
+        [performance template](https://github.com/alevizio/worlddots/issues/new?template=performance-report.yml)
+        instead — it asks the right questions.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of what went wrong.
+      placeholder: When I do X, I expect Y, but instead Z happens…
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: How can we see the bug ourselves?
+      placeholder: |
+        1. Go to https://worlddots.app/
+        2. Pick country: …
+        3. Click …
+        4. Notice that …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: I expected the picker to stay open after clicking the swatch…
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser + version
+      placeholder: Chrome 142, Safari 18.4, Firefox 137…
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS + version
+      placeholder: macOS 15.4, Windows 11, iOS 18.4…
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device (optional)
+      placeholder: MacBook Pro M1, Pixel 8, iPhone 15…
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot / recording
+      description: Drag-and-drop an image or short screen recording if you can. Animations are much easier to debug with video.
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console output (optional)
+      description: Open DevTools → Console, copy any red errors here.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I searched [open issues](https://github.com/alevizio/worlddots/issues?q=is%3Aissue) and didn't find a duplicate.
+          required: true
+        - label: I've tried hard-refreshing the live site to rule out a stale cache.
+          required: true

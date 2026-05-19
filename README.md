@@ -1,57 +1,154 @@
+<div align="center">
+
 # Worlddots
 
-A personal, developer-friendly dotted map and globe generator for making clean SVG, PNG, and WebGL-inspired map assets.
+**Open-source dotted maps and animated 3D globes for designers, animators, and creative developers.**
 
-Worlddots lets you build dotted maps for the world, countries, regions, subregions, and US states, then view the same dot data as either a flat SVG composition or an interactive 3D globe. It is intentionally focused on quick visual iteration and easy export for use in apps, websites, decks, docs, and design systems.
+Pick a country or the whole world, customize dots and shapes, apply shader effects, and export PNG, SVG, or animated WebM. Built on React + Three.js.
+
+[**worlddots.app**](https://worlddots.app/) · [Live demos](https://worlddots.app/) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/alevizio/worlddots/discussions)
+
+[![Deploy status](https://github.com/alevizio/worlddots/actions/workflows/deploy.yml/badge.svg)](https://github.com/alevizio/worlddots/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-f6f2ea.svg)](LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-9adfff.svg)](CONTRIBUTING.md)
+
+</div>
+
+---
+
+## Why Worlddots?
+
+Most open-source map tooling is built for engineers — tile servers, geocoding,
+GIS data pipelines. Worlddots is built for the **other half of the stack**:
+the landing-page hero shot, the launch teaser, the explainer scrollytell, the
+deck slide that needs a globe but not a database.
+
+Think of it as **a Shader Lab for maps and globes** — a designer-first canvas
+with presets, effects, motion, and clean exports. Composable, web-native, and
+yours to remix.
 
 ## Features
 
-- Generate dotted world, country, region, subregion, and US state maps.
-- Switch between flat map and interactive Three.js globe views.
-- Adjust dot shape, density, size, foreground color, and background color.
-- Preview with zoom, pan, tilt, and depth controls for a more spatial composition.
-- Drag and zoom the globe directly, with responsive framing on desktop and mobile.
-- Add live WebGL shader passes like bloom, chromatic split, CRT, halftone, pixel, and threshold.
-- Export production-ready SVG or PNG files.
-- Export shader previews to PNG, or copy generated SVG markup from the export menu.
-- Use transparent backgrounds for compositing in other tools.
+- 🌍 **Maps for any scope** — world, country, region, subregion, US state
+- 🔄 **Flat ↔ 3D globe** — same dot data, two views, smooth morph
+- 🎨 **12 dot shapes + custom upload** — Circle · Hexagon · Triangle · Pentagon ·
+  Square · Diamond · Star · Plus · Ring · Voxel · Particle Grid · ASCII glyphs ·
+  your own SVG/PNG
+- 🪄 **Shader effects** — bloom, chromatic split, CRT, halftone, pixel,
+  threshold, edge, glitch, wave
+- 🌈 **Gradients + alpha** on dot color, land fill, and country stroke
+- ✨ **Live animations** — rotation, twinkle, size jitter, network arcs,
+  motion-aware (respects `prefers-reduced-motion`)
+- 🎛️ **10+ presets** — Default, Print, Wireframe, CRT, Glitch, Bloom, Pixel,
+  ASCII, Topo, Space. Shareable URLs at `/looks/:id`.
+- 💾 **Real exports** — PNG (high-res via WebGL re-render), SVG (with shader
+  effects baked in), WebM video (looped or one-shot), JSON config
+- ⌨️ **Full keyboard system** — `S` shuffle, `[`/`]` cycle presets, `D` export,
+  `R` reset, `G` toggle view, `H` toggle panel, `?` help
+- ♿ **Accessibility** — keyboard-first, ARIA-correct dialogs, focus
+  restoration, motion preferences honored
 
-## Local Development
+## Quickstart
+
+### Use it
+
+The live tool runs entirely client-side:
+
+→ **[worlddots.app](https://worlddots.app/)**
+
+Pick a country, tweak the look, export.
+
+### Run it locally
+
+Requires Node 20+ and npm.
 
 ```bash
+git clone https://github.com/alevizio/worlddots
+cd worlddots
 npm install
 npm run dev
 ```
 
-Open the local URL shown by Vite, usually:
+Open `http://127.0.0.1:5173/`.
 
-```text
-http://127.0.0.1:5173/
-```
-
-## Build
+### Build it
 
 ```bash
-npm run build
+npm run build      # → dist/
+npm run preview    # serve dist/ locally
+npm test -- --run  # 119 tests across 18 files
 ```
 
-## GitHub Pages
+## What you can build with it
 
-This repo deploys to GitHub Pages with GitHub Actions.
+| Use case | What it gives you |
+|---|---|
+| **Landing page hero** | A live animated globe behind your headline. Export PNG for static, WebM for video. |
+| **Launch teaser** | Animated dot map of where your users are. WebM ready for X/LinkedIn. |
+| **Deck visuals** | Per-country SVGs that drop straight into Keynote, Figma, or print layouts. |
+| **Data story** | Hand-picked region + dot palette for a feature, blog post, or report. |
+| **Brand system** | A consistent dotted-globe mark across your site, app, and docs. |
+| **Stream / podcast graphic** | Looping WebM background with the CRT or Glitch preset. |
 
-Live site:
+Share what you make in [Show & Tell](https://github.com/alevizio/worlddots/discussions/categories/show-and-tell).
 
-```text
-https://alevizio.github.io/worlddots/
-```
+## Documentation
 
-## Tech Stack
+| | |
+|---|---|
+| [CONTRIBUTING](CONTRIBUTING.md) | Local setup, project shape, design rules, how to submit presets/examples |
+| [ROADMAP](ROADMAP.md) | What's shipped, what's next, what's parked |
+| [CHANGELOG](CHANGELOG.md) | What changed and when |
+| [GOVERNANCE](GOVERNANCE.md) | How decisions get made |
+| [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) | Community standards |
+| [SECURITY](SECURITY.md) | Reporting vulnerabilities |
+| [SUPPORT](SUPPORT.md) | Where to ask questions |
 
-- React
-- Vite
-- dotted-map
-- d3-geo
-- topojson-client
-- world-countries
-- lucide-react
-- three
+## Tech stack
+
+Built with:
+
+- **[React 19](https://react.dev)** + **[Vite](https://vite.dev)** for the app shell
+- **[Three.js](https://threejs.org)** for the WebGL globe, instanced dot rendering, shader effects, network arcs
+- **[dotted-map](https://github.com/NTag/dotted-map)** for the source dot field
+- **[d3-geo](https://d3js.org/d3-geo)** + **[topojson-client](https://github.com/topojson/topojson-client)** for projections and US state geometry
+- **[world-countries](https://github.com/mledoze/countries)** + **[world-atlas](https://github.com/topojson/world-atlas)** + **[us-atlas](https://github.com/topojson/us-atlas)** for source geography
+- **[lucide-react](https://lucide.dev)** for icons
+- **[Vitest](https://vitest.dev)** + **[Testing Library](https://testing-library.com)** for tests
+
+No backend, no accounts, no telemetry. Everything renders in your browser.
+
+## Contributing
+
+We want contributions. Code, presets, example projects, screenshots, docs
+rewrites — all of it counts.
+
+The shortest path:
+
+1. **Build something cool with the live tool** → drop it in
+   [Show & Tell](https://github.com/alevizio/worlddots/discussions/categories/show-and-tell)
+2. **Found a bug?** → [Bug report](https://github.com/alevizio/worlddots/issues/new?template=bug-report.yml)
+3. **Made a preset you love?** → [Preset submission](https://github.com/alevizio/worlddots/issues/new?template=preset-submission.yml)
+4. **Have an idea?** → [Ideas discussion](https://github.com/alevizio/worlddots/discussions/new?category=ideas)
+
+Full guide in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+[MIT](LICENSE). Use it, remix it, ship it. If you use it commercially or
+prominently we'd love to hear about it (no obligation, just curious).
+
+The included geography data comes from
+[world-atlas](https://github.com/topojson/world-atlas),
+[us-atlas](https://github.com/topojson/us-atlas), and
+[world-countries](https://github.com/mledoze/countries) — all with permissive
+licenses. If you build on top of derived map data outside this repo,
+double-check the source attributions.
+
+---
+
+<div align="center">
+
+Made by **[@alevizio](https://github.com/alevizio)** · [alevizio.com](https://alevizio.com) · [twitter.com/alevizio](https://twitter.com/alevizio)
+
+</div>

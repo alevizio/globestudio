@@ -1,0 +1,65 @@
+name: 🎨 Preset submission
+description: Submit a look preset for inclusion in Worlddots
+labels: ["preset", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for submitting a preset! Good presets have a **distinctive
+        look**, work at **multiple densities**, and survive both **globe and
+        flat view**. Skip "Default with red dots."
+
+        How to build one:
+        1. Open [worlddots.app](https://worlddots.app/) and dial in your look
+        2. Export → **Config** → **Export config** to get a JSON
+        3. Paste it below
+
+  - type: input
+    id: name
+    attributes:
+      label: Preset name
+      description: Short, evocative. We'll use this in the looks bar.
+      placeholder: "Aurora, Topographic Print, CRT Decay, …"
+    validations:
+      required: true
+
+  - type: input
+    id: blurb
+    attributes:
+      label: One-line blurb
+      description: Shown as the chip tooltip in the looks bar.
+      placeholder: "Soft polar gradient with a wireframe overlay."
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Exported config JSON
+      description: Paste the entire config from the export modal.
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag-and-drop 2-3 screenshots — globe view, flat view, and a close-up if the dot shape is part of the look. PNGs preferred.
+    validations:
+      required: true
+
+  - type: input
+    id: credit
+    attributes:
+      label: How would you like to be credited?
+      description: Name + a URL (portfolio, X, Mastodon, GitHub — whatever you want linked).
+      placeholder: "Jane Designer — https://janedesigner.com"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Licensing
+      options:
+        - label: I'm okay with this preset being included in Worlddots under the MIT license.
+          required: true

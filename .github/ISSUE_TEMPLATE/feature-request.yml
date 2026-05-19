@@ -1,0 +1,56 @@
+name: ✨ Feature request
+description: A scoped suggestion for new functionality
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If the idea is open-ended ("what if Worlddots could…"), please open a
+        [Discussion](https://github.com/alevizio/worlddots/discussions/new?category=ideas)
+        instead. This template is for concrete proposals that are ready to scope.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the real workflow this would unlock. "It'd be cool" is fine, but "I keep wanting to X and have to fall back to Y" is better.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: What should happen? Be concrete. Sketches, mockups, or links to existing patterns from other tools are welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Workarounds you've tried, or other ways this could be designed.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - "Small (a single control, a single preset, a copy change)"
+        - "Medium (a new section in the panel, a new export format)"
+        - "Large (a new rendering mode, new architecture)"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I checked the [Roadmap](https://github.com/alevizio/worlddots/blob/main/ROADMAP.md) — this isn't already planned.
+          required: true
+        - label: I searched [open issues](https://github.com/alevizio/worlddots/issues?q=is%3Aissue) and didn't find a duplicate.
+          required: true
+        - label: I'm willing to discuss trade-offs — not every "yes" lands as proposed.
+          required: true
