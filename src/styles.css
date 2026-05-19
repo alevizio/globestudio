@@ -1657,73 +1657,16 @@ button {
 
 .panel-meta-icon {
   flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--text);
 }
 
-.panel-meta-text {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.panel-meta-text span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.panel-meta-count {
-  transition: color 180ms var(--ease);
-}
-
-.panel-meta-count.is-pulsing {
-  color: var(--text);
-  animation: panel-meta-count-pulse 420ms var(--ease);
-}
-
-@keyframes panel-meta-count-pulse {
-  0% { transform: translateY(0); }
-  35% { transform: translateY(-1px); }
-  100% { transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .panel-meta-count.is-pulsing {
-    animation: none;
-  }
-}
-
-.panel-meta-text span:first-child {
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.panel-meta-text span:last-child {
-  color: var(--dim);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-}
-
 /* .panel-reset-button is just a marker for the rotation animation now —
    visual styles come from .panel-icon-button. */
-
-@media (max-width: 480px) {
-  .panel-meta-text span:last-child {
-    display: none;
-  }
-}
 
 .control-panel {
   min-width: 0;

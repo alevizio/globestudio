@@ -229,17 +229,6 @@ const App = () => {
   }, [density, selected, shape]);
 
   const dotCount = dotsVisible ? mapData.points.length : 0;
-  // Pulse the dot count whenever it changes — confirms that adjusting density
-  // or the area selection had an effect, even when the visual diff is subtle.
-  const dotCountRef = useRef(dotCount);
-  const [dotCountPulse, setDotCountPulse] = useState(false);
-  useEffect(() => {
-    if (dotCountRef.current === dotCount) return;
-    dotCountRef.current = dotCount;
-    setDotCountPulse(true);
-    const t = window.setTimeout(() => setDotCountPulse(false), 420);
-    return () => window.clearTimeout(t);
-  }, [dotCount]);
 
   const exportSvgData = useMemo(
     () =>
@@ -979,16 +968,15 @@ const App = () => {
           <div className="panel-meta">
             <span
               className={`panel-meta-icon ${appliedLookId ? "is-rippling" : ""}`}
-              aria-hidden="true"
+              aria-label={`${selected.label} — ${
+                dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
+              }`}
+              title={`${selected.label} — ${
+                dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
+              }`}
             >
-              <DottedGlobe size={20} />
+              <DottedGlobe size={40} />
             </span>
-            <div className="panel-meta-text">
-              <span>{selected.label}</span>
-              <span className={dotCountPulse ? "panel-meta-count is-pulsing" : "panel-meta-count"}>
-                {dotsVisible ? `${dotCount.toLocaleString()} dots` : "Dots off"}
-              </span>
-            </div>
           </div>
           <div className="panel-header-actions">
             <button
