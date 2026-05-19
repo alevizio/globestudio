@@ -251,10 +251,15 @@ export const LookPreview = ({ preset }) => {
       ? "#03030a"
       : preset.settings.background || "#0a0a0a";
 
+  // Soften the frame colour against the chip's own field tone via
+  // color-mix so the swatch reads as a tinted background rather than a
+  // bold block — keeps the row of chips calm.
+  const frameTint = `color-mix(in srgb, ${frame} 25%, transparent)`;
+
   return (
     <span
       className="looks-chip-preview"
-      style={{ background: frame }}
+      style={{ background: frameTint }}
       aria-hidden="true"
     >
       <svg
