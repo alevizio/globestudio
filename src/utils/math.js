@@ -34,6 +34,21 @@ export const smoothStep = (edge0, edge1, value) => {
   return t * t * (3 - 2 * t);
 };
 
+// CSS color-hint remapping. A gradient midpoint M shifts the 50/50 mix
+// point of from/to from the default 0.5 to M, producing two linear
+// segments: 0→M (from → mix) and M→1 (mix → to). Returns a remapped t
+// that callers can feed into a plain lerp(from, to, u) so the result
+// matches `linear-gradient(from, M%, to)` exactly.
+export const remapTByMidpoint = (t, midpoint) => {
+  if (midpoint == null || midpoint === 0.5) return t;
+  const m = clampNumber(midpoint, 0, 1);
+  if (m <= 0) return 1;
+  if (m >= 1) return 0;
+  const ct = clampNumber(t, 0, 1);
+  if (ct < m) return ct / (2 * m);
+  return 0.5 + (ct - m) / (2 * (1 - m));
+};
+
 export const formatSvgNumber = (value, decimals = 3) => {
   const number = Number.isFinite(value) ? value : 0;
   return number.toFixed(decimals).replace(/\.?0+$/, "");

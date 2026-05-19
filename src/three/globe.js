@@ -6,7 +6,7 @@ import {
   GLOBE_DEFAULT_GLOW,
   GLOBE_RADIUS,
 } from "../config/globe-settings.js";
-import { clampNumber, hashString, normalizeLongitude, smoothStep } from "../utils/math.js";
+import { clampNumber, hashString, normalizeLongitude, remapTByMidpoint, smoothStep } from "../utils/math.js";
 import { pointToGlobeCoordinate } from "../utils/projection.js";
 import { latLngToVector3, pointToFlatVector3 } from "./coordinates.js";
 import { createAsciiCanvasTexture, createGlobeDotGeometry, disposeThreeObject } from "./geometry.js";
@@ -463,10 +463,13 @@ const buildGradientColorSampler = (gradient, imageWidth, imageHeight) => {
   const fromColor = new THREE.Color(gradient.from);
   const toColor = new THREE.Color(gradient.to);
   const result = new THREE.Color();
+  // CSS-style color-hint remapping: when gradient.midpoint is provided the
+  // 50/50 mix lands at that fraction of the gradient length instead of 0.5.
+  const midpoint = gradient.midpoint;
   return (point) => {
     const proj = point.x * dirX + point.y * dirY;
     const t = Math.max(0, Math.min(1, (proj - minProj) / range));
-    return result.copy(fromColor).lerp(toColor, t);
+    return result.copy(fromColor).lerp(toColor, remapTByMidpoint(t, midpoint));
   };
 };
 

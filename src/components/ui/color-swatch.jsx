@@ -37,8 +37,21 @@ export const ColorSwatch = ({
   const hasTransparency = hasGradient
     ? ((gradient.fromAlpha ?? 1) < 1 || (gradient.toAlpha ?? 1) < 1)
     : (supportsAlpha && stopAlpha(alpha) < 1);
+  // CSS color-hint syntax inserts a midpoint percentage between the two
+  // stops, which shifts the 50/50 mix point. Skip the hint when the
+  // gradient sits at the default 50% so we don't bloat the inline style.
+  const gradientStops = hasGradient
+    ? (() => {
+        const fromStop = `${gradient.from}${alphaToHex(gradient.fromAlpha ?? 1)}`;
+        const toStop = `${gradient.to}${alphaToHex(gradient.toAlpha ?? 1)}`;
+        const midpointPct = Math.round((gradient.midpoint ?? 0.5) * 100);
+        return midpointPct === 50
+          ? `${fromStop}, ${toStop}`
+          : `${fromStop}, ${midpointPct}%, ${toStop}`;
+      })()
+    : null;
   const colorLayer = hasGradient
-    ? `linear-gradient(${gradient.angle ?? 90}deg, ${gradient.from}${alphaToHex(gradient.fromAlpha ?? 1)}, ${gradient.to}${alphaToHex(gradient.toAlpha ?? 1)})`
+    ? `linear-gradient(${gradient.angle ?? 90}deg, ${gradientStops})`
     : value === "transparent"
       ? "linear-gradient(#18171a, #18171a)"
       : `linear-gradient(${value}${alphaToHex(supportsAlpha ? stopAlpha(alpha) : 1)}, ${value}${alphaToHex(supportsAlpha ? stopAlpha(alpha) : 1)})`;

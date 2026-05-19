@@ -219,6 +219,15 @@ export const ColorPicker = ({
     onGradientChange({ ...gradient, angle: n });
   };
 
+  // Midpoint shifts the 50/50 mix point of from/to along the gradient.
+  // Stored as a 0–1 fraction (defaults to 0.5, identical to no midpoint).
+  // Slider value is exposed as a 0–100 integer percentage for ergonomics.
+  const updateGradientMidpoint = (raw) => {
+    if (!gradient || !onGradientChange) return;
+    const n = clamp(parseInt(raw, 10), 0, 100);
+    onGradientChange({ ...gradient, midpoint: n / 100 });
+  };
+
   // Alpha for the currently-edited target (solid color, or the active
   // gradient stop). Gradient alphas live on the gradient object, so each
   // stop has its own opacity that's interpolated per dot at render time.
@@ -343,11 +352,17 @@ export const ColorPicker = ({
 
       {fillMode === "gradient" && gradient && (() => {
         // Compose the live track preview with alpha-aware stops + a
-        // checkerboard backdrop so transparency reads visually.
+        // checkerboard backdrop so transparency reads visually. When the
+        // gradient has a midpoint, CSS color-hint syntax (a percentage
+        // between two colors) shifts the transition's 50/50 mix point.
         const fromHex = `${gradient.from}${alphaToHexByte(gradient.fromAlpha ?? 1)}`;
         const toHex = `${gradient.to}${alphaToHexByte(gradient.toAlpha ?? 1)}`;
+        const midpointPct = Math.round((gradient.midpoint ?? 0.5) * 100);
+        const stops = midpointPct === 50
+          ? `${fromHex}, ${toHex}`
+          : `${fromHex}, ${midpointPct}%, ${toHex}`;
         const trackStyle = {
-          backgroundImage: `linear-gradient(${gradient.angle ?? 90}deg, ${fromHex}, ${toHex}), ${CHECKERBOARD_PATTERN}`,
+          backgroundImage: `linear-gradient(${gradient.angle ?? 90}deg, ${stops}), ${CHECKERBOARD_PATTERN}`,
           backgroundSize: "100% 100%, 12px 12px",
         };
         return (
@@ -411,6 +426,19 @@ export const ColorPicker = ({
                 onChange={(event) => updateGradientAngle(event.target.value)}
               />
               <output>{gradient.angle ?? 90}°</output>
+            </label>
+            <label className="color-picker-angle">
+              <span>Midpoint</span>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={midpointPct}
+                aria-label="Gradient midpoint"
+                onChange={(event) => updateGradientMidpoint(event.target.value)}
+              />
+              <output>{midpointPct}%</output>
             </label>
           </div>
         );

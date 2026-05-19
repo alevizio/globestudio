@@ -4,7 +4,7 @@ import {
   effectsWithScanlines,
 } from "../config/shader-effects.js";
 import { hexToRgb, rgbToHex } from "./color.js";
-import { clampNumber, formatSvgNumber, hashString } from "./math.js";
+import { clampNumber, formatSvgNumber, hashString, remapTByMidpoint } from "./math.js";
 
 // Mirrors three/globe.js's gradient sampler so the SVG export looks identical
 // to the canvas. Each dot picks its color by projecting (x, y) onto the
@@ -29,13 +29,17 @@ const buildSvgGradientSampler = (gradient, imageWidth, imageHeight) => {
   const range = Math.max(1e-6, maxProj - minProj);
   const from = hexToRgb(gradient.from);
   const to = hexToRgb(gradient.to);
+  // CSS-style color-hint remapping: same math as the Three.js sampler so
+  // PNG and SVG exports agree pixel-for-pixel with the live canvas.
+  const midpoint = gradient.midpoint;
   return (point) => {
     const proj = point.x * dirX + point.y * dirY;
     const t = Math.max(0, Math.min(1, (proj - minProj) / range));
+    const u = remapTByMidpoint(t, midpoint);
     return rgbToHex({
-      r: from.r + (to.r - from.r) * t,
-      g: from.g + (to.g - from.g) * t,
-      b: from.b + (to.b - from.b) * t,
+      r: from.r + (to.r - from.r) * u,
+      g: from.g + (to.g - from.g) * u,
+      b: from.b + (to.b - from.b) * u,
     });
   };
 };

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { geoEquirectangular, geoMercator, geoPath } from "d3-geo";
+import { hexToRgb, rgbToHex } from "../utils/color.js";
 
 // Build a Canvas2D linear gradient that spans the full texture along the
 // supplied angle. Matches the dot-color gradient math so a single gradient
@@ -35,6 +36,30 @@ const buildCanvasGradient = (ctx, width, height, gradient) => {
   const fromAlpha = gradient.fromAlpha != null ? alphaHex(gradient.fromAlpha) : "";
   const toAlpha = gradient.toAlpha != null ? alphaHex(gradient.toAlpha) : "";
   canvasGradient.addColorStop(0, `${gradient.from}${fromAlpha}`);
+  // When a midpoint is specified, insert a third stop at that position with
+  // the 50/50 mix of from and to. Canvas linearly interpolates between
+  // adjacent stops, so this reproduces CSS color-hint behaviour exactly:
+  // two linear segments meeting at midpoint.
+  if (
+    gradient.midpoint != null
+    && gradient.midpoint > 0
+    && gradient.midpoint < 1
+    && gradient.midpoint !== 0.5
+  ) {
+    const fromRgb = hexToRgb(gradient.from);
+    const toRgb = hexToRgb(gradient.to);
+    const midRgb = {
+      r: (fromRgb.r + toRgb.r) / 2,
+      g: (fromRgb.g + toRgb.g) / 2,
+      b: (fromRgb.b + toRgb.b) / 2,
+    };
+    const midAlphaValue =
+      gradient.fromAlpha != null || gradient.toAlpha != null
+        ? ((gradient.fromAlpha ?? 1) + (gradient.toAlpha ?? 1)) / 2
+        : null;
+    const midAlphaSuffix = midAlphaValue != null ? alphaHex(midAlphaValue) : "";
+    canvasGradient.addColorStop(gradient.midpoint, `${rgbToHex(midRgb)}${midAlphaSuffix}`);
+  }
   canvasGradient.addColorStop(1, `${gradient.to}${toAlpha}`);
   return canvasGradient;
 };
