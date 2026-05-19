@@ -1856,6 +1856,18 @@ button {
   min-width: 0;
 }
 
+/* Keep the dropdown column in inline option rows consistent across the
+   panel — the native <select> (Style, Look, Pass, Background) and the
+   custom .shape-select (Shape) otherwise size to their content, leaving
+   Style narrow and Shape wider in the same Surface section. 160px is
+   wide enough to fit the longest option ("Particle Grid") with its
+   preview icon and chevron, so both dropdowns render at exactly the
+   same width regardless of selection. */
+.option-row-inline .option-control select,
+.option-row-inline .option-control .shape-select {
+  min-width: 160px;
+}
+
 select {
   width: 100%;
   min-height: 32px;
