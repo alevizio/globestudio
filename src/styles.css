@@ -639,15 +639,15 @@ button {
 .looks-chip {
   flex: 0 0 auto;
   min-height: 40px;
-  /* No right padding — the preview block takes the entire right end
-     of the chip and is flush with the chip's top, right and bottom
-     edges. Left padding still buffers the label from the chip border. */
-  padding: 0 0 0 14px;
+  /* No left padding — the preview block takes the entire left end of
+     the chip and is flush with the chip's top, left and bottom edges.
+     Right padding still buffers the label from the chip border. */
+  padding: 0 14px 0 0;
   display: inline-flex;
   align-items: center;
   gap: 14px;
   border: 1px solid var(--border);
-  /* Soft-cornered rectangle (not a full pill) so the right-side square
+  /* Soft-cornered rectangle (not a full pill) so the left-side square
      preview reads as a square — the chip's small 10px corner radius
      clips just the outer corners of the preview, keeping it
      unmistakably square overall. */
@@ -662,13 +662,12 @@ button {
   transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
 }
 
-/* Solid coloured square anchored to the chip's right edge — fills the
-   chip's full height (align-self: stretch) and is ordered after the
-   label so it docks on the right. Inline background style on the
-   element carries the preset's primary fill. */
+/* Solid coloured square anchored to the chip's left edge — fills the
+   chip's full height (align-self: stretch) and is the first child so
+   it docks on the left. Inline background style on the element
+   carries the preset's primary fill. */
 .looks-chip-preview {
   flex: 0 0 auto;
-  order: 2;
   align-self: stretch;
   width: 40px;
   transition: transform 220ms var(--ease);
