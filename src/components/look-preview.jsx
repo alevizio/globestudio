@@ -15,20 +15,65 @@ import {
   formatPointList,
 } from "../utils/svg-shapes.js";
 
-// Dot positions in unit space (0–1). Loosely arranged to suggest the visible
-// hemisphere of a globe (Eurasia + Africa + the Americas edge).
+// Dot positions in unit space (0–1) — hand-placed continent silhouettes
+// viewed from roughly 0° longitude, so the chip reads as a recognisable
+// globe rather than a generic dot blob. Coverage is dense enough that
+// even at the chip's tiny rendered size (30 × 30 viewBox scaled into a
+// 40 × 40 cell, ≈1.33×) the continent shapes are legible.
 const GLOBE_DOTS = [
-  // Eurasia
-  [0.45, 0.36], [0.5, 0.32], [0.55, 0.34], [0.6, 0.38], [0.65, 0.42],
-  [0.5, 0.4], [0.55, 0.42], [0.6, 0.45], [0.42, 0.45], [0.48, 0.48],
-  // Africa
-  [0.52, 0.55], [0.56, 0.6], [0.54, 0.68], [0.5, 0.62], [0.48, 0.7],
-  // Americas edge
-  [0.3, 0.4], [0.28, 0.5], [0.3, 0.6], [0.32, 0.7],
-  // Asia / Australia
-  [0.7, 0.5], [0.74, 0.55], [0.72, 0.65], [0.68, 0.62],
-  // Scattered
-  [0.4, 0.3], [0.62, 0.3], [0.45, 0.74], [0.6, 0.74],
+  // ─── Eurasia (top-right swath) ───
+  // Europe
+  [0.46, 0.32], [0.5, 0.31], [0.53, 0.32], [0.48, 0.34], [0.51, 0.34], [0.54, 0.35],
+  // Russia / North Asia
+  [0.56, 0.3], [0.6, 0.3], [0.64, 0.31], [0.68, 0.33], [0.72, 0.36],
+  [0.58, 0.33], [0.62, 0.33], [0.66, 0.34], [0.7, 0.37], [0.74, 0.39],
+  // China / Mongolia
+  [0.6, 0.38], [0.64, 0.38], [0.68, 0.4], [0.72, 0.42],
+  [0.62, 0.42], [0.66, 0.43], [0.7, 0.45],
+  // Middle East
+  [0.54, 0.4], [0.56, 0.42], [0.58, 0.44],
+  // India
+  [0.6, 0.46], [0.62, 0.48], [0.58, 0.48],
+  // Southeast Asia
+  [0.66, 0.48], [0.68, 0.5], [0.7, 0.52], [0.72, 0.5],
+
+  // ─── Africa (vertical strip in centre) ───
+  // North Africa
+  [0.5, 0.45], [0.52, 0.45], [0.54, 0.46],
+  [0.5, 0.48], [0.52, 0.48], [0.54, 0.48],
+  // Sahara / Sahel
+  [0.48, 0.5], [0.5, 0.5], [0.52, 0.51], [0.55, 0.52],
+  // Equatorial / Central
+  [0.49, 0.54], [0.51, 0.54], [0.53, 0.55],
+  [0.48, 0.57], [0.5, 0.58], [0.52, 0.58],
+  // Southern Africa
+  [0.5, 0.62], [0.52, 0.63], [0.49, 0.65], [0.51, 0.66],
+  [0.5, 0.69],
+  // Madagascar
+  [0.55, 0.62],
+
+  // ─── Americas (thin curve down the left) ───
+  // North America (broad top)
+  [0.22, 0.32], [0.25, 0.32], [0.28, 0.32], [0.31, 0.34],
+  [0.24, 0.35], [0.27, 0.35], [0.3, 0.36],
+  [0.25, 0.38], [0.28, 0.38], [0.3, 0.4],
+  [0.27, 0.41], [0.29, 0.42], [0.31, 0.43],
+  [0.3, 0.45], [0.32, 0.46],
+  // Central America (thin)
+  [0.31, 0.49], [0.33, 0.5],
+  // South America (tapering)
+  [0.31, 0.54], [0.33, 0.55],
+  [0.32, 0.58], [0.34, 0.59],
+  [0.32, 0.62], [0.34, 0.64],
+  [0.33, 0.66], [0.34, 0.69], [0.33, 0.72],
+
+  // ─── Australia + Oceania ───
+  [0.7, 0.62], [0.74, 0.62], [0.72, 0.64], [0.76, 0.64], [0.74, 0.66],
+  // New Zealand
+  [0.78, 0.68],
+
+  // ─── Antarctica edge along the bottom ───
+  [0.42, 0.78], [0.48, 0.79], [0.54, 0.79], [0.6, 0.78],
 ];
 
 const CONTINENT_PATH =
@@ -43,7 +88,9 @@ const dotIsInsideSphere = ([x, y]) => {
 const VISIBLE_DOTS = GLOBE_DOTS.filter(dotIsInsideSphere);
 
 const renderShape = (cx, cy, shape, color, asciiSymbol, key) => {
-  const r = 0.55;
+  // Slightly larger than the original 0.55 so the dots stay visible at
+  // the chip's actual rendered size (≈1.33 viewBox units per CSS pixel).
+  const r = 0.7;
   if (shape === "Square") {
     return <rect key={key} x={cx - r} y={cy - r} width={r * 2} height={r * 2} fill={color} />;
   }
@@ -462,16 +509,41 @@ const renderContent = (preset, clipId) => {
         return renderShape(px, py, shape, dotColor, ascii, i);
       });
 
-  // Latitude hint stroke is heavier on the wireframe preset so the chip
-  // reads as a hatched / wire-traced globe rather than a faint sphere
-  // outline with dots.
-  const latStrokeOpacity = isEdge ? 0.42 : 0.18;
-  const sphereStrokeOpacity = isEdge ? 0.55 : 0.25;
+  // Stroke opacity for the sphere outline + graticule. Bumped for the
+  // wireframe pass (so the chip reads as a wire-traced globe), kept
+  // subtle elsewhere so the dots / shader overlay remain the focus.
+  // The graticule (equator + tropics + central meridian) is skipped
+  // entirely under "replacement" shader passes (halftone, pixel, corrupt,
+  // metal, pencil) because those fill the sphere on their own and the
+  // extra lines would just compete with the shader.
+  const latStrokeOpacity = isEdge ? 0.46 : 0.16;
+  const sphereStrokeOpacity = isEdge ? 0.55 : 0.22;
+  const showGraticule =
+    !isHalftone && !isPixel && !isCorrupt && shaderEffect !== "metal" && shaderEffect !== "pencil";
 
   return (
-    <g>
+    <g className="globe-preview-content">
       {isSpace && renderStars(14, 23)}
+      {/* Subtle radial shading on the sphere — bright at the upper-left,
+          fading to a tiny shadow at the lower-right. Sells the volume
+          without any 3D lighting. */}
+      <radialGradient
+        id={`globeShade-${clipId}`}
+        cx="0.32"
+        cy="0.3"
+        r="0.85"
+        fx="0.32"
+        fy="0.3"
+      >
+        <stop offset="0" stopColor={dotColor} stopOpacity="0.14" />
+        <stop offset="0.55" stopColor={dotColor} stopOpacity="0.04" />
+        <stop offset="1" stopColor="#000000" stopOpacity="0.45" />
+      </radialGradient>
+      <circle cx={cx} cy={cy} r={radius} fill={`url(#globeShade-${clipId})`} />
+
       {shaderEffect === "bloom" && renderBloomHalo(cx, cy, radius, dotColor)}
+
+      {/* Sphere silhouette */}
       <circle
         cx={cx}
         cy={cy}
@@ -481,24 +553,62 @@ const renderContent = (preset, clipId) => {
         strokeWidth="0.4"
         strokeOpacity={sphereStrokeOpacity}
       />
-      {/* Latitude hint */}
-      <ellipse
-        cx={cx}
-        cy={cy}
-        rx={radius}
-        ry={radius * 0.25}
-        fill="none"
-        stroke={dotColor}
-        strokeWidth="0.3"
-        strokeOpacity={latStrokeOpacity}
-      />
-      {/* Wireframe-only: extra meridian hint so it reads as a
-          wire-traced surface. */}
+
+      {showGraticule && (
+        <g className="globe-preview-graticule" pointerEvents="none">
+          {/* Tropic of Cancer (~23°N) */}
+          <ellipse
+            cx={cx}
+            cy={cy - radius * 0.42}
+            rx={radius * 0.91}
+            ry={radius * 0.17}
+            fill="none"
+            stroke={dotColor}
+            strokeWidth="0.28"
+            strokeOpacity={latStrokeOpacity * 0.7}
+          />
+          {/* Equator */}
+          <ellipse
+            cx={cx}
+            cy={cy}
+            rx={radius}
+            ry={radius * 0.26}
+            fill="none"
+            stroke={dotColor}
+            strokeWidth="0.3"
+            strokeOpacity={latStrokeOpacity}
+          />
+          {/* Tropic of Capricorn (~23°S) */}
+          <ellipse
+            cx={cx}
+            cy={cy + radius * 0.42}
+            rx={radius * 0.91}
+            ry={radius * 0.17}
+            fill="none"
+            stroke={dotColor}
+            strokeWidth="0.28"
+            strokeOpacity={latStrokeOpacity * 0.7}
+          />
+          {/* Central meridian — vertical ellipse running pole to pole */}
+          <ellipse
+            cx={cx}
+            cy={cy}
+            rx={radius * 0.38}
+            ry={radius}
+            fill="none"
+            stroke={dotColor}
+            strokeWidth="0.28"
+            strokeOpacity={latStrokeOpacity * 0.8}
+          />
+        </g>
+      )}
+
+      {/* Wireframe-only extra meridian for a denser wire-traced look. */}
       {isEdge && (
         <ellipse
           cx={cx}
           cy={cy}
-          rx={radius * 0.45}
+          rx={radius * 0.72}
           ry={radius}
           fill="none"
           stroke={dotColor}
@@ -506,6 +616,7 @@ const renderContent = (preset, clipId) => {
           strokeOpacity={latStrokeOpacity}
         />
       )}
+
       {dots && <g clipPath={`url(#${clipId})`}>{dots}</g>}
       {renderEffectOverlay(shaderEffect, clipId, dotColor)}
     </g>
