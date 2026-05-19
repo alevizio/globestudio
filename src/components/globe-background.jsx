@@ -747,8 +747,19 @@ export const GlobeBackground = ({
     // rather than an empty canvas.
     const isFlat = morphMode === "flat";
     const solidFallback = isFlat && renderMode === "solid";
-    const showDots = (renderMode === "dots" && dotsVisible) || solidFallback;
-    const effectiveDotColor = solidFallback ? worldFill : dotColor;
+    // During the flat↔globe transition in solid mode the dot field has to
+    // stay mounted so it can wrap onto / unwrap from the sphere as the
+    // morph runs. Without this branch the dots pop out the instant the
+    // user clicks (morphMode flips synchronously) and the morph animates
+    // with nothing to ride along — leaving an empty canvas until the
+    // textured sphere fades in via shellProgress. Tying mount-state to
+    // morphTransition (which is only non-null during the in-flight morph)
+    // keeps the dot layer alive in both directions and lets the existing
+    // applyDotLayerMorph loop do its job.
+    const isTransitioningInSolid = renderMode === "solid" && Boolean(morphTransition);
+    const showDots = (renderMode === "dots" && dotsVisible) || solidFallback || isTransitioningInSolid;
+    const useSolidColor = solidFallback || isTransitioningInSolid;
+    const effectiveDotColor = useSolidColor ? worldFill : dotColor;
 
     if (!showDots) {
       if (refs.dotLayer) {
@@ -770,7 +781,11 @@ export const GlobeBackground = ({
         selectedDots,
         dotColor: effectiveDotColor,
         dotColorAlpha,
-        dotGradient: solidFallback ? null : dotGradient,
+        // In solid mode the dot field acts as the world fill — gradient
+        // dot colors would compete with that, so we strip gradients in
+        // both the static solid-flat fallback and during the in-flight
+        // transition between flat and globe.
+        dotGradient: useSolidColor ? null : dotGradient,
         dotSize,
         shape,
         dotRotation,
@@ -799,7 +814,7 @@ export const GlobeBackground = ({
     return () => {
       cancelled = true;
     };
-  }, [asciiSymbol, customShape, dotColor, dotColorAlpha, dotGradient, dotRotation, dotSize, dotsVisible, globeSettings, mapData, morphMode, renderMode, selectedDots, shaderSettings, shape, worldFill]);
+  }, [asciiSymbol, customShape, dotColor, dotColorAlpha, dotGradient, dotRotation, dotSize, dotsVisible, globeSettings, mapData, morphMode, morphTransition, renderMode, selectedDots, shaderSettings, shape, worldFill]);
 
   useEffect(() => {
     const refs = threeRef.current;
