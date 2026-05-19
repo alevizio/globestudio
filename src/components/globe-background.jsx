@@ -9,7 +9,7 @@ import {
   GLOBE_MORPH_DURATION,
   GLOBE_ROUND_FIT_ASPECT,
 } from "../config/globe-settings.js";
-import { clampNumber, easeInOutSine, smoothStep } from "../utils/math.js";
+import { clampNumber, easeInOutQuart, smoothStep } from "../utils/math.js";
 import { createCustomShapeTexture, disposeThreeObject } from "../three/geometry.js";
 import {
   applyDotLayerMorph,
@@ -474,9 +474,13 @@ export const GlobeBackground = ({
       state.currentY += (state.targetY - state.currentY) * 0.095;
 
       const morph = morphRef.current;
+      // Direction tracks whether this run is flat→globe (+1) or globe→flat
+      // (−1). Captured before progress completes so the cinematic flourish
+      // (extra roll + FOV punch) reads correctly in both directions.
+      const morphDirection = morph.target >= morph.start ? 1 : -1;
       if (morph.active) {
         const elapsed = now - morph.startTime;
-        const progress = easeInOutSine(elapsed / GLOBE_MORPH_DURATION);
+        const progress = easeInOutQuart(elapsed / GLOBE_MORPH_DURATION);
         morph.progress = morph.start + (morph.target - morph.start) * progress;
         if (progress >= 1) {
           morph.progress = morph.target;
@@ -484,16 +488,36 @@ export const GlobeBackground = ({
         }
       }
 
+      // sin(πt) peaks at the morph midpoint — drives the dolly-zoom, scale
+      // dip and Z roll so all three flourishes are perfectly in phase and
+      // settle back to zero by the time the morph lands.
+      const morphPulse = morph.active && !reducedMotionRef.current
+        ? Math.sin(
+            clampNumber(
+              (now - morph.startTime) / GLOBE_MORPH_DURATION,
+              0,
+              1,
+            ) * Math.PI,
+          )
+        : 0;
+
       const flatProgress = 1 - smoothStep(0.06, 0.82, morph.progress);
       const rotationProgress = smoothStep(0.18, 1, morph.progress);
       const transform = transformRef.current;
-      const targetFov = clampNumber(42 + (transform.mapDepth - 55) * 0.12 * flatProgress, 34, 54);
+      // Mid-morph FOV breath: punch out ~5° at the peak then settle. Reads
+      // as a subtle dolly-zoom through space without ever losing the
+      // subject. Wider clamp (60) accommodates the punched peak.
+      const fovPunch = morphPulse * 5;
+      const targetFov = clampNumber(42 + (transform.mapDepth - 55) * 0.12 * flatProgress + fovPunch, 34, 60);
       const targetDistance = THREE.MathUtils.lerp(
         threeRef.current.flatDistance || threeRef.current.baseDistance,
         threeRef.current.globeDistance || threeRef.current.baseDistance,
         rotationProgress,
       );
-      camera.fov += (targetFov - camera.fov) * 0.12;
+      // Lerp factor lifts mid-morph so the FOV punch resolves quickly enough
+      // to actually read — at the static 0.12 it would smear too much.
+      const fovLerp = 0.12 + morphPulse * 0.18;
+      camera.fov += (targetFov - camera.fov) * fovLerp;
       camera.position.z = targetDistance / clampNumber(mapZoomRef.current, 0.5, 3);
       camera.updateProjectionMatrix();
 
@@ -509,7 +533,22 @@ export const GlobeBackground = ({
       globeGroup.position.y = (-offset.y / Math.max(rect.height, 1)) * visibleHeight * flatProgress;
       globeGroup.position.z = 0;
       globeGroup.rotation.x = THREE.MathUtils.degToRad(transform.tiltX || 0) * flatProgress + state.currentX * rotationProgress;
-      globeGroup.rotation.y = THREE.MathUtils.degToRad(transform.tiltY || 0) * flatProgress + state.currentY * rotationProgress;
+      // Extra Z-axis roll mid-morph adds character — direction-aware so the
+      // roll feels like an intentional cinematic flourish in both
+      // directions, never a glitchy snap.
+      globeGroup.rotation.z = morphPulse * 0.07 * morphDirection;
+      // Cinematic Y kick: about 26° of extra spin at the peak, direction
+      // aware, layered on top of the natural rotation so the world feels
+      // like it's spinning into place.
+      const cinematicSpin = morphPulse * 0.45 * morphDirection;
+      globeGroup.rotation.y = THREE.MathUtils.degToRad(transform.tiltY || 0) * flatProgress + state.currentY * rotationProgress + cinematicSpin;
+      // Scale dip — group contracts ~3% at the peak then rebounds. Combined
+      // with the FOV punch this gives a subtle vertigo / "Hitchcock dolly"
+      // feel without losing alignment with the projection.
+      const breath = 1 - morphPulse * 0.03;
+      if (Math.abs(globeGroup.scale.x - breath) > 0.0005) {
+        globeGroup.scale.setScalar(breath);
+      }
 
       if (
         threeRef.current.dotLayer

@@ -20,6 +20,15 @@ export const easeInOutSine = (value) => {
   return 0.5 - Math.cos(t * Math.PI) / 2;
 };
 
+// Smoother than easeInOutSine — lingers in motion through the middle of the
+// curve, lands with confidence. Used for the flat↔globe morph so the
+// transition feels like a single sustained gesture rather than a fast
+// in / slow out.
+export const easeInOutQuart = (value) => {
+  const t = clampNumber(value, 0, 1);
+  return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+};
+
 export const smoothStep = (edge0, edge1, value) => {
   const t = clampNumber((value - edge0) / (edge1 - edge0), 0, 1);
   return t * t * (3 - 2 * t);

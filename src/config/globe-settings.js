@@ -3,7 +3,7 @@ export const GLOBE_CAMERA_DISTANCE = 7.35;
 export const GLOBE_FLAT_FIT_ASPECT = 0.96;
 export const GLOBE_ROUND_FIT_ASPECT = 1.45;
 export const GLOBE_INITIAL_ROTATION = { x: -0.14, y: -0.9 };
-export const GLOBE_MORPH_DURATION = 1250;
+export const GLOBE_MORPH_DURATION = 1700;
 export const GLOBE_DEFAULT_GLOW = "#e9e4d8";
 
 export const DEFAULT_GLOBE_SETTINGS = {
