@@ -284,7 +284,7 @@ export const LookPreview = ({ preset }) => {
     ? preset.settings.worldFill || "#5a5a64"
     : preset.settings.dotColor || "#ffffff";
 
-  const frameTint = `color-mix(in srgb, ${frame} 25%, transparent)`;
+  const frameTint = `color-mix(in srgb, ${frame} 12%, transparent)`;
 
   return (
     <span
