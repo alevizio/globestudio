@@ -235,16 +235,6 @@ export const LookPreview = ({ preset }) => {
   const reactId = useId();
   const clipId = `globeClip-${reactId.replace(/:/g, "")}`;
 
-  // Outer square keeps the coloured "frame" the user asked for — uses the
-  // preset's primary fill (dotColor in dots mode, worldFill in solid).
-  // Inner SVG sits inside that frame and renders the actual mini globe in
-  // the preset's own backdrop colour, so the user gets both signals at a
-  // glance: the surrounding swatch + a tiny rendered preview of the look.
-  const renderMode = preset.settings.renderMode || "dots";
-  const frame = renderMode === "solid"
-    ? preset.settings.worldFill || "#5a5a64"
-    : preset.settings.dotColor || "#ffffff";
-
   const bg = preset.settings.transparent
     ? "#1c1c1f"
     : preset.settings.backgroundStyle === "space"
@@ -252,26 +242,20 @@ export const LookPreview = ({ preset }) => {
       : preset.settings.background || "#0a0a0a";
 
   return (
-    <span
+    <svg
       className="looks-chip-preview"
-      style={{ background: frame }}
+      viewBox="0 0 30 30"
+      preserveAspectRatio="xMidYMid slice"
       aria-hidden="true"
+      focusable="false"
     >
-      <svg
-        className="looks-chip-preview-globe"
-        viewBox="0 0 30 30"
-        preserveAspectRatio="xMidYMid meet"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <defs>
-          <clipPath id={clipId}>
-            <circle cx="15" cy="15" r="12" />
-          </clipPath>
-        </defs>
-        <rect x="0" y="0" width="30" height="30" rx="6" fill={bg} />
-        {renderContent(preset, clipId)}
-      </svg>
-    </span>
+      <defs>
+        <clipPath id={clipId}>
+          <circle cx="15" cy="15" r="12" />
+        </clipPath>
+      </defs>
+      <rect x="0" y="0" width="30" height="30" fill={bg} />
+      {renderContent(preset, clipId)}
+    </svg>
   );
 };
