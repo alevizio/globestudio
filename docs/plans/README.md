@@ -36,3 +36,4 @@ research.
 | Plan | Status |
 |---|---|
 | [Integrations rollout](integrations-rollout.md) | Draft |
+| [Shader effects rollout](shader-effects-rollout.md) | Draft |
