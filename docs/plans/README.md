@@ -38,3 +38,4 @@ research.
 | [Integrations rollout](integrations-rollout.md) | Draft |
 | [Shader effects rollout](shader-effects-rollout.md) | Draft |
 | [Accessibility rollout](accessibility-rollout.md) | Draft |
+| [SEO rollout](seo-rollout.md) | Draft |
