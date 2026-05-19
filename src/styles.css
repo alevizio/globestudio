@@ -762,7 +762,11 @@ button {
   color: var(--text);
 }
 
-.looks-chip:hover .looks-chip-preview {
+/* Wrapper-level hover scale is now gated to chips that use the SVG
+   preview path. Image-backed previews stay at their natural size on
+   hover — they're photographic and read on their own, the scale-up
+   was a leftover affordance cue from the abstract-SVG era. */
+.looks-chip:hover .looks-chip-preview:not(:has(.looks-chip-preview-image)) {
   transform: scale(1.06);
 }
 
