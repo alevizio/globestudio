@@ -43,6 +43,7 @@ export const lookPresets = [
     id: "halftone",
     name: "Halftone",
     blurb: "Halftone shader print",
+    previewImage: "/looks/halftone.png",
     settings: merge({
       density: 50,
       dotSize: 11,
