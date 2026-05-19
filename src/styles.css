@@ -662,24 +662,24 @@ button {
   transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
 }
 
-/* Solid coloured square anchored to the chip's left edge — fills the
-   chip's full height (align-self: stretch) and is the first child so
-   it docks on the left. Inline background style on the element
-   carries the preset's primary fill. Opacity softens the block so it
-   reads as a preview hint rather than a hard colour swatch — keeps
-   white / very-light presets from blowing out against the dark chip
-   field. */
+/* Mini globe rendering anchored to the chip's left edge. Fills the
+   chip's full height (align-self: stretch); the chip's overflow:
+   hidden + 10px border-radius clips its outer corners cleanly.
+   Slightly desaturated by default so the row of chips stays calm,
+   pops to full strength on hover / on the active chip. */
 .looks-chip-preview {
   flex: 0 0 auto;
   align-self: stretch;
   width: 40px;
-  opacity: 0.15;
-  transition: transform 220ms var(--ease), opacity 220ms var(--ease);
+  height: auto;
+  display: block;
+  filter: saturate(0.7);
+  transition: filter 220ms var(--ease), transform 220ms var(--ease);
 }
 
 .looks-chip:hover .looks-chip-preview,
 .looks-chip.is-applied .looks-chip-preview {
-  opacity: 0.5;
+  filter: saturate(1);
 }
 
 .looks-chip:hover {
