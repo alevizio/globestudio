@@ -365,6 +365,27 @@ export const GlobeBackground = ({
     const globeMesh = new THREE.Mesh(new THREE.SphereGeometry(2, 96, 96), baseMaterial);
     globeGroup.add(globeMesh);
 
+    // Flat solid plane — in solid render mode this displays the same world
+    // texture as the sphere, but as a 2D map for the flat view. Sized to
+    // match the flat dot field exactly (5.35 × 2.675 units at z=-0.18) so
+    // it occupies the same screen real estate as the dots would. Opacity is
+    // driven by (1 − shellProgress) in applyGlobeShellProgress, giving a
+    // seamless cross-fade with the sphere during the flat ↔ globe morph.
+    const flatSolidMaterial = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const flatSolidMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.35, 5.35 * 0.5),
+      flatSolidMaterial,
+    );
+    flatSolidMesh.position.z = -0.18;
+    flatSolidMesh.visible = false;
+    flatSolidMesh.renderOrder = -1;
+    globeGroup.add(flatSolidMesh);
+
     const atmosphereMaterial = createAtmosphereMaterial();
     const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(2 + 0.18, 96, 96), atmosphereMaterial);
     globeGroup.add(atmosphere);
@@ -422,6 +443,8 @@ export const GlobeBackground = ({
       camera,
       dotLayer: null,
       flatDistance: GLOBE_CAMERA_DISTANCE,
+      flatSolidMaterial,
+      flatSolidMesh,
       globeDistance: GLOBE_CAMERA_DISTANCE,
       globeGroup,
       graticule,
@@ -741,25 +764,12 @@ export const GlobeBackground = ({
     const refs = threeRef.current;
     if (!refs) return;
 
-    // In flat view, solid mode has no native rendering path (a textured sphere
-    // can't unwrap to 2D). Fall back to rendering the dot field colored with
-    // the worldFill so users see the world map in the preset's intended palette
-    // rather than an empty canvas.
-    const isFlat = morphMode === "flat";
-    const solidFallback = isFlat && renderMode === "solid";
-    // During the flat↔globe transition in solid mode the dot field has to
-    // stay mounted so it can wrap onto / unwrap from the sphere as the
-    // morph runs. Without this branch the dots pop out the instant the
-    // user clicks (morphMode flips synchronously) and the morph animates
-    // with nothing to ride along — leaving an empty canvas until the
-    // textured sphere fades in via shellProgress. Tying mount-state to
-    // morphTransition (which is only non-null during the in-flight morph)
-    // keeps the dot layer alive in both directions and lets the existing
-    // applyDotLayerMorph loop do its job.
-    const isTransitioningInSolid = renderMode === "solid" && Boolean(morphTransition);
-    const showDots = (renderMode === "dots" && dotsVisible) || solidFallback || isTransitioningInSolid;
-    const useSolidColor = solidFallback || isTransitioningInSolid;
-    const effectiveDotColor = useSolidColor ? worldFill : dotColor;
+    // Solid mode has its own dedicated rendering path now — a textured
+    // sphere in globe view and a textured flat plane in flat view, both
+    // cross-faded by shellProgress during the morph. The dot field is
+    // therefore strictly for dots-mode here; no fallback shenanigans.
+    const showDots = renderMode === "dots" && dotsVisible;
+    const effectiveDotColor = dotColor;
 
     if (!showDots) {
       if (refs.dotLayer) {
@@ -781,11 +791,7 @@ export const GlobeBackground = ({
         selectedDots,
         dotColor: effectiveDotColor,
         dotColorAlpha,
-        // In solid mode the dot field acts as the world fill — gradient
-        // dot colors would compete with that, so we strip gradients in
-        // both the static solid-flat fallback and during the in-flight
-        // transition between flat and globe.
-        dotGradient: useSolidColor ? null : dotGradient,
+        dotGradient,
         dotSize,
         shape,
         dotRotation,
@@ -814,7 +820,7 @@ export const GlobeBackground = ({
     return () => {
       cancelled = true;
     };
-  }, [asciiSymbol, customShape, dotColor, dotColorAlpha, dotGradient, dotRotation, dotSize, dotsVisible, globeSettings, mapData, morphMode, morphTransition, renderMode, selectedDots, shaderSettings, shape, worldFill]);
+  }, [asciiSymbol, customShape, dotColor, dotColorAlpha, dotGradient, dotRotation, dotSize, dotsVisible, globeSettings, mapData, renderMode, selectedDots, shaderSettings, shape]);
 
   useEffect(() => {
     const refs = threeRef.current;
@@ -824,6 +830,10 @@ export const GlobeBackground = ({
       refs.baseMaterial.map = null;
       refs.baseMaterial.needsUpdate = true;
       refs.solidActive = false;
+      if (refs.flatSolidMaterial) {
+        refs.flatSolidMaterial.map = null;
+        refs.flatSolidMaterial.needsUpdate = true;
+      }
       applyGlobeShellProgress(refs, morphRef.current.progress, globeSettingsRef.current);
       return undefined;
     }
@@ -842,6 +852,13 @@ export const GlobeBackground = ({
       liveRefs.baseMaterial.needsUpdate = true;
       liveRefs.solidActive = true;
       liveRefs.baseOpacity = 1;
+      // Share the same canvas texture with the flat plane — one source of
+      // truth means the flat and globe views always agree, and the cross-
+      // fade reads as a single object morphing rather than a swap.
+      if (liveRefs.flatSolidMaterial) {
+        liveRefs.flatSolidMaterial.map = texture;
+        liveRefs.flatSolidMaterial.needsUpdate = true;
+      }
       applyGlobeShellProgress(liveRefs, morphRef.current.progress, globeSettingsRef.current);
     };
 

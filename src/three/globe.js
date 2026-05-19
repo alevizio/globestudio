@@ -764,6 +764,15 @@ export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEF
   if (refs.atmosphere) refs.atmosphere.visible = sphereVisible && glowStrength > 0.001;
   if (refs.outerHalo) refs.outerHalo.visible = sphereVisible && glowStrength > 0.001;
   if (refs.graticule) refs.graticule.visible = sphereVisible && gridStrength > 0.001;
+  // Flat solid plane is the mirror image — opacity is (1 − shellProgress)
+  // when solid mode is active, fully hidden otherwise. The plane shares
+  // its texture with the sphere via flatSolidMaterial.map, so this is a
+  // clean cross-fade between two views of the same world data.
+  if (refs.flatSolidMesh && refs.flatSolidMaterial) {
+    const flatOpacity = refs.solidActive ? (1 - shellProgress) : 0;
+    refs.flatSolidMaterial.opacity = flatOpacity;
+    refs.flatSolidMesh.visible = flatOpacity > 0.005;
+  }
   if (refs.borderlessNetwork) {
     const routeOpacity = shellProgress * routeStrength;
     refs.borderlessNetwork.visible = routeOpacity > 0.001;
