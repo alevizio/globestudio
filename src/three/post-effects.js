@@ -21,6 +21,7 @@ export const EFFECT_INDEX = {
   stripes: 13,
   badtv: 14,
   rgb: 15,
+  chroma: 16,
 };
 
 const VERTEX_SHADER = /* glsl */ `
@@ -537,6 +538,38 @@ const FRAGMENT_SHADER = /* glsl */ `
     return vec4(r, g, b, max(src.a, max(max(r, g), b)));
   }
 
+  // Chroma — independent radial zoom per RGB channel from a centre point.
+  // Adapted from VIDVOX / toneburst's "Chroma Zoom" ISF shader. Each
+  // channel is sampled at a different scale around the centre so the
+  // colours fan out radially toward the edges of the frame — distinct
+  // from our directional chromatic and our rotating-axis rgb passes.
+  // Alpha follows the master scale so the chip outline stays crisp.
+  vec4 chromaPass(vec2 uv) {
+    vec2 center = vec2(0.5);
+    // Master zoom is essentially 1; tiny micro-scale wobble adds life.
+    float t = uTime * mix(0.2, 2.0, uMotion);
+    float master = 1.0 + sin(t) * 0.004 * uIntensity;
+    // Spread between channels — bigger spread = stronger chromatic fan.
+    float spread = uIntensity * 0.14;
+    float rZoom = master * (1.0 - spread);
+    float gZoom = master;
+    float bZoom = master * (1.0 + spread);
+
+    vec2 rUv = (uv - center) / rZoom + center;
+    vec2 gUv = (uv - center) / gZoom + center;
+    vec2 bUv = (uv - center) / bZoom + center;
+
+    // Per-channel sample only the matching colour — same trick the
+    // reference uses, gives the clean R/G/B separation.
+    float r = sampleTex(rUv).r;
+    float g = sampleTex(gUv).g;
+    float b = sampleTex(bUv).b;
+
+    vec2 aUv = (uv - center) / master + center;
+    float a = sampleTex(aUv).a;
+    return vec4(r, g, b, max(a, max(max(r, g), b)));
+  }
+
   vec4 wavePass(vec2 uv) {
     float t = uTime * mix(0.3, 4.0, uMotion);
     float amp = uWarp * uIntensity * 0.05;
@@ -584,6 +617,8 @@ const FRAGMENT_SHADER = /* glsl */ `
       color = badtvPass(vUv);
     } else if (uEffect > 14.5 && uEffect < 15.5) {
       color = rgbPass(vUv);
+    } else if (uEffect > 15.5 && uEffect < 16.5) {
+      color = chromaPass(vUv);
     }
 
     if (uEffect > 0.5 && uGrain > 0.0) {
