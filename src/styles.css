@@ -665,12 +665,21 @@ button {
 /* Solid coloured square anchored to the chip's left edge — fills the
    chip's full height (align-self: stretch) and is the first child so
    it docks on the left. Inline background style on the element
-   carries the preset's primary fill. */
+   carries the preset's primary fill. Opacity softens the block so it
+   reads as a preview hint rather than a hard colour swatch — keeps
+   white / very-light presets from blowing out against the dark chip
+   field. */
 .looks-chip-preview {
   flex: 0 0 auto;
   align-self: stretch;
   width: 40px;
-  transition: transform 220ms var(--ease);
+  opacity: 0.55;
+  transition: transform 220ms var(--ease), opacity 220ms var(--ease);
+}
+
+.looks-chip:hover .looks-chip-preview,
+.looks-chip.is-applied .looks-chip-preview {
+  opacity: 0.85;
 }
 
 .looks-chip:hover {
