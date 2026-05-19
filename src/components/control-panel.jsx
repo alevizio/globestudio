@@ -20,7 +20,6 @@ import { OptionRow } from "./ui/option-row.jsx";
 import { PanelSection } from "./ui/panel-section.jsx";
 import { RangeControl } from "./ui/range-control.jsx";
 import { SearchableSelect } from "./ui/searchable-select.jsx";
-import { LayerAccordion } from "./ui/layer-accordion.jsx";
 import { SegmentedControl } from "./ui/segmented-control.jsx";
 import { SelectControl } from "./ui/select-control.jsx";
 import { ShapeSelect } from "./ui/shape-select.jsx";
@@ -444,43 +443,46 @@ export const ControlPanel = ({
             />
           </OptionRow>
 
-          {/* Each layer is its own collapsible card with a toggle in the
-              header — open the card to reveal its parameters, flip the
-              toggle to enable/disable the whole layer. Lets users dial
-              in one layer at a time without scrolling past everyone
-              else's settings. */}
-          <LayerAccordion
-            title="Glow"
-            enabled={globeSettings.glow}
-            onEnabledChange={(value) => updateGlobeSetting("glow", value)}
-            toggleLabel="Toggle globe glow"
-          >
-            <OptionRow label="Strength" value={globeSettings.glowStrength}>
-              <RangeControl
-                label="Glow strength"
-                min={0}
-                max={100}
-                value={globeSettings.glowStrength}
-                onChange={(value) => updateGlobeSetting("glowStrength", value)}
-              />
-            </OptionRow>
-            <OptionRow label="Spread" value={globeSettings.glowSpread ?? 50}>
-              <RangeControl
-                label="Glow spread"
-                min={0}
-                max={100}
-                value={globeSettings.glowSpread ?? 50}
-                onChange={(value) => updateGlobeSetting("glowSpread", value)}
-              />
-            </OptionRow>
-          </LayerAccordion>
+          {/* Glow layer */}
+          <OptionRow label="Glow">
+            <ToggleControl
+              label="Toggle globe glow"
+              checked={globeSettings.glow}
+              onChange={(value) => updateGlobeSetting("glow", value)}
+            />
+          </OptionRow>
+          {globeSettings.glow && (
+            <>
+              <OptionRow label="Strength" value={globeSettings.glowStrength}>
+                <RangeControl
+                  label="Glow strength"
+                  min={0}
+                  max={100}
+                  value={globeSettings.glowStrength}
+                  onChange={(value) => updateGlobeSetting("glowStrength", value)}
+                />
+              </OptionRow>
+              <OptionRow label="Spread" value={globeSettings.glowSpread ?? 50}>
+                <RangeControl
+                  label="Glow spread"
+                  min={0}
+                  max={100}
+                  value={globeSettings.glowSpread ?? 50}
+                  onChange={(value) => updateGlobeSetting("glowSpread", value)}
+                />
+              </OptionRow>
+            </>
+          )}
 
-          <LayerAccordion
-            title="Surface"
-            enabled={globeSettings.surface}
-            onEnabledChange={(value) => updateGlobeSetting("surface", value)}
-            toggleLabel="Toggle globe surface"
-          >
+          {/* Surface (sphere fill) layer */}
+          <OptionRow label="Surface">
+            <ToggleControl
+              label="Toggle globe surface"
+              checked={globeSettings.surface}
+              onChange={(value) => updateGlobeSetting("surface", value)}
+            />
+          </OptionRow>
+          {globeSettings.surface && (
             <OptionRow label="Strength" value={globeSettings.surfaceStrength}>
               <RangeControl
                 label="Surface strength"
@@ -490,100 +492,118 @@ export const ControlPanel = ({
                 onChange={(value) => updateGlobeSetting("surfaceStrength", value)}
               />
             </OptionRow>
-          </LayerAccordion>
-
-          <LayerAccordion
-            title="Grid"
-            enabled={globeSettings.grid}
-            onEnabledChange={(value) => updateGlobeSetting("grid", value)}
-            toggleLabel="Toggle globe grid"
-          >
-            <OptionRow label="Strength" value={globeSettings.gridStrength}>
-              <RangeControl
-                label="Grid strength"
-                min={0}
-                max={100}
-                value={globeSettings.gridStrength}
-                onChange={(value) => updateGlobeSetting("gridStrength", value)}
-              />
-            </OptionRow>
-            <OptionRow label="Size" value={`${globeSettings.gridSize}°`}>
-              <RangeControl
-                label="Grid size"
-                min={12}
-                max={60}
-                step={3}
-                value={globeSettings.gridSize}
-                onChange={(value) => updateGlobeSetting("gridSize", value)}
-              />
-            </OptionRow>
-            <OptionRow label="Lift" value={globeSettings.gridLift}>
-              <RangeControl
-                label="Grid lift"
-                min={0}
-                max={100}
-                value={globeSettings.gridLift}
-                onChange={(value) => updateGlobeSetting("gridLift", value)}
-              />
-            </OptionRow>
-          </LayerAccordion>
-
-          {globeSettings.look === "borderless" && (
-            <LayerAccordion
-              title="Routes"
-              enabled={globeSettings.routes}
-              onEnabledChange={(value) => updateGlobeSetting("routes", value)}
-              toggleLabel="Toggle borderless routes"
-            >
-              <OptionRow label="Strength" value={globeSettings.routesStrength}>
-                <RangeControl
-                  label="Route strength"
-                  min={0}
-                  max={100}
-                  value={globeSettings.routesStrength}
-                  onChange={(value) => updateGlobeSetting("routesStrength", value)}
-                />
-              </OptionRow>
-            </LayerAccordion>
           )}
 
-          <LayerAccordion
-            title="Network"
-            enabled={globeSettings.network ?? true}
-            onEnabledChange={(value) => updateGlobeSetting("network", value)}
-            toggleLabel="Toggle live network"
-          >
-            <OptionRow label="Arcs">
-              <ToggleControl
-                label="Toggle flying route arcs"
-                checked={globeSettings.networkArcs ?? true}
-                onChange={(value) => updateGlobeSetting("networkArcs", value)}
-              />
-            </OptionRow>
-            <OptionRow label="Pulses">
-              <ToggleControl
-                label="Toggle city pulse rings"
-                checked={globeSettings.networkPulses ?? true}
-                onChange={(value) => updateGlobeSetting("networkPulses", value)}
-              />
-            </OptionRow>
-            <OptionRow label="Strength" value={globeSettings.networkStrength ?? 70}>
-              <RangeControl
-                label="Network strength"
-                min={0}
-                max={100}
-                value={globeSettings.networkStrength ?? 70}
-                onChange={(value) => updateGlobeSetting("networkStrength", value)}
-              />
-            </OptionRow>
-          </LayerAccordion>
+          {/* Grid layer */}
+          <OptionRow label="Grid">
+            <ToggleControl
+              label="Toggle globe grid"
+              checked={globeSettings.grid}
+              onChange={(value) => updateGlobeSetting("grid", value)}
+            />
+          </OptionRow>
+          {globeSettings.grid && (
+            <>
+              <OptionRow label="Strength" value={globeSettings.gridStrength}>
+                <RangeControl
+                  label="Grid strength"
+                  min={0}
+                  max={100}
+                  value={globeSettings.gridStrength}
+                  onChange={(value) => updateGlobeSetting("gridStrength", value)}
+                />
+              </OptionRow>
+              <OptionRow label="Size" value={`${globeSettings.gridSize}°`}>
+                <RangeControl
+                  label="Grid size"
+                  min={12}
+                  max={60}
+                  step={3}
+                  value={globeSettings.gridSize}
+                  onChange={(value) => updateGlobeSetting("gridSize", value)}
+                />
+              </OptionRow>
+              <OptionRow label="Lift" value={globeSettings.gridLift}>
+                <RangeControl
+                  label="Grid lift"
+                  min={0}
+                  max={100}
+                  value={globeSettings.gridLift}
+                  onChange={(value) => updateGlobeSetting("gridLift", value)}
+                />
+              </OptionRow>
+            </>
+          )}
 
-          <LayerAccordion
-            title="Auto spin"
-            enabled={globeSettings.autoSpin}
-            onEnabledChange={(value) => updateGlobeSetting("autoSpin", value)}
-            toggleLabel="Toggle globe auto spin"
-          >
+          {/* Routes — only relevant in the borderless look */}
+          {globeSettings.look === "borderless" && (
+            <>
+              <OptionRow label="Routes">
+                <ToggleControl
+                  label="Toggle borderless routes"
+                  checked={globeSettings.routes}
+                  onChange={(value) => updateGlobeSetting("routes", value)}
+                />
+              </OptionRow>
+              {globeSettings.routes && (
+                <OptionRow label="Strength" value={globeSettings.routesStrength}>
+                  <RangeControl
+                    label="Route strength"
+                    min={0}
+                    max={100}
+                    value={globeSettings.routesStrength}
+                    onChange={(value) => updateGlobeSetting("routesStrength", value)}
+                  />
+                </OptionRow>
+              )}
+            </>
+          )}
+
+          {/* Live network animation */}
+          <OptionRow label="Network">
+            <ToggleControl
+              label="Toggle live network"
+              checked={globeSettings.network ?? true}
+              onChange={(value) => updateGlobeSetting("network", value)}
+            />
+          </OptionRow>
+          {(globeSettings.network ?? true) && (
+            <>
+              <OptionRow label="Arcs">
+                <ToggleControl
+                  label="Toggle flying route arcs"
+                  checked={globeSettings.networkArcs ?? true}
+                  onChange={(value) => updateGlobeSetting("networkArcs", value)}
+                />
+              </OptionRow>
+              <OptionRow label="Pulses">
+                <ToggleControl
+                  label="Toggle city pulse rings"
+                  checked={globeSettings.networkPulses ?? true}
+                  onChange={(value) => updateGlobeSetting("networkPulses", value)}
+                />
+              </OptionRow>
+              <OptionRow label="Strength" value={globeSettings.networkStrength ?? 70}>
+                <RangeControl
+                  label="Network strength"
+                  min={0}
+                  max={100}
+                  value={globeSettings.networkStrength ?? 70}
+                  onChange={(value) => updateGlobeSetting("networkStrength", value)}
+                />
+              </OptionRow>
+            </>
+          )}
+
+          {/* Auto spin */}
+          <OptionRow label="Auto spin">
+            <ToggleControl
+              label="Toggle globe auto spin"
+              checked={globeSettings.autoSpin}
+              onChange={(value) => updateGlobeSetting("autoSpin", value)}
+            />
+          </OptionRow>
+          {globeSettings.autoSpin && (
             <OptionRow label="Speed" value={shaderSettings.motion}>
               <RangeControl
                 label="Globe spin speed"
@@ -593,7 +613,7 @@ export const ControlPanel = ({
                 onChange={(value) => updateShaderSetting("motion", value)}
               />
             </OptionRow>
-          </LayerAccordion>
+          )}
 
           {/* Global adjustments — sit at the bottom because they're not gated */}
           <OptionRow label="Dot lift" value={globeSettings.dotLift}>
