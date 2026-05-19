@@ -28,13 +28,14 @@ export const shaderEffectOptions = [
   { value: "badtv", label: "Bad TV" },
   { value: "rgb", label: "RGB" },
   { value: "chroma", label: "Chroma" },
+  { value: "corrupt", label: "Corrupt" },
 ];
 
 export const effectsWithSplit = new Set(["bloom", "chromatic", "crt", "glitch", "wave"]);
 export const effectsWithScanlines = new Set(["crt", "pixel", "halftone", "glitch"]);
-export const effectsWithCellSize = new Set(["pixel", "halftone", "crt", "stripes"]);
+export const effectsWithCellSize = new Set(["pixel", "halftone", "crt", "stripes", "corrupt"]);
 export const effectsWithWarp = new Set(["bloom", "chromatic", "crt", "threshold", "wave"]);
-export const effectsWithMotion = new Set(["bloom", "chromatic", "crt", "halftone", "threshold", "glitch", "wave", "metal", "stripes", "badtv", "rgb", "chroma"]);
+export const effectsWithMotion = new Set(["bloom", "chromatic", "crt", "halftone", "threshold", "glitch", "wave", "metal", "stripes", "badtv", "rgb", "chroma", "corrupt"]);
 export const effectsWithThreshold = new Set(["threshold", "edge"]);
 
 const baseDefaults = {
@@ -66,6 +67,7 @@ export const effectPresets = {
   badtv: { ...baseDefaults, intensity: 60, grain: 24, scanlines: 0, motion: 60 },
   rgb: { ...baseDefaults, intensity: 50, grain: 0, scanlines: 0, motion: 30 },
   chroma: { ...baseDefaults, intensity: 55, grain: 0, scanlines: 0, motion: 20 },
+  corrupt: { ...baseDefaults, intensity: 70, cellSize: 6, grain: 0, scanlines: 0, motion: 40 },
 };
 
 export const presetForEffect = (effect) => effectPresets[effect] ?? effectPresets.none;

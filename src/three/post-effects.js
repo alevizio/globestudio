@@ -22,6 +22,7 @@ export const EFFECT_INDEX = {
   badtv: 14,
   rgb: 15,
   chroma: 16,
+  corrupt: 17,
 };
 
 const VERTEX_SHADER = /* glsl */ `
@@ -570,6 +571,75 @@ const FRAGMENT_SHADER = /* glsl */ `
     return vec4(r, g, b, max(a, max(max(r, g), b)));
   }
 
+  // Corrupt / datamosh — heavy channel-corruption look. Recipe:
+  //   1. Coarse cell pixelation (uCellSize-driven, no anti-aliasing).
+  //   2. Per-row horizontal shift (random per row, refreshes slowly).
+  //   3. Rare large block jumps (every ~24 rows triggers a big slide).
+  //   4. Per-channel chromatic offset — R drifts right, B drifts left,
+  //      so the row-shift lands different colour channels on different
+  //      pixels.
+  //   5. Hard binary quantisation per channel — each of R, G, B
+  //      becomes step(threshold, value), collapsing the palette to the
+  //      8 primaries (K, R, G, B, Y, C, M, W).
+  //   6. Subtle scanline modulation for the stripe pattern.
+  // The pattern animates slowly with uMotion; uIntensity drives both
+  // displacement amplitude and quantisation hardness.
+  vec4 corruptPass(vec2 uv) {
+    float t = uTime * mix(0.2, 2.5, uMotion);
+
+    // Coarse cell pixelation — anchors sampling to a chunky grid so
+    // the binary quantisation reads as blocks, not noise.
+    float cellSize = max(uCellSize * 0.55, 2.0);
+    vec2 grid = uResolution / cellSize;
+    vec2 cellUv = (floor(uv * grid) + 0.5) / grid;
+
+    // Per-row shift — random per row, refreshes on a slow time grid.
+    float rowKey = floor(cellUv.y * uResolution.y / max(cellSize * 1.6, 4.0));
+    float rowShift = (rand(vec2(rowKey * 0.13, floor(t * 0.6))) - 0.5)
+      * 0.12 * uIntensity;
+
+    // Big-block jump — triggers rarely, slides a whole band sideways.
+    float blockKey = floor(cellUv.y * uResolution.y / 22.0);
+    float blockTrigger = step(0.91 - uIntensity * 0.15,
+      rand(vec2(blockKey, floor(t * 1.4))));
+    float blockShift = (rand(vec2(blockKey * 1.7, floor(t * 1.9))) - 0.5)
+      * 0.28 * blockTrigger * uIntensity;
+    float xShift = rowShift + blockShift;
+
+    // Per-channel chromatic offset — different drift per channel makes
+    // the row-shift produce different colours on neighbouring pixels.
+    float chroma = uIntensity * 0.012;
+    vec2 rUv = vec2(cellUv.x + xShift + chroma * 1.4, cellUv.y);
+    vec2 gUv = vec2(cellUv.x + xShift - chroma * 0.3, cellUv.y);
+    vec2 bUv = vec2(cellUv.x + xShift - chroma * 1.6, cellUv.y);
+
+    float r = sampleTex(rUv).r;
+    float g = sampleTex(gUv).g;
+    float b = sampleTex(bUv).b;
+
+    // Hard binary quantisation per channel → 8-colour palette.
+    // Threshold lowers with uIntensity so the corruption fills more
+    // of the frame as intensity climbs.
+    float threshold = mix(0.5, 0.14, uIntensity);
+    vec3 quant = vec3(
+      step(threshold, r),
+      step(threshold, g),
+      step(threshold, b)
+    );
+
+    // Subtle horizontal scanline darkening at high frequency — the
+    // banded read on top of the binary blocks.
+    float scan = 0.84 + 0.16 * cos(uv.y * uResolution.y * PI * 0.5);
+    quant *= mix(1.0, scan, 0.55);
+
+    // Alpha: keep the silhouette of either the original source or
+    // anything that survived quantisation.
+    vec4 src = sampleTex(uv);
+    float anyChannel = max(quant.r, max(quant.g, quant.b));
+    float alpha = max(src.a, anyChannel);
+    return vec4(quant, alpha);
+  }
+
   vec4 wavePass(vec2 uv) {
     float t = uTime * mix(0.3, 4.0, uMotion);
     float amp = uWarp * uIntensity * 0.05;
@@ -619,6 +689,8 @@ const FRAGMENT_SHADER = /* glsl */ `
       color = rgbPass(vUv);
     } else if (uEffect > 15.5 && uEffect < 16.5) {
       color = chromaPass(vUv);
+    } else if (uEffect > 16.5 && uEffect < 17.5) {
+      color = corruptPass(vUv);
     }
 
     if (uEffect > 0.5 && uGrain > 0.0) {
