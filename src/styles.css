@@ -684,8 +684,8 @@ button {
 }
 
 .looks-chip-preview-globe {
-  width: 32px;
-  height: 32px;
+  width: 100%;
+  height: 100%;
   display: block;
 }
 

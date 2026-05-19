@@ -121,7 +121,7 @@ const Continent = ({ fill, stroke }) => (
 // the full viewBox; the clipPath does the sphere-shape clipping so this
 // works at any sphere position. Dot size still falls off radially from
 // the sphere centre so the pattern reads as wrapping a curved surface.
-const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 22, sphereCy = 22, sphereR = 14) => {
+const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 15, sphereCy = 15, sphereR = 18) => {
   const dots = [];
   const spacing = 2.4;
   for (let row = 0; row < 14; row += 1) {
@@ -203,13 +203,13 @@ const renderContent = (preset, clipId) => {
   const shaderEffect = settings.shaderSettings?.effect;
   const isSpace = settings.backgroundStyle === "space";
 
-  // Sphere shifted toward the bottom-right of the 30 × 30 viewBox so the
-  // globe's lower-right quadrant extends past the visible area — the SVG
-  // viewBox crops it cleanly, giving the chip a "this is a fragment of a
-  // larger globe" feel rather than a centred miniature.
-  const cx = 22;
-  const cy = 22;
-  const radius = 14;
+  // Sphere centred in the 30 × 30 viewBox with a radius that extends past
+  // every edge — the SVG viewBox crops the globe on all four sides so the
+  // chip reads as a tight close-up of the surface rather than a centred
+  // miniature with breathing room.
+  const cx = 15;
+  const cy = 15;
+  const radius = 18;
 
   // Solid mode: filled continent
   if (renderMode === "solid") {
@@ -285,7 +285,7 @@ export const LookPreview = ({ preset }) => {
       >
         <defs>
           <clipPath id={clipId}>
-            <circle cx="22" cy="22" r="14" />
+            <circle cx="15" cy="15" r="18" />
           </clipPath>
         </defs>
         {renderContent(preset, clipId)}
