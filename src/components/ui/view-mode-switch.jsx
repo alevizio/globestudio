@@ -1,8 +1,8 @@
-import { DottedGlobe, MapIcon } from "../icons.jsx";
+import { Globe2, MapIcon } from "../icons.jsx";
 
 const modes = [
   { value: "flat", label: "Flat", icon: MapIcon },
-  { value: "globe", label: "Globe", icon: DottedGlobe },
+  { value: "globe", label: "Globe", icon: Globe2 },
 ];
 
 export const ViewModeSwitch = ({ viewMode, setViewMode }) => (

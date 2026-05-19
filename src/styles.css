@@ -1662,52 +1662,7 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  background: var(--field);
-  border: 1px solid var(--border);
   color: var(--text);
-}
-
-.panel-meta-icon svg {
-  animation: panel-meta-icon-spin 24s linear infinite;
-}
-
-@keyframes panel-meta-icon-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* When a preset is freshly applied, the brand mark gives a quick pulse —
-   the icon scales up briefly with a soft accent halo, then settles. The
-   previous staggered per-circle ripple relied on concentric dot indices
-   that the new orbital-globe mark no longer has, so this is the whole-icon
-   pulse variant — same intent, simpler implementation. */
-.panel-meta-icon.is-rippling svg {
-  animation: panel-meta-icon-pulse 620ms var(--ease);
-}
-
-.panel-meta-icon.is-rippling {
-  box-shadow:
-    0 0 0 1px var(--accent-soft, rgba(246, 242, 234, 0.22)),
-    0 0 16px rgba(246, 242, 234, 0.18);
-  transition: box-shadow 280ms var(--ease);
-}
-
-@keyframes panel-meta-icon-pulse {
-  0%   { transform: scale(1) rotate(0deg); }
-  35%  { transform: scale(1.15) rotate(8deg); }
-  70%  { transform: scale(0.98) rotate(-4deg); }
-  100% { transform: scale(1) rotate(0deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .panel-meta-icon svg,
-  .panel-meta-icon.is-rippling svg {
-    animation: none;
-  }
-  .panel-meta-icon.is-rippling {
-    box-shadow: 0 0 0 1px var(--accent-soft, rgba(246, 242, 234, 0.22));
-  }
 }
 
 .panel-meta-text {

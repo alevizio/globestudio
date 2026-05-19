@@ -33,7 +33,7 @@ import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
-import { DottedGlobe, Download, Github, Moon, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Sun, Twitter } from "./components/icons.jsx";
+import { DottedGlobe, Download, Github, Globe2, Moon, PanelLeftClose, PanelLeftOpen, RotateCcw, Shuffle, Sun, Twitter } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
@@ -955,7 +955,7 @@ const App = () => {
           aria-label="Visit alevizio.com"
           data-tooltip="Visit alevizio.com"
         >
-          <DottedGlobe size={15} />
+          <Globe2 size={15} />
         </a>
       </nav>
 
