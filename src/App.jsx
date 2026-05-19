@@ -33,7 +33,7 @@ import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
-import { DottedGlobe, Download, Github, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
+import { Download, Github, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
@@ -926,19 +926,7 @@ const App = () => {
         aria-hidden={panelCollapsed}
       >
         <div className="panel-header">
-          <div className="panel-meta">
-            <span
-              className={`panel-meta-icon ${appliedLookId ? "is-rippling" : ""}`}
-              aria-label={`${selected.label} — ${
-                dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
-              }`}
-              title={`${selected.label} — ${
-                dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
-              }`}
-            >
-              <DottedGlobe size={56} />
-            </span>
-          </div>
+          <span className="panel-header-divider" aria-hidden="true" />
           <div className="panel-header-actions">
             <button
               type="button"
