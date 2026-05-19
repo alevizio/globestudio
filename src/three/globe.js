@@ -267,6 +267,9 @@ const applyDotInstances = (mesh, points, image, scale, radiusOffset = 0, morphPr
     globePosition.copy(latLngToVector3(point.lat, point.lng, GLOBE_RADIUS + radiusOffset));
     normal.copy(globePosition).normalize();
 
+    // Normalised horizontal direction — drives the per-dot orientation in
+    // the cylinder phase so each dot keeps rotating toward its eventual
+    // sphere normal as it wraps.
     cylinderNormal.set(normal.x, 0, normal.z);
     if (cylinderNormal.lengthSq() < 0.000001) {
       cylinderNormal.copy(depth);
@@ -274,7 +277,18 @@ const applyDotInstances = (mesh, points, image, scale, radiusOffset = 0, morphPr
       cylinderNormal.normalize();
     }
 
-    cylinderPosition.copy(cylinderNormal).multiplyScalar(targetRadius);
+    // Cylinder POSITION uses the dot's actual sphere x/z (not the
+    // normalised cylinder direction scaled to full radius). Equatorial
+    // dots are already at full radius on the sphere, so the morph looks
+    // identical for them. Polar dots, which sit near the y-axis on the
+    // sphere, now stay near the axis during the wrap instead of being
+    // flung out to (±radius, _, 0) and snapping back — that swing was
+    // making top-of-image dots travel a different visible distance from
+    // bottom-of-image dots, which read as "dots are bigger at the top
+    // during the transition." y still lerps from flat→sphere over the
+    // sphere phase so the dot field rises onto the globe smoothly.
+    cylinderPosition.x = globePosition.x;
+    cylinderPosition.z = globePosition.z;
     cylinderPosition.y = THREE.MathUtils.lerp(flatPosition.y, globePosition.y, sphereProgress * 0.72);
     position.copy(flatPosition).lerp(cylinderPosition, wrapProgress).lerp(globePosition, sphereProgress);
 
