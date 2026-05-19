@@ -116,7 +116,36 @@ const Continent = ({ fill, stroke }) => (
   <path d={CONTINENT_PATH} fill={fill} stroke={stroke} strokeWidth="0.3" strokeLinejoin="round" />
 );
 
-const renderEffectOverlay = (shaderEffect) => {
+// Tight grid of small dots with sizes that fall off toward the sphere's
+// edge — the characteristic look of a halftone print plate. Clipped to
+// the sphere so the pattern reads as wrapping around the globe.
+const renderHalftonePattern = (clipId, color = "#ffffff") => {
+  const dots = [];
+  const spacing = 2.4;
+  for (let row = 0; row < 14; row += 1) {
+    for (let col = 0; col < 14; col += 1) {
+      const cx = 1.5 + col * spacing;
+      const cy = 1.5 + row * spacing;
+      const dx = cx - 15;
+      const dy = cy - 15;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 12) continue;
+      // Larger dots toward the centre, smaller toward the silhouette —
+      // mimics how halftone screens vary cell size with tonal value.
+      const r = 0.62 - dist * 0.035;
+      if (r < 0.1) continue;
+      dots.push(
+        <circle key={`h${row}-${col}`} cx={cx} cy={cy} r={r} fill={color} opacity="0.9" />,
+      );
+    }
+  }
+  return <g clipPath={`url(#${clipId})`}>{dots}</g>;
+};
+
+const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
+  if (shaderEffect === "halftone") {
+    return renderHalftonePattern(clipId, dotColor);
+  }
   if (shaderEffect === "crt") {
     return (
       <g pointerEvents="none">
@@ -190,12 +219,18 @@ const renderContent = (preset, clipId) => {
     );
   }
 
-  // Dots mode: render dot pattern clipped to sphere
-  const dots = VISIBLE_DOTS.map(([x, y], i) => {
-    const px = cx + (x - 0.5) * radius * 2;
-    const py = cy + (y - 0.5) * radius * 2;
-    return renderShape(px, py, shape, dotColor, ascii, i);
-  });
+  // Dots mode: render dot pattern clipped to sphere — UNLESS the halftone
+  // pass is on, in which case the halftone grid overlay replaces the
+  // continent-shaped clusters so the preview reads as halftone print
+  // rather than a halftone-tinted continent.
+  const isHalftone = shaderEffect === "halftone";
+  const dots = isHalftone
+    ? null
+    : VISIBLE_DOTS.map(([x, y], i) => {
+        const px = cx + (x - 0.5) * radius * 2;
+        const py = cy + (y - 0.5) * radius * 2;
+        return renderShape(px, py, shape, dotColor, ascii, i);
+      });
 
   return (
     <g>
@@ -223,8 +258,8 @@ const renderContent = (preset, clipId) => {
         strokeWidth="0.3"
         strokeOpacity="0.18"
       />
-      <g clipPath={`url(#${clipId})`}>{dots}</g>
-      {renderEffectOverlay(shaderEffect)}
+      {dots && <g clipPath={`url(#${clipId})`}>{dots}</g>}
+      {renderEffectOverlay(shaderEffect, clipId, dotColor)}
     </g>
   );
 };
