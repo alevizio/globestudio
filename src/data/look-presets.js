@@ -111,6 +111,24 @@ export const lookPresets = [
     }),
   },
   {
+    id: "badtv",
+    name: "Bad TV",
+    blurb: "VHS analog distortion",
+    settings: merge({
+      density: 70,
+      dotSize: 13,
+      shape: "Square",
+      shaderSettings: {
+        ...effectPresets.badtv,
+        effect: "badtv",
+        intensity: 65,
+        grain: 32,
+        motion: 55,
+      },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
+    }),
+  },
+  {
     id: "bloom",
     name: "Bloom",
     blurb: "Glowing aurora",

@@ -358,6 +358,60 @@ const renderCorruptBlocks = (clipId, sphereCx = 15, sphereCy = 15, sphereR = 13)
   );
 };
 
+// Bad TV — analog VHS distortion. Two horizontal "tear" bands (where
+// the noise-driven UV jitter from the shader would be at its strongest)
+// + a layer of white-noise specks scattered across the sphere
+// (the "snow" the shader's random1d-driven grain overlay paints on
+// the actual canvas). Sits on TOP of the regular continent dots so
+// the underlying globe still reads through the noise — same as the
+// shader, which distorts the source rather than replacing it.
+const renderBadTvOverlay = (clipId) => {
+  const speckles = [];
+  // 90 speckles spread across the full 30 × 30 viewBox — the clipPath
+  // crops them to the sphere. Mix of white + faint chroma (red / cyan)
+  // for analog colour-noise variety.
+  for (let i = 0; i < 90; i += 1) {
+    const h1 = corruptHash(i * 7.13);
+    const h2 = corruptHash(i * 13.97);
+    const h3 = corruptHash(i * 23.71);
+    const x = h1 * 30;
+    const y = h2 * 30;
+    const size = 0.32 + h3 * 0.45;
+    const opacity = 0.38 + h3 * 0.5;
+    // Most speckles white; ~15 % drift toward red, ~15 % toward cyan
+    // for that VHS chroma-noise feel.
+    let fill = "#ffffff";
+    if (h3 < 0.15) fill = "#ff7878";
+    else if (h3 < 0.3) fill = "#78d8ff";
+    speckles.push(
+      <rect
+        key={`bt${i}`}
+        x={x.toFixed(2)}
+        y={y.toFixed(2)}
+        width={size.toFixed(2)}
+        height={size.toFixed(2)}
+        fill={fill}
+        opacity={opacity.toFixed(2)}
+      />,
+    );
+  }
+  return (
+    <g clipPath={`url(#${clipId})`} pointerEvents="none">
+      {/* Two horizontal tear bands where the UV-jitter would smear the
+          image — bright white seam plus a wider dimmer band that
+          suggests a vertical hold problem. */}
+      <rect x="-2" y="9.2" width="34" height="1.1" fill="rgba(255, 255, 255, 0.55)" />
+      <rect x="-2" y="10.5" width="34" height="0.4" fill="rgba(0, 0, 0, 0.45)" />
+      <rect x="-2" y="19.5" width="34" height="0.8" fill="rgba(255, 255, 255, 0.4)" />
+      {speckles}
+      {/* Faint scanline lattice on top of everything else. */}
+      {[4, 7, 10, 13, 16, 19, 22, 25].map((y, i) => (
+        <line key={`bts${i}`} x1="-2" y1={y} x2="32" y2={y} stroke="rgba(255, 255, 255, 0.08)" strokeWidth="0.4" />
+      ))}
+    </g>
+  );
+};
+
 // Pencil sketch — two sets of crossing diagonal strokes clipped to the
 // sphere, drawn in graphite tones on a paper-white background. Matches
 // the cross-hatching aesthetic of the pencil shader.
@@ -429,6 +483,9 @@ const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
   }
   if (shaderEffect === "corrupt") {
     return renderCorruptBlocks(clipId);
+  }
+  if (shaderEffect === "badtv") {
+    return renderBadTvOverlay(clipId);
   }
   if (shaderEffect === "metal") {
     return renderMetalSheen(clipId);
