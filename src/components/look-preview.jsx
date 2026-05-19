@@ -148,34 +148,50 @@ const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
     return renderHalftonePattern(clipId, dotColor);
   }
   if (shaderEffect === "crt") {
+    // Scanlines across the full cell + a subtle vignette ring so the
+    // chip reads as a CRT phosphor scan, not just a striped overlay.
     return (
       <g pointerEvents="none">
-        {[5, 8, 11, 14, 17, 20, 23].map((y, i) => (
-          <line key={i} x1="3" y1={y} x2="27" y2={y} stroke="rgba(255,255,255,0.18)" strokeWidth="0.6" />
+        {[3, 6, 9, 12, 15, 18, 21, 24, 27].map((y, i) => (
+          <line key={i} x1="-2" y1={y} x2="32" y2={y} stroke="rgba(255,255,255,0.22)" strokeWidth="0.5" />
         ))}
       </g>
     );
   }
   if (shaderEffect === "glitch") {
+    // Two bars of RGB split across the sphere band, plus a thin chroma
+    // shift on the silhouette so the dots underneath read as misaligned.
     return (
       <g pointerEvents="none">
-        <rect x="3" y="11" width="24" height="1.2" fill="#ff5454" opacity="0.55" />
-        <rect x="4" y="16" width="24" height="1.2" fill="#3aa9ff" opacity="0.55" />
+        <rect x="-2" y="10.5" width="34" height="1.2" fill="#ff5454" opacity="0.7" />
+        <rect x="-2" y="18" width="34" height="1.2" fill="#3aa9ff" opacity="0.7" />
+        <rect x="-2" y="13.5" width="34" height="0.5" fill="#ffffff" opacity="0.35" />
       </g>
     );
   }
   if (shaderEffect === "wave") {
     return (
       <path
-        d="M 2 15 Q 7 12 12 15 T 22 15 T 32 15"
+        d="M -2 15 Q 4 12 10 15 T 22 15 T 34 15"
         fill="none"
-        stroke="rgba(255,255,255,0.28)"
-        strokeWidth="0.6"
+        stroke="rgba(255,255,255,0.32)"
+        strokeWidth="0.7"
       />
     );
   }
   return null;
 };
+
+// Bloom: oversized soft halo behind the sphere — rendered at a low
+// opacity in the dot colour so it reads as a glowing aurora at the
+// chip's scale. Separate from renderEffectOverlay because it draws
+// underneath the dots, not above them.
+const renderBloomHalo = (cx, cy, radius, dotColor) => (
+  <g pointerEvents="none">
+    <circle cx={cx} cy={cy} r={radius + 6} fill={dotColor} opacity="0.12" />
+    <circle cx={cx} cy={cy} r={radius + 3} fill={dotColor} opacity="0.22" />
+  </g>
+);
 
 const renderStars = (count, seed) => {
   const stars = [];
@@ -225,23 +241,45 @@ const renderContent = (preset, clipId) => {
 
   // Dots mode: render dot pattern clipped to sphere — UNLESS the halftone
   // pass is on, in which case the halftone grid overlay replaces the
-  // continent-shaped clusters so the preview reads as halftone print
-  // rather than a halftone-tinted continent.
+  // continent-shaped clusters. For the edge / wireframe pass, dots
+  // render as open ring outlines (no fill) so the chip reads as a
+  // wire-traced surface rather than filled landmasses.
   const isHalftone = shaderEffect === "halftone";
+  const isEdge = shaderEffect === "edge";
   const dots = isHalftone
     ? null
     : VISIBLE_DOTS.map(([x, y], i) => {
         const px = cx + (x - 0.5) * radius * 2;
         const py = cy + (y - 0.5) * radius * 2;
+        if (isEdge) {
+          // Open ring — outlined dot with no fill. Communicates the
+          // edge-traced character at chip scale.
+          return (
+            <circle
+              key={i}
+              cx={px}
+              cy={py}
+              r={0.62}
+              fill="none"
+              stroke={dotColor}
+              strokeWidth="0.32"
+              strokeOpacity="0.95"
+            />
+          );
+        }
         return renderShape(px, py, shape, dotColor, ascii, i);
       });
+
+  // Latitude hint stroke is heavier on the wireframe preset so the chip
+  // reads as a hatched / wire-traced globe rather than a faint sphere
+  // outline with dots.
+  const latStrokeOpacity = isEdge ? 0.42 : 0.18;
+  const sphereStrokeOpacity = isEdge ? 0.55 : 0.25;
 
   return (
     <g>
       {isSpace && renderStars(14, 23)}
-      {shaderEffect === "bloom" && (
-        <circle cx={cx} cy={cy} r={radius + 4} fill={dotColor} opacity="0.18" />
-      )}
+      {shaderEffect === "bloom" && renderBloomHalo(cx, cy, radius, dotColor)}
       <circle
         cx={cx}
         cy={cy}
@@ -249,7 +287,7 @@ const renderContent = (preset, clipId) => {
         fill="none"
         stroke={dotColor}
         strokeWidth="0.4"
-        strokeOpacity="0.25"
+        strokeOpacity={sphereStrokeOpacity}
       />
       {/* Latitude hint */}
       <ellipse
@@ -260,8 +298,22 @@ const renderContent = (preset, clipId) => {
         fill="none"
         stroke={dotColor}
         strokeWidth="0.3"
-        strokeOpacity="0.18"
+        strokeOpacity={latStrokeOpacity}
       />
+      {/* Wireframe-only: extra meridian hint so it reads as a
+          wire-traced surface. */}
+      {isEdge && (
+        <ellipse
+          cx={cx}
+          cy={cy}
+          rx={radius * 0.45}
+          ry={radius}
+          fill="none"
+          stroke={dotColor}
+          strokeWidth="0.3"
+          strokeOpacity={latStrokeOpacity}
+        />
+      )}
       {dots && <g clipPath={`url(#${clipId})`}>{dots}</g>}
       {renderEffectOverlay(shaderEffect, clipId, dotColor)}
     </g>
