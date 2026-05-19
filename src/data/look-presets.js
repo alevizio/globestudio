@@ -40,15 +40,22 @@ export const lookPresets = [
     settings: merge(),
   },
   {
-    id: "print",
-    name: "Print",
-    blurb: "Halftone magazine plate",
+    id: "halftone",
+    name: "Halftone",
+    blurb: "Halftone shader print",
     settings: merge({
-      renderMode: "solid",
-      worldFill: "#cfcabd",
-      worldStroke: "#181818",
-      shaderSettings: { ...effectPresets.halftone, cellSize: 7, intensity: 80 },
-      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, grid: false, glow: false, surface: true, surfaceStrength: 100 },
+      density: 50,
+      dotSize: 11,
+      shape: "Circle",
+      // Explicit `effect` key so applyLook sets the shader pass — the
+      // other spread keys carry the matching tuning (cellSize, intensity).
+      shaderSettings: {
+        ...effectPresets.halftone,
+        effect: "halftone",
+        cellSize: 8,
+        intensity: 78,
+      },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
     }),
   },
   {
