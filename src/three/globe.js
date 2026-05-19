@@ -462,6 +462,9 @@ const buildGradientColorSampler = (gradient, imageWidth, imageHeight) => {
   const range = Math.max(1e-6, maxProj - minProj);
   const fromColor = new THREE.Color(gradient.from);
   const toColor = new THREE.Color(gradient.to);
+  const fromAlpha = gradient.fromAlpha ?? 1;
+  const toAlpha = gradient.toAlpha ?? 1;
+  const hasAlpha = fromAlpha < 1 || toAlpha < 1;
   const result = new THREE.Color();
   // CSS-style color-hint remapping: when gradient.midpoint is provided the
   // 50/50 mix lands at that fraction of the gradient length instead of 0.5.
@@ -469,7 +472,20 @@ const buildGradientColorSampler = (gradient, imageWidth, imageHeight) => {
   return (point) => {
     const proj = point.x * dirX + point.y * dirY;
     const t = Math.max(0, Math.min(1, (proj - minProj) / range));
-    return result.copy(fromColor).lerp(toColor, remapTByMidpoint(t, midpoint));
+    const u = remapTByMidpoint(t, midpoint);
+    result.copy(fromColor).lerp(toColor, u);
+    // InstancedMesh has no per-instance alpha attribute, so the only way to
+    // make gradient.fromAlpha / toAlpha read on the dot field is to fold
+    // the alpha into the RGB itself: alpha=0 → black (invisible against
+    // the dark canvas), alpha=1 → original colour. This matches CSS
+    // pre-multiplied alpha on a solid black background — close enough to
+    // what users intuitively expect from a transparency control without
+    // needing a custom shader.
+    if (hasAlpha) {
+      const a = fromAlpha + (toAlpha - fromAlpha) * u;
+      if (a < 1) result.multiplyScalar(Math.max(0, a));
+    }
+    return result;
   };
 };
 

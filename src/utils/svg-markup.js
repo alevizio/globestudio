@@ -335,9 +335,15 @@ export const createDottedSvg = ({
         if (p > maxProj) maxProj = p;
       });
       const range = Math.max(1e-6, maxProj - minProj);
+      // Mirror the colour sampler's midpoint remapping so the alpha
+      // interpolation stays in lock-step with the colour curve — without
+      // this, a shifted midpoint would tear the gradient (colour
+      // transitions at M but alpha still at 0.5).
+      const midpoint = dotGradient.midpoint;
       return (point) => {
         const t = Math.max(0, Math.min(1, (point.x * dirX + point.y * dirY - minProj) / range));
-        return fromA + (toA - fromA) * t;
+        const u = remapTByMidpoint(t, midpoint);
+        return fromA + (toA - fromA) * u;
       };
     }
     return () => dotColorAlpha;
