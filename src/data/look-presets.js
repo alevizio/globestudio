@@ -77,6 +77,23 @@ export const lookPresets = [
     }),
   },
   {
+    id: "bayer",
+    name: "Bayer",
+    blurb: "Classic-Mac ordered dither",
+    settings: merge({
+      density: 70,
+      dotSize: 12,
+      shape: "Square",
+      shaderSettings: {
+        ...effectPresets.bayer,
+        effect: "bayer",
+        cellSize: 8,
+        intensity: 88,
+      },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
+    }),
+  },
+  {
     id: "wireframe",
     name: "Wireframe",
     blurb: "Edge-traced lithograph",

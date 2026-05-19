@@ -29,11 +29,14 @@ export const shaderEffectOptions = [
   { value: "rgb", label: "RGB" },
   { value: "chroma", label: "Chroma" },
   { value: "corrupt", label: "Corrupt" },
+  { value: "bayer", label: "Bayer dither" },
 ];
 
 export const effectsWithSplit = new Set(["bloom", "chromatic", "crt", "glitch", "wave"]);
 export const effectsWithScanlines = new Set(["crt", "pixel", "halftone", "glitch"]);
-export const effectsWithCellSize = new Set(["pixel", "halftone", "crt", "stripes", "corrupt"]);
+// Bayer reuses cellSize for matrix tile scale (4-16). It's a static dither —
+// not in effectsWithMotion intentionally so the slider hides for it.
+export const effectsWithCellSize = new Set(["pixel", "halftone", "crt", "stripes", "corrupt", "bayer"]);
 export const effectsWithWarp = new Set(["bloom", "chromatic", "crt", "threshold", "wave"]);
 export const effectsWithMotion = new Set(["bloom", "chromatic", "crt", "halftone", "threshold", "glitch", "wave", "metal", "stripes", "badtv", "rgb", "chroma", "corrupt"]);
 export const effectsWithThreshold = new Set(["threshold", "edge"]);
@@ -68,6 +71,7 @@ export const effectPresets = {
   rgb: { ...baseDefaults, intensity: 50, grain: 0, scanlines: 0, motion: 30 },
   chroma: { ...baseDefaults, intensity: 55, grain: 0, scanlines: 0, motion: 20 },
   corrupt: { ...baseDefaults, intensity: 70, cellSize: 6, grain: 0, scanlines: 0, motion: 40 },
+  bayer: { ...baseDefaults, intensity: 85, cellSize: 8, grain: 0, scanlines: 0, motion: 0 },
 };
 
 export const presetForEffect = (effect) => effectPresets[effect] ?? effectPresets.none;
