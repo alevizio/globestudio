@@ -29,6 +29,7 @@ import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
 import { loadWorldCountries } from "../data/world-countries-topology.js";
 import { cca3ToCcn3 } from "../data/geography.js";
+import { PerfMonitor } from "./perf-monitor.jsx";
 
 // Speed of the optional dot spin animation. One full rotation takes ~12s —
 // fast enough to read as motion, slow enough to stay calm on a static map.
@@ -99,6 +100,11 @@ export const GlobeBackground = ({
   const dotRotationRef = useRef(dotRotation);
   const spinAngleRef = useRef(0);
   const sizeVaryRef = useRef(sizeVary);
+  // Dev-only perf metrics — written from the animate loop, polled by
+  // <PerfMonitor>. Lives outside React state so per-frame updates don't
+  // trigger re-renders. Vite's dead-code elimination removes the HUD entirely
+  // in production builds (the mount is gated on `import.meta.env.DEV`).
+  const perfMetricsRef = useRef({ fps: 60, calls: 0, geometries: 0, dots: 0 });
   spaceSettingsRef.current = spaceSettings;
   backgroundStyleRef.current = backgroundStyle;
   reducedMotionRef.current = reducedMotion;
@@ -488,7 +494,12 @@ export const GlobeBackground = ({
       const effectMotion = clampNumber(settings.motion ?? 35, 0, 100);
       const spin = 0.00008 + effectMotion * 0.0000035;
 
-      const spinProgress = currentGlobeSettings.autoSpin ? smoothStep(0.28, 1, morphRef.current.progress) : 0;
+      // Auto-spin honours `prefers-reduced-motion`: long-running continuous
+      // rotation is the canonical kind of animation that the OS-level pref
+      // exists to silence. The toggle still reads "on" in the UI; we just
+      // stop advancing the target angle.
+      const autoSpinAllowed = currentGlobeSettings.autoSpin && !reducedMotionRef.current;
+      const spinProgress = autoSpinAllowed ? smoothStep(0.28, 1, morphRef.current.progress) : 0;
       if (!state.active) {
         state.targetY += spin * delta * spinProgress;
       }
@@ -573,11 +584,18 @@ export const GlobeBackground = ({
         globeGroup.scale.setScalar(breath);
       }
 
-      if (
-        threeRef.current.dotLayer
-        && Math.abs((threeRef.current.dotLayer.userData.morphProgress ?? -1) - morph.progress) > 0.0005
-      ) {
-        applyDotLayerMorph(threeRef.current.dotLayer, morph.progress);
+      if (threeRef.current.dotLayer) {
+        const dotLayer = threeRef.current.dotLayer;
+        const progressDelta = Math.abs((dotLayer.userData.morphProgress ?? -1) - morph.progress);
+        const wasChunkingMorph = (dotLayer.userData.morphChunk ?? -1) >= 0;
+        // Chunked re-bake while morph is active — only 1/3 of instances are
+        // rewritten + uploaded per frame. When morph.active flips false we do
+        // one full-update pass to flush any stragglers stuck a frame behind.
+        if (progressDelta > 0.0005) {
+          applyDotLayerMorph(dotLayer, morph.progress, morph.active);
+        } else if (!morph.active && wasChunkingMorph) {
+          applyDotLayerMorph(dotLayer, morph.progress, false);
+        }
       }
       // Animated dot rotation. Advances spinAngleRef by elapsed time when the
       // user toggle is on; when the toggle is off we re-bake matrices once so
@@ -586,14 +604,21 @@ export const GlobeBackground = ({
         const animating = rotateAnimatingRef.current && !reducedMotionRef.current;
         if (animating) {
           spinAngleRef.current = (spinAngleRef.current + (delta / 1000) * SPIN_DEGREES_PER_SECOND) % 360;
+          // Chunked while spinning — same logic as morph. Continuous rotation
+          // tolerates 1-2 frame lag per dot just fine.
           applyDotLayerSpin(
             threeRef.current.dotLayer,
             (dotRotationRef.current + spinAngleRef.current) % 360,
             morph.progress,
+            true,
           );
         } else if (spinAngleRef.current !== 0) {
           spinAngleRef.current = 0;
-          applyDotLayerSpin(threeRef.current.dotLayer, dotRotationRef.current, morph.progress);
+          // Final non-chunked settle so every dot lands at the slider angle.
+          applyDotLayerSpin(threeRef.current.dotLayer, dotRotationRef.current, morph.progress, false);
+        } else if ((threeRef.current.dotLayer.userData.spinChunk ?? -1) >= 0) {
+          // Flush stale chunks left over from a previous spin session.
+          applyDotLayerSpin(threeRef.current.dotLayer, dotRotationRef.current, morph.progress, false);
         }
       }
       applyGlobeShellProgress(threeRef.current, morph.progress, currentGlobeSettings);
@@ -633,6 +658,21 @@ export const GlobeBackground = ({
 
       updatePostEffects(threeRef.current?.postHandle, settingsRef.current, now / 1000);
       threeRef.current?.postHandle?.composer.render();
+
+      // Dev-only perf HUD feed. Cheap: a few field writes per frame, no
+      // allocation, no React touches. Vite strips the HUD mount in prod,
+      // so these writes go nowhere there but cost nothing measurable.
+      if (import.meta.env.DEV) {
+        const instantFps = 1000 / Math.max(1, delta);
+        const m = perfMetricsRef.current;
+        // Exponential smoothing — α = 0.1 settles in ~10 frames, fast enough
+        // to track real changes but stable enough to read at 4 Hz.
+        m.fps = m.fps * 0.9 + instantFps * 0.1;
+        const info = renderer.info;
+        m.calls = info?.render?.calls ?? 0;
+        m.geometries = info?.memory?.geometries ?? 0;
+        m.dots = threeRef.current.dotLayer?.userData?.dotCount ?? 0;
+      }
 
       // Adaptive DPR — track sustained FPS in a 60-frame window. When the
       // average drops below 50 FPS, step DPR down by 0.25; when it climbs
@@ -1023,6 +1063,8 @@ export const GlobeBackground = ({
       onWheel={zoomGlobe}
       onClick={toggleNearestDot}
       onKeyDown={handleGlobeKey}
-    />
+    >
+      {import.meta.env.DEV ? <PerfMonitor metricsRef={perfMetricsRef} /> : null}
+    </div>
   );
 };

@@ -160,6 +160,48 @@ button {
     var(--preview-bg, var(--bg));
 }
 
+/* Dev-only perf HUD. Rendered only in `vite dev` builds — Vite strips
+   import.meta.env.DEV branches from the production bundle, so these styles
+   are inert in deployed CSS but harmless. Sits in the top-right of the
+   canvas; pointer-events: none lets globe drag/wheel events pass through. */
+.perf-monitor {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 8px;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: rgba(8, 10, 14, 0.78);
+  color: #d3e4ff;
+  font: 500 10px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  z-index: 10;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  user-select: none;
+}
+
+.perf-monitor-row {
+  display: contents;
+}
+
+.perf-monitor-label {
+  color: rgba(211, 228, 255, 0.55);
+  text-transform: uppercase;
+  font-size: 9px;
+  align-self: center;
+}
+
+.perf-monitor-value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: #f4f8ff;
+}
+
 .map-background-placeholder::after {
   content: "";
   position: absolute;

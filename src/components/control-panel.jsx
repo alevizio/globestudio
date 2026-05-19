@@ -379,10 +379,14 @@ export const ControlPanel = ({
           />
         </OptionRow>
         <OptionRow label="Density" value={density}>
+          {/* Capped at 90 — beyond that the dot count climbs into the
+              tens-of-thousands range and per-frame InstancedMesh upload
+              becomes the bottleneck on low-end hardware. 90 still gives a
+              visibly dense map without crossing into "morph stutters" land. */}
           <RangeControl
             label="Density"
             min={1}
-            max={100}
+            max={90}
             value={density}
             onChange={setDensity}
           />

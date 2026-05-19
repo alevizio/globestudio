@@ -238,22 +238,60 @@ const buildGlobePoints = (mapData, selectedDots) =>
     }))
     .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
 
-const applyDotInstances = (mesh, points, image, scale, radiusOffset = 0, morphProgress = 1, dotRotation = 0) => {
-  const matrix = new THREE.Matrix4();
-  const quaternion = new THREE.Quaternion();
-  const spinQuaternion = new THREE.Quaternion();
-  const cylinderQuaternion = new THREE.Quaternion();
-  const flatQuaternion = new THREE.Quaternion();
-  const globeQuaternion = new THREE.Quaternion();
-  const cylinderPosition = new THREE.Vector3();
-  const cylinderNormal = new THREE.Vector3();
-  const normal = new THREE.Vector3();
-  const position = new THREE.Vector3();
-  const flatPosition = new THREE.Vector3();
-  const globePosition = new THREE.Vector3();
-  const up = new THREE.Vector3(0, 1, 0);
-  const depth = new THREE.Vector3(0, 0, 1);
-  const size = new THREE.Vector3(scale, scale, scale);
+// Number of slices the morph re-bake is split across when chunked = true.
+// 3 frames at 60fps = ~50ms maximum staleness per dot, well below the eye's
+// flicker threshold for smooth motion. Higher values (4+) start to look like
+// the dots are catching up in waves.
+export const MORPH_CHUNK_COUNT = 3;
+
+// Module-scoped scratch primitives reused by applyDotInstances on every call.
+// Hoisting them out of the function eliminates the ~12 allocations per call
+// (× N meshes × every animated frame) that were the dominant GC pressure
+// during morphs. All values are fully overwritten at the top of each call,
+// so cross-call state can't leak. applyDotInstances is NOT reentrant — but
+// neither was the old code path, since Three.js's per-frame loop is single-
+// threaded JS.
+const SCRATCH_MATRIX = new THREE.Matrix4();
+const SCRATCH_QUATERNION = new THREE.Quaternion();
+const SCRATCH_SPIN_QUATERNION = new THREE.Quaternion();
+const SCRATCH_CYLINDER_QUATERNION = new THREE.Quaternion();
+const SCRATCH_FLAT_QUATERNION = new THREE.Quaternion();
+const SCRATCH_GLOBE_QUATERNION = new THREE.Quaternion();
+const SCRATCH_CYLINDER_POSITION = new THREE.Vector3();
+const SCRATCH_CYLINDER_NORMAL = new THREE.Vector3();
+const SCRATCH_NORMAL = new THREE.Vector3();
+const SCRATCH_POSITION = new THREE.Vector3();
+const SCRATCH_FLAT_POSITION = new THREE.Vector3();
+const SCRATCH_GLOBE_POSITION = new THREE.Vector3();
+const SCRATCH_SIZE = new THREE.Vector3();
+const AXIS_UP = new THREE.Vector3(0, 1, 0);
+const AXIS_DEPTH = new THREE.Vector3(0, 0, 1);
+
+const applyDotInstances = (
+  mesh,
+  points,
+  image,
+  scale,
+  radiusOffset = 0,
+  morphProgress = 1,
+  dotRotation = 0,
+  chunk = null,
+) => {
+  const matrix = SCRATCH_MATRIX;
+  const quaternion = SCRATCH_QUATERNION;
+  const spinQuaternion = SCRATCH_SPIN_QUATERNION;
+  const cylinderQuaternion = SCRATCH_CYLINDER_QUATERNION;
+  const flatQuaternion = SCRATCH_FLAT_QUATERNION;
+  const globeQuaternion = SCRATCH_GLOBE_QUATERNION;
+  const cylinderPosition = SCRATCH_CYLINDER_POSITION;
+  const cylinderNormal = SCRATCH_CYLINDER_NORMAL;
+  const normal = SCRATCH_NORMAL;
+  const position = SCRATCH_POSITION;
+  const flatPosition = SCRATCH_FLAT_POSITION;
+  const globePosition = SCRATCH_GLOBE_POSITION;
+  const up = AXIS_UP;
+  const depth = AXIS_DEPTH;
+  const size = SCRATCH_SIZE.set(scale, scale, scale);
   // Spin each instance around its local up-axis (which the orientation logic
   // below aligns to the sphere normal). Lets users rotate every dot uniformly.
   const rotationRadians = (dotRotation * Math.PI) / 180;
@@ -262,7 +300,18 @@ const applyDotInstances = (mesh, points, image, scale, radiusOffset = 0, morphPr
   const sphereProgress = smoothStep(0.24, 1, morphProgress);
   const targetRadius = GLOBE_RADIUS + radiusOffset;
 
-  points.forEach((point, index) => {
+  // Chunked re-bake: compute matrices only for the slice [startIdx, endIdx)
+  // and ask Three.js to upload just that range to the GPU (updateRanges).
+  // Non-chunked path keeps the original semantics: full loop + full upload.
+  const totalPoints = points.length;
+  const chunkCount = chunk?.count > 1 ? chunk.count : 1;
+  const chunkIndex = chunkCount > 1 ? clampNumber(chunk.index ?? 0, 0, chunkCount - 1) : 0;
+  const chunkSize = chunkCount > 1 ? Math.ceil(totalPoints / chunkCount) : totalPoints;
+  const startIdx = chunkCount > 1 ? chunkIndex * chunkSize : 0;
+  const endIdx = chunkCount > 1 ? Math.min(totalPoints, startIdx + chunkSize) : totalPoints;
+
+  for (let i = startIdx; i < endIdx; i++) {
+    const point = points[i];
     flatPosition.copy(pointToFlatVector3(point, image, radiusOffset));
     globePosition.copy(latLngToVector3(point.lat, point.lng, GLOBE_RADIUS + radiusOffset));
     normal.copy(globePosition).normalize();
@@ -301,10 +350,21 @@ const applyDotInstances = (mesh, points, image, scale, radiusOffset = 0, morphPr
     quaternion.multiply(spinQuaternion);
 
     matrix.compose(position, quaternion, size);
-    mesh.setMatrixAt(index, matrix);
-  });
+    mesh.setMatrixAt(i, matrix);
+  }
 
-  mesh.instanceMatrix.needsUpdate = true;
+  // Tell the renderer which range of the InstancedBufferAttribute is dirty.
+  // Three.js r163+ supports an array of ranges on `updateRanges`; we replace
+  // the contents each call. Empty array (full upload) is the default
+  // semantics, matching pre-chunking behaviour.
+  const instanceMatrix = mesh.instanceMatrix;
+  if (Array.isArray(instanceMatrix.updateRanges)) {
+    instanceMatrix.updateRanges.length = 0;
+    if (chunkCount > 1) {
+      instanceMatrix.updateRanges.push({ start: startIdx * 16, count: (endIdx - startIdx) * 16 });
+    }
+  }
+  instanceMatrix.needsUpdate = true;
 };
 
 // Shared per-frame uniform so every dot material twinkles in sync against the same clock.
@@ -412,8 +472,22 @@ const createInstancedDotMesh = (points, image, geometry, material, scale, radius
   return mesh;
 };
 
-export const applyDotLayerMorph = (group, morphProgress) => {
+// When `chunked` is true, only 1/MORPH_CHUNK_COUNT of the dots are re-baked
+// this frame — the group remembers which chunk to rotate to next via
+// userData.morphChunk. Visual lag per dot is at most (CHUNK_COUNT - 1) frames
+// = ~33ms at 60fps, imperceptible against the morph's 1.5s timeline.
+// When `chunked` is false (the default), every dot is re-baked — caller
+// MUST pass false on the frame the morph completes to flush stragglers.
+export const applyDotLayerMorph = (group, morphProgress, chunked = false) => {
   if (!group) return;
+  const chunkCount = chunked ? MORPH_CHUNK_COUNT : 1;
+  let chunkIndex = 0;
+  if (chunked) {
+    chunkIndex = ((group.userData.morphChunk ?? -1) + 1) % chunkCount;
+    group.userData.morphChunk = chunkIndex;
+  } else {
+    group.userData.morphChunk = -1;
+  }
   group.children.forEach((child) => {
     if (!child.isInstancedMesh || !child.userData.points) return;
     applyDotInstances(
@@ -424,6 +498,7 @@ export const applyDotLayerMorph = (group, morphProgress) => {
       child.userData.radiusOffset,
       morphProgress,
       child.userData.dotRotation ?? 0,
+      chunked ? { index: chunkIndex, count: chunkCount } : null,
     );
   });
   group.userData.morphProgress = morphProgress;
@@ -433,8 +508,18 @@ export const applyDotLayerMorph = (group, morphProgress) => {
 // rebuilding the dot layer. Used by the per-frame loop when the user toggles
 // on rotation animation — the static userData.dotRotation stays untouched so
 // turning the animation off restores the slider's chosen angle.
-export const applyDotLayerSpin = (group, rotation, morphProgress) => {
+// Same chunking rules as applyDotLayerMorph: pass chunked = true while the
+// animation runs, false once on the final settle to flush any stale dots.
+export const applyDotLayerSpin = (group, rotation, morphProgress, chunked = false) => {
   if (!group) return;
+  const chunkCount = chunked ? MORPH_CHUNK_COUNT : 1;
+  let chunkIndex = 0;
+  if (chunked) {
+    chunkIndex = ((group.userData.spinChunk ?? -1) + 1) % chunkCount;
+    group.userData.spinChunk = chunkIndex;
+  } else {
+    group.userData.spinChunk = -1;
+  }
   group.children.forEach((child) => {
     if (!child.isInstancedMesh || !child.userData.points) return;
     applyDotInstances(
@@ -445,6 +530,7 @@ export const applyDotLayerSpin = (group, rotation, morphProgress) => {
       child.userData.radiusOffset,
       morphProgress,
       rotation,
+      chunked ? { index: chunkIndex, count: chunkCount } : null,
     );
   });
 };
