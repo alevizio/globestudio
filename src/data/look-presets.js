@@ -59,6 +59,23 @@ export const lookPresets = [
     }),
   },
   {
+    id: "pixel",
+    name: "Pixel",
+    blurb: "8-bit pixelation",
+    settings: merge({
+      density: 75,
+      dotSize: 15,
+      shape: "Square",
+      shaderSettings: {
+        ...effectPresets.pixel,
+        effect: "pixel",
+        cellSize: 12,
+        intensity: 70,
+      },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
+    }),
+  },
+  {
     id: "wireframe",
     name: "Wireframe",
     blurb: "Edge-traced lithograph",

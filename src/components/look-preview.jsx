@@ -143,6 +143,46 @@ const renderHalftonePattern = (clipId, color = "#ffffff", sphereCx = 30, sphereC
   return <g clipPath={`url(#${clipId})`}>{dots}</g>;
 };
 
+// Pixel — uniform grid of small squares clipped to the sphere. Unlike
+// the halftone pattern (which varies dot size radially), every cell
+// here is the same size and the falloff comes from opacity instead,
+// matching the look of the pixel shader downsampling everything to a
+// coarse grid.
+const renderPixelGrid = (clipId, color = "#ffffff", sphereCx = 22, sphereCy = 15, sphereR = 18) => {
+  const cells = [];
+  const cellSize = 2.0;
+  const gap = 0.3;
+  for (let row = -2; row < 18; row += 1) {
+    for (let col = -2; col < 18; col += 1) {
+      const x = col * cellSize;
+      const y = row * cellSize;
+      const dx = x + cellSize * 0.5 - sphereCx;
+      const dy = y + cellSize * 0.5 - sphereCy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > sphereR) continue;
+      // Radial opacity falloff — softer at the silhouette, full at centre.
+      const t = 1 - dist / sphereR;
+      const opacity = (0.55 + 0.45 * t).toFixed(2);
+      cells.push(
+        <rect
+          key={`px${row}-${col}`}
+          x={x}
+          y={y}
+          width={cellSize - gap}
+          height={cellSize - gap}
+          fill={color}
+          opacity={opacity}
+        />,
+      );
+    }
+  }
+  return (
+    <g clipPath={`url(#${clipId})`} pointerEvents="none">
+      {cells}
+    </g>
+  );
+};
+
 // Pencil sketch — two sets of crossing diagonal strokes clipped to the
 // sphere, drawn in graphite tones on a paper-white background. Matches
 // the cross-hatching aesthetic of the pencil shader.
@@ -208,6 +248,9 @@ const renderMetalSheen = (clipId) => (
 const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
   if (shaderEffect === "halftone") {
     return renderHalftonePattern(clipId, dotColor);
+  }
+  if (shaderEffect === "pixel") {
+    return renderPixelGrid(clipId, dotColor);
   }
   if (shaderEffect === "metal") {
     return renderMetalSheen(clipId);
@@ -308,13 +351,14 @@ const renderContent = (preset, clipId) => {
   }
 
   // Dots mode: render dot pattern clipped to sphere — UNLESS the halftone
-  // pass is on, in which case the halftone grid overlay replaces the
-  // continent-shaped clusters. For the edge / wireframe pass, dots
-  // render as open ring outlines (no fill) so the chip reads as a
-  // wire-traced surface rather than filled landmasses.
+  // or pixel pass is on, in which case the dedicated grid overlay
+  // replaces the continent-shaped clusters. For the edge / wireframe
+  // pass, dots render as open ring outlines (no fill) so the chip reads
+  // as a wire-traced surface rather than filled landmasses.
   const isHalftone = shaderEffect === "halftone";
+  const isPixel = shaderEffect === "pixel";
   const isEdge = shaderEffect === "edge";
-  const dots = isHalftone
+  const dots = (isHalftone || isPixel)
     ? null
     : VISIBLE_DOTS.map(([x, y], i) => {
         const px = cx + (x - 0.5) * radius * 2;
