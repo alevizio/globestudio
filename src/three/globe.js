@@ -728,13 +728,16 @@ export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEF
   if (!refs) return;
   const settings = { ...DEFAULT_GLOBE_SETTINGS, ...globeSettings };
   syncGraticule(refs, settings);
-  // Sphere shell fades only during the final 40% of the morph (rather than
-  // the previous 18%–92% window) so the textured globe stays visible long
-  // enough for the dot field to settle into its flat positions before the
-  // sphere vanishes. Fixes the "solid mode disappears mid-morph then
-  // reappears" complaint — the gap was the sphere fading out before the
-  // dot fallback had time to read as the world.
-  const shellProgress = smoothStep(0.05, 0.5, morphProgress);
+  // Cross-fade window centred on the morph midpoint (15–85% of progress).
+  // Symmetric so flat→globe and globe→flat feel identical, and timed so the
+  // cross-fade peak (progress 0.5) lines up exactly with the cinematic
+  // flourishes (FOV breath, scale dip, Z roll, Y spin kick — all peak at
+  // sin(π·0.5) = 1). A narrower window like (0.05, 0.5) made globe→flat
+  // feel laggy: progress runs 1→0 so the cross-fade hit only in the
+  // second half of the timeline, leaving the first 850ms visually static
+  // while the camera dollied. Widening it to (0.15, 0.85) keeps the
+  // cross-fade symmetric around the midpoint in both directions.
+  const shellProgress = smoothStep(0.15, 0.85, morphProgress);
   const glowStrength = settings.glow ? clampNumber(settings.glowStrength, 0, 100) / 100 : 0;
   const gridStrength = settings.grid ? clampNumber(settings.gridStrength, 0, 100) / 100 : 0;
   // In solid render mode the world texture lives on the base material — its
