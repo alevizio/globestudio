@@ -97,6 +97,24 @@ export const lookPresets = [
     }),
   },
   {
+    id: "aurora",
+    name: "Aurora",
+    blurb: "Northern lights bands",
+    settings: merge({
+      density: 70,
+      dotSize: 12,
+      shape: "Circle",
+      shaderSettings: {
+        ...effectPresets.aurora,
+        effect: "aurora",
+        intensity: 75,
+        cellSize: 14,
+        motion: 45,
+      },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: true, glowStrength: 70 },
+    }),
+  },
+  {
     id: "pixel",
     name: "Pixel",
     blurb: "8-bit pixelation",

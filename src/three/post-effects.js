@@ -27,6 +27,7 @@ export const EFFECT_INDEX = {
   iridescent: 19,
   risograph: 20,
   newsprint: 21,
+  aurora: 22,
 };
 
 const VERTEX_SHADER = /* glsl */ `
@@ -305,6 +306,38 @@ const FRAGMENT_SHADER = /* glsl */ `
     float radius = density * 0.5;
     float d = length(local);
     return 1.0 - smoothstep(max(radius - 0.04, 0.0), radius + 0.04, d);
+  }
+
+  // Aurora — fullscreen post-effect adapting the atmosphere shader's
+  // dual-sine wave math (see globe.js createAtmosphereMaterial) to a screen-
+  // space pass. Produces flowing northern-lights bands modulated against the
+  // dot field. Reduced-motion gated automatically because uTime is frozen
+  // when prefers-reduced-motion is on (see globe-background.jsx ambientTime).
+  vec4 auroraPass(vec2 uv) {
+    vec4 src = sampleTex(uv);
+    float realSignal = max(dot(src.rgb, vec3(0.299, 0.587, 0.114)), src.a);
+    // Frequency scales with cellSize — bigger cell = wider bands.
+    float freq = max(uCellSize, 4.0) * 0.18;
+    // Two low-frequency sin waves crossing each other. Time scales with
+    // motion. The 6.28 factor turns the [0,1] uv into [0, 6.28] phase space
+    // so multiple bands fit on screen at typical freq values.
+    float t = uTime * mix(0.18, 0.7, uMotion);
+    float waveA = sin(uv.y * freq + t * 0.55) * 0.5 + 0.5;
+    float waveB = sin(uv.x * freq * 0.78 - t * 0.31 + uv.y * freq * 0.46) * 0.5 + 0.5;
+    float band = waveA * waveB;
+    // Three-tone aurora palette: green core, cyan mid, magenta tip — classic
+    // borealis colours. Mixed by band intensity.
+    vec3 green = vec3(0.18, 0.95, 0.55);
+    vec3 cyan = vec3(0.32, 0.84, 1.0);
+    vec3 magenta = vec3(0.85, 0.42, 1.0);
+    vec3 aurora = mix(green, cyan, smoothstep(0.2, 0.7, band));
+    aurora = mix(aurora, magenta, smoothstep(0.65, 1.0, band));
+    // Mask aurora to the dot field area so the bands appear to flow over
+    // the land, not splash across empty ocean. Intensity controls overall
+    // strength of the colour mix.
+    float mask = smoothstep(0.04, 0.25, realSignal);
+    vec3 outRgb = mix(src.rgb, src.rgb + aurora * band * 0.65, mask * uIntensity);
+    return vec4(clamp(outRgb, 0.0, 1.0), src.a);
   }
 
   vec4 newsprintPass(vec2 uv) {
@@ -868,6 +901,8 @@ const FRAGMENT_SHADER = /* glsl */ `
       color = risographPass(vUv);
     } else if (uEffect > 20.5 && uEffect < 21.5) {
       color = newsprintPass(vUv);
+    } else if (uEffect > 21.5 && uEffect < 22.5) {
+      color = auroraPass(vUv);
     }
 
     if (uEffect > 0.5 && uGrain > 0.0) {
