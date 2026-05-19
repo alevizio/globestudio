@@ -1764,7 +1764,11 @@ button {
 .map-area-section {
   display: grid;
   gap: 8px;
-  padding: 4px 12px 8px;
+  /* 8px horizontal to match every other panel block (option summary,
+     option content, panel header) — keeps the country dropdown in the
+     same column as the looks bar chips above and every OptionRow
+     below. */
+  padding: 4px 8px 8px;
 }
 
 .option-block summary {
