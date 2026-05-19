@@ -32,6 +32,7 @@ export const shaderEffectOptions = [
   { value: "bayer", label: "Bayer dither" },
   { value: "iridescent", label: "Iridescent" },
   { value: "risograph", label: "Risograph" },
+  { value: "newsprint", label: "Newsprint" },
 ];
 
 // Risograph uses split for the misregistration distance between pink + cyan inks.
@@ -41,7 +42,7 @@ export const effectsWithScanlines = new Set(["crt", "pixel", "halftone", "glitch
 // not in effectsWithMotion intentionally so the slider hides for it.
 // Iridescent reuses cellSize for sparkle frequency and is motion-aware (hue cycle).
 // Risograph reuses cellSize for paper grain frequency.
-export const effectsWithCellSize = new Set(["pixel", "halftone", "crt", "stripes", "corrupt", "bayer", "iridescent", "risograph"]);
+export const effectsWithCellSize = new Set(["pixel", "halftone", "crt", "stripes", "corrupt", "bayer", "iridescent", "risograph", "newsprint"]);
 export const effectsWithWarp = new Set(["bloom", "chromatic", "crt", "threshold", "wave"]);
 export const effectsWithMotion = new Set(["bloom", "chromatic", "crt", "halftone", "threshold", "glitch", "wave", "metal", "stripes", "badtv", "rgb", "chroma", "corrupt", "iridescent"]);
 export const effectsWithThreshold = new Set(["threshold", "edge"]);
@@ -79,6 +80,7 @@ export const effectPresets = {
   bayer: { ...baseDefaults, intensity: 85, cellSize: 8, grain: 0, scanlines: 0, motion: 0 },
   iridescent: { ...baseDefaults, intensity: 75, cellSize: 6, grain: 20, scanlines: 0, motion: 35 },
   risograph: { ...baseDefaults, intensity: 80, cellSize: 4, grain: 18, split: 6, scanlines: 0, motion: 0 },
+  newsprint: { ...baseDefaults, intensity: 85, cellSize: 7, grain: 8, scanlines: 0, motion: 0 },
 };
 
 export const presetForEffect = (effect) => effectPresets[effect] ?? effectPresets.none;

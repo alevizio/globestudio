@@ -79,6 +79,24 @@ export const lookPresets = [
     }),
   },
   {
+    id: "newsprint",
+    name: "Newsprint",
+    blurb: "CMYK halftone newspaper print",
+    settings: merge({
+      density: 60,
+      dotSize: 11,
+      shape: "Circle",
+      shaderSettings: {
+        ...effectPresets.newsprint,
+        effect: "newsprint",
+        intensity: 85,
+        cellSize: 6,
+        grain: 8,
+      },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
+    }),
+  },
+  {
     id: "pixel",
     name: "Pixel",
     blurb: "8-bit pixelation",

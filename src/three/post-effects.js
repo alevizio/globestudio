@@ -26,6 +26,7 @@ export const EFFECT_INDEX = {
   bayer: 18,
   iridescent: 19,
   risograph: 20,
+  newsprint: 21,
 };
 
 const VERTEX_SHADER = /* glsl */ `
@@ -284,6 +285,56 @@ const FRAGMENT_SHADER = /* glsl */ `
     vec3 outRgb = mix(src.rgb, clamp(inked, 0.0, 1.0), anyInk * uIntensity);
     // The "src" alpha — keep what was there + boost where ink covers.
     return vec4(outRgb, max(srcPink.a, max(srcCyan.a, anyInk)));
+  }
+
+  // Newsprint — 4-channel CMYK halftone with each plate rotated at the
+  // classic newspaper angles (C 15°, M 75°, Y 0°, K 45°). Unlike the
+  // existing halftone pass (single rotation, single ink), this stacks all
+  // four colour separations to produce the dotted multi-colour effect you
+  // see in printed comics and old newspaper photos. cellSize controls the
+  // halftone dot pitch; intensity blends from passthrough to full newsprint.
+  // Helper: halftone dot mask at the supplied angle for the given lum.
+  float halftoneDot(vec2 uv, float cell, float angleDeg, float lum) {
+    float ang = radians(angleDeg);
+    float ca = cos(ang);
+    float sa = sin(ang);
+    vec2 grid = uv * uResolution / max(cell, 2.0);
+    vec2 rotated = vec2(grid.x * ca - grid.y * sa, grid.x * sa + grid.y * ca);
+    vec2 local = fract(rotated) - 0.5;
+    float density = clamp(lum * 1.1, 0.0, 1.0);
+    float radius = density * 0.5;
+    float d = length(local);
+    return 1.0 - smoothstep(max(radius - 0.04, 0.0), radius + 0.04, d);
+  }
+
+  vec4 newsprintPass(vec2 uv) {
+    vec4 src = sampleTex(uv);
+    // Per-channel CMYK conversion. K (black) takes the min of (1-r, 1-g, 1-b);
+    // each CMY is its complement minus K. Standard subtractive split.
+    float k = 1.0 - max(max(src.r, src.g), src.b);
+    float c = (1.0 - src.r - k) / max(1.0 - k, 0.0001);
+    float m = (1.0 - src.g - k) / max(1.0 - k, 0.0001);
+    float y = (1.0 - src.b - k) / max(1.0 - k, 0.0001);
+    float cell = uCellSize;
+    // Sample each plate at its canonical newspaper screen angle.
+    float dotC = halftoneDot(uv, cell, 15.0, c);
+    float dotM = halftoneDot(uv, cell, 75.0, m);
+    float dotY = halftoneDot(uv, cell, 0.0, y);
+    float dotK = halftoneDot(uv, cell, 45.0, k);
+    // Composite over white paper. Each CMY ink subtracts from the paper;
+    // K is straight black multiplication.
+    vec3 paper = vec3(1.0);
+    paper -= vec3(0.0, dotC, dotC) * 0.95; // cyan absorbs red
+    paper -= vec3(dotM, 0.0, dotM) * 0.95; // magenta absorbs green
+    paper -= vec3(dotY, dotY, 0.0) * 0.95; // yellow absorbs blue
+    paper *= 1.0 - dotK * 0.95;
+    paper = clamp(paper, 0.0, 1.0);
+    // Hard-cutoff dim regions so the ocean stays dark instead of going to
+    // white paper everywhere — only "land" pixels get the newsprint paper.
+    float realSignal = max(dot(src.rgb, vec3(0.299, 0.587, 0.114)), src.a);
+    float mask = smoothstep(0.05, 0.18, realSignal);
+    vec3 outRgb = mix(src.rgb, paper, mask * uIntensity);
+    return vec4(outRgb, max(src.a, mask * uIntensity));
   }
 
   vec4 pixelPass(vec2 uv) {
@@ -815,6 +866,8 @@ const FRAGMENT_SHADER = /* glsl */ `
       color = iridescentPass(vUv);
     } else if (uEffect > 19.5 && uEffect < 20.5) {
       color = risographPass(vUv);
+    } else if (uEffect > 20.5 && uEffect < 21.5) {
+      color = newsprintPass(vUv);
     }
 
     if (uEffect > 0.5 && uGrain > 0.0) {
