@@ -662,13 +662,9 @@ button {
   transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
 }
 
-/* Chip's left-cell preview. The outer span is the coloured frame —
-   carries the preset's primary fill (set inline, dotColor in dots
-   mode / worldFill in solid). Hosts a smaller globe SVG centred on
-   top so the user reads both signals at a glance: the surrounding
-   colour swatch + the rendered mini scene inside.
-   Chip's overflow: hidden + 10px border-radius clips the outer
-   corners cleanly. */
+/* Chip's left-cell preview. Solid black backdrop with a 1px stroke on
+   the right that separates it from the label area, like a postcard
+   stamp on the chip. Hosts the globe SVG inside, no extra padding. */
 .looks-chip-preview {
   flex: 0 0 auto;
   align-self: stretch;
@@ -676,6 +672,8 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: #000;
+  border-right: 1px solid var(--border);
   filter: saturate(0.8);
   transition: filter 220ms var(--ease), transform 220ms var(--ease);
 }
@@ -686,11 +684,9 @@ button {
 }
 
 .looks-chip-preview-globe {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: block;
-  border-radius: 6px;
-  overflow: hidden;
 }
 
 .looks-chip:hover {

@@ -274,24 +274,8 @@ export const LookPreview = ({ preset }) => {
   const reactId = useId();
   const clipId = `globeClip-${reactId.replace(/:/g, "")}`;
 
-  // Outer frame uses the preset's primary fill (dotColor in dots mode,
-  // worldFill in solid) — the coloured "card" backdrop the user asked
-  // to keep, softened to a tint via color-mix. The inner globe SVG
-  // renders on top of that tint with NO own background rect, so the
-  // chip's tinted frame is what shows through behind the globe.
-  const renderMode = preset.settings.renderMode || "dots";
-  const frame = renderMode === "solid"
-    ? preset.settings.worldFill || "#5a5a64"
-    : preset.settings.dotColor || "#ffffff";
-
-  const frameTint = `color-mix(in srgb, ${frame} 12%, transparent)`;
-
   return (
-    <span
-      className="looks-chip-preview"
-      style={{ background: frameTint }}
-      aria-hidden="true"
-    >
+    <span className="looks-chip-preview" aria-hidden="true">
       <svg
         className="looks-chip-preview-globe"
         viewBox="0 0 30 30"
