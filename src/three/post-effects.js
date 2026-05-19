@@ -291,50 +291,65 @@ const FRAGMENT_SHADER = /* glsl */ `
     return vec4(final, base.a);
   }
 
-  // Chrome / metal — remaps source luminance through a polished-metal
-  // ramp (cool steel-blue valleys → silver mids → bright specular peaks)
-  // with subtle horizontal banding that breathes with uTime, mimicking
-  // the layered reflective look of Evil Rabbit's metal shader. Preserves
-  // source alpha so dots / sphere outline still read on the canvas.
+  // Chrome / metal — screen-space environment reflection. Instead of
+  // remapping per-pixel luminance (which flattens on dot fields where
+  // luma is mostly 0 or 1), this maps the dot's vertical screen position
+  // to a 4-stop sky/horizon/ground gradient — so dots near the top of
+  // the sphere reflect "sky", dots near the horizon line catch a bright
+  // specular glint, and dots at the bottom reflect "ground". The result
+  // reads as polished chrome catching an imaginary environment.
   vec4 metalPass(vec2 uv) {
     vec2 px = 1.0 / max(uResolution, vec2(1.0));
-    // Average a small neighbourhood so sparse dot fields fill the metal
-    // ramp instead of producing a noisy single-pixel-wide highlight.
     vec4 src = sampleTex(uv);
     vec4 blur = (
-      src * 0.36 +
-      sampleTex(uv + vec2(px.x * 1.5, 0.0)) * 0.16 +
-      sampleTex(uv - vec2(px.x * 1.5, 0.0)) * 0.16 +
-      sampleTex(uv + vec2(0.0, px.y * 1.5)) * 0.16 +
-      sampleTex(uv - vec2(0.0, px.y * 1.5)) * 0.16
+      src * 0.4 +
+      sampleTex(uv + vec2(px.x * 1.5, 0.0)) * 0.15 +
+      sampleTex(uv - vec2(px.x * 1.5, 0.0)) * 0.15 +
+      sampleTex(uv + vec2(0.0, px.y * 1.5)) * 0.15 +
+      sampleTex(uv - vec2(0.0, px.y * 1.5)) * 0.15
     );
     float signal = max(luma(blur.rgb), blur.a);
+    if (signal < 0.02) {
+      return vec4(0.0, 0.0, 0.0, src.a);
+    }
 
-    // Three-stop metal ramp.
-    vec3 dark = vec3(0.06, 0.09, 0.14);
-    vec3 mid = vec3(0.52, 0.58, 0.68);
-    vec3 hi = vec3(1.02, 1.04, 1.1);
-    vec3 metal = signal < 0.5
-      ? mix(dark, mid, signal * 2.0)
-      : mix(mid, hi, (signal - 0.5) * 2.0);
+    // Animated env-map phase — slow vertical drift suggests the surface
+    // (or our view of it) tilting through the reflected environment.
+    float drift = uTime * mix(0.04, 0.22, uMotion);
+    float v = fract(uv.y - drift);
 
-    // Layered chrome banding — slow horizontal sweeps that suggest a
-    // polished surface catching light. Modulated by signal so the bands
-    // only show where there's something to reflect off.
-    float bandPhase = uv.y * 28.0 + uTime * mix(0.4, 2.2, uMotion);
-    float band = sin(bandPhase) * 0.5 + 0.5;
-    float bandStrength = smoothstep(0.15, 0.65, signal) * uIntensity;
-    metal += vec3(0.12, 0.14, 0.18) * (band - 0.5) * bandStrength;
+    // 4-stop chrome environment:
+    //   0.00 → 0.32  bright zenith sky (top)
+    //   0.32 → 0.50  cool steel mid (deep reflection)
+    //   0.50 → 0.62  bright horizon glint (the "polished" highlight)
+    //   0.62 → 1.00  dark ground tone (bottom)
+    vec3 zenith = vec3(0.94, 0.97, 1.05);
+    vec3 mid = vec3(0.22, 0.28, 0.38);
+    vec3 horizon = vec3(0.88, 0.92, 1.0);
+    vec3 ground = vec3(0.08, 0.10, 0.16);
 
-    // Subtle directional specular streak for the brightest spots —
-    // anamorphic highlight reads as a glint across the chrome surface.
-    float spec = smoothstep(0.78, 1.0, signal);
-    metal += vec3(0.9, 0.95, 1.05) * spec * uIntensity * 0.35;
+    vec3 env;
+    if (v < 0.32) {
+      env = mix(zenith, mid, smoothstep(0.0, 0.32, v));
+    } else if (v < 0.5) {
+      env = mix(mid, horizon, smoothstep(0.32, 0.5, v));
+    } else if (v < 0.62) {
+      env = mix(horizon, mid, smoothstep(0.5, 0.62, v));
+    } else {
+      env = mix(mid, ground, smoothstep(0.62, 1.0, v));
+    }
 
-    // Preserve alpha so the background composites cleanly behind the
-    // metal-toned content (no flat fill bleed across empty space).
-    float alpha = max(src.a, signal);
-    return vec4(metal, alpha);
+    // Slight horizontal warp on the env so the reflection doesn't look
+    // like a pure stripe — fakes the sphere's curvature.
+    float curve = sin((uv.x - 0.5) * PI) * 0.04;
+    env *= 1.0 + curve * uIntensity;
+
+    // Boost the horizon glint a touch on the brightest source content.
+    float spec = smoothstep(0.62, 1.0, signal) * smoothstep(0.46, 0.54, v);
+    env += vec3(0.6, 0.65, 0.75) * spec * uIntensity * 0.45;
+
+    vec3 metal = env * mix(0.55, 1.0, signal);
+    return vec4(metal, max(src.a, signal));
   }
 
   vec4 wavePass(vec2 uv) {
