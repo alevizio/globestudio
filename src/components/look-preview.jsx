@@ -183,6 +183,82 @@ const renderPixelGrid = (clipId, color = "#ffffff", sphereCx = 22, sphereCy = 15
   );
 };
 
+// Corrupt — primary-palette blocks with horizontal row shifts. Matches
+// the 8-colour binary-quantised look of the corrupt shader (K, R, G, B,
+// Y, C, M, W). Weighted heavily toward blue + black to echo the
+// reference screenshot. Per-row x-offset gives the sliced /
+// displaced read; cell sizes are uniform.
+const CORRUPT_PALETTE = [
+  null,         // K — transparent so the chip's frame background shows
+  "#ff3030",    // R
+  "#39ff14",    // G
+  "#1e7bff",    // B
+  "#ffe800",    // Y
+  "#00f3ff",    // C
+  "#ff5cff",    // M
+  "#ffffff",    // W
+];
+
+// Deterministic pseudo-random in [0, 1) for stable preview rendering.
+const corruptHash = (n) => {
+  const x = Math.sin(n * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+};
+
+const renderCorruptBlocks = (clipId, sphereCx = 22, sphereCy = 15, sphereR = 18) => {
+  const cells = [];
+  const cellSize = 2.5;
+  for (let row = -2; row < 18; row += 1) {
+    const rowShift = (corruptHash(row * 17.3) - 0.5) * 2.4;
+    for (let col = -2; col < 18; col += 1) {
+      const x = col * cellSize + rowShift;
+      const y = row * cellSize;
+      const dx = x + cellSize * 0.5 - sphereCx;
+      const dy = y + cellSize * 0.5 - sphereCy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > sphereR) continue;
+      // Palette weighting — heavy on blue + black (40 % combined), then
+      // the rest spread across R/G/Y/C/M/W. Matches the reference image
+      // where deep blue dominates with scattered primaries.
+      const seed = corruptHash(row * 31.71 + col * 53.13);
+      let idx;
+      if (seed < 0.42) idx = 3;          // B
+      else if (seed < 0.62) idx = 0;     // K
+      else if (seed < 0.74) idx = 7;     // W
+      else if (seed < 0.82) idx = 1;     // R
+      else if (seed < 0.9) idx = 4;      // Y
+      else if (seed < 0.95) idx = 2;     // G
+      else if (seed < 0.98) idx = 5;     // C
+      else idx = 6;                       // M
+      const fill = CORRUPT_PALETTE[idx];
+      if (!fill) continue;
+      cells.push(
+        <rect
+          key={`co${row}-${col}`}
+          x={x.toFixed(2)}
+          y={y}
+          width={cellSize - 0.3}
+          height={cellSize - 0.3}
+          fill={fill}
+        />,
+      );
+    }
+  }
+  // Subtle horizontal scanline darkening overlaid on the blocks.
+  const scans = [];
+  for (let y = 0; y < 30; y += 2) {
+    scans.push(
+      <rect key={`cs${y}`} x="-4" y={y} width="40" height="0.6" fill="rgba(0, 0, 0, 0.35)" />,
+    );
+  }
+  return (
+    <g clipPath={`url(#${clipId})`} pointerEvents="none">
+      {cells}
+      {scans}
+    </g>
+  );
+};
+
 // Pencil sketch — two sets of crossing diagonal strokes clipped to the
 // sphere, drawn in graphite tones on a paper-white background. Matches
 // the cross-hatching aesthetic of the pencil shader.
@@ -251,6 +327,9 @@ const renderEffectOverlay = (shaderEffect, clipId, dotColor) => {
   }
   if (shaderEffect === "pixel") {
     return renderPixelGrid(clipId, dotColor);
+  }
+  if (shaderEffect === "corrupt") {
+    return renderCorruptBlocks(clipId);
   }
   if (shaderEffect === "metal") {
     return renderMetalSheen(clipId);
@@ -357,8 +436,9 @@ const renderContent = (preset, clipId) => {
   // as a wire-traced surface rather than filled landmasses.
   const isHalftone = shaderEffect === "halftone";
   const isPixel = shaderEffect === "pixel";
+  const isCorrupt = shaderEffect === "corrupt";
   const isEdge = shaderEffect === "edge";
-  const dots = (isHalftone || isPixel)
+  const dots = (isHalftone || isPixel || isCorrupt)
     ? null
     : VISIBLE_DOTS.map(([x, y], i) => {
         const px = cx + (x - 0.5) * radius * 2;

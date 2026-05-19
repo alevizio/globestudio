@@ -145,4 +145,22 @@ export const lookPresets = [
       globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
     }),
   },
+  {
+    id: "corrupt",
+    name: "Corrupt",
+    blurb: "Channel-corrupted datamosh",
+    settings: merge({
+      density: 80,
+      dotSize: 12,
+      shape: "Square",
+      shaderSettings: {
+        ...effectPresets.corrupt,
+        effect: "corrupt",
+        cellSize: 6,
+        intensity: 75,
+        motion: 45,
+      },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
+    }),
+  },
 ];
