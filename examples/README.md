@@ -26,6 +26,7 @@ Each example is in one of these states:
 | 🏷️ | [`conference-badge`](./conference-badge) | Single-country PNG for print artwork | 🟢 Ready |
 | 🗺️ | [`country-highlight`](./country-highlight) | Single-country profile page template | 🟢 Ready |
 | 🎯 | [`svg-country-pack`](./svg-country-pack) | Vector country shapes for Illustrator / Figma | 🟢 Ready (workflow docs) |
+| 🅵 | [`framer-component`](./framer-component) | Framer code component — designer-panel props, iframe-bridged | 🟢 Ready (paste-into-Framer) |
 
 ## Run an example locally
 
