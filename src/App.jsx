@@ -31,6 +31,8 @@ import { usePrefersReducedMotion } from "./hooks/use-prefers-reduced-motion.js";
 import { CanvasA11yProxy } from "./components/canvas-a11y-proxy.jsx";
 import { ControlPanel } from "./components/control-panel.jsx";
 import { ErrorBoundary } from "./components/error-boundary.jsx";
+import { PresetDetail } from "./components/preset-detail.jsx";
+import { getPresetSeo } from "./data/preset-seo.js";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
@@ -166,6 +168,15 @@ const App = () => {
   const [pngStatus, setPngStatus] = useState("idle");
   const [svgStatus, setSvgStatus] = useState("idle");
   const [appliedLookId, setAppliedLookId] = useState(null);
+  // Persistent record of which preset is currently shown (vs appliedLookId
+  // which clears 700ms after click for the ripple animation). Drives
+  // PresetDetail rendering + tracks URL state. Initialized from the URL
+  // path so /looks/halftone direct loads work without a click.
+  const [currentPresetId, setCurrentPresetId] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const match = window.location.pathname.match(/^\/looks\/([\w-]+)/);
+    return match ? match[1] : null;
+  });
   const [statusMessage, setStatusMessage] = useState("");
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -394,6 +405,7 @@ const App = () => {
     if (s.tiltY !== undefined) setTiltY(s.tiltY);
     setSelectedDots(new Set());
     setAppliedLookId(preset.id);
+    setCurrentPresetId(preset.id);
     setStatusMessage(`Applied ${preset.name}`);
     window.setTimeout(() => setAppliedLookId((id) => (id === preset.id ? null : id)), 700);
     // Sync the URL so the look becomes a shareable, indexable surface.
@@ -407,7 +419,13 @@ const App = () => {
       // the homepage og.svg when no previewImage is present. Wired into
       // docs/research/2026-05-seo-playbook.md Finding 3.
       const title = `${preset.name} — Worlddots dotted globe`;
-      const description = `${preset.blurb}. Generate dotted maps and animated 3D globes with the ${preset.name} preset. Export as PNG, SVG, or WebM.`;
+      // Prefer the hand-written per-preset metaDescription when available —
+      // aligns the SERP snippet with the on-page long-form content rendered
+      // by <PresetDetail/> below the canvas. Falls back to the generic
+      // template for presets that don't have SEO copy yet.
+      const seo = getPresetSeo(preset.id);
+      const description = seo?.metaDescription
+        || `${preset.blurb}. Generate dotted maps and animated 3D globes with the ${preset.name} preset. Export as PNG, SVG, or WebM.`;
       const absoluteUrl = `https://worlddots.app/looks/${preset.id}`;
       const previewImage = preset.previewImage
         ? `https://worlddots.app${preset.previewImage}`
@@ -485,6 +503,7 @@ const App = () => {
   const handleReset = useCallback(() => {
     reset();
     setResetFlash(true);
+    setCurrentPresetId(null);
     setStatusMessage("Reset to defaults");
     window.setTimeout(() => setResetFlash(false), 600);
     if (typeof window !== "undefined" && window.location.pathname !== "/") {
@@ -944,6 +963,8 @@ const App = () => {
         panelCollapsed ? "is-panel-collapsed" : ""
       } ${
         viewTransition ? `is-view-transitioning is-${viewTransition}` : ""
+      } ${
+        currentPresetId ? "has-preset-detail" : ""
       }`}
       style={{
         "--preview-bg": isSpaceBackground ? "#03030a" : isTransparentBackground ? "#f4f4f4" : background,
@@ -1267,6 +1288,14 @@ const App = () => {
         </div>
       )}
       <FollowTooltip />
+      {/* Per-preset long-form copy below the fold. Renders only when a
+          preset is applied (i.e. on /looks/:id URLs). Drives SEO Phase 4
+          — each preset URL gets 200+ words of unique designer-facing
+          content + a "When to use this" section. See docs/plans/
+          seo-rollout.md Phase 4 and src/data/preset-seo.js for the copy. */}
+      {currentPresetId && (
+        <PresetDetail preset={lookPresets.find((p) => p.id === currentPresetId)} />
+      )}
     </main>
   );
 };
