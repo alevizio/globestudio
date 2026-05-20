@@ -186,7 +186,7 @@ export function WorldGlobe(props) {
   const isStatic = useIsStaticRenderer()
   return (
     <iframe
-      src={`https://globestudio.vercel.app/embed?${params}`}
+      src={`https://globestudio.app/embed?${params}`}
       style={{ width: "100%", height: "100%", border: 0 }}
       loading={isStatic ? "lazy" : "eager"}
       title="Globestudio globe"

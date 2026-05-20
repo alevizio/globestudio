@@ -57,7 +57,7 @@ that renders just the canvas, fully driven by query string.
 
 #### Acceptance
 
-- Paste `<iframe src="https://globestudio.vercel.app/embed?look=halftone&density=70">` into a CodePen and the dotted halftone globe renders.
+- Paste `<iframe src="https://globestudio.app/embed?look=halftone&density=70">` into a CodePen and the dotted halftone globe renders.
 - Query-string changes hot-reload the canvas (in-page) and update on a fresh load.
 - Embed works on Webflow, Framer, plain HTML.
 - Analytics show source attribution for each test embed.
@@ -96,7 +96,7 @@ Three.js bundling worries.
 - [ ] Create new Framer project, add a code component with the prop
       surface in [`2026-05-framer-code-component.md`](../research/2026-05-framer-code-component.md#property-control-map-for-globestudio).
 - [ ] Implement the component as an `<iframe>` pointing at
-      `globestudio.vercel.app/embed?` with query string built from
+      `globestudio.app/embed?` with query string built from
       props. ~50 lines of code.
 - [ ] Use `useIsStaticRenderer()` to send `?static=1` when in canvas
       mode — embed honors this by rendering a single still frame.
@@ -116,7 +116,7 @@ Three.js bundling worries.
 - Changing the Look enum or Density slider in the right-hand panel
   updates the canvas in real time.
 - Static mode (canvas) doesn't burn frames.
-- Component description links back to globestudio.vercel.app.
+- Component description links back to globestudio.app.
 
 ---
 
@@ -131,9 +131,9 @@ its UI panel.
 
 - [ ] Scaffold Figma plugin via Figma's Plugin Quickstart. Manifest
       with `editorType: ["figma"]`, network access whitelist
-      `globestudio.vercel.app`.
+      `globestudio.app`.
 - [ ] Plugin UI: an iframe pointing at
-      `globestudio.vercel.app/embed?plugin=figma` — the embed shows
+      `globestudio.app/embed?plugin=figma` — the embed shows
       basic preset picker + density slider; on "Insert", the embed
       captures the canvas at 2x and `postMessage`s the PNG bytes
       back to the plugin.

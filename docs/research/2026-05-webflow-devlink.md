@@ -180,7 +180,7 @@ is its own track.
 The escape hatch. For most Globestudio users on Webflow, this is what
 they'll actually do. Already documented in
 [`2026-05-integrations.md`](2026-05-integrations.md) — paste an
-`<iframe src="https://globestudio.vercel.app/embed?...">` into a Code
+`<iframe src="https://globestudio.app/embed?...">` into a Code
 Embed block.
 
 **Recommendation:** ship **Path C** as the documented Webflow story

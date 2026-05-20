@@ -1,9 +1,16 @@
-# Friday relaunch — day-of checklist
+# Wednesday relaunch — day-of checklist
 
-A focused checklist for the **Friday, May 29 2026** push — also the
+A focused checklist for the **Wednesday, May 27 2026** push — also the
 **Globestudio rebrand launch**. The original launch already ran under
 the name *worlddots* (see [`README.md`](./README.md) for the from-scratch
 playbook); this is a **wave-2 push** that doubles as a rename milestone.
+
+**Why Wed May 27 specifically**: it's the peak engagement day for 4 of
+the 5 top channels simultaneously (LinkedIn #1, X 9am PT peak, HN prime,
+PH sweet spot). Friday loses PH's daily newsletter + weekly badge
+eligibility. June 1+ is contaminated by WWDC pre-buzz (Apple keynote
+June 8). Wed of a post-Memorial-Day short week is a competitive
+arbitrage — full audience, fewer launches.
 
 What changed since v1:
 17 shader looks (up from 11), embed route, Framer reference component,
@@ -17,7 +24,7 @@ scrolled past last time now have *two* reasons to look again.
 
 ---
 
-## 48-hour pre-flight (Wed → Thu)
+## 7-day pre-launch (Wed May 20 → Tue May 26)
 
 ### QA pass — half a day
 
@@ -55,7 +62,7 @@ scrolled past last time now have *two* reasons to look again.
 - [ ] **Run `npm test`** — confirm 125+ tests pass including the
       axe-core a11y guard.
 - [ ] **Run `npm run build`** — confirm clean build, no warnings.
-- [ ] **Lighthouse audit** on `globestudio.vercel.app` — note Performance,
+- [ ] **Lighthouse audit** on `globestudio.app` — note Performance,
       Accessibility, Best Practices, SEO scores. Don't fix anything
       below 90 unless it's a hard fail.
 
@@ -96,23 +103,38 @@ so threads with multiple preset links all get visual previews:
       - `/r/InternetIsBeautiful` — pure "look at this cool thing"
 - [ ] **Designer News submission draft.** Title + 80-word description.
 
+### Outreach timing — Memorial Day adjusted
+
+Memorial Day (Mon May 25) sits in the middle of the pre-launch window,
+which changes the standard T-3 outreach math:
+
+- [ ] **Send outreach emails: Fri May 22** (5 days pre-launch). Lands in
+      inbox before the long weekend; people who care will read Tue May 26
+      morning and have a couple days to respond before launch.
+- [ ] **Do NOT send Tue May 26** — every email sent that day is competing
+      with 3 days of accumulated post-holiday inbox. Open rates crater.
+- [ ] **Submit to Sidebar.io + Codrops weekly digest: Mon-Tue May 25-26**
+      — gives editors time to include you in that week's roundup.
+
 ---
 
-## Thursday night
+## Tuesday May 26 night (T-1)
 
 - [ ] Don't push code. Even one-line fixes.
 - [ ] Sleep early.
 - [ ] Charge a backup laptop in case the primary acts up.
 - [ ] Make sure `vercel deploy --prod` works from the backup laptop too
       (verify `.vercel/` link exists or re-link).
+- [ ] Memorial Day was Mon May 25 — confirm no holiday-related disruption
+      to your scheduler / Slack / email setup.
 
 ---
 
-## Friday — launch run-of-show (all times PT)
+## Wednesday May 27 — launch run-of-show (all times PT)
 
 | Time | Channel | Action |
 |---|---|---|
-| **7:00am** | Coffee + final check | Open `globestudio.vercel.app` on phone — confirm it loads. Check Vercel dashboard for any overnight errors. |
+| **7:00am** | Coffee + final check | Open `globestudio.app` on phone — confirm it loads. Check Vercel dashboard for any overnight errors. |
 | **7:15am** | X / Twitter | Post the thread. Pin tweet 1. |
 | **8:00am** | LinkedIn | Post the LinkedIn variant. |
 | **8:30am** | Mastodon | Cross-post on fosstodon.org + mastodon.design. |
@@ -140,8 +162,8 @@ Open these tabs at 7am and leave them open:
 2. **GitHub Insights → Traffic** — `github.com/alevizio/globestudio/graphs/traffic`.
    Updates every ~2 hours. Watch for spikes after each post.
 3. **GitHub stars** — refresh the repo page periodically. Don't obsess.
-4. **The deployed site itself** — `globestudio.vercel.app`. Refresh once
-   an hour to verify it's serving. Save the URL of `globestudio.vercel.app/api/...`
+4. **The deployed site itself** — `globestudio.app`. Refresh once
+   an hour to verify it's serving. Save the URL of `globestudio.app/api/...`
    somewhere visible for quick error checking.
 5. **Twitter / LinkedIn notifications** — reply within 10 minutes when
    possible.

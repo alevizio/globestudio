@@ -12,7 +12,7 @@ asset; the day-of work is mostly **pasting, sending, and replying to comments**.
 | [`social-threads.md`](./social-threads.md) | X thread, Mastodon post, LinkedIn post, Reddit drafts, Designer News draft |
 | [`outreach-email.md`](./outreach-email.md) | Email template + curated recipient list (newsletters, communities) |
 | [`labels.sh`](./labels.sh) | Bash script to create the GitHub label set (matches issue templates) |
-| [`friday-relaunch.md`](./friday-relaunch.md) | **Wave-2 launch checklist** — pre-flight QA, run-of-show, monitoring, prepared responses |
+| [`wednesday-launch.md`](./wednesday-launch.md) | **Wave-2 launch checklist** — Wed May 27 2026, pre-flight QA, run-of-show, monitoring, prepared responses |
 
 The example projects referenced in social/outreach copy live in [`../examples/`](../examples/).
 
