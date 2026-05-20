@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useModalA11y } from "../hooks/use-modal-a11y.js";
 import { Check, Clipboard, Download, Share2, Upload, X } from "./icons.jsx";
 
 const ASPECT_OPTIONS = [
@@ -210,28 +211,16 @@ export const ExportModal = ({
     setVideoSeconds(Math.round((videoDurationMs ?? 5000) / 1000));
   }, [videoDurationMs]);
 
-  // Keyboard: Escape to close, focus trap minimal.
-  useEffect(() => {
-    if (!open) return undefined;
-    const previous = document.activeElement;
-    const onKey = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    // Move focus into the modal so screen readers and keyboard users land here.
-    window.setTimeout(() => dialogRef.current?.focus(), 0);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      // Restore focus to whatever triggered the modal — usually the Export
-      // button in the panel header.
-      if (previous instanceof HTMLElement && document.body.contains(previous)) {
-        previous.focus();
-      }
-    };
-  }, [open, onClose]);
+  // Accessibility plumbing — Escape to close, focus moves into dialog, inert
+  // applied to siblings so Tab can't escape behind the modal. See
+  // src/hooks/use-modal-a11y.js for the full implementation and the WCAG
+  // criteria this satisfies (2.1.2, 2.4.11, dialog pattern).
+  useModalA11y({
+    open,
+    onClose,
+    containerRef: dialogRef,
+    backdropSelector: ".export-modal-backdrop",
+  });
 
   if (!open) return null;
 

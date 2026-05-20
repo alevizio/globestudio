@@ -483,6 +483,39 @@ const App = () => {
     }
   }, []);
 
+  // Setter wrappers that announce to the aria-live region (WCAG 4.1.3
+  // Status Messages). Underlying state setters stay pure; only the boundary
+  // passed to ControlPanel adds the announcement so other internal callers
+  // don't fire a duplicate.
+  const handleRenderModeChange = useCallback((next) => {
+    setRenderMode(next);
+    setStatusMessage(next === "solid" ? "Switched to solid mode" : "Switched to dot mode");
+  }, [setRenderMode]);
+
+  const handleRiversToggle = useCallback((next) => {
+    setRiversVisible(next);
+    setStatusMessage(next ? "Rivers shown" : "Rivers hidden");
+  }, [setRiversVisible]);
+
+  const handleProjectionChange = useCallback((next) => {
+    setFlatProjection(next);
+    // Friendly label rather than the raw enum value.
+    const label = ({ mercator: "Mercator", equalEarth: "Equal Earth", naturalEarth1: "Natural Earth", winkel3: "Winkel Tripel", robinson: "Robinson" })[next] || next;
+    setStatusMessage(`Projection: ${label}`);
+  }, [setFlatProjection]);
+
+  const handleSelectionChange = useCallback((next) => {
+    setSelection(next);
+    // Selection values are namespaced ("country:USA", "region:Europe", etc.)
+    // — only announce a friendly label for known shapes; skip the raw value
+    // for "world" since the visual update is obvious.
+    if (typeof next === "string" && next !== "world") {
+      const [type, id] = next.split(":");
+      const friendly = id?.replace(/-/g, " ") ?? next;
+      setStatusMessage(`Selection: ${friendly} (${type})`);
+    }
+  }, [setSelection]);
+
   const changeViewMode = useCallback((nextMode) => {
     if (nextMode === viewMode) return;
 
@@ -492,6 +525,9 @@ const App = () => {
     viewTransitionTimeoutRef.current = window.setTimeout(() => {
       setViewTransition(null);
     }, GLOBE_MORPH_DURATION + 80);
+    // Announce the view switch to screen readers via the existing aria-live
+    // region. WCAG 4.1.3 Status Messages.
+    setStatusMessage(nextMode === "globe" ? "Switched to globe view" : "Switched to flat view");
   }, [viewMode]);
 
   // Single-key shortcuts for the common panel actions. We bail when the user
@@ -1054,7 +1090,7 @@ const App = () => {
         <ControlPanel
             selection={selection}
             setSelection={(value) => {
-              setSelection(value);
+              handleSelectionChange(value);
               setSelectedDots(new Set());
             }}
             stateSelection={stateSelection}
@@ -1101,7 +1137,7 @@ const App = () => {
             setCustomShape={setCustomShape}
             setAsciiSymbol={setAsciiSymbol}
             renderMode={renderMode}
-            setRenderMode={setRenderMode}
+            setRenderMode={handleRenderModeChange}
             worldFill={worldFill}
             setWorldFill={setWorldFill}
             worldFillAlpha={worldFillAlpha}
@@ -1121,9 +1157,9 @@ const App = () => {
             worldStrokeWidth={worldStrokeWidth}
             setWorldStrokeWidth={setWorldStrokeWidth}
             flatProjection={flatProjection}
-            setFlatProjection={setFlatProjection}
+            setFlatProjection={handleProjectionChange}
             riversVisible={riversVisible}
-            setRiversVisible={setRiversVisible}
+            setRiversVisible={handleRiversToggle}
             shaderSettings={shaderSettings}
             setShaderSettings={setShaderSettings}
             globeSettings={globeSettings}

@@ -117,6 +117,32 @@ export const ColorPicker = ({
     svRef.current?.releasePointerCapture?.(event.pointerId);
   };
 
+  // Keyboard alternative for the 2D saturation/value square (WCAG 2.5.7
+  // Dragging Movements + 2.1.1 Keyboard). Arrow keys step ±1, Shift+Arrow
+  // steps ±10, Home/End jump to saturation min/max, PageUp/PageDown jump
+  // to value min/max. The aria-valuetext on the container announces the
+  // current S/V as a percent so screen readers narrate changes live.
+  const handleSvKeyDown = (event) => {
+    const big = event.shiftKey ? 10 : 1;
+    let { s, v } = hsb;
+    let handled = true;
+    switch (event.key) {
+      case "ArrowLeft": s = Math.max(0, s - big); break;
+      case "ArrowRight": s = Math.min(100, s + big); break;
+      case "ArrowUp": v = Math.min(100, v + big); break;
+      case "ArrowDown": v = Math.max(0, v - big); break;
+      case "Home": s = 0; break;
+      case "End": s = 100; break;
+      case "PageUp": v = 100; break;
+      case "PageDown": v = 0; break;
+      default: handled = false;
+    }
+    if (handled) {
+      event.preventDefault();
+      commit({ ...hsb, s, v });
+    }
+  };
+
   useEffect(() => {
     const onKey = (event) => {
       if (event.key === "Escape") {
@@ -448,10 +474,15 @@ export const ColorPicker = ({
         ref={svRef}
         className="color-picker-sv"
         style={{ background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, ${hueColor})` }}
+        role="application"
+        tabIndex={0}
+        aria-label="Saturation and value. Arrow keys adjust, Shift for large steps."
+        aria-valuetext={`Saturation ${hsb.s}%, value ${hsb.v}%`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onKeyDown={handleSvKeyDown}
       >
         <div
           className="color-picker-sv-cursor"

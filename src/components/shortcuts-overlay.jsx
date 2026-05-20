@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useRef } from "react";
+import { useModalA11y } from "../hooks/use-modal-a11y.js";
 import { X } from "./icons.jsx";
 
 const shortcuts = [
@@ -17,30 +18,15 @@ const shortcuts = [
 ];
 
 export const ShortcutsOverlay = ({ open, onClose }) => {
-  useEffect(() => {
-    if (!open) return undefined;
-    const onKey = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  // Restore focus to the element that opened this overlay (e.g. the help
-  // button) when it closes. Keyboard users navigating with Tab/Esc should
-  // never end up stranded on the document body.
-  useEffect(() => {
-    if (!open) return undefined;
-    const previous = document.activeElement;
-    return () => {
-      if (previous instanceof HTMLElement && document.body.contains(previous)) {
-        previous.focus();
-      }
-    };
-  }, [open]);
+  const dialogRef = useRef(null);
+  // Shared modal a11y plumbing — Escape + inert siblings + focus management.
+  // Replaces the prior bespoke useEffect blocks.
+  useModalA11y({
+    open,
+    onClose,
+    containerRef: dialogRef,
+    backdropSelector: ".shortcuts-overlay-backdrop",
+  });
 
   if (!open) return null;
 
@@ -51,6 +37,8 @@ export const ShortcutsOverlay = ({ open, onClose }) => {
         role="dialog"
         aria-modal="true"
         aria-labelledby="shortcuts-title"
+        tabIndex={-1}
+        ref={dialogRef}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="shortcuts-overlay-header">
