@@ -28,6 +28,7 @@ import {
 } from "./utils/export.js";
 import { clearPersistedState, usePersistedState } from "./hooks/use-persisted-state.js";
 import { usePrefersReducedMotion } from "./hooks/use-prefers-reduced-motion.js";
+import { CanvasA11yProxy } from "./components/canvas-a11y-proxy.jsx";
 import { ControlPanel } from "./components/control-panel.jsx";
 import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { ExportModal } from "./components/export-modal.jsx";
@@ -944,6 +945,23 @@ const App = () => {
       <a href="#globe-canvas" className="skip-link">Skip to globe</a>
       <h1 className="visually-hidden">Worlddots — dotted maps and globe generator</h1>
       <div className="visually-hidden" role="status" aria-live="polite">{statusMessage}</div>
+      {/* Persistent screen-reader description of canvas state. The existing
+          aria-live status above narrates *changes*; this proxy gives
+          assistive tech a *persistent* description that's navigable any time.
+          See docs/plans/accessibility-rollout.md Phase 5. */}
+      <CanvasA11yProxy
+        viewMode={viewMode}
+        renderMode={renderMode}
+        selection={selected}
+        lookId={appliedLookId}
+        lookName={lookPresets.find((p) => p.id === appliedLookId)?.name}
+        density={density}
+        dotCount={mapData?.points?.length ?? 0}
+        effect={shaderSettings.effect}
+        flatProjection={flatProjection}
+        riversVisible={riversVisible}
+        citiesVisible={citiesVisible}
+      />
 
 
       <ErrorBoundary
