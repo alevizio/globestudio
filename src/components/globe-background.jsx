@@ -84,6 +84,12 @@ export const GlobeBackground = ({
   citiesVisible = false,
   citiesColor = "rgba(255, 220, 120, 0.86)",
   citiesMinPop = 0,
+  // User-supplied custom topology — already-parsed FeatureCollection.
+  // Validation happens upstream (in App.jsx) so this component just trusts
+  // the data shape.
+  customTopology = null,
+  customTopologyVisible = false,
+  customTopologyColor = "rgba(186, 232, 184, 0.84)",
   selectionCountryCodes = [],
   selectionCollection = null,
   dotsVisible,
@@ -1046,6 +1052,9 @@ export const GlobeBackground = ({
         citiesVisible: citiesVisible && Boolean(cities),
         citiesColor,
         citiesMinPop,
+        custom: customTopology,
+        customVisible: customTopologyVisible && Boolean(customTopology),
+        customColor: customTopologyColor,
       };
       const sphereTexture = createWorldTexture(featureCollection, textureOptions);
       const flatTexture = region && aspect
@@ -1069,7 +1078,7 @@ export const GlobeBackground = ({
     // which are stable when the selection doesn't change. The selection
     // deps cover the only mutations that actually matter here, and
     // leaving mapData out avoids a texture rebuild every density slide.
-  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection, flatProjection, riversVisible, riversColor, riversWidth, citiesVisible, citiesColor, citiesMinPop]);
+  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection, flatProjection, riversVisible, riversColor, riversWidth, citiesVisible, citiesColor, citiesMinPop, customTopology, customTopologyVisible, customTopologyColor]);
 
   useEffect(() => {
     const target = morphMode === "globe" ? 1 : 0;

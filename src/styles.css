@@ -2458,7 +2458,8 @@ select:hover {
   gap: 6px;
 }
 
-.custom-shape-paste-input {
+.custom-shape-paste-input,
+.custom-topology-input {
   width: 100%;
   min-height: 64px;
   padding: 8px 10px;
@@ -2474,12 +2475,14 @@ select:hover {
   transition: border-color 180ms var(--ease);
 }
 
-.custom-shape-paste-input::placeholder {
+.custom-shape-paste-input::placeholder,
+.custom-topology-input::placeholder {
   color: var(--dim);
   font-family: inherit;
 }
 
-.custom-shape-paste-input:focus-visible {
+.custom-shape-paste-input:focus-visible,
+.custom-topology-input:focus-visible {
   border-color: var(--border-strong);
 }
 

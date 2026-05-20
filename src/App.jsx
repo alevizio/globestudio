@@ -111,6 +111,30 @@ const App = () => {
   // small towns when they only want major cities.
   const [citiesVisible, setCitiesVisible] = usePersistedState("citiesVisible", false);
   const [citiesMinPop, setCitiesMinPop] = usePersistedState("citiesMinPop", 0);
+  // User-supplied GeoJSON FeatureCollection — designers paste any line/point
+  // data (transit, custom paths, points of interest, isolines) and it
+  // overlays the solid texture. Stored as raw JSON string in localStorage;
+  // parsed + validated on use. Empty string = no custom topology.
+  const [customTopologyRaw, setCustomTopologyRaw] = usePersistedState("customTopologyRaw", "");
+  const [customTopologyVisible, setCustomTopologyVisible] = usePersistedState("customTopologyVisible", false);
+  // Parse + validate the raw JSON once per change. Invalid input becomes null
+  // so the texture treats it as "no custom data" and skips the overlay block.
+  const customTopology = useMemo(() => {
+    if (!customTopologyRaw) return null;
+    try {
+      const parsed = JSON.parse(customTopologyRaw);
+      if (parsed?.type !== "FeatureCollection" || !Array.isArray(parsed.features)) return null;
+      // Filter to supported geometry types so a polygon-heavy input doesn't
+      // surprise the user when polygons get silently ignored.
+      const supportedTypes = new Set(["LineString", "MultiLineString", "Point", "MultiPoint"]);
+      return {
+        type: "FeatureCollection",
+        features: parsed.features.filter((f) => supportedTypes.has(f?.geometry?.type)),
+      };
+    } catch (_) {
+      return null;
+    }
+  }, [customTopologyRaw]);
   const [shaderSettings, setShaderSettings] = usePersistedState("shaderSettings", DEFAULT_SHADER_SETTINGS);
   const [globeSettings, setGlobeSettings] = usePersistedState("globeSettings", DEFAULT_GLOBE_SETTINGS);
   // First-time mobile visitors land on the globe with the panel hidden so the
@@ -1003,6 +1027,8 @@ const App = () => {
             riversVisible={riversVisible}
             citiesVisible={citiesVisible}
             citiesMinPop={citiesMinPop}
+            customTopology={customTopology}
+            customTopologyVisible={customTopologyVisible}
             selectionCountryCodes={selected.countryCodes}
             selectionCollection={selected.collection}
             background={isSpaceBackground ? "#03030a" : background}
@@ -1195,6 +1221,11 @@ const App = () => {
             setCitiesVisible={handleCitiesToggle}
             citiesMinPop={citiesMinPop}
             setCitiesMinPop={setCitiesMinPop}
+            customTopologyRaw={customTopologyRaw}
+            setCustomTopologyRaw={setCustomTopologyRaw}
+            customTopology={customTopology}
+            customTopologyVisible={customTopologyVisible}
+            setCustomTopologyVisible={setCustomTopologyVisible}
             shaderSettings={shaderSettings}
             setShaderSettings={setShaderSettings}
             globeSettings={globeSettings}

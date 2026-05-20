@@ -110,6 +110,11 @@ export const ControlPanel = ({
   setCitiesVisible,
   citiesMinPop = 0,
   setCitiesMinPop,
+  customTopologyRaw = "",
+  setCustomTopologyRaw,
+  customTopology = null,
+  customTopologyVisible = false,
+  setCustomTopologyVisible,
   dotsVisible,
   setDotsVisible,
   shaderSettings,
@@ -303,6 +308,40 @@ export const ControlPanel = ({
                   step={50000}
                   value={citiesMinPop}
                   onChange={setCitiesMinPop}
+                />
+              </OptionRow>
+            )}
+            {/* Custom GeoJSON upload — paste-in box for any FeatureCollection
+                with LineString / MultiLineString / Point / MultiPoint
+                features. Polygons silently ignored in v1. The parsed result
+                + filter live in App.jsx as `customTopology`; visibility
+                toggle here. See docs/plans/map-data-rollout.md Phase 6. */}
+            <OptionRow label="Custom data">
+              <ToggleControl
+                label="Show custom GeoJSON overlay"
+                checked={customTopologyVisible}
+                onChange={(value) => setCustomTopologyVisible?.(value)}
+              />
+            </OptionRow>
+            {customTopologyVisible && (
+              <OptionRow
+                label="Paste GeoJSON"
+                value={
+                  customTopology
+                    ? `${customTopology.features.length} features`
+                    : customTopologyRaw
+                      ? "Invalid JSON"
+                      : "Empty"
+                }
+              >
+                <textarea
+                  className="custom-topology-input"
+                  aria-label="Paste GeoJSON FeatureCollection"
+                  placeholder='Paste a GeoJSON FeatureCollection. Supports LineString, MultiLineString, Point, MultiPoint.'
+                  value={customTopologyRaw}
+                  onChange={(event) => setCustomTopologyRaw?.(event.target.value)}
+                  spellCheck={false}
+                  rows={4}
                 />
               </OptionRow>
             )}

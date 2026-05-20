@@ -163,6 +163,17 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
     citiesVisible = false,
     citiesColor = "rgba(255, 220, 120, 0.86)",
     citiesMinPop = 0,
+    // Optional user-supplied GeoJSON FeatureCollection — designers paste any
+    // line/point data (transit, custom paths, points of interest) and it
+    // overlays the solid texture. Lines + points drawn with separate styles
+    // so a mixed dataset reads correctly. Polygons get ignored in v1 —
+    // user-supplied polygons would require routing through dotted-map's
+    // dot-generation pipeline, which is a separate effort.
+    custom = null,
+    customVisible = false,
+    customColor = "rgba(186, 232, 184, 0.84)",
+    customLineWidth = 1.4,
+    customPointRadius = 2.2,
   } = options;
 
   // Resolve canvas dimensions. When the caller supplies an aspect (from the
@@ -246,6 +257,42 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
       ctx.beginPath();
       path(feature);
       ctx.stroke();
+    });
+  }
+
+  // User-supplied custom overlay. Drawn after country stroke but before cities
+  // so cities still dominate when both are on. Iterates features, dispatches
+  // by geometry type. LineString + MultiLineString use the existing path
+  // helper; Point features draw as small filled circles.
+  if (customVisible && custom?.features?.length) {
+    ctx.strokeStyle = customColor;
+    ctx.fillStyle = customColor;
+    ctx.lineWidth = customLineWidth;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    custom.features.forEach((feature) => {
+      const type = feature.geometry?.type;
+      if (type === "LineString" || type === "MultiLineString") {
+        ctx.beginPath();
+        path(feature);
+        ctx.stroke();
+      } else if (type === "Point") {
+        const coords = feature.geometry.coordinates;
+        const projected = projection(coords);
+        if (!projected || !Number.isFinite(projected[0]) || !Number.isFinite(projected[1])) return;
+        ctx.beginPath();
+        ctx.arc(projected[0], projected[1], customPointRadius, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (type === "MultiPoint") {
+        feature.geometry.coordinates.forEach((coords) => {
+          const projected = projection(coords);
+          if (!projected || !Number.isFinite(projected[0]) || !Number.isFinite(projected[1])) return;
+          ctx.beginPath();
+          ctx.arc(projected[0], projected[1], customPointRadius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+      // Polygon / MultiPolygon ignored in v1.
     });
   }
 
