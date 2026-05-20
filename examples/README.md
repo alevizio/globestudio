@@ -1,6 +1,6 @@
-# Worlddots examples
+# Globestudio examples
 
-This directory holds reference projects that show Worlddots in real
+This directory holds reference projects that show Globestudio in real
 contexts — landing pages, decks, brand systems, motion content.
 
 The goal isn't "copy the code." The goal is **proof**: when someone lands on
@@ -41,7 +41,7 @@ cd examples/hero-globe && python3 -m http.server 8000
 # open http://localhost:8000
 ```
 
-All examples use `https://worlddots.vercel.app/looks/:id` URLs for live
+All examples use `https://globestudio.vercel.app/looks/:id` URLs for live
 embeds — no build step or npm install required.
 
 ## Adapt an example for your project
@@ -50,7 +50,7 @@ Each example folder contains:
 
 - `README.md` — what it shows + how to adapt it for your project
 - `index.html` (where applicable) — runnable demo
-- `config.json` (where applicable) — exact Worlddots config that
+- `config.json` (where applicable) — exact Globestudio config that
   reproduces the look
 
 Most adaptations are a matter of:
@@ -61,7 +61,7 @@ Most adaptations are a matter of:
 
 ## Contributing an example
 
-Want to add one? Open a [Discussion](https://github.com/alevizio/worlddots/discussions/new?category=show-and-tell)
+Want to add one? Open a [Discussion](https://github.com/alevizio/globestudio/discussions/new?category=show-and-tell)
 first to make sure it doesn't overlap with something already planned, then
 open a PR that adds a directory under `examples/` with:
 
@@ -79,7 +79,7 @@ Community examples we'd put on the front page if someone built them:
 - Webflow showcase template
 - Framer code component (gated on integrations Phase 2)
 - Figma plugin (gated on integrations Phase 3)
-- Astro starter with Worlddots embedded
+- Astro starter with Globestudio embedded
 - After Effects template — animated tag-along map for video projects
 - Notion embed cookbook
 - Cloudflare Worker that proxies preset URLs to a custom domain

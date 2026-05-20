@@ -7,7 +7,7 @@
 
 ## Goal
 
-Add 3-5 high-leverage shader effects to the Worlddots library
+Add 3-5 high-leverage shader effects to the Globestudio library
 covering the design-aesthetic gaps surfaced in the candidate
 research: **true dithering**, **print aesthetics**, **iridescent
 material**. Maintain the single-pass fragment-shader architecture so

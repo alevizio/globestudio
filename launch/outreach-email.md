@@ -20,7 +20,7 @@ Subject: New open-source dotted map + 3D globe tool — {personal angle for them
 
 Hi {Name},
 
-I'm launching Worlddots next {weekday} — an open-source tool for making
+I'm launching Globestudio next {weekday} — an open-source tool for making
 dotted maps and animated 3D globes. Pick any country, customize dot shapes
 and gradients, layer shader effects, and export PNG, SVG, or WebM video.
 
@@ -34,8 +34,8 @@ What it does:
 • Real exports: PNG (high-res), SVG, WebM video
 • MIT-licensed, runs client-side, no accounts
 
-Live: https://worlddots.app
-GitHub: https://github.com/alevizio/worlddots
+Live: https://globestudio.app
+GitHub: https://github.com/alevizio/globestudio
 Short demo: {link to a 20s screen recording on Vimeo / YouTube / X}
 
 If this feels relevant for {their publication / their audience}, I'd be

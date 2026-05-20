@@ -36,7 +36,7 @@ people who scrolled past last time may have a reason this time.
 - [ ] **Color picker arrow keys.** Open the dotColor swatch → Tab into
       the SV square → arrow keys + Shift+Arrow + Home/End should move
       the cursor live. (If broken, blocks WCAG 2.5.7.)
-- [ ] **Share preview check.** Slack-DM yourself `worlddots.app/looks/halftone`
+- [ ] **Share preview check.** Slack-DM yourself `globestudio.app/looks/halftone`
       and a few other preset URLs. Confirm the new 1200×630 OG cards
       render. Try iMessage too — different cache, sometimes catches
       bugs Slack misses.
@@ -46,12 +46,12 @@ people who scrolled past last time may have a reason this time.
       Confirm the iframe renders and the resize protocol works.
 - [ ] **Framer reference component.** Open Framer, create a code
       component, paste
-      [`examples/framer-component/WorlddotsGlobe.tsx`](../examples/framer-component/WorlddotsGlobe.tsx),
+      [`examples/framer-component/GlobestudioGlobe.tsx`](../examples/framer-component/GlobestudioGlobe.tsx),
       drag onto a frame, verify the property controls show up.
 - [ ] **Run `npm test`** — confirm 125+ tests pass including the
       axe-core a11y guard.
 - [ ] **Run `npm run build`** — confirm clean build, no warnings.
-- [ ] **Lighthouse audit** on `worlddots.vercel.app` — note Performance,
+- [ ] **Lighthouse audit** on `globestudio.vercel.app` — note Performance,
       Accessibility, Best Practices, SEO scores. Don't fix anything
       below 90 unless it's a hard fail.
 
@@ -63,7 +63,7 @@ people who scrolled past last time may have a reason this time.
       up 4 tiers ($3 / $10 / $25 / $100). FUNDING.yml is already
       committed.
 - [ ] **Pin the repo to your profile.** Profile → Customize your pins
-      → check `worlddots`.
+      → check `globestudio`.
 - [ ] **Verify topics + description** look right on the repo header.
       (Already updated via `gh repo edit` in commit 5fa700c.)
 
@@ -73,7 +73,7 @@ Use the new preset URLs — each one has a unique 1200×630 OG card now,
 so threads with multiple preset links all get visual previews:
 
 - [ ] **X / Twitter thread** (4-6 tweets). Use this structure:
-      1. Hook tweet: "worlddots got a big upgrade — dotted maps and
+      1. Hook tweet: "globestudio got a big upgrade — dotted maps and
          animated 3D globes, now with 17 looks." + the default OG card.
       2. "New look: Halftone — newspaper print pattern" + link to
          `/looks/halftone` (OG card unfurls).
@@ -108,7 +108,7 @@ so threads with multiple preset links all get visual previews:
 
 | Time | Channel | Action |
 |---|---|---|
-| **7:00am** | Coffee + final check | Open `worlddots.vercel.app` on phone — confirm it loads. Check Vercel dashboard for any overnight errors. |
+| **7:00am** | Coffee + final check | Open `globestudio.vercel.app` on phone — confirm it loads. Check Vercel dashboard for any overnight errors. |
 | **7:15am** | X / Twitter | Post the thread. Pin tweet 1. |
 | **8:00am** | LinkedIn | Post the LinkedIn variant. |
 | **8:30am** | Mastodon | Cross-post on fosstodon.org + mastodon.design. |
@@ -131,13 +131,13 @@ so threads with multiple preset links all get visual previews:
 
 Open these tabs at 7am and leave them open:
 
-1. **Vercel Analytics** — `vercel.com/litebox/worlddots/analytics`. Watch
+1. **Vercel Analytics** — `vercel.com/litebox/globestudio/analytics`. Watch
    for traffic spikes, top referrers, conversion-equivalent metrics.
-2. **GitHub Insights → Traffic** — `github.com/alevizio/worlddots/graphs/traffic`.
+2. **GitHub Insights → Traffic** — `github.com/alevizio/globestudio/graphs/traffic`.
    Updates every ~2 hours. Watch for spikes after each post.
 3. **GitHub stars** — refresh the repo page periodically. Don't obsess.
-4. **The deployed site itself** — `worlddots.vercel.app`. Refresh once
-   an hour to verify it's serving. Save the URL of `worlddots.vercel.app/api/...`
+4. **The deployed site itself** — `globestudio.vercel.app`. Refresh once
+   an hour to verify it's serving. Save the URL of `globestudio.vercel.app/api/...`
    somewhere visible for quick error checking.
 5. **Twitter / LinkedIn notifications** — reply within 10 minutes when
    possible.
@@ -148,7 +148,7 @@ Open these tabs at 7am and leave them open:
 
 ## Common issues — prepared responses
 
-- **"Why not D3?"** — D3 is a great primitive. Worlddots is the curated
+- **"Why not D3?"** — D3 is a great primitive. Globestudio is the curated
   motion-design layer on top — preset aesthetics, shader effects, easy
   embed. Not competing.
 - **"Won't this break on Safari?"** — WCAG 2.2 AA conformant, tested on

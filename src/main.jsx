@@ -34,11 +34,11 @@ if (typeof window !== "undefined" && typeof console !== "undefined") {
   ].join("\n");
   const globeStyle =
     "font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; color: #f6f2ea; line-height: 1.0; letter-spacing: 0;";
-  const title = "%cworlddots";
+  const title = "%cglobestudio";
   const titleStyle =
     "font: 700 26px ui-monospace, SFMono-Regular, Menlo, monospace; color: #f6f2ea; letter-spacing: -0.02em; padding-top: 4px;";
   const subtitle =
-    "%cDotted maps, dotted globes, and a quiet starfield.\nBuilt with Three.js + React.  ·  Source: https://github.com/alevizio/worlddots";
+    "%cDotted maps, dotted globes, and a quiet starfield.\nBuilt with Three.js + React.  ·  Source: https://github.com/alevizio/globestudio";
   const subtitleStyle =
     "font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: #888; line-height: 1.6; padding-bottom: 6px;";
   console.log(`%c${globe}`, globeStyle);

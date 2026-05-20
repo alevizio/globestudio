@@ -1,6 +1,6 @@
 # Example: `country-highlight`
 
-> **Status**: 🟢 Ready (via Worlddots URL params) — see `index.html`
+> **Status**: 🟢 Ready (via Globestudio URL params) — see `index.html`
 
 A single-page profile that zooms tight on one country and shows just
 that country's dotted silhouette plus a small text block. The unit of a
@@ -10,11 +10,11 @@ single-country case study.
 
 ## What this proves
 
-Worlddots's selection system isn't just for the World view — designers
-can pick any country, region, or US state as the focus and Worlddots
+Globestudio's selection system isn't just for the World view — designers
+can pick any country, region, or US state as the focus and Globestudio
 will reframe + clip the dot field around it automatically. Combined
 with the shareable URL format, that means a marketing site can deep-
-link to "Worlddots showing just France" with zero JavaScript.
+link to "Globestudio showing just France" with zero JavaScript.
 
 ## The pattern
 
@@ -22,7 +22,7 @@ This example shows one country profile but the pattern scales to a
 template. Substitute the country code in:
 
 ```html
-<iframe src="https://worlddots.app/looks/aurora" title="..."></iframe>
+<iframe src="https://globestudio.app/looks/aurora" title="..."></iframe>
 ```
 
 For a designer who wants programmatic per-country pages (e.g., a SaaS
@@ -43,7 +43,7 @@ python3 -m http.server 8000
 A single-page profile of France:
 
 - Hero block with country name + stat
-- Centered Worlddots iframe (Aurora preset, France selection)
+- Centered Globestudio iframe (Aurora preset, France selection)
 - Three stat cards below (population, cities, area)
 - Footer with attribution + link to the live tool
 
@@ -51,7 +51,7 @@ To adapt for your country, copy the file and change:
 
 - The iframe `src` to a different preset
 - The country name + stats
-- The "open in worlddots" link
+- The "open in globestudio" link
 
 ## Why this matters
 
@@ -63,7 +63,7 @@ pattern.
 
 ## URL params reference
 
-Worlddots's URL state covers:
+Globestudio's URL state covers:
 
 - `/looks/:id` — picks the preset (look)
 - _Selection (country/region/state)_ is currently driven by the

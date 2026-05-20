@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Create the GitHub label set Worlddots uses. Run once per repo. Requires the
+# Create the GitHub label set Globestudio uses. Run once per repo. Requires the
 # GitHub CLI: https://cli.github.com
 #
 # Usage:
@@ -12,7 +12,7 @@
 
 set -euo pipefail
 
-# Color hex strings (without leading #). Pulled from the Worlddots palette
+# Color hex strings (without leading #). Pulled from the Globestudio palette
 # so labels feel consistent with the design system.
 
 # Bug / problem labels (warm, urgent reds + oranges)
@@ -66,7 +66,7 @@ gh label create "size:xl"           --color "4b5563" --description "Very large �
 
 echo
 echo "✅ Labels created/updated. Verify in the repo's Labels page:"
-echo "   https://github.com/alevizio/worlddots/labels"
+echo "   https://github.com/alevizio/globestudio/labels"
 echo
 echo "Labels referenced by issue templates: bug, enhancement, performance,"
 echo "preset, needs-triage — these are required for templates to apply them"

@@ -2,18 +2,18 @@
 
 ## Supported versions
 
-Worlddots is shipped continuously from `main`. The latest release on
-[github.com/alevizio/worlddots/releases](https://github.com/alevizio/worlddots/releases)
+Globestudio is shipped continuously from `main`. The latest release on
+[github.com/alevizio/globestudio/releases](https://github.com/alevizio/globestudio/releases)
 is the only supported version.
 
 ## Reporting a vulnerability
 
 **Please do not open a public issue for security problems.** Use one of:
 
-1. **GitHub Security Advisories** — [Report a vulnerability privately](https://github.com/alevizio/worlddots/security/advisories/new).
+1. **GitHub Security Advisories** — [Report a vulnerability privately](https://github.com/alevizio/globestudio/security/advisories/new).
    This is the preferred route. It opens a private collaboration thread between
    you and the maintainers.
-2. **Email** — `viziomas@gmail.com` with subject `[Worlddots Security]`.
+2. **Email** — `viziomas@gmail.com` with subject `[Globestudio Security]`.
 
 Please include:
 
@@ -43,7 +43,7 @@ In scope:
 Out of scope:
 
 - Performance issues, browser quirks, missing features — use a
-  [regular issue](https://github.com/alevizio/worlddots/issues/new/choose)
+  [regular issue](https://github.com/alevizio/globestudio/issues/new/choose)
 - Issues that require user-controlled clipboard contents to be malicious (we
   already sanitize, but it's the user's clipboard)
 - Vulnerabilities in dependencies that have not been published as advisories

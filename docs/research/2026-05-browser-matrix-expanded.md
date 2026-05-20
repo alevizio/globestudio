@@ -13,7 +13,7 @@ covered iOS Safari + Android Chrome. This pass covers the
 older Chromium-based browsers, and the GPU-driver-level quirks that
 WebGL2 still surfaces.
 
-Headline: **Worlddots works on every major browser today**, but
+Headline: **Globestudio works on every major browser today**, but
 shader compilation behavior can diverge subtly between
 Direct3D (Windows Chrome/Edge), Metal (macOS/iOS Safari),
 OpenGL (Linux/Firefox), and Vulkan/ANGLE backends. The
@@ -63,10 +63,10 @@ The same WebGL2 call routes through different backends per OS:
 
 Each backend has shader-compilation quirks. A shader that compiles
 on Chrome/Windows can fail on Safari/Metal. Practical implications
-for Worlddots:
+for Globestudio:
 
 - Stick to ES 3.00 GLSL features that all backends support.
-- Avoid driver-specific extensions (Worlddots doesn't use any).
+- Avoid driver-specific extensions (Globestudio doesn't use any).
 - The post-effects fragment shader cascade is the highest-risk
   surface — it's a single giant shader with 18 effect branches.
 - Test the post-effects shader on at least 3 OS/browser combos
@@ -97,7 +97,7 @@ WebGL pipeline outperforms Chrome's — particularly when Three.js
 forces WebGL despite WebGPU being available. Suggests Firefox is a
 solid target, not an afterthought.
 
-For Worlddots, no action needed — just don't optimize *for* Chrome
+For Globestudio, no action needed — just don't optimize *for* Chrome
 to Firefox's detriment.
 
 Sources:
@@ -110,7 +110,7 @@ WebGL2 since 7.2. Most behavior mirrors Chrome for Android (same
 Blink engine), but has its own UA string and occasional rendering
 quirks.
 
-For Worlddots, the embed strategy means Samsung Internet shows up
+For Globestudio, the embed strategy means Samsung Internet shows up
 whenever a Webflow / Framer site is viewed on a Samsung phone.
 Worth a smoke test on a real device.
 
@@ -124,7 +124,7 @@ Worth a smoke test on a real device.
    integrations plan) so we know which browsers actually use
    embeds. Reactive vs proactive testing.
 3. **Add a manual cross-browser smoke test to the release
-   checklist** — load `worlddots.app` on:
+   checklist** — load `globestudio.app` on:
    - Chrome (macOS + Windows)
    - Firefox (macOS or Linux)
    - Safari (macOS)

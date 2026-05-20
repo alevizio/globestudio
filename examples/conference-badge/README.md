@@ -9,14 +9,14 @@ nametags or kiosk loop screens.
 
 ## What this proves
 
-Worlddots isn't only for screens — designers reach for it for **print**
+Globestudio isn't only for screens — designers reach for it for **print**
 too. Conference designers want a single country / region, a clean
 preset, a high-res PNG export, and a SVG fallback for vector layouts in
 InDesign / Affinity Publisher.
 
 ## Recipe
 
-1. Open [worlddots.app](https://worlddots.vercel.app/looks/wireframe).
+1. Open [globestudio.app](https://globestudio.vercel.app/looks/wireframe).
 2. **Selection** → pick your country (e.g., "United States" for an
    American conference, "Germany" for Berlin Tech Week).
 3. **Surface → Style** → Solid. Land off, Stroke on.
@@ -36,7 +36,7 @@ InDesign / Affinity Publisher.
 ## Configuration JSON
 
 The `config.json` in this folder is the exact preset that produces the
-hero image. Drop it into Worlddots via **Export → Import config** to
+hero image. Drop it into Globestudio via **Export → Import config** to
 reproduce the exact result.
 
 ## Typography pairing notes
@@ -48,7 +48,7 @@ space when pairing.
 
 ## Print specs
 
-- **CMYK conversion**: Worlddots exports sRGB. Convert in your DTP tool;
+- **CMYK conversion**: Globestudio exports sRGB. Convert in your DTP tool;
   most modern presses handle the conversion well, but check muddy
   midtones if you're using the Risograph or Newsprint shaders.
 - **Bleed**: there's no built-in bleed in the PNG export. Add 3-5mm in
@@ -59,7 +59,7 @@ space when pairing.
 ## Why this matters
 
 Every quarter, conference designers need region-specific maps for
-badges, signage, talk slides. Worlddots is the right tool — but most
+badges, signage, talk slides. Globestudio is the right tool — but most
 designers reach for it once, can't find the export settings that work
 for print, and bounce. This example documents the exact workflow so
 they ship.

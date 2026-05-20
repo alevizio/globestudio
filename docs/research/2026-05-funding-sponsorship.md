@@ -7,21 +7,21 @@
 
 ## Executive summary
 
-Worlddots is MIT-forever per the ROADMAP. Direct monetization of the
+Globestudio is MIT-forever per the ROADMAP. Direct monetization of the
 tool itself is off the table, but **voluntary funding** is not.
 Three credible platforms in 2026: **GitHub Sponsors** (the easiest
 to set up, ships with the repo), **Open Collective** (transparent
 finances, fiscal sponsorship layer), and **Polar.sh** (newer, more
 indie-developer-aligned).
 
-For Worlddots's stage (just-launched, ~1 person), the right v1 is
+For Globestudio's stage (just-launched, ~1 person), the right v1 is
 **GitHub Sponsors + a `FUNDING.yml` file**. Zero ongoing maintenance
 beyond setup. Open Collective is worth adding if/when funding crosses
 a threshold that justifies the fiscal-sponsorship overhead (~$100/mo
 sustained). Polar.sh is interesting but adds complexity for a small
 indie project at launch.
 
-Realistic funding outcomes: most OSS designer tools at Worlddots's
+Realistic funding outcomes: most OSS designer tools at Globestudio's
 stage raise $0-$200/month from voluntary sponsorship in year 1.
 The value isn't the money — it's the signal that users care enough
 to pay, which compounds with the existence of a "Sponsor" button on
@@ -61,7 +61,7 @@ admin fee. Worth it when:
 - You want conference / hardware / meetup reimbursement
 - You want the credibility of a fiscal host
 
-For a solo Worlddots maintainer, this is overkill at launch. Revisit
+For a solo Globestudio maintainer, this is overkill at launch. Revisit
 if the project grows multiple maintainers or starts running real
 events.
 
@@ -85,7 +85,7 @@ Sources:
 ### Finding 4 — Funding is signal more than revenue ⚠️
 
 Across OSS-tool case studies, voluntary funding at the indie-launch
-stage rarely pays the maintainer's rent. Most tools at Worlddots's
+stage rarely pays the maintainer's rent. Most tools at Globestudio's
 scale raise $0-200/month. The real value:
 
 - A "Sponsor" button signals an active project (vs abandoned)
@@ -106,7 +106,7 @@ Sources:
    beyond a Discord mention (and we don't have Discord yet).
 4. **Add a `SPONSORS.md`** with the running list of sponsors,
    updated quarterly.
-5. **Link from the app footer** — small "❤ Sponsor Worlddots" link
+5. **Link from the app footer** — small "❤ Sponsor Globestudio" link
    next to GitHub. Discoverability > polite invisibility.
 6. **Hold off on Open Collective** until multi-maintainer or
    meaningful spend justifies the 10% fee.

@@ -7,7 +7,7 @@
 
 ## Executive summary
 
-Worlddots renders 2–15k instanced dots per frame plus post-effects.
+Globestudio renders 2–15k instanced dots per frame plus post-effects.
 The bottleneck split is roughly: GPU draw calls 30%, JS animate loop
 30%, instance matrix uploads 25%, layout flushes 15%. A focused
 hardening pass — capping density, chunking matrix uploads via

@@ -2,7 +2,7 @@ import { formatGlobeStatus } from "../utils/a11y-status.js";
 
 // Visually-hidden DOM mirror of canvas state. Screen readers + voice-control
 // assistive tech treat this as the "real" content — the WebGL canvas itself
-// is opaque to them. So when a blind user lands on Worlddots they hear:
+// is opaque to them. So when a blind user lands on Globestudio they hear:
 //
 //   "Globe state region. World in globe view, dotted mode, Halftone preset.
 //    6,200 dots at density 70. Region: World. View: Globe (3D sphere). ..."

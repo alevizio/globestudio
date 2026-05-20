@@ -1,7 +1,7 @@
-// Worlddots Framer code component (reference implementation).
+// Globestudio Framer code component (reference implementation).
 //
 // Paste into your Framer project at File → Insert → Code Component →
-// New Code Component, name it "WorlddotsGlobe", replace the contents
+// New Code Component, name it "GlobestudioGlobe", replace the contents
 // with this file's source.
 //
 // Iframe-bridged variant (Path B from the integrations research): the
@@ -47,7 +47,7 @@ interface Props {
   transparent: boolean
 }
 
-// Build the Worlddots embed URL from the current prop values. Strips the
+// Build the Globestudio embed URL from the current prop values. Strips the
 // leading "#" from colors because the embed route expects hex without it.
 const buildEmbedUrl = (props: Props, isStatic: boolean): string => {
   const params = new URLSearchParams()
@@ -65,10 +65,10 @@ const buildEmbedUrl = (props: Props, isStatic: boolean): string => {
   // static preview doesn't burn frames. The hosted embed honors this.
   if (isStatic) params.set("static", "1")
   params.set("source", "framer")
-  return `https://worlddots.app/embed?${params.toString()}`
+  return `https://globestudio.app/embed?${params.toString()}`
 }
 
-export default function WorlddotsGlobe(props: Props) {
+export default function GlobestudioGlobe(props: Props) {
   // True in Framer's canvas (the editor) and in static export contexts.
   // We freeze motion in those modes so the canvas doesn't render an
   // animated globe behind every component instance.
@@ -84,7 +84,7 @@ export default function WorlddotsGlobe(props: Props) {
         border: 0,
         display: "block",
       }}
-      title="Worlddots dotted globe"
+      title="Globestudio dotted globe"
       loading={isStatic ? "lazy" : "eager"}
       // Allow framer to load this on any origin — production embed already
       // sets frame-ancestors *.
@@ -94,7 +94,7 @@ export default function WorlddotsGlobe(props: Props) {
 }
 
 // Default-when-dropped-on-canvas. Framer reads this for first render.
-WorlddotsGlobe.defaultProps = {
+GlobestudioGlobe.defaultProps = {
   look: "default",
   density: 40,
   dotColor: "#ffffff",
@@ -111,7 +111,7 @@ WorlddotsGlobe.defaultProps = {
 // Each entry maps a prop to a control type. Conditional `hidden()`
 // callbacks expand controls only when relevant (e.g. transparency is
 // only meaningful when background is set).
-addPropertyControls(WorlddotsGlobe, {
+addPropertyControls(GlobestudioGlobe, {
   look: {
     type: ControlType.Enum,
     title: "Look",

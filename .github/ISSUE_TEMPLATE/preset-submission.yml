@@ -1,5 +1,5 @@
 name: 🎨 Preset submission
-description: Submit a look preset for inclusion in Worlddots
+description: Submit a look preset for inclusion in Globestudio
 labels: ["preset", "needs-triage"]
 body:
   - type: markdown
@@ -10,7 +10,7 @@ body:
         flat view**. Skip "Default with red dots."
 
         How to build one:
-        1. Open [worlddots.app](https://worlddots.app/) and dial in your look
+        1. Open [globestudio.app](https://globestudio.app/) and dial in your look
         2. Export → **Config** → **Export config** to get a JSON
         3. Paste it below
 
@@ -61,5 +61,5 @@ body:
     attributes:
       label: Licensing
       options:
-        - label: I'm okay with this preset being included in Worlddots under the MIT license.
+        - label: I'm okay with this preset being included in Globestudio under the MIT license.
           required: true

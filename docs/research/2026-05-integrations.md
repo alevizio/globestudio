@@ -9,7 +9,7 @@
 
 The "designer tool integration" wedge is real and addressable today,
 with a clear three-tier model proven by **Lottie** (best-in-class
-cross-tool animation) and **Spline** (3D scenes everywhere). Worlddots
+cross-tool animation) and **Spline** (3D scenes everywhere). Globestudio
 can credibly slot between them: heavier than Lottie (it's not just a
 player), lighter than Spline (one specific aesthetic, not a general
 3D engine).
@@ -39,7 +39,7 @@ users.
   100%.
 - **Design controls:** Property Controls give designers a real
   properties panel (color pickers, dropdowns, ranges) — exactly the
-  surface Worlddots already exposes in its own UI.
+  surface Globestudio already exposes in its own UI.
 - **Performance note:** Framer's docs recommend WebGL components use a
   custom hook instead of `RenderTarget` to keep the canvas/export
   pipeline static.
@@ -86,10 +86,10 @@ the canvas. What works:
 - `figma.createImage(bytes)` takes a Uint8Array, returns image hash.
 - Plugin creates a frame, applies image as fill:
   `frame.fills = [{ imageHash, scaleMode: "FILL", type: "IMAGE" }]`.
-- Plugin UI runs as an iframe — can host the full Worlddots
+- Plugin UI runs as an iframe — can host the full Globestudio
   interactive globe inside the plugin panel.
 
-The right product is **"Worlddots for Figma"** — designer tweaks the
+The right product is **"Globestudio for Figma"** — designer tweaks the
 globe live inside Figma's plugin panel, then presses Insert → PNG (or
 SVG) lands on the canvas as a frame fill. The same plugin can offer
 "Update" to re-render in place when the design changes.
@@ -109,7 +109,7 @@ Spline ships:
 - **Framer**: iframe embed via Embed element (basic, not a native code
   component).
 - **Webflow**: native Spline Embed with event wiring (click/hover/scroll
-  → manipulate Spline objects). This is the depth Worlddots should
+  → manipulate Spline objects). This is the depth Globestudio should
   match.
 - **Figma**: no plugin — workflow approach (design in Figma, build in
   Spline, export elsewhere).
@@ -130,7 +130,7 @@ Effects + more. The artifact (`.lottie` / `.json`) is **tool-agnostic**
 — same file plays everywhere.
 
 The long-term play: a `.worlddot` file (or just a JSON config) that
-any tool can render via a small player runtime. The current Worlddots
+any tool can render via a small player runtime. The current Globestudio
 state object (look preset + density + shape + shader settings) is
 already 95% of what such a file would contain. This is a 12-month
 direction, not a v1.
@@ -160,12 +160,12 @@ Sources:
   still evolve.
 - **Three.js bundle size.** Pre-installed in Framer but a real concern
   elsewhere. Current Three bundle is 560KB. Worth a tree-shaken
-  Worlddots-optimized Three.js build (just InstancedMesh,
+  Globestudio-optimized Three.js build (just InstancedMesh,
   ShaderMaterial, EffectComposer, RenderPass, ShaderPass,
   UnrealBloomPass).
 - **Figma plugin sandbox.** Plugins run in an iframe with limited
   storage. The plugin's interactive globe panel needs to be
-  lightweight. Probably ship a stripped Worlddots build (no export
+  lightweight. Probably ship a stripped Globestudio build (no export
   modal, no looks bar — just the canvas + a small preset switcher).
 
 ## Recommendations
@@ -180,11 +180,11 @@ In priority order:
 2. **Webflow iframe embed as a v0 (this week).** Single deployed URL with
    query-string-driven preset
    (`/embed?look=halftone&density=70&color=ffffff`). Use `postMessage`
-   for height resizing. Drop into the Worlddots site as an `<iframe>`
+   for height resizing. Drop into the Globestudio site as an `<iframe>`
    snippet copy-paste. Validate demand before investing in the full Code
    Component path.
 3. **Figma plugin as v1.5 (2–3 weeks after Framer).** Host the existing
-   Worlddots app inside the plugin UI iframe; on Insert, render to PNG
+   Globestudio app inside the plugin UI iframe; on Insert, render to PNG
    via `canvas.toDataURL()`, pass bytes to `figma.createImage()`, place
    as frame fill. Free in marketplace; reserves room for a paid tier
    later (custom resolution, SVG vector export, animation frame
@@ -192,14 +192,14 @@ In priority order:
 4. **Webflow Code Component as v2 (4 weeks after Framer).** DevLink-based
    component matching the Framer prop surface. Bundle the optimized
    Three.js build. SSR for fast initial paint.
-5. **Worlddots-optimized Three.js bundle (week-2 effort).** Tree-shake to
+5. **Globestudio-optimized Three.js bundle (week-2 effort).** Tree-shake to
    modules in use (InstancedMesh, ShaderMaterial, BasicMaterial,
    EffectComposer, RenderPass, ShaderPass, UnrealBloomPass + utilities).
    Sub-200KB target. Useful for every non-Framer integration.
 6. **Sketch the `.worlddot` portable format (background, ongoing).** State
    shape is already there in `look-presets.js` + `globe-settings.js`.
    Formalize as a versioned JSON schema. Publish a tiny
-   `@worlddots/player` JS runtime that takes a `.worlddot` + DOM
+   `@globestudio/player` JS runtime that takes a `.worlddot` + DOM
    element and renders it. Long-term play, big upside.
 
 ## Sources

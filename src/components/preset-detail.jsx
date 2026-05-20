@@ -42,7 +42,7 @@ export const PresetDetail = ({ preset }) => {
           ← All looks
         </a>
         <span className="preset-detail-share">
-          Direct link: <code>https://worlddots.app/looks/{preset.id}</code>
+          Direct link: <code>https://globestudio.app/looks/{preset.id}</code>
         </span>
       </footer>
     </section>

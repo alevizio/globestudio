@@ -101,12 +101,12 @@ export const EmbedView = () => {
   // Resize-aware postMessage protocol for parent iframes. Whenever the
   // viewport changes, we tell the parent "my content height is N pixels"
   // so they can resize the iframe to match. Parents listen via
-  // window.addEventListener("message", e => e.data?.type === "worlddots-resize" && ...).
+  // window.addEventListener("message", e => e.data?.type === "globestudio-resize" && ...).
   useEffect(() => {
     if (typeof window === "undefined" || window.parent === window) return undefined;
     const post = () => {
       window.parent.postMessage(
-        { type: "worlddots-resize", height: document.documentElement.scrollHeight, source: params.source },
+        { type: "globestudio-resize", height: document.documentElement.scrollHeight, source: params.source },
         "*",
       );
     };
@@ -126,10 +126,10 @@ export const EmbedView = () => {
   if (!hasWebGL) {
     return (
       <div className="embed-view embed-view-fallback">
-        <p>This browser doesn't support WebGL 2. Worlddots needs WebGL 2 to render the globe.</p>
+        <p>This browser doesn't support WebGL 2. Globestudio needs WebGL 2 to render the globe.</p>
         <p>
-          <a href="https://worlddots.app/" target="_blank" rel="noreferrer noopener">
-            Open Worlddots in a supported browser →
+          <a href="https://globestudio.app/" target="_blank" rel="noreferrer noopener">
+            Open Globestudio in a supported browser →
           </a>
         </p>
       </div>
@@ -186,7 +186,7 @@ export const EmbedView = () => {
           globeSettings={settings.globeSettings}
           backgroundStyle="solid"
           reducedMotion={motionFrozen}
-          label="Worlddots dotted globe (embed)"
+          label="Globestudio dotted globe (embed)"
         />
       </Suspense>
     </div>

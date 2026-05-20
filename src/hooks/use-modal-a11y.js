@@ -10,7 +10,7 @@ import { useEffect } from "react";
 // 3. The rest of the page becomes `inert` while open, so Tab can't escape
 //    behind the modal AND assistive tech treats the background as
 //    non-interactive. The `inert` attribute is supported by every browser
-//    Worlddots targets (Chrome 102+, Safari 15.5+, Firefox 112+, 2022+).
+//    Globestudio targets (Chrome 102+, Safari 15.5+, Firefox 112+, 2022+).
 //
 // Callers pass `open` plus an optional `containerRef` (the actual dialog
 // element to focus on open). If the ref is omitted, the hook still applies

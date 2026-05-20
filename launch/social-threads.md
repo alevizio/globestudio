@@ -15,13 +15,13 @@ isolation. Attach the visual asset described in `[asset: …]` to that tweet.
 
 **1/9** (hook — pin this if you can)
 
-> i just shipped worlddots — open-source dotted maps and animated 3D globes
+> i just shipped globestudio — open-source dotted maps and animated 3D globes
 > for designers, animators, and creative developers
 >
 > built with three.js + react. MIT.
 >
-> live: https://worlddots.app
-> source: https://github.com/alevizio/worlddots
+> live: https://globestudio.app
+> source: https://github.com/alevizio/globestudio
 >
 > here's what's in it 🧵
 >
@@ -32,13 +32,13 @@ isolation. Attach the visual asset described in `[asset: …]` to that tweet.
 > most open-source map tools are built for engineers — tile servers, vector
 > tiles, big data
 >
-> worlddots is built for the design half of the stack:
+> globestudio is built for the design half of the stack:
 > – the landing page hero
 > – the deck slide
 > – the launch teaser
 > – the explainer scroll
 >
-> *[asset: side-by-side: "what other tools give you" (developer-y) vs "what worlddots gives you" (stylized)]*
+> *[asset: side-by-side: "what other tools give you" (developer-y) vs "what globestudio gives you" (stylized)]*
 
 **3/9** (12 shapes + custom upload)
 
@@ -106,8 +106,8 @@ isolation. Attach the visual asset described in `[asset: …]` to that tweet.
 > if it lags on your device — please file a bug.
 > if you want to add a preset — there's a template for that.
 >
-> 🌐 https://worlddots.app
-> ⭐ https://github.com/alevizio/worlddots
+> 🌐 https://globestudio.app
+> ⭐ https://github.com/alevizio/globestudio
 >
 > proud of this one 🤍
 
@@ -117,12 +117,12 @@ isolation. Attach the visual asset described in `[asset: …]` to that tweet.
 
 These keep the post in feed without spamming the thread.
 
-> tip: in worlddots you can share a look as a URL — every preset has its own
+> tip: in globestudio you can share a look as a URL — every preset has its own
 > /looks/:id route
 >
-> https://worlddots.app/looks/glitch
-> https://worlddots.app/looks/crt
-> https://worlddots.app/looks/wireframe
+> https://globestudio.app/looks/glitch
+> https://globestudio.app/looks/crt
+> https://globestudio.app/looks/wireframe
 >
 > drop the link in a slack and your team sees the exact same scene
 
@@ -143,7 +143,7 @@ Single longer post. Mastodon is chronological — no algorithmic boost, so a
 thread isn't as helpful as one substantial post.
 
 ```
-🌐 Shipped Worlddots — an open-source tool for making dotted maps and
+🌐 Shipped Globestudio — an open-source tool for making dotted maps and
 animated 3D globes in the browser.
 
 Built for the design half of the stack: landing page heroes, deck slides,
@@ -163,8 +163,8 @@ No backend, no accounts, no telemetry. Source on GitHub under MIT.
 
 Built with React + Three.js. Honored to share it with this community.
 
-Live: https://worlddots.app
-Source: https://github.com/alevizio/worlddots
+Live: https://globestudio.app
+Source: https://github.com/alevizio/globestudio
 
 #WebDev #OpenSource #ThreeJS #DataViz #Maps #DesignTools #CreativeCoding
 
@@ -188,7 +188,7 @@ What else would you reach for it for?
 ```
 Tech detail for the curious:
 
-Worlddots uses a single Three.js InstancedMesh that morphs between flat 2D
+Globestudio uses a single Three.js InstancedMesh that morphs between flat 2D
 and 3D globe positions. The per-instance buffer holds both target positions
 and a per-vertex morph lerps between them, so switching views is free —
 no rebuild, no allocation.
@@ -206,7 +206,7 @@ More professional voice. Single longer post — LinkedIn rewards depth over
 threads.
 
 ```
-I just open-sourced Worlddots — a designer-first tool for creating dotted
+I just open-sourced Globestudio — a designer-first tool for creating dotted
 maps and animated 3D globes in the browser.
 
 The gap I wanted to fill: most open-source map tooling is built for
@@ -214,7 +214,7 @@ engineers — tile servers, vector tiles, large datasets. There wasn't a
 mature open-source tool for the *other* common need: a stylized map visual
 that drops into a landing page, deck, or launch video.
 
-Worlddots is built around that workflow:
+Globestudio is built around that workflow:
 • Maps for world, country, region, or US state
 • 12 dot shapes (plus custom SVG/PNG upload)
 • Linear gradients with per-stop opacity on dots, land, and stroke
@@ -231,8 +231,8 @@ that touches geography — I'd love your feedback. And if you build something
 with it, please share. The repo has a Show & Tell discussion specifically
 for this.
 
-🌐 https://worlddots.app
-📦 https://github.com/alevizio/worlddots
+🌐 https://globestudio.app
+📦 https://github.com/alevizio/globestudio
 
 #OpenSource #DesignTools #WebDevelopment #DataVisualization #ThreeJS #CreativeTechnology
 ```
@@ -245,12 +245,12 @@ for this.
 
 > Hi r/web_design — sharing something I built and just open-sourced.
 >
-> Worlddots: dotted maps and animated 3D globes designed for landing pages,
+> Globestudio: dotted maps and animated 3D globes designed for landing pages,
 > decks, and launches rather than for GIS workflows. Pick a country, tweak
 > dot shapes / gradients / shaders, export PNG, SVG, or WebM.
 >
-> Live: https://worlddots.app
-> Source: https://github.com/alevizio/worlddots — MIT
+> Live: https://globestudio.app
+> Source: https://github.com/alevizio/globestudio — MIT
 >
 > It's react + three.js, runs entirely in the browser, and has 10+ presets
 > + a keyboard system + per-stop opacity gradients. The thing I'm most
@@ -262,11 +262,11 @@ for this.
 
 ### `r/javascript` — focus on the tech
 
-> Show /r/js: Worlddots — open-source dotted maps and 3D globes built with
+> Show /r/js: Globestudio — open-source dotted maps and 3D globes built with
 > three.js
 >
-> Source: https://github.com/alevizio/worlddots
-> Live: https://worlddots.app
+> Source: https://github.com/alevizio/globestudio
+> Live: https://globestudio.app
 >
 > A couple of implementation notes:
 > - Single InstancedMesh morphs between flat 2D and 3D globe positions
@@ -285,10 +285,10 @@ for this.
 ### `r/dataisbeautiful` — angle: open tool
 
 > [OC] I built an open-source tool for dotted-style maps and animated
-> globes — Worlddots
+> globes — Globestudio
 >
-> Live: https://worlddots.app
-> Source: https://github.com/alevizio/worlddots
+> Live: https://globestudio.app
+> Source: https://github.com/alevizio/globestudio
 >
 > The aesthetic is similar to Stripe's homepage globe but you can pick any
 > country/region, tweak the dot style and density, layer shader effects,
@@ -299,8 +299,8 @@ for this.
 
 ## Designer News
 
-Subject: `Worlddots — open-source dotted maps and 3D globes for designers`
-URL: `https://worlddots.app/`
+Subject: `Globestudio — open-source dotted maps and 3D globes for designers`
+URL: `https://globestudio.app/`
 Description:
 
 > A designer-first open-source tool for making dotted maps and animated 3D

@@ -2,11 +2,11 @@
 
 > **Status**: 🟢 Ready — see `index.html`
 
-A grid gallery showing every Worlddots preset side-by-side, each as a
+A grid gallery showing every Globestudio preset side-by-side, each as a
 live mini-iframe. Useful as:
 
 - A **picker tool** for designers comparing presets before committing
-- A **demo page** for blog posts / portfolios introducing Worlddots
+- A **demo page** for blog posts / portfolios introducing Globestudio
 - A **screen-recording subject** for social posts ("16 dotted-globe
   looks in 30 seconds")
 
@@ -22,7 +22,7 @@ Each card:
 
 - Iframe pointing at `/looks/:id`
 - Preset name + one-line description
-- "Open in Worlddots →" link to the full app with that preset
+- "Open in Globestudio →" link to the full app with that preset
 
 ## Run
 
@@ -44,7 +44,7 @@ gallery switches to 2 columns to keep memory usage reasonable.
 - Picking a look for a client project (compare 4 visually similar
   presets at once)
 - Internal design-system page documenting the available styles
-- Blog post about how Worlddots looks vary
+- Blog post about how Globestudio looks vary
 - Conference talk slide with the full catalog visible
 
 ## See also

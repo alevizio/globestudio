@@ -7,7 +7,7 @@
 
 ## Executive summary
 
-Worlddots launched on Product Hunt + Show HN with a solid SEO
+Globestudio launched on Product Hunt + Show HN with a solid SEO
 foundation: title + description + OG + Twitter Card + JSON-LD
 structured data for WebSite, SoftwareApplication, SoftwareSourceCode,
 and Person — already in `@graph` form. Robots.txt is present and
@@ -51,7 +51,7 @@ Three immediate fixes, two medium-term plays, one long-term:
 
 ### What's working ✅
 
-- **Title:** "Worlddots — Open-Source Dotted Maps and 3D Globes for
+- **Title:** "Globestudio — Open-Source Dotted Maps and 3D Globes for
   Designers" — clear, keyword-rich, 67 chars (fits SERP).
 - **Meta description:** Present (couldn't see exact value in this
   audit; assumed solid based on prior commit `2426920`).
@@ -63,7 +63,7 @@ Three immediate fixes, two medium-term plays, one long-term:
 - **Sitemap.xml present** at `/sitemap.xml` (but stale).
 - **Robots.txt present** at `/robots.txt`, allows all crawlers,
   references the sitemap.
-- **Dynamic `document.title`** per preset URL (`{name} — Worlddots
+- **Dynamic `document.title`** per preset URL (`{name} — Globestudio
   dotted globe`).
 - **lang="en"** declared on `<html>`.
 
@@ -100,7 +100,7 @@ The 2026 model: be the cited source in AI Overview, Perplexity, and
 ChatGPT responses. Both rely on structured data to verify entity
 descriptions.
 
-Worlddots's existing `@graph` is the *foundation* for AI citation.
+Globestudio's existing `@graph` is the *foundation* for AI citation.
 The gaps (no `aggregateRating`, no FAQPage, no programmatic landing
 pages with unique content) all map to "machine-verifiable entity
 description" — exactly what AI engines reward.
@@ -142,7 +142,7 @@ Sources:
 
 The 2026 best-practice consensus: programmatic SEO works **only if
 each page has 25-30% genuinely unique content**, not template variations
-of the same words. For Worlddots's 11 preset URLs, that means:
+of the same words. For Globestudio's 11 preset URLs, that means:
 
 - Unique long-form description per preset (~150-300 words)
 - Unique target keyword (long-tail: "halftone dotted globe
@@ -163,11 +163,11 @@ Sources:
 
 ### Finding 4 — GitHub repo is its own SEO surface ✅
 
-The repo at `github.com/alevizio/worlddots` is a high-authority page
+The repo at `github.com/alevizio/globestudio` is a high-authority page
 in its own right (github.com is DR ~100). Cross-linking optimization
 matters:
 
-- **README** should link to `worlddots.app` (already does — confirmed
+- **README** should link to `globestudio.app` (already does — confirmed
   in earlier sessions).
 - **Topics** on the GitHub repo should match target SEO keywords
   ("dotted-maps", "globe", "design-tool", "three-js").
@@ -186,17 +186,17 @@ Sources:
 ### Finding 5 — Backlinks remain the strongest signal ⚠️
 
 The 2026 consensus is that backlinks still drive the largest portion
-of ranking. For Worlddots post-launch, backlink sources to seek out:
+of ranking. For Globestudio post-launch, backlink sources to seek out:
 
 1. **Codrops weekly digest** — top WebGL/CSS aggregator. Submit
    homepage + interesting preset examples.
 2. **Designer aggregators** (Sidebar, Designer News, Hacker News).
 3. **GitHub awesome-lists** — `awesome-react`, `awesome-three-js`,
-   `awesome-design-tools`. A PR to add Worlddots is free, high
+   `awesome-design-tools`. A PR to add Globestudio is free, high
    quality backlinks.
-4. **Tutorial articles** that mention Worlddots ("Tools we used to
+4. **Tutorial articles** that mention Globestudio ("Tools we used to
    build this"). Reach out to design tutorial sites.
-5. **Twitter/X threads** from designers showing Worlddots output
+5. **Twitter/X threads** from designers showing Globestudio output
    (the launch already did this; sustain it).
 6. **Product Hunt comments** linking back (different from the launch
    post itself).
@@ -217,7 +217,7 @@ typically can't. Solutions:
   `vite-plugin-prerender`, or migration to a meta-framework
   (Astro, Next.js, SvelteKit).
 - **Astro is the lightest-touch option** for a tool like this.
-  Each route renders to static HTML with the Worlddots canvas
+  Each route renders to static HTML with the Globestudio canvas
   hydrated client-side ("islands"). Migration cost: probably 1-2
   weeks for full re-platform; less for a hybrid where only the
   marketing pages move to Astro and the tool stays Vite.
@@ -261,7 +261,7 @@ Prioritized:
    with manually-curated value (e.g., 4.9 from initial Product Hunt /
    HN feedback), refresh quarterly. ~30 minutes.
 4. **Add `FAQPage` schema** with 5-10 designer-facing questions
-   ("Can I use Worlddots commercially?", "How do I export an
+   ("Can I use Globestudio commercially?", "How do I export an
    animated globe?", "Does it work on mobile?"). 1-2 hours.
 5. **Add `ItemList` schema** linking the preset URLs as related
    variants. 30 minutes.
@@ -286,12 +286,12 @@ Prioritized:
 - Is a blog the right surface, or does long-form content belong on
   Substack / Dev.to / Medium (each is its own SEO domain with
   authority)? Hybrid is probably best — flagship articles on
-  worlddots.app for direct attribution, syndicated cross-posts on
+  globestudio.app for direct attribution, syndicated cross-posts on
   Dev.to for distribution.
-- Backlinks via Discord communities — worth setting up a Worlddots
+- Backlinks via Discord communities — worth setting up a Globestudio
   Discord? Increases ongoing community engagement but is a
   meaningful time commitment.
-- Should there be a "Made with Worlddots" badge designers can
+- Should there be a "Made with Globestudio" badge designers can
   embed? Each badge = a backlink. Lottie does this; works well.
 
 ## Sources

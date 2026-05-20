@@ -8,7 +8,7 @@ degrades gracefully on slower devices and with `prefers-reduced-motion`.
 
 ## What this proves
 
-Worlddots isn't just an export tool — it's a **live embeddable** for
+Globestudio isn't just an export tool — it's a **live embeddable** for
 the landing pages you build. This example shows the recommended setup.
 
 ## The shippable version (today)
@@ -19,7 +19,7 @@ Drop this into your hero section:
 <section class="hero">
   <iframe
     class="hero-bg"
-    src="https://worlddots.app/looks/bloom"
+    src="https://globestudio.app/looks/bloom"
     title="Dotted globe background"
     loading="eager"
     aria-hidden="true"
@@ -57,9 +57,9 @@ Drop this into your hero section:
 }
 ```
 
-That's it. The globe spins via Worlddots's `autoSpin`, the iframe is
+That's it. The globe spins via Globestudio's `autoSpin`, the iframe is
 non-interactive so your CTAs receive clicks, and reduced-motion users
-get a dimmed-but-static version (the inner Worlddots app already pauses
+get a dimmed-but-static version (the inner Globestudio app already pauses
 animation under the OS preference; this CSS layer is extra polish).
 
 ## Preset suggestions
@@ -79,10 +79,10 @@ medium sizes where the dot grid is legible.
 
 The iframe approach has one limitation: no JS API for fine-grained
 control (scroll-driven parameter changes, parallax-tied tilt, etc).
-A future `@worlddots/embed` npm package will expose:
+A future `@globestudio/embed` npm package will expose:
 
 ```js
-import { mountGlobe } from "@worlddots/embed";
+import { mountGlobe } from "@globestudio/embed";
 
 const globe = mountGlobe(canvasRef.current, {
   preset: "bloom",
@@ -102,7 +102,7 @@ Phase 0 (the `/embed` route foundation) + Phase 5 (portable format).
 
 ## Reference implementation links
 
-- [Vercel deployment of Worlddots itself](https://worlddots.app/) uses
+- [Vercel deployment of Globestudio itself](https://globestudio.app/) uses
   the dotted globe as its own background — view source for production
   CSS techniques.
 - [`embed-snippet`](../embed-snippet/) — runnable HTML demo of the

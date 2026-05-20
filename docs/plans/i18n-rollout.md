@@ -29,7 +29,7 @@ infrastructure** (heavier, gated on demand).
 ### Phase 1 — Localized country names in search (~2 hours)
 
 The `world-countries` dataset already includes localized names in
-24+ languages. Worlddots's country search currently uses only
+24+ languages. Globestudio's country search currently uses only
 English. Easy win.
 
 #### Tasks

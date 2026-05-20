@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: 💬 Discussions
-    url: https://github.com/alevizio/worlddots/discussions
+    url: https://github.com/alevizio/globestudio/discussions
     about: Questions, ideas, show & tell, and general conversation belong in Discussions.
   - name: 🔒 Security advisory
-    url: https://github.com/alevizio/worlddots/security/advisories/new
+    url: https://github.com/alevizio/globestudio/security/advisories/new
     about: Privately report a security vulnerability. Please don't open a public issue for these.
   - name: 🌐 Live site
-    url: https://worlddots.app/
-    about: Try Worlddots before filing — sometimes it's the easiest way to confirm a bug.
+    url: https://globestudio.app/
+    about: Try Globestudio before filing — sometimes it's the easiest way to confirm a bug.

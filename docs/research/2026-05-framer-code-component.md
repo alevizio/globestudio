@@ -19,7 +19,7 @@ Three.js availability in Framer is **less clear-cut** than the
 top-level marketing suggests. While Framer markets pre-installed
 packages, the community has reported real import friction with some
 npm libraries. Plan to either (a) bundle Three.js into the component
-itself via jspm imports, or (b) ship a slim Worlddots-runtime that
+itself via jspm imports, or (b) ship a slim Globestudio-runtime that
 talks to a hosted iframe — leaning toward (b) for v1 to dodge the
 bundling questions.
 
@@ -52,11 +52,11 @@ addPropertyControls(WorldGlobe, {
 })
 ```
 
-### Property control map for Worlddots
+### Property control map for Globestudio
 
-Maps the existing Worlddots state surface to Framer's `ControlType`
+Maps the existing Globestudio state surface to Framer's `ControlType`
 enum. This is the v1 prop surface — a strict subset of what the full
-Worlddots app exposes.
+Globestudio app exposes.
 
 ```js
 addPropertyControls(WorldGlobe, {
@@ -123,7 +123,7 @@ addPropertyControls(WorldGlobe, {
 ```
 
 The `hidden()` callback is the right tool for the "Solid mode →
-stroke options become visible" UX pattern that Worlddots already uses
+stroke options become visible" UX pattern that Globestudio already uses
 in its own panel.
 
 ### Render mode detection
@@ -169,14 +169,14 @@ import * as THREE from "three"
 
 If Framer resolves `"three"` to its pre-installed copy, this works.
 If not, the esm.sh CDN form works in any modern bundler. **Risk:**
-multiple Worlddots components on one Framer page each pull a copy of
+multiple Globestudio components on one Framer page each pull a copy of
 Three.js → bundle bloat. **Mitigation:** dynamic import with a
 top-level `let` cache.
 
 ### Path B — Iframe-bridged component (lowest risk)
 
 The code component renders an `<iframe>` pointing at a hosted
-Worlddots URL (`/embed?look=halftone&density=40&...`). Resize is
+Globestudio URL (`/embed?look=halftone&density=40&...`). Resize is
 handled via `postMessage`. The Framer component is ~30 lines of code
 and zero Three.js dependency.
 
@@ -186,10 +186,10 @@ export function WorldGlobe(props) {
   const isStatic = useIsStaticRenderer()
   return (
     <iframe
-      src={`https://worlddots.vercel.app/embed?${params}`}
+      src={`https://globestudio.vercel.app/embed?${params}`}
       style={{ width: "100%", height: "100%", border: 0 }}
       loading={isStatic ? "lazy" : "eager"}
-      title="Worlddots globe"
+      title="Globestudio globe"
     />
   )
 }
@@ -200,9 +200,9 @@ parity (the iframe gets the real app).
 **Cons:** SEO indexing weakness, can't style internals from Framer
 side, harder to expose interactions back to Framer event handlers.
 
-### Path C — Slim Worlddots runtime + lazy-loaded Three.js
+### Path C — Slim Globestudio runtime + lazy-loaded Three.js
 
-The code component dynamically `import()`s a `@worlddots/runtime`
+The code component dynamically `import()`s a `@globestudio/runtime`
 package (one we publish to npm), which itself dynamically loads
 Three.js. Heavier engineering, but the Framer component stays small
 and Three.js is only loaded once even if multiple components are on
@@ -213,9 +213,9 @@ that designers actually drop the component into Framer projects.
 Migrate to **Path A or C** in v2 once we know what props/interactions
 are most-used.
 
-## Three render modes — Worlddots-specific guidance
+## Three render modes — Globestudio-specific guidance
 
-| Mode      | What runs                                        | Worlddots gating                                  |
+| Mode      | What runs                                        | Globestudio gating                                  |
 | --------- | ------------------------------------------------ | ------------------------------------------------- |
 | `canvas`  | Static preview only, no animation                | Render a single static frame, autoSpin off        |
 | `preview` | Interactive, in framercanvas.com                 | Full interactivity, but log "preview" to console  |
@@ -243,14 +243,14 @@ Review takes ~14 days. Plan accordingly.
 ## Performance gotchas
 
 1. **Canvas mode runs many components simultaneously** — if a user
-   has 5 Worlddots components on a Framer page, the canvas tries to
+   has 5 Globestudio components on a Framer page, the canvas tries to
    render them all at once. The `useIsStaticRenderer()` check is
    critical here.
 2. **Library imports can fail silently** — community report on
    `react-use-gesture` suggests not all npm packages are seamlessly
    importable. Iframe-bridged mode dodges this entirely.
 3. **WebGL context limits** — browsers cap concurrent WebGL contexts
-   (~16 on Chrome). Each iframe gets its own. Multiple Worlddots
+   (~16 on Chrome). Each iframe gets its own. Multiple Globestudio
    instances on a page → must handle context exhaustion gracefully.
    The hosted `/embed` route should detect this and fall back to a
    static SVG preview if WebGL is denied.

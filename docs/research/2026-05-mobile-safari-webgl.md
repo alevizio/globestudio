@@ -7,9 +7,9 @@
 
 ## Executive summary
 
-WebGL2 has 95.07% global support (caniuse). All Worlddots-target
+WebGL2 has 95.07% global support (caniuse). All Globestudio-target
 platforms — iOS Safari 15+, Android Chrome 148+, desktop Safari 15+,
-Chrome/Firefox/Edge — support the features Worlddots uses
+Chrome/Firefox/Edge — support the features Globestudio uses
 (InstancedMesh, ShaderMaterial, EffectComposer, custom GLSL passes).
 
 The historical iOS WebGL pain (context lost, blank canvas) has been
@@ -18,7 +18,7 @@ The historical iOS WebGL pain (context lost, blank canvas) has been
 
 1. iOS 17.0–17.0.3 context loss — fixed in iOS/iPadOS 17.1.1+
 2. M3/M4 Apple Silicon shader precision crash — milestoned for
-   Three.js r175 (Mar 2025); Worlddots ships r184, so already on a
+   Three.js r175 (Mar 2025); Globestudio ships r184, so already on a
    fixed version.
 
 The remaining risk is the long tail of users on stale OS versions.
@@ -43,13 +43,13 @@ before announcing the Framer/Webflow integrations is worth doing.
 | Safari (iOS/iPadOS)  | 15+         | Stable since Sept 2021                 |
 | Samsung Internet     | Modern      | Same engine as Chrome                  |
 
-Global support: **95.07%**. Worlddots targets this audience entirely.
+Global support: **95.07%**. Globestudio targets this audience entirely.
 
 Sources:
 - [Can I Use — WebGL 2.0](https://caniuse.com/webgl2) ✅
 - [WebGL 2 Browser Compatibility report](https://www.testmuai.com/learning-hub/webgl-2-browser-compatibility/) ⚠️
 
-### Finding 2 — Three.js features Worlddots uses are all supported ✅
+### Finding 2 — Three.js features Globestudio uses are all supported ✅
 
 | Three.js feature       | Min Three.js | WebGL feature backing it    | Compat impact |
 | ---------------------- | ------------ | --------------------------- | ------------- |
@@ -63,7 +63,7 @@ Sources:
 | `derivatives`          | extension    | `OES_standard_derivatives`  | Built into WebGL2 |
 | Linear color space     | r155+        | sRGB framebuffers           | Universal in WebGL2 |
 
-Worlddots is on Three.js r184 (latest stable). Every feature in the
+Globestudio is on Three.js r184 (latest stable). Every feature in the
 post-effects pipeline is in the WebGL2 baseline.
 
 ### Finding 3 — Historical iOS Safari issues are resolved ⚠️→✅
@@ -74,7 +74,7 @@ post-effects pipeline is in the WebGL2 baseline.
 - Root cause: WebKit-level, not Three.js
 - Affected: ALL WebGL applications, not just Three.js
 - Fixed in: iOS/iPadOS 17.1.1
-- Worlddots impact in May 2026: long-tail risk for users who haven't
+- Globestudio impact in May 2026: long-tail risk for users who haven't
   updated their iPhone in 2+ years. Real but small (<5% of iOS users).
 
 **iOS 18.2 / 18.4 — sporadic WebGL errors.**
@@ -89,7 +89,7 @@ post-effects pipeline is in the WebGL2 baseline.
 - Issue: `gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT).precision` returns null
 - Affected: M3/M4 Macs on macOS 15.3+, M4 iPads on iOS 18.3+
 - Milestoned for Three.js r175 (released Mar 28, 2025)
-- Worlddots ships r184 → past the fix.
+- Globestudio ships r184 → past the fix.
 
 Sources:
 - [iOS 17 context lost discussion](https://discourse.threejs.org/t/three-js-broken-on-ios-17-with-context-lost/58025) ✅
@@ -106,7 +106,7 @@ Older Safari builds (2020-2022) had EffectComposer-specific issues:
 - Jagged artifacts on models when post-processing pipelined
 - Texture format incompatibilities
 
-Most fixed by Three.js r130-r150. Worlddots's r184 + bypass of the
+Most fixed by Three.js r130-r150. Globestudio's r184 + bypass of the
 composer for the default look ([commit 54d91f3](../../commit/54d91f3))
 means Safari users on the default preset hit the cheaper `renderer.render`
 path — also Safari's most-tested path. Effects-on Safari users may still
@@ -123,7 +123,7 @@ Three.js's `WebGPURenderer` auto-falls-back to WebGL2 when WebGPU
 isn't available, so a single renderer ships both paths.
 
 But: WebGPU migration requires the TSL (Three.js Shading Language)
-shader rewrite for any custom GLSL passes. Worlddots has 17 custom
+shader rewrite for any custom GLSL passes. Globestudio has 17 custom
 shader effects in `post-effects.js`. A TSL rewrite is a significant
 project — explicitly out of scope for this research per
 [`2026-05-perf-hardening.md`](2026-05-perf-hardening.md#rejected-paths).
@@ -136,7 +136,7 @@ Sources:
 - [Three.js WebGPU migration guide](https://www.utsubo.com/blog/webgpu-threejs-migration-guide) ⚠️
 - [Field Guide to TSL and WebGPU](https://blog.maximeheckel.com/posts/field-guide-to-tsl-and-webgpu/) ⚠️
 
-### Finding 6 — Worlddots's current code is already defensive ✅
+### Finding 6 — Globestudio's current code is already defensive ✅
 
 Audit of `src/components/globe-background.jsx`:
 

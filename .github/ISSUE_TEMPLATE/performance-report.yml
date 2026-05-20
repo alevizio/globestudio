@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Worlddots is graphics-heavy. We treat performance as a launch blocker,
+        Globestudio is graphics-heavy. We treat performance as a launch blocker,
         not a polish issue — please file these. The more detail, the better.
 
   - type: textarea
@@ -33,7 +33,7 @@ body:
       label: Settings when it happened
       description: Use the URL from the address bar if you applied a look — that's the easiest way to share state. Or list the panel values that matter (shape, density, size, shader, etc.).
       placeholder: |
-        URL: https://worlddots.app/looks/wireframe
+        URL: https://globestudio.app/looks/wireframe
         Density: 90, Size: 16, Shader: edge, Animations: on
     validations:
       required: true

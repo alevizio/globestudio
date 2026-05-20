@@ -4,7 +4,7 @@ What we're building, what's queued, what's "maybe." Updated when direction
 shifts — last revised May 2026.
 
 This is intentionally directional, not a contract. If a feature is on this
-list and matters to you, [open a Discussion](https://github.com/alevizio/worlddots/discussions/categories/ideas)
+list and matters to you, [open a Discussion](https://github.com/alevizio/globestudio/discussions/categories/ideas)
 and we'll prioritize accordingly.
 
 ---
@@ -94,7 +94,7 @@ you'd vote one of these up:
 Conscious "no" decisions, listed so contributors don't sink time:
 
 - **Generic GIS / map SDK functionality** (geocoding, routing, tile servers).
-  There are better libraries for that. Worlddots is a designer motion tool,
+  There are better libraries for that. Globestudio is a designer motion tool,
   not a map platform.
 - **Closed-source / paid features.** The whole product is MIT.
 - **3rd-party data syncing / accounts.** Exports go to the user's machine; no
@@ -103,5 +103,5 @@ Conscious "no" decisions, listed so contributors don't sink time:
 ---
 
 If something here matters to you, the fastest way to move it up the list is
-to [start a Discussion](https://github.com/alevizio/worlddots/discussions/new?category=ideas)
+to [start a Discussion](https://github.com/alevizio/globestudio/discussions/new?category=ideas)
 or open a PR with a small proof-of-concept.

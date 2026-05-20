@@ -1,18 +1,18 @@
-# Worlddots in Framer
+# Globestudio in Framer
 
 Two paths, depending on how much you want to customize.
 
 ## Path 1: Code component (recommended)
 
-Drop Worlddots into Framer as a real component with property controls
+Drop Globestudio into Framer as a real component with property controls
 (Look dropdown, density slider, color pickers, etc.). Designers can
 tune it visually from the right panel just like a native Framer
 component.
 
 1. Open the Framer file, click **Insert → Code → New Code Component**.
-2. Copy the contents of [`examples/framer-component/WorlddotsGlobe.tsx`](../../examples/framer-component/WorlddotsGlobe.tsx)
+2. Copy the contents of [`examples/framer-component/GlobestudioGlobe.tsx`](../../examples/framer-component/GlobestudioGlobe.tsx)
    into the editor.
-3. Save. Drag the new "WorlddotsGlobe" component onto any frame.
+3. Save. Drag the new "GlobestudioGlobe" component onto any frame.
 4. Configure via the right-panel property controls.
 
 Full install + customization guide:
@@ -27,7 +27,7 @@ If you just want a hero globe without touching code, use the
 2. Set the URL to:
 
    ```
-   https://worlddots.app/embed?look=halftone&density=70&autoSpin=1&source=framer
+   https://globestudio.app/embed?look=halftone&density=70&autoSpin=1&source=framer
    ```
 
 3. Resize the embed frame to the desired dimensions.
@@ -59,5 +59,5 @@ full quality.
 
 Marketplace submission is a 14-day review. The reference component
 above is what we'd submit anyway — paste it now, no waiting. If
-Worlddots crosses ~1,000 Framer installs, marketplace submission
+Globestudio crosses ~1,000 Framer installs, marketplace submission
 becomes worthwhile for discoverability.

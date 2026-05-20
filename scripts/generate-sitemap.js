@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { lookPresets } from "../src/data/look-presets.js";
 
-const SITE_URL = "https://worlddots.app";
+const SITE_URL = "https://globestudio.app";
 
 const buildSitemap = () => {
   const entries = [

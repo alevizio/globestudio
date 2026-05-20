@@ -28,7 +28,7 @@ The example projects referenced in social/outreach copy live in [`../examples/`]
 - [ ] Take the 5 hero screenshots (see `product-hunt.md` gallery plan)
 - [ ] Run `./launch/labels.sh` to create the GitHub label set
 - [ ] Enable GitHub Discussions on the repo:
-      `https://github.com/alevizio/worlddots/settings#discussions`
+      `https://github.com/alevizio/globestudio/settings#discussions`
 - [ ] Create the 4 starter Discussion categories: Q&A, Ideas, Show & Tell, Meta
 - [ ] Verify the live site responds 200 and the picker still works
 - [ ] Run `npm test -- --run` and `npm run build` — both clean
@@ -70,7 +70,7 @@ The example projects referenced in social/outreach copy live in [`../examples/`]
 
 - [ ] Refresh Product Hunt comments — reply to everything new (even thanks)
 - [ ] Refresh HN post — reply to technical comments, file issues for bug reports
-- [ ] Check the live site is still up (worlddots.app might rate-limit)
+- [ ] Check the live site is still up (globestudio.app might rate-limit)
 - [ ] Watch `gh issue list` for fresh bug reports
 - [ ] Don't refresh more than once per hour. The metric anxiety is real.
 
@@ -102,7 +102,7 @@ The example projects referenced in social/outreach copy live in [`../examples/`]
 - [ ] Promote the most consistent commenter to **Triage** role if it
       makes sense (see `../GOVERNANCE.md`)
 - [ ] Plan the v1.1 release notes
-- [ ] Decide if a follow-up Show HN / PH launch is warranted (Worlddots is
+- [ ] Decide if a follow-up Show HN / PH launch is warranted (Globestudio is
       eligible for one re-launch per year on PH)
 
 ---

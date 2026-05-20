@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Worlddots are tracked here. Format follows
+All notable changes to Globestudio are tracked here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

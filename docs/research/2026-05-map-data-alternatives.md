@@ -7,7 +7,7 @@
 
 ## Executive summary
 
-Worlddots ships with one map dataset (`world-atlas/countries-110m`,
+Globestudio ships with one map dataset (`world-atlas/countries-110m`,
 the lowest-detail Natural Earth tier) plus US states from `us-atlas`.
 Projections are limited to **Mercator** (for the flat plane) and
 **Equirectangular** (for the sphere texture).
@@ -29,7 +29,7 @@ Three layered opportunities surfaced:
 
 None are large engineering bets. Each adds in a day or two of work,
 mostly data wiring + UI controls. The biggest design question is
-**which** to ship — Worlddots is curated, not a general-purpose GIS
+**which** to ship — Globestudio is curated, not a general-purpose GIS
 tool. The recommended path is two new datasets (rivers, populated
 places) + three new projections (Equal Earth, Winkel Tripel,
 Goode Homolosine) over the next 4 weeks.
@@ -55,7 +55,7 @@ projections.
 ### Finding 1 — Natural Earth has three resolution tiers ✅
 
 Natural Earth ships data at 1:10m, 1:50m, and 1:110m scales. All
-public domain. Worlddots uses the lowest (110m).
+public domain. Globestudio uses the lowest (110m).
 
 | Tier   | Detail level                            | Bundle size impact      |
 | ------ | --------------------------------------- | ----------------------- |
@@ -77,7 +77,7 @@ Sources:
 ### Finding 2 — Rivers + populated places open distinct aesthetics ✅
 
 Natural Earth ships several "physical vector" datasets that
-Worlddots doesn't currently use:
+Globestudio doesn't currently use:
 
 | Dataset                    | What it adds                              | Aesthetic           |
 | -------------------------- | ----------------------------------------- | ------------------- |
@@ -89,7 +89,7 @@ Worlddots doesn't currently use:
 | **Marine areas**           | Ocean basin polygons                      | Oceanographic theme |
 
 Of these, **rivers** and **populated places** are the highest-leverage
-adds for Worlddots's design language. Rivers create distinctive
+adds for Globestudio's design language. Rivers create distinctive
 dendritic patterns (the Amazon basin, Mississippi watershed, Nile
 valley) that designers love. Populated places give a "city lights"
 look — globally varying dot density that maps to where humans live.
@@ -111,7 +111,7 @@ import { geoRobinson, geoWinkel3, geoEqualEarth, geoInterruptedHomolosine } from
 (Note: `d3-geo-projection` is the extended package, separate from
 the core `d3-geo`. ~50KB gzipped, includes 50+ projections.)
 
-The five highest-leverage additions for Worlddots:
+The five highest-leverage additions for Globestudio:
 
 | Projection         | Aesthetic                                  | Why it matters |
 | ------------------ | ------------------------------------------ | -------------- |
@@ -137,7 +137,7 @@ arbitrary intervals. Could produce stunning topographic globes.
 
 **However:** the data volume is massive (full-world contour vectors
 at 100m intervals = ~50MB compressed) and the visual is fundamentally
-*dense* — Worlddots's appeal is the breathable dotted aesthetic, not
+*dense* — Globestudio's appeal is the breathable dotted aesthetic, not
 information density.
 
 Could be done as an *opt-in feature* for power users (paste a custom
@@ -191,7 +191,7 @@ bundle size impact).
 
 ## Risks & uncertainties
 
-- **Bundle size discipline.** Worlddots's current bundle is already
+- **Bundle size discipline.** Globestudio's current bundle is already
   large (~700KB on the wire for Three.js + world-atlas combined).
   Adding 50m countries + rivers + cities = +650KB raw. Need to be
   ruthless about which datasets ship default vs. lazy-load.

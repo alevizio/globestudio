@@ -1,18 +1,18 @@
-# Worlddots iframe embed (plain HTML)
+# Globestudio iframe embed (plain HTML)
 
-Drop a Worlddots globe or map into any iframe-supporting page. Works
+Drop a Globestudio globe or map into any iframe-supporting page. Works
 in plain HTML, Astro, Next.js, SvelteKit, Eleventy, Jekyll — anything.
 
 ## Minimum-viable snippet
 
 ```html
 <iframe
-  src="https://worlddots.app/embed?look=halftone&density=70&autoSpin=1"
+  src="https://globestudio.app/embed?look=halftone&density=70&autoSpin=1"
   width="100%"
   height="500"
   style="border:0;"
   loading="lazy"
-  title="Worlddots dotted globe"
+  title="Globestudio dotted globe"
 ></iframe>
 ```
 
@@ -23,12 +23,12 @@ for the full table.
 
 ## Auto-resize via postMessage
 
-Worlddots posts its desired height on mount and on every resize:
+Globestudio posts its desired height on mount and on every resize:
 
 ```js
 window.addEventListener("message", (event) => {
-  if (event.data?.type === "worlddots-resize") {
-    document.querySelector("#worlddots-iframe").style.height =
+  if (event.data?.type === "globestudio-resize") {
+    document.querySelector("#globestudio-iframe").style.height =
       event.data.height + "px";
   }
 });

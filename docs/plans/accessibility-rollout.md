@@ -7,7 +7,7 @@
 
 ## Goal
 
-Move Worlddots from "above-average for an interactive WebGL tool" to
+Move Globestudio from "above-average for an interactive WebGL tool" to
 **fully WCAG 2.2 AA conformant**. Use the audit's gap list as the
 punchlist. Eight gaps total; the largest (canvas proxy DOM) gets its
 own dedicated phase because it has real user value beyond compliance.
@@ -140,7 +140,7 @@ pointer alternative. The custom color picker is the likely violator.
 ### Phase 4 — Status announcements (~2 hours)
 
 WCAG 4.1.3 requires that status messages be programmatically
-exposed. The current Worlddots silently re-renders on look changes.
+exposed. The current Globestudio silently re-renders on look changes.
 
 #### Tasks
 
@@ -204,7 +204,7 @@ description of what the WebGL canvas is rendering. Worth doing well.
 
 #### Acceptance
 
-- A blind designer can pair-program with Worlddots and understand
+- A blind designer can pair-program with Globestudio and understand
   what's rendering without seeing the canvas.
 - The proxy stays in sync with the canvas state (no stale data).
 - VoiceOver / NVDA narration is coherent ("Dotted world globe with
@@ -267,7 +267,7 @@ Translate the work into a story for users.
   Android once integrations ship. The embed iframe inherits the
   parent's a11y story, so this is a "later" concern.
 - **i18n.** All ARIA labels and the proxy DOM are English. If
-  Worlddots ever translates, the a11y strings need i18n keys too.
+  Globestudio ever translates, the a11y strings need i18n keys too.
 - **High-contrast theme.** Could pair with the existing
   light/dark toggle. Defer until requested.
 - **WCAG badge / certification.** Self-attestation is easy.

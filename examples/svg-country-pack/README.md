@@ -9,14 +9,14 @@ rasterization, and play nicely with print pipelines.
 
 ## What this proves
 
-Worlddots produces real, editable vector output — not just bitmap
+Globestudio produces real, editable vector output — not just bitmap
 exports. The same tool that drives the live globe also generates
 production-grade SVG for brand systems, print artwork, and motion
 graphics in After Effects.
 
 ## Recipe — generate one SVG per country
 
-1. Open [worlddots.app](https://worlddots.vercel.app/).
+1. Open [globestudio.app](https://globestudio.vercel.app/).
 2. Set **Selection** → pick a country (e.g., "France").
 3. Set **Surface → Style** → Solid. Land off, Stroke on.
 4. Tune **Density** to 60-80 for a clean print-ready dot field.
@@ -28,14 +28,14 @@ That's the manual path for one country. To batch all 250, see below.
 
 ## Batch generation (script-friendly)
 
-Worlddots's URL params + the SVG export keyboard shortcut combine into
+Globestudio's URL params + the SVG export keyboard shortcut combine into
 a scriptable batch:
 
 ```bash
 # Pseudocode — for a real implementation you'd use Playwright or
 # Puppeteer to drive a headless browser
 for code in USA CAN MEX BRA FRA DEU ITA ESP CHN JPN KOR ...; do
-  open "https://worlddots.app/looks/default?country=$code"
+  open "https://globestudio.app/looks/default?country=$code"
   # wait for canvas to settle
   # trigger keyboard "S" to export SVG
 done
@@ -56,7 +56,7 @@ of taking arbitrary regions as input.
 
 ## Output format
 
-SVG output from Worlddots:
+SVG output from Globestudio:
 
 - Pure SVG primitives (`<circle>` for each dot, `<path>` for solid
   fills, `<polygon>` for stroked borders)
@@ -91,5 +91,5 @@ brand palette via Find & Replace on color.
 
 ## License
 
-The Worlddots tool is MIT. Output SVGs are commercial-use-OK with no
+The Globestudio tool is MIT. Output SVGs are commercial-use-OK with no
 attribution required.

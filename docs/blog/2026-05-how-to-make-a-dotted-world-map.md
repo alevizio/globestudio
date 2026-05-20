@@ -58,7 +58,7 @@ That's it. No design system, no Figma plugin, no math.
 
 ## The fastest free option in 2026
 
-[Worlddots](https://worlddots.app) is an open-source web tool that
+[Globestudio](https://globestudio.app) is an open-source web tool that
 handles all three steps. It's free, MIT-licensed, requires no account,
 and runs entirely in the browser. Disclosure: I built it. It exists
 because most of the existing dotted-map generators in 2026 were either
@@ -76,7 +76,7 @@ want the globe to feel alive without being distracting.
 
 ### 1. Pick a look that matches your brand voice
 
-Worlddots ships 17 named looks. For a SaaS landing in 2026, the safe
+Globestudio ships 17 named looks. For a SaaS landing in 2026, the safe
 bets are:
 
 - **Default** — clean white dots on dark. Good for serious enterprise
@@ -91,11 +91,11 @@ bets are:
 Avoid the high-effect presets (Glitch, Bad TV, Corrupt) on a serious
 landing — those work better for music, gaming, or art-school brands.
 
-For our example, let's go with [Bloom](https://worlddots.app/looks/bloom).
+For our example, let's go with [Bloom](https://globestudio.app/looks/bloom).
 
 ### 2. Tune density and dot size
 
-Density is the single most consequential setting. Worlddots caps it at
+Density is the single most consequential setting. Globestudio caps it at
 90 (there's a reason — more on that below). For a landing-page hero
 behind text, density 35-50 reads quietly. For a centerpiece graphic
 where the globe IS the design, push to 65-80.
@@ -121,7 +121,7 @@ page, pin to that country.
 
 ### 4. Tweak the color
 
-Worlddots's color picker handles solid colors, gradients (linear with
+Globestudio's color picker handles solid colors, gradients (linear with
 adjustable midpoint), and per-stop opacity. For a landing-page hero,
 match your brand's primary or accent color. For a black-and-white
 print piece, default white-on-dark usually wins.
@@ -152,7 +152,7 @@ reads as a fuzzy sphere. The visual reads better at 50-70 for most
 purposes. The 90 cap exists for performance reasons — beyond that,
 mobile GPUs choke.
 
-**Too many shader effects stacked.** Worlddots only applies one shader
+**Too many shader effects stacked.** Globestudio only applies one shader
 effect at a time on purpose. If you find yourself wanting "halftone +
 bloom + chromatic split," your design probably has a deeper problem.
 Pick the one that does the most work and commit.
@@ -175,7 +175,7 @@ matter:
 
 1. **`prefers-reduced-motion`.** A meaningful fraction of users have
    "reduce motion" enabled at the OS level (accessibility setting).
-   Worlddots automatically pauses auto-spin, time-driven shaders, and
+   Globestudio automatically pauses auto-spin, time-driven shaders, and
    cinematic morph flourishes for those users. If you build your own
    from scratch, do the same — animation that won't pause is a real
    accessibility failure.
@@ -187,12 +187,12 @@ matter:
 ## Embedding in your site
 
 If you want the live animated globe (not a static PNG) on your
-landing page, Worlddots ships an `/embed` route that renders just the
+landing page, Globestudio ships an `/embed` route that renders just the
 canvas with no chrome:
 
 ```html
 <iframe
-  src="https://worlddots.app/embed?look=bloom&density=70&autoSpin=1"
+  src="https://globestudio.app/embed?look=bloom&density=70&autoSpin=1"
   width="100%"
   height="500"
   style="border:0;"
@@ -204,7 +204,7 @@ canvas with no chrome:
 Works in Webflow's Code Embed block, Framer's Embed element, plain
 HTML, Notion (`/embed` slash command), Astro, Next.js, anywhere
 iframes are allowed. The full
-[per-tool integration guide](https://github.com/alevizio/worlddots/tree/main/docs/integrations)
+[per-tool integration guide](https://github.com/alevizio/globestudio/tree/main/docs/integrations)
 covers Webflow, Framer, Notion, and plain HTML in detail.
 
 ## When to NOT use a dotted map
@@ -232,18 +232,18 @@ When NOT to:
 
 If you want to go further:
 
-- [Browse the preset gallery](https://worlddots.app/) — all 17 looks
+- [Browse the preset gallery](https://globestudio.app/) — all 17 looks
   with one-click apply.
-- [The GitHub repo](https://github.com/alevizio/worlddots) — full
+- [The GitHub repo](https://github.com/alevizio/globestudio) — full
   source, MIT licensed.
-- [Integration guides](https://github.com/alevizio/worlddots/tree/main/docs/integrations)
+- [Integration guides](https://github.com/alevizio/globestudio/tree/main/docs/integrations)
   — Webflow, Framer, Notion, plain HTML.
 
 The tool is open source and welcomes contributions. If you build
 something interesting with it,
-[share it in the Show and Tell discussions](https://github.com/alevizio/worlddots/discussions/categories/show-and-tell).
+[share it in the Show and Tell discussions](https://github.com/alevizio/globestudio/discussions/categories/show-and-tell).
 
 ---
 
 *Published 2026-05-20. Comments and corrections welcome at
-[github.com/alevizio/worlddots](https://github.com/alevizio/worlddots).*
+[github.com/alevizio/globestudio](https://github.com/alevizio/globestudio).*

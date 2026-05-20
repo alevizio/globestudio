@@ -52,8 +52,8 @@ body:
     id: url
     attributes:
       label: URL where this happened
-      description: Production worlddots.app, a specific preset like /looks/halftone, or an embed integration?
-      placeholder: https://worlddots.app/looks/halftone
+      description: Production globestudio.app, a specific preset like /looks/halftone, or an embed integration?
+      placeholder: https://globestudio.app/looks/halftone
     validations:
       required: false
 

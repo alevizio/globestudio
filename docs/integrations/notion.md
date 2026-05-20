@@ -1,4 +1,4 @@
-# Worlddots in Notion
+# Globestudio in Notion
 
 Notion supports iframe embeds natively via the `/embed` slash command.
 
@@ -8,7 +8,7 @@ Notion supports iframe embeds natively via the `/embed` slash command.
 2. Paste this URL:
 
    ```
-   https://worlddots.app/embed?look=halftone&density=70&autoSpin=1&source=notion
+   https://globestudio.app/embed?look=halftone&density=70&autoSpin=1&source=notion
    ```
 
 3. Click **Embed link**. Notion will render the iframe inline.
@@ -38,4 +38,4 @@ for the full list of query parameters.
 - Notion's mobile app reduces iframe interactivity. The embed renders
   but auto-spin may be paused.
 
-If any of these block your use case, [open a Discussion](https://github.com/alevizio/worlddots/discussions).
+If any of these block your use case, [open a Discussion](https://github.com/alevizio/globestudio/discussions).

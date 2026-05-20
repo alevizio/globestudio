@@ -7,7 +7,7 @@
 
 ## Executive summary
 
-Worlddots ships English-only today. Two distinct i18n surfaces to
+Globestudio ships English-only today. Two distinct i18n surfaces to
 consider:
 
 1. **UI translation** (panel labels, button text, error messages).
@@ -16,7 +16,7 @@ consider:
    alternative (compile-time, smaller bundle).
 2. **Country names** in non-English. The `world-countries` dataset
    already includes localized names in 10+ languages (Arabic,
-   Chinese, French, etc.) — Worlddots just isn't using them. Easy
+   Chinese, French, etc.) — Globestudio just isn't using them. Easy
    win for searchable country selection in other languages.
 
 **RTL (right-to-left) support** for Arabic, Hebrew, Persian, Urdu
@@ -56,7 +56,7 @@ Trade-offs vs alternatives:
 | react-intl      | 17.8KB | Strong ICU spec compliance        |
 | LinguiJS        | ~5KB   | Compile-time, smallest, modern    |
 
-For Worlddots, **LinguiJS** is the most interesting because:
+For Globestudio, **LinguiJS** is the most interesting because:
 
 - Smallest bundle (~5KB after compilation)
 - Macro-based syntax keeps translation keys close to code
@@ -70,7 +70,7 @@ Sources:
 
 ### Finding 2 — Country names are a free win ✅
 
-The `world-countries` package (already a Worlddots dependency)
+The `world-countries` package (already a Globestudio dependency)
 includes localized country names in 10+ languages:
 
 ```json
@@ -91,7 +91,7 @@ includes localized country names in 10+ languages:
 }
 ```
 
-Worlddots's current country search uses only the `common` English
+Globestudio's current country search uses only the `common` English
 name. Switching to use the user's locale (or showing both
 English + local name in the searchable select) is a 2-3 hour fix.
 
@@ -111,7 +111,7 @@ instead of left, text aligns right, icons mirror (chevrons,
 arrows), tabular numbers stay LTR.
 
 CSS `direction: rtl;` + `dir="rtl"` on `<html>` handles ~80% via
-logical properties (`margin-inline-start`, etc.) — Worlddots's
+logical properties (`margin-inline-start`, etc.) — Globestudio's
 CSS already uses some logical properties (`inset-inline-start`
 shows up in styles.css). Audit needed.
 
@@ -121,7 +121,7 @@ The 20% that needs manual work:
 - Range thumbs and gradient previews
 - Number-heavy displays (keep LTR)
 
-Total RTL implementation effort: ~3-5 days for a tool of Worlddots's
+Total RTL implementation effort: ~3-5 days for a tool of Globestudio's
 size.
 
 Sources:
@@ -137,7 +137,7 @@ comes from. Use Vercel Analytics (or similar) to see top
 non-English referrer countries → those are the locales worth
 translating.
 
-For Worlddots's stage, the safest v1 is **English + Spanish + French**
+For Globestudio's stage, the safest v1 is **English + Spanish + French**
 — large designer communities + relatively cheap to maintain. Add
 German, Portuguese, Chinese, Arabic as analytics justify.
 

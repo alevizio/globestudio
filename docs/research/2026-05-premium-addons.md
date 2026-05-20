@@ -7,7 +7,7 @@
 
 ## Executive summary
 
-Worlddots is MIT, will stay MIT. ROADMAP.md's "Won't do" list
+Globestudio is MIT, will stay MIT. ROADMAP.md's "Won't do" list
 explicitly closes the door on "Closed-source / paid features."
 
 However, **adjacent paid offerings** are compatible with MIT and
@@ -18,14 +18,14 @@ have established precedent in the OSS-tool space:
 2. **Pro features on the Figma plugin** — high-res exports, vector
    SVG, animation frame sequence. The plugin code can stay MIT;
    the Pro tier is server-mediated.
-3. **Custom shader marketplace** — once Worlddots supports
+3. **Custom shader marketplace** — once Globestudio supports
    third-party shader passes (parked in ROADMAP as "Plugin system"),
-   third parties sell shaders. Worlddots takes 0% or a small cut.
+   third parties sell shaders. Globestudio takes 0% or a small cut.
 4. **Hosted SaaS** — a separately-paid hosted service that uses the
    open-source tool as its core. Common pattern (Ghost, Mattermost).
-   Probably overkill for Worlddots.
+   Probably overkill for Globestudio.
 5. **Design consulting / sponsored projects** — the maintainer
-   personally sells design work that uses Worlddots. Not a product,
+   personally sells design work that uses Globestudio. Not a product,
    a service.
 
 Worth noting: the simplest play is **none of the above**, just
@@ -61,7 +61,7 @@ Sources:
 
 ### Finding 2 — "Asset packs" are the lowest-friction monetization ✅
 
-Asset packs work because they're data, not code. Worlddots could ship:
+Asset packs work because they're data, not code. Globestudio could ship:
 
 - **Curated palette packs** ("Risograph palettes", "Pantone 2026")
 - **Look presets** (designer-curated bundles of density / shape /
@@ -91,13 +91,13 @@ have a Pro tier server-mediated. Examples of Pro features:
 - Animation frame sequences (multi-PNG export)
 - Larger custom shape uploads
 - Saved look library that syncs across Figma files
-- White-label support (no Worlddots watermark)
+- White-label support (no Globestudio watermark)
 
 Pricing: $5-10/month or $50/year. The plugin core remains free;
 Pro features require an account.
 
 This works because Figma plugins are independent products from the
-Worlddots core. A paid Figma plugin doesn't make the OSS Worlddots
+Globestudio core. A paid Figma plugin doesn't make the OSS Globestudio
 "non-free" — it's its own monetization surface.
 
 Sources:
@@ -107,15 +107,15 @@ Sources:
 
 The ROADMAP parks "Plugin system for third-party shader passes" as
 maybe / future. Once that lands, third-party creators can sell
-shader passes, similar to Framer's marketplace. Worlddots takes
+shader passes, similar to Framer's marketplace. Globestudio takes
 0-20% cut.
 
 This is a 6-12 month horizon. Not v1.
 
-### Finding 5 — Hosted SaaS is overkill for Worlddots ❌
+### Finding 5 — Hosted SaaS is overkill for Globestudio ❌
 
 A hosted SaaS makes sense when the OSS tool has self-hosting
-overhead (databases, queues, infrastructure). Worlddots is a static
+overhead (databases, queues, infrastructure). Globestudio is a static
 web app with no server-side state. There's nothing to host.
 
 Could pivot to a paid API for batch exports? Maybe — but the demand
@@ -124,13 +124,13 @@ isn't there yet and it's a real engineering project.
 ### Finding 6 — Design consulting is the maintainer's own choice 💼
 
 If the maintainer (Alejandro) wants to monetize their *time* via
-design consulting using Worlddots as a portfolio piece, that's
+design consulting using Globestudio as a portfolio piece, that's
 fine — it's a service, not a product. Doesn't affect MIT.
 
 Examples:
 - Custom dotted-map design for $500-2000 per project
 - Sponsored work for tech companies' annual reports
-- "Worlddots designed for you" service
+- "Globestudio designed for you" service
 
 This is the most reliable revenue but doesn't scale.
 
@@ -158,7 +158,7 @@ In order of likely-revenue × least-friction:
 - What threshold = "traction signals justify paid addons"?
   Probably 1k+ weekly actives + 500+ GitHub stars + sustained
   organic signups for the (eventual) email list.
-- Would a "Worlddots Pro" subscription that funds the maintainer's
+- Would a "Globestudio Pro" subscription that funds the maintainer's
   full-time work be premature? Yes — too early. Could revisit at
   10k+ weekly actives.
 - Is there appetite for accepting commission work for specific

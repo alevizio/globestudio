@@ -1,5 +1,5 @@
 {
-  "$schema": "https://worlddots.app/schema/config.json",
+  "$schema": "https://globestudio.app/schema/config.json",
   "version": "1.0",
   "preset": "wireframe",
   "selection": "country:USA",

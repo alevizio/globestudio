@@ -10,9 +10,9 @@
 
 ## Hard limits (fill these exactly)
 
-| Field | Max | Worlddots value |
+| Field | Max | Globestudio value |
 |---|---|---|
-| **Name** | 40 chars | `Worlddots` |
+| **Name** | 40 chars | `Globestudio` |
 | **Tagline** | 60 chars | `Open-source dotted maps and 3D globes for designers` |
 | **Topics** | 4 | `Design Tools`, `Open Source`, `Developer Tools`, `Productivity` |
 | **Gallery** | 6 assets | See gallery plan below |
@@ -23,7 +23,7 @@
 
 ## Description (PH "post" body)
 
-> Worlddots is an open-source tool for making **dotted maps and animated 3D
+> Globestudio is an open-source tool for making **dotted maps and animated 3D
 > globes**. Pick any country, region, or US state, customize dot shapes,
 > gradients, and shader effects, then export PNG, SVG, or animated WebM.
 >
@@ -50,7 +50,7 @@
 
 > Hi PH 👋 — Alejandro here.
 >
-> I built Worlddots because every time I needed a dotted globe or a stylized
+> I built Globestudio because every time I needed a dotted globe or a stylized
 > country map for a landing page or deck, I'd either reach for a paid design
 > tool, screenshot something off Stripe's homepage, or fight with a generic
 > map library that wasn't built for visuals.
@@ -66,16 +66,16 @@
 >
 > A few things I'd love your help on:
 > - **Performance reports.** It's graphics-heavy. If it lags on your device,
->   please file a [performance report](https://github.com/alevizio/worlddots/issues/new?template=performance-report.yml)
+>   please file a [performance report](https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml)
 >   with your browser + OS + GPU. I'm treating perf as a launch blocker.
 > - **Preset submissions.** If you build a look you like, the
->   [preset submission template](https://github.com/alevizio/worlddots/issues/new?template=preset-submission.yml)
+>   [preset submission template](https://github.com/alevizio/globestudio/issues/new?template=preset-submission.yml)
 >   makes it easy to ship it as a built-in.
 > - **Use cases I haven't thought of.** I have hero sections, decks, and
 >   launch teasers in mind. What would you use it for?
 >
-> Live: https://worlddots.app/
-> GitHub: https://github.com/alevizio/worlddots
+> Live: https://globestudio.app/
+> GitHub: https://github.com/alevizio/globestudio
 >
 > Happy to answer anything in the comments.
 
@@ -98,7 +98,7 @@ both reward motion in the gallery.
 **Recording the demo video**: use macOS screen recording at 60fps (Cmd+Shift+5 → Options → Movie). Trim to ~20s. Compress to MP4 with HandBrake or ffmpeg:
 
 ```bash
-ffmpeg -i raw.mov -c:v libx264 -crf 22 -preset slow -movflags +faststart -vf "scale=1920:-2,fps=30" worlddots-demo.mp4
+ffmpeg -i raw.mov -c:v libx264 -crf 22 -preset slow -movflags +faststart -vf "scale=1920:-2,fps=30" globestudio-demo.mp4
 ```
 
 ---

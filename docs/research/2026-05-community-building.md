@@ -7,14 +7,14 @@
 
 ## Executive summary
 
-Worlddots launched but hasn't yet built a community surface. The
+Globestudio launched but hasn't yet built a community surface. The
 2026 OSS community wisdom: **use both GitHub Discussions and Discord,
 they're complementary, not competing**. GitHub Discussions for
 permanent, searchable, code-adjacent threads. Discord for live
 chat, casual feature ideation, and a "lurkable" newcomer space
 that doesn't feel as official as opening a GitHub issue.
 
-For Worlddots specifically, the right v1 community surface is:
+For Globestudio specifically, the right v1 community surface is:
 
 1. **GitHub Discussions** — already free, already linked to repo.
    Enable categories (Ideas, Q&A, Show & Tell, Announcements).
@@ -62,7 +62,7 @@ post what they built drives ongoing community engagement. Tools that
 do this well: Lottie's discover gallery, Spline's community page,
 threejs.org's examples list.
 
-For Worlddots, this is twin to the
+For Globestudio, this is twin to the
 [examples directory research](2026-05-examples-directory.md) — a
 public showcase that doubles as marketing + design inspiration.
 
@@ -72,7 +72,7 @@ public showcase that doubles as marketing + design inspiration.
    (Announcements, Ideas, Q&A, Show and Tell, Polls). ~15 min work.
 2. **Seed 5 initial discussion threads** so the surface doesn't
    feel empty:
-   - "Welcome — what are you using Worlddots for?"
+   - "Welcome — what are you using Globestudio for?"
    - "Roadmap discussion — what would unlock more use cases?"
    - "Help needed: testing on different hardware"
    - "Show your favorite preset + custom shape"

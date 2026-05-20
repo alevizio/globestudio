@@ -19,7 +19,7 @@ each in its own subfolder with a screenshot + 100-word README +
 the exact config JSON to reproduce. Lottie, Three.js, and tldraw
 all follow this model.
 
-For Worlddots, the right v1 is **6 example folders**:
+For Globestudio, the right v1 is **6 example folders**:
 
 1. Landing page hero (animated globe in marketing hero)
 2. Conference badge (PNG export of a single country dotted map)
@@ -40,12 +40,12 @@ abandoned." The Three.js examples list is the gold standard: every
 entry is genuinely runnable, screenshot-perfect, and used in real
 projects.
 
-For Worlddots, that means each example needs:
+For Globestudio, that means each example needs:
 
 - A real production-quality screenshot (not a placeholder)
 - Clear narrative ("this is what designer X built for client Y")
 - The exact preset/config to reproduce
-- Optional: a runnable `index.html` if it can embed Worlddots inline
+- Optional: a runnable `index.html` if it can embed Globestudio inline
 
 Sources:
 - [OSS Gallery — Open-Source Projects](https://oss.gallery/) ✅
@@ -53,7 +53,7 @@ Sources:
 
 ### Finding 2 — Each example doubles as an SEO landing page ✅
 
-Per the [SEO research](2026-05-seo-playbook.md), Worlddots needs
+Per the [SEO research](2026-05-seo-playbook.md), Globestudio needs
 more indexable surface beyond the homepage + 11 preset pages.
 Examples are the natural expansion. Each example URL
 (`/examples/landing-hero`, `/examples/annual-report`) targets a
@@ -72,7 +72,7 @@ The strongest examples directories grow from user submissions, not
 hand-curation. Lottie's discover gallery, Tailwind UI's components
 inspiration page, Spline's community page — all are user-submitted.
 
-For v1 Worlddots needs hand-built seeds. By v2-v3 (6+ months), open
+For v1 Globestudio needs hand-built seeds. By v2-v3 (6+ months), open
 the directory to user PRs via a `examples/community/` subfolder
 with submission guidelines (screenshot ≥1024px, license attribution,
 config.json required).

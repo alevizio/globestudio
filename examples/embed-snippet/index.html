@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Worlddots embed — minimum viable</title>
+    <title>Globestudio embed — minimum viable</title>
     <meta name="color-scheme" content="dark" />
     <style>
       :root {
@@ -51,7 +51,7 @@
     </style>
   </head>
   <body>
-    <h1>Worlddots — minimum viable embed</h1>
+    <h1>Globestudio — minimum viable embed</h1>
     <p>
       One <code>&lt;iframe&gt;</code>, zero npm, no build step. Pick a preset
       below; the iframe swaps to that look. Same trick works in Webflow,
@@ -66,10 +66,10 @@
         responsive.
       -->
       <iframe
-        id="worlddots-embed"
-        src="https://worlddots.vercel.app/looks/halftone"
+        id="globestudio-embed"
+        src="https://globestudio.vercel.app/looks/halftone"
         loading="lazy"
-        title="Worlddots dotted globe"
+        title="Globestudio dotted globe"
       ></iframe>
     </div>
 
@@ -87,19 +87,19 @@
     </nav>
 
     <footer>
-      Built with <a href="https://worlddots.vercel.app/">Worlddots</a> · MIT
+      Built with <a href="https://globestudio.vercel.app/">Globestudio</a> · MIT
     </footer>
 
     <script>
       // Swap the iframe src when a preset chip is clicked. The browser
       // re-renders the iframe with the new look; cached HTTP + Vercel edge
       // means the swap typically takes <200ms.
-      const iframe = document.getElementById("worlddots-embed");
+      const iframe = document.getElementById("globestudio-embed");
       const buttons = document.querySelectorAll(".preset-button");
       buttons.forEach((button) => {
         button.addEventListener("click", () => {
           const look = button.dataset.look;
-          iframe.src = `https://worlddots.vercel.app/looks/${look}`;
+          iframe.src = `https://globestudio.vercel.app/looks/${look}`;
           buttons.forEach((b) => b.classList.toggle("is-active", b === button));
         });
       });

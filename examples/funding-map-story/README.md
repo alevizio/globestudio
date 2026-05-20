@@ -3,14 +3,14 @@
 > **Status**: 🟢 Ready (via iframe) — see `index.html`
 
 A scroll-driven data story: section-by-section narrative where each
-section pins a Worlddots iframe to a different country or region. The
+section pins a Globestudio iframe to a different country or region. The
 classic annual-report / impact-report layout — "in 2025, we served
 customers across 47 countries" → the regions light up as the reader
 scrolls.
 
 ## What this proves
 
-Worlddots scales from a single embed to a **narrative spine** for a
+Globestudio scales from a single embed to a **narrative spine** for a
 data-driven page. Same iframe primitive, scroll-coordinated.
 
 ## The pattern
@@ -18,7 +18,7 @@ data-driven page. Same iframe primitive, scroll-coordinated.
 Each story section has:
 
 1. **Headline + paragraph** on the left (or above on mobile)
-2. **Worlddots iframe** on the right (or below) pinned to a specific
+2. **Globestudio iframe** on the right (or below) pinned to a specific
    `/looks/:preset` URL
 3. **Stats** floating over or below the map
 
@@ -66,13 +66,13 @@ user scrolls — only the active section's iframe is "live."
 - **Embed at lower aspect ratios** for mobile (`aspect-ratio: 4/3`)
   vs desktop (`16/9`).
 - **Consider WebM background** for performance-critical contexts —
-  Worlddots exports WebM at any preset.
+  Globestudio exports WebM at any preset.
 
 ## Static-export workflow
 
 For a polished PDF-ready annual report:
 
-1. For each section, open the preset URL on `worlddots.app`
+1. For each section, open the preset URL on `globestudio.app`
 2. Configure the selection + look settings
 3. Export PNG at 2× resolution
 4. Drop into InDesign / Affinity Publisher

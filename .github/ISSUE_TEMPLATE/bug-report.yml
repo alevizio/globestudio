@@ -8,10 +8,10 @@ body:
         Thanks for taking the time to file a bug. The clearer your report, the
         faster we can land a fix.
 
-        **Before filing**: try the [live site](https://worlddots.app/) and
+        **Before filing**: try the [live site](https://globestudio.app/) and
         confirm the bug still reproduces there. If it's a performance issue
         (lag, freeze, crash), use the
-        [performance template](https://github.com/alevizio/worlddots/issues/new?template=performance-report.yml)
+        [performance template](https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml)
         instead — it asks the right questions.
 
   - type: textarea
@@ -29,7 +29,7 @@ body:
       label: Steps to reproduce
       description: How can we see the bug ourselves?
       placeholder: |
-        1. Go to https://worlddots.app/
+        1. Go to https://globestudio.app/
         2. Pick country: …
         3. Click …
         4. Notice that …
@@ -82,7 +82,7 @@ body:
     attributes:
       label: Pre-flight
       options:
-        - label: I searched [open issues](https://github.com/alevizio/worlddots/issues?q=is%3Aissue) and didn't find a duplicate.
+        - label: I searched [open issues](https://github.com/alevizio/globestudio/issues?q=is%3Aissue) and didn't find a duplicate.
           required: true
         - label: I've tried hard-refreshing the live site to rule out a stale cache.
           required: true

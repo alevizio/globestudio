@@ -1,7 +1,7 @@
 # Integrations
 
-How to drop Worlddots into the tools you already use. Every integration
-is built on the [`/embed` route](https://worlddots.app/embed) — a
+How to drop Globestudio into the tools you already use. Every integration
+is built on the [`/embed` route](https://globestudio.app/embed) — a
 query-string-driven view that renders just the canvas with no chrome.
 
 ## Available now
@@ -49,11 +49,11 @@ Every integration accepts the same query string:
 
 ## postMessage resize protocol
 
-When iframed, Worlddots posts its desired height to the parent:
+When iframed, Globestudio posts its desired height to the parent:
 
 ```js
 window.addEventListener("message", (event) => {
-  if (event.data?.type === "worlddots-resize") {
+  if (event.data?.type === "globestudio-resize") {
     iframe.style.height = `${event.data.height}px`;
   }
 });
@@ -64,15 +64,15 @@ better than an auto-resizing one for a globe. But it's there if you need it.
 
 ## When something doesn't work
 
-- **WebGL 2 required** — Worlddots needs WebGL 2. ~95% of 2026 browsers
+- **WebGL 2 required** — Globestudio needs WebGL 2. ~95% of 2026 browsers
   have it. If a browser doesn't, the embed shows a graceful fallback
-  message linking to worlddots.app.
+  message linking to globestudio.app.
 - **Sandbox restrictions** — some iframe sandboxes block scripts.
-  Worlddots needs `allow-scripts`. If your host enforces stricter
+  Globestudio needs `allow-scripts`. If your host enforces stricter
   sandboxing, the canvas won't render.
-- **CSP** — Worlddots ships `Content-Security-Policy: frame-ancestors *`
+- **CSP** — Globestudio ships `Content-Security-Policy: frame-ancestors *`
   so any origin can embed. If you're proxying it through a strict-CSP
   host (corporate intranet, etc.), you may need to relax that.
 
-[Open a Discussion](https://github.com/alevizio/worlddots/discussions/categories/q-a)
+[Open a Discussion](https://github.com/alevizio/globestudio/discussions/categories/q-a)
 if you hit something unexpected.

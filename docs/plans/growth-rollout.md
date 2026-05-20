@@ -12,7 +12,7 @@
 ## Goal
 
 Build the post-launch community + content surface that sustains
-Worlddots momentum past the initial Product Hunt / HN wave.
+Globestudio momentum past the initial Product Hunt / HN wave.
 Three intertwined surfaces: **community** (GitHub Discussions,
 later Discord), **examples** (production-quality use cases),
 **funding** (GitHub Sponsors for signal + voluntary support).
@@ -24,7 +24,7 @@ later Discord), **examples** (production-quality use cases),
   revenue, high curation overhead.
 - **No Open Collective in v1.** Solo maintainer; 10% fee not worth
   it.
-- **No agency outreach.** Worlddots is designer-tool, not enterprise.
+- **No agency outreach.** Globestudio is designer-tool, not enterprise.
 
 ## Phases
 
@@ -38,7 +38,7 @@ later Discord), **examples** (production-quality use cases),
 - [ ] Create 5 categories: Announcements, Ideas, Q&A, Show and Tell,
       Polls.
 - [ ] Pin 5 seed discussions:
-      - "Welcome — what are you using Worlddots for?"
+      - "Welcome — what are you using Globestudio for?"
       - "Roadmap discussion — what would unlock more use cases?"
       - "Help needed: testing on different hardware"
       - "Show your favorite preset + custom shape"
@@ -82,7 +82,7 @@ later Discord), **examples** (production-quality use cases),
 For each of: landing-hero, conference-badge, annual-report-cover,
 animated-reveal, country-highlight, embed-snippet —
 
-- [ ] Configure Worlddots to produce a production-quality output.
+- [ ] Configure Globestudio to produce a production-quality output.
 - [ ] Capture screenshot at 1024px+ resolution.
 - [ ] Write 100-word `README.md` explaining the use case +
       what each setting was tuned to.
@@ -118,7 +118,7 @@ Then:
 #### Acceptance
 
 - Sustained 2 posts/week for 12 weeks post-launch.
-- Cross-posts drive at least 10% of total worlddots.app traffic
+- Cross-posts drive at least 10% of total globestudio.app traffic
   by week 12 (measurable via Vercel Analytics referrers).
 
 ---
@@ -130,7 +130,7 @@ per week, OR 500+ GitHub stars.
 
 #### Tasks (gated)
 
-- [ ] Create Worlddots Discord server.
+- [ ] Create Globestudio Discord server.
 - [ ] Channels: #welcome, #showcase, #ideas, #bugs, #general,
       #shaders, #integrations.
 - [ ] Set up basic moderation (verified email, slow-mode in

@@ -7,7 +7,7 @@
 
 ## Goal
 
-Move Worlddots from "ships with the basics" to a fully optimized SEO
+Move Globestudio from "ships with the basics" to a fully optimized SEO
 + AI-citation surface within 30 days, then scale content + backlinks
 over 90 days. Use the audit's prioritized gap list as the punchlist.
 
@@ -75,8 +75,8 @@ adds an AI Overview citation surface.
 #### Tasks
 
 - [ ] **`FAQPage` schema** with 5-10 questions:
-      - "What is Worlddots?"
-      - "Can I use Worlddots commercially?"
+      - "What is Globestudio?"
+      - "Can I use Globestudio commercially?"
       - "How do I export a dotted globe?"
       - "Does it work on mobile?"
       - "Is it open source?"
@@ -123,7 +123,7 @@ needs to match site SEO.
       `react`, `design-tool`, `webgl`, `data-visualization`,
       `map-generator`, `creative-coding`, `shader`, `animation`.
 - [ ] **Repo description** updated to match the site meta description.
-- [ ] **Website link** in repo header points to `worlddots.app`.
+- [ ] **Website link** in repo header points to `globestudio.app`.
 - [ ] **Pinned to profile** alevizio/alevizio for personal cross-promotion.
 - [ ] **README updated** with shields.io badges (stars, license,
       Vercel deploy status, MIT license) — each badge is a small
@@ -195,7 +195,7 @@ Quality backlinks remain the highest-leverage SEO investment.
       URL pointing back.
 - [ ] **Designer tutorial outreach.** Email 10 designer tutorial
       sites (Spline tutorials, design+code, Codrops, Designmodo) per
-      month offering Worlddots as a tool in their workflow articles.
+      month offering Globestudio as a tool in their workflow articles.
 - [ ] **Track backlinks via Open Search Console + Ahrefs free tier**
       monthly. Watch domain authority + referring domains.
 
@@ -222,10 +222,10 @@ search universe beyond the homepage + preset URLs.
       1. "How to make a dotted world map for free in 2026"
       2. "11 dotted globe presets and when to use each"
       3. "From Figma to Framer: workflow for animated maps"
-      4. "Behind the shaders: building Worlddots's halftone effect"
+      4. "Behind the shaders: building Globestudio's halftone effect"
       5. "Designing data stories with dotted maps"
 - [ ] **Each article ~1,500 words**, with screenshots, embedded
-      Worlddots iframe (eats own dogfood), CTAs to relevant preset
+      Globestudio iframe (eats own dogfood), CTAs to relevant preset
       URLs.
 - [ ] **Tag/category structure** so articles cross-link to relevant
       preset pages — boost the internal link graph.
@@ -252,7 +252,7 @@ Astro (or any SSG meta-framework) unblocks AI scrapers.
 - [ ] Scaffold Astro alongside the existing Vite tool.
 - [ ] Move all marketing pages (homepage, `/looks/:id` long-form,
       `/blog/*`, `/about`) to Astro routes with static HTML output.
-- [ ] Keep the tool itself (`/`) as a React island — Worlddots's
+- [ ] Keep the tool itself (`/`) as a React island — Globestudio's
       interactive canvas stays Vite-based.
 - [ ] Confirm AI scrapers can read the marketing content (test with
       Perplexity, ChatGPT Search).
@@ -270,14 +270,14 @@ Astro (or any SSG meta-framework) unblocks AI scrapers.
 ## Open questions
 
 - **Synthetic `aggregateRating`** is borderline. Is there appetite to
-  collect real reviews? A simple in-app "rate Worlddots" button
+  collect real reviews? A simple in-app "rate Globestudio" button
   (4-star scale) feeding a static JSON file would solve the chicken/egg.
 - **Content as the founder vs ghost-written?** Personal voice + design
   expertise from Alejandro is the differentiator vs every other
   generic-tool-blog out there.
 - **Discord / community Slack** to drive UGC and engagement. Worth
   the time investment? Lottie has one; smaller indie tools don't.
-- **Worlddots.app vs worlddots.com** — currently on `.app`. Some SEO
+- **Globestudio.app vs globestudio.com** — currently on `.app`. Some SEO
   signal suggests `.com` carries slightly higher trust in 2026. Cost
   of acquiring + redirecting probably not worth it unless `.com` is
   cheap.

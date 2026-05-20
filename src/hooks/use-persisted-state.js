@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const STORAGE_PREFIX = "worlddots:";
+const STORAGE_PREFIX = "globestudio:";
 
 const readStored = (storageKey, defaultValue) => {
   if (typeof window === "undefined") return defaultValue;

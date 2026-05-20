@@ -12,33 +12,33 @@
 
 ## Title (HN strict — 80 chars max, no emoji)
 
-> **Show HN: Worlddots – Open-source dotted maps and 3D globes for designers**
+> **Show HN: Globestudio – Open-source dotted maps and 3D globes for designers**
 
 Variants if the primary doesn't feel right on the morning of:
 
-- `Show HN: Worlddots – Dotted maps and animated 3D globes in your browser`
+- `Show HN: Globestudio – Dotted maps and animated 3D globes in your browser`
 - `Show HN: A designer-first map motion tool with shaders, gradients, exports`
-- `Show HN: Worlddots – Stylized dotted maps and 3D globes (open source)`
+- `Show HN: Globestudio – Stylized dotted maps and 3D globes (open source)`
 
 ---
 
 ## URL field
 
-`https://worlddots.app/`
+`https://globestudio.app/`
 
 > If the live URL is rate-limited at launch time, fall back to:
-> `https://alevizio.github.io/worlddots/`
+> `https://alevizio.github.io/globestudio/`
 
 ---
 
 ## Post body (HN allows ~2000 chars in the post text)
 
-> Hi HN — I built Worlddots, an open-source tool for making dotted maps and
-> animated 3D globes in the browser. Source: https://github.com/alevizio/worlddots
+> Hi HN — I built Globestudio, an open-source tool for making dotted maps and
+> animated 3D globes in the browser. Source: https://github.com/alevizio/globestudio
 >
 > The angle: most open-source map tooling (MapLibre, deck.gl, react-simple-maps,
 > Protomaps) is built for engineers — tile servers, vector tiles, large
-> datasets. Worlddots is built for the designer half of the stack — the
+> datasets. Globestudio is built for the designer half of the stack — the
 > landing page hero, the deck slide, the launch teaser, the explainer scroll.
 >
 > What it does:
@@ -96,7 +96,7 @@ response matters on HN.
 ### "Why not just use [MapLibre / deck.gl / react-simple-maps]?"
 
 > Those are great for what they do — interactive map rendering with real
-> geographic data, tiles, and big datasets. Worlddots is solving a different
+> geographic data, tiles, and big datasets. Globestudio is solving a different
 > problem: when a designer or marketing site needs a stylized map visual as
 > a static or animated asset, the existing libraries are over-powered and
 > under-styled. The output isn't a webmap — it's a PNG / SVG / WebM that
@@ -105,7 +105,7 @@ response matters on HN.
 ### "It lags on my machine."
 
 > Sorry — file it here, please:
-> https://github.com/alevizio/worlddots/issues/new?template=performance-report.yml
+> https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml
 >
 > I treat perf as a launch blocker. The render loop has adaptive DPR that
 > should already kick in, but heavy presets (Wireframe + edge shader,
@@ -123,7 +123,7 @@ response matters on HN.
 
 > Not yet. Embeddable mode (read-only iframe with a config JSON or look ID)
 > is in the ROADMAP for the next 2-3 months. Vote it up:
-> https://github.com/alevizio/worlddots/discussions/categories/ideas
+> https://github.com/alevizio/globestudio/discussions/categories/ideas
 
 ### "How is the SVG export so big / small?"
 

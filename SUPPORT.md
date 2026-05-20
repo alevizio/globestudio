@@ -4,30 +4,30 @@ Pick the channel that matches what you're trying to do.
 
 ## I want to ask a question
 
-→ [**Discussions: Q&A**](https://github.com/alevizio/worlddots/discussions/categories/q-a)
+→ [**Discussions: Q&A**](https://github.com/alevizio/globestudio/discussions/categories/q-a)
 
 Use this for "how do I do X", "why does Y happen", or anything where you're
 not sure if it's a bug.
 
 ## I think I found a bug
 
-→ [**Open a bug report**](https://github.com/alevizio/worlddots/issues/new?template=bug-report.yml)
+→ [**Open a bug report**](https://github.com/alevizio/globestudio/issues/new?template=bug-report.yml)
 
 If it's a performance issue (lag, freeze, crash), use the
-[performance template](https://github.com/alevizio/worlddots/issues/new?template=performance-report.yml)
+[performance template](https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml)
 instead — different repro fields.
 
 ## I want to suggest a feature
 
-→ [**Discussions: Ideas**](https://github.com/alevizio/worlddots/discussions/categories/ideas)
+→ [**Discussions: Ideas**](https://github.com/alevizio/globestudio/discussions/categories/ideas)
 
 If the idea is concrete and scoped, the
-[Feature request issue template](https://github.com/alevizio/worlddots/issues/new?template=feature-request.yml)
+[Feature request issue template](https://github.com/alevizio/globestudio/issues/new?template=feature-request.yml)
 works too.
 
 ## I built something cool
 
-→ [**Discussions: Show & Tell**](https://github.com/alevizio/worlddots/discussions/categories/show-and-tell)
+→ [**Discussions: Show & Tell**](https://github.com/alevizio/globestudio/discussions/categories/show-and-tell)
 
 Drop a screenshot or link. The best ones get featured in the README and on
 social.

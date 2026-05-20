@@ -1,7 +1,7 @@
-# Worlddots in Webflow
+# Globestudio in Webflow
 
 Drop a dotted globe or map into any Webflow project via the Code Embed
-block. No plugins, no account, no React. The full Worlddots tool renders
+block. No plugins, no account, no React. The full Globestudio tool renders
 inside the iframe; query-string parameters configure the look.
 
 ## 5-minute setup
@@ -14,12 +14,12 @@ inside the iframe; query-string parameters configure the look.
 
    ```html
    <iframe
-     src="https://worlddots.app/embed?look=halftone&density=70&autoSpin=1&source=webflow"
+     src="https://globestudio.app/embed?look=halftone&density=70&autoSpin=1&source=webflow"
      width="100%"
      height="500"
      style="border:0; display:block;"
      loading="lazy"
-     title="Worlddots dotted globe"
+     title="Globestudio dotted globe"
      allow="autoplay"
    ></iframe>
    ```
@@ -47,7 +47,7 @@ inside the iframe; query-string parameters configure the look.
 | Atkinson dither (Mac crunchy) | `atkinson` |
 | Northern lights bands | `aurora` |
 
-Full preset list with previews: <https://worlddots.app/>
+Full preset list with previews: <https://globestudio.app/>
 
 ## Picking a region
 
@@ -69,7 +69,7 @@ headline overlay to `position: absolute` with a z-index above the iframe:
 ```html
 <!-- Inside a Webflow Hero section -->
 <iframe
-  src="https://worlddots.app/embed?look=bloom&autoSpin=1&source=webflow"
+  src="https://globestudio.app/embed?look=bloom&autoSpin=1&source=webflow"
   width="100%"
   height="100%"
   style="position:absolute; inset:0; border:0;"
@@ -88,7 +88,7 @@ article or above a footer — freeze motion via `?static=1`:
 
 ```html
 <iframe
-  src="https://worlddots.app/embed?look=wireframe&static=1&source=webflow"
+  src="https://globestudio.app/embed?look=wireframe&static=1&source=webflow"
   width="100%"
   height="400"
   style="border:0"
@@ -102,7 +102,7 @@ If your section is about one market, pin the embed to that country:
 
 ```html
 <iframe
-  src="https://worlddots.app/embed?look=halftone&selection=country:JPN&view=flat&source=webflow"
+  src="https://globestudio.app/embed?look=halftone&selection=country:JPN&view=flat&source=webflow"
   width="100%"
   height="500"
   style="border:0"
@@ -130,7 +130,7 @@ inside an iframe (the embed is a separate browsing context). It CAN:
 - Show/hide the iframe on scroll.
 - Trigger a class change on a sibling that the iframe doesn't read.
 
-If you need Worlddots to react to Webflow Interactions (e.g. switch
+If you need Globestudio to react to Webflow Interactions (e.g. switch
 preset on scroll), wait for the [native Webflow Code Component](https://developers.webflow.com/code-components/introduction)
 which is on our roadmap — it would render as real DOM and respond to
 Interactions.
@@ -147,6 +147,6 @@ Interactions.
 
 ## Reference
 
-- Live embed playground: <https://worlddots.app/embed?look=halftone>
+- Live embed playground: <https://globestudio.app/embed?look=halftone>
 - Embed parameters: [`docs/integrations/README.md`](./README.md#common-parameters)
-- All looks: <https://worlddots.app/>
+- All looks: <https://globestudio.app/>

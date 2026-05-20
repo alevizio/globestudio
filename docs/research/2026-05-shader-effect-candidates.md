@@ -7,7 +7,7 @@
 
 ## Executive summary
 
-Worlddots ships 18 shader effects today, covering the core "retro
+Globestudio ships 18 shader effects today, covering the core "retro
 digital" design language (CRT, glitch, halftone, pixel, threshold)
 plus a few atmospheric/material looks (bloom, metal, pencil). The
 2026 design landscape — surveyed across Codrops, Awwwards, and
@@ -19,10 +19,10 @@ aesthetic gaps** in the current library:
    classic-Mac "crunchy" pixel dither aesthetic, which is a different
    visual.
 2. **Print aesthetics** (risograph, newsprint). The single biggest
-   trend in 2025-2026 illustration/design that Worlddots can't
+   trend in 2025-2026 illustration/design that Globestudio can't
    currently express.
 3. **Iridescent / foil / holographic.** Fresnel-driven shading is
-   everywhere on the awwwards 2026 collection. Worlddots's "metal"
+   everywhere on the awwwards 2026 collection. Globestudio's "metal"
    pass is a thin facsimile.
 
 All three add as single-pass fragment shaders that bolt onto the
@@ -40,7 +40,7 @@ procedural landscapes (wrong aesthetic for a map tool).
 
 ## Current shader inventory
 
-For reference, here's what Worlddots has today (from
+For reference, here's what Globestudio has today (from
 `src/config/shader-effects.js`):
 
 | Effect      | Category             | What it does                              |
@@ -156,7 +156,7 @@ foil-sticker, and holographic shaders. The recipe is well-known:
 4. **Soft saturation curve.** Avoid pure white/black; keep colors
    in the pearlescent mid-range.
 
-Worlddots already has the surface normal of every dot (computed in
+Globestudio already has the surface normal of every dot (computed in
 `applyDotInstances`), so a `holographic` effect is structurally a
 straightforward addition. It also slots into the lookup-friendly
 "material" category alongside `metal` and `pencil`.
@@ -174,14 +174,14 @@ organic cell-like regions. Each pixel computes distance to the 9
 nearest seed points (grid + 8 neighbors), takes the minimum. Single
 fragment pass, <0.5ms at 1080p.
 
-The aesthetic fit for Worlddots is interesting: instead of dots, the
+The aesthetic fit for Globestudio is interesting: instead of dots, the
 land regions could be filled with voronoi cells. Or, a `cellular`
 post-effect could overlay a translucent voronoi pattern on top of the
 existing dot field — adds an organic texture without changing the
 fundamental dotted-globe aesthetic.
 
 Best-fit use case: a "biology / ecology" look (cells, water, moss).
-Less of a fit for the "tech / data" looks Worlddots leans toward.
+Less of a fit for the "tech / data" looks Globestudio leans toward.
 Probably belongs in v2.
 
 Sources:
@@ -194,7 +194,7 @@ Sources:
 
 **Aurora** as a fullscreen post-effect (vs the existing
 sphere-surface atmosphere) would give a strong "northern lights"
-backdrop mode. Worlddots's atmosphere shader has 80% of the math
+backdrop mode. Globestudio's atmosphere shader has 80% of the math
 already; extracting to a post-effect is mechanical.
 
 **Newsprint** is halftone with rotated grids per channel (cyan
@@ -211,7 +211,7 @@ Sources:
 
 The "endless perspective grid receding to a sunset horizon" aesthetic
 is everywhere in 2025-2026 product design (Stripe, Linear, dozens of
-SaaS landing pages). Worlddots could ship this as a **background
+SaaS landing pages). Globestudio could ship this as a **background
 mode**, not a post-effect — it sits behind the globe, not on top.
 
 Implementation: a fullscreen mesh with shader-drawn grid + procedural
@@ -368,7 +368,7 @@ Explicitly reject:
 
 ## Open questions
 
-- Does Worlddots already have a meaningful "alpha channel" usage in
+- Does Globestudio already have a meaningful "alpha channel" usage in
   the dot rendering? Some new effects (risograph, holographic) work
   better with edge softening — need to check if alpha is consistently
   available downstream.

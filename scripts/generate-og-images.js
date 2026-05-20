@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Build-time generator for per-preset Open Graph share cards. Produces a
 // 1200x630 PNG per preset, written to public/og/{presetId}.png. Each card
-// has the preset name, blurb, the Worlddots wordmark, and a subtle pattern
+// has the preset name, blurb, the Globestudio wordmark, and a subtle pattern
 // that hints at the preset's aesthetic.
 //
 // Why: every time someone shares /looks/halftone (or any preset URL) on
@@ -129,7 +129,7 @@ const cardJSX = (preset) => {
             },
           },
         },
-        // Top row — Worlddots wordmark
+        // Top row — Globestudio wordmark
         {
           type: "div",
           props: {
@@ -156,7 +156,7 @@ const cardJSX = (preset) => {
                   },
                 },
               },
-              "worlddots",
+              "globestudio",
             ],
           },
         },
@@ -220,7 +220,7 @@ const cardJSX = (preset) => {
                 type: "div",
                 props: {
                   style: { color: "#f6f2ea" },
-                  children: `worlddots.app/looks/${preset.id}`,
+                  children: `globestudio.app/looks/${preset.id}`,
                 },
               },
             ],

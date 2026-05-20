@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        If the idea is open-ended ("what if Worlddots could…"), please open a
-        [Discussion](https://github.com/alevizio/worlddots/discussions/new?category=ideas)
+        If the idea is open-ended ("what if Globestudio could…"), please open a
+        [Discussion](https://github.com/alevizio/globestudio/discussions/new?category=ideas)
         instead. This template is for concrete proposals that are ready to scope.
 
   - type: textarea
@@ -48,9 +48,9 @@ body:
     attributes:
       label: Pre-flight
       options:
-        - label: I checked the [Roadmap](https://github.com/alevizio/worlddots/blob/main/ROADMAP.md) — this isn't already planned.
+        - label: I checked the [Roadmap](https://github.com/alevizio/globestudio/blob/main/ROADMAP.md) — this isn't already planned.
           required: true
-        - label: I searched [open issues](https://github.com/alevizio/worlddots/issues?q=is%3Aissue) and didn't find a duplicate.
+        - label: I searched [open issues](https://github.com/alevizio/globestudio/issues?q=is%3Aissue) and didn't find a duplicate.
           required: true
         - label: I'm willing to discuss trade-offs — not every "yes" lands as proposed.
           required: true

@@ -1,4 +1,4 @@
-# Worlddots blog
+# Globestudio blog
 
 Long-form articles about dotted maps, design, and the tool itself.
 
@@ -8,10 +8,10 @@ search query a designer might actually type. The goal: real content
 surface beyond the tool homepage + preset URLs.
 
 When the count crosses ~5 articles, the plan is to migrate this into
-a `/blog/` route on worlddots.app with proper SSG (likely Astro per
+a `/blog/` route on globestudio.app with proper SSG (likely Astro per
 [`docs/plans/seo-rollout.md`](../plans/seo-rollout.md) Phase 7). For
 now, github.com renders the markdown well enough — and the
-github.com → worlddots.app cross-linking adds authority signal both
+github.com → globestudio.app cross-linking adds authority signal both
 directions.
 
 ## Articles
@@ -29,7 +29,7 @@ directions.
 - **Hand-written, not LLM-generated.** Google penalizes "low-effort
   AI content." This isn't a hard rule — LLM-assisted is fine —
   but the final voice has to feel intentional.
-- **Show, don't tell.** Embed Worlddots iframes (via `/embed`) where
+- **Show, don't tell.** Embed Globestudio iframes (via `/embed`) where
   the article references a specific look or feature. Real examples
   beat described ones.
 - **Linkable subheadings.** Use clear H2 + H3 hierarchy so people can

@@ -1,11 +1,11 @@
 # Accessibility
 
-Worlddots targets **WCAG 2.2 AA conformance**. This document outlines what's
+Globestudio targets **WCAG 2.2 AA conformance**. This document outlines what's
 shipped, how to use the tool with assistive technology, and how to report
 issues.
 
 If you find an accessibility problem we missed, [open an issue using the a11y
-template](https://github.com/alevizio/worlddots/issues/new?template=accessibility-report.yml)
+template](https://github.com/alevizio/globestudio/issues/new?template=accessibility-report.yml)
 — accessibility regressions are prioritized like security bugs.
 
 ## Conformance level
@@ -69,7 +69,7 @@ Every interactive element is reachable via Tab + Shift+Tab. Some highlights:
 ## Reduced motion
 
 If your OS is set to "reduce motion" (System Settings → Accessibility on
-macOS, or `prefers-reduced-motion: reduce` in CSS), Worlddots automatically:
+macOS, or `prefers-reduced-motion: reduce` in CSS), Globestudio automatically:
 
 - Pauses the auto-spin rotation
 - Stops the twinkle effect on dots
@@ -85,7 +85,7 @@ The static result is still designer-quality — just calm instead of animated.
   ratios.
 - **High-contrast theme** — beyond the existing dark/light theme. Could
   ship if there's demand.
-- **Speech control** — Worlddots works with system voice control (macOS
+- **Speech control** — Globestudio works with system voice control (macOS
   Voice Control, Windows Speech Recognition) via the standard ARIA surface,
   but we haven't optimized specifically for it.
 - **Mobile screen readers** — works via the embed iframe but not yet
@@ -105,7 +105,7 @@ These are tracked in [`docs/plans/accessibility-rollout.md`](docs/plans/accessib
 
 ## How to report issues
 
-[Open an a11y issue](https://github.com/alevizio/worlddots/issues/new?template=accessibility-report.yml)
+[Open an a11y issue](https://github.com/alevizio/globestudio/issues/new?template=accessibility-report.yml)
 with:
 
 1. Your assistive tech + OS (e.g. "VoiceOver, macOS 15.4")

@@ -1,6 +1,6 @@
-# Contributing to Worlddots
+# Contributing to Globestudio
 
-Thanks for being here. Worlddots is a designer-first tool — that means
+Thanks for being here. Globestudio is a designer-first tool — that means
 contributions aren't just code. **Visual presets, example projects,
 documentation rewrites, bug reports, and screenshots are all first-class**.
 
@@ -16,12 +16,12 @@ If you don't want to read this whole guide, the three highest-leverage things
 you can do are:
 
 1. **Build something with it and share a screenshot/recording.** Open a
-   [Show & Tell discussion](https://github.com/alevizio/worlddots/discussions)
+   [Show & Tell discussion](https://github.com/alevizio/globestudio/discussions)
    with what you made. We curate the best ones into the README and showcase.
 2. **Submit a preset.** A preset is just a named JSON config — see
    [Preset submissions](#preset-submissions) below.
 3. **Report a browser issue.** If it lags, freezes, or renders wrong, use
-   the [Performance / Browser report](https://github.com/alevizio/worlddots/issues/new?template=performance-report.yml)
+   the [Performance / Browser report](https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml)
    template. Include your OS, browser, and GPU.
 
 ---
@@ -31,8 +31,8 @@ you can do are:
 Requires **Node 20+** and **npm**.
 
 ```bash
-git clone https://github.com/alevizio/worlddots
-cd worlddots
+git clone https://github.com/alevizio/globestudio
+cd globestudio
 npm install
 npm run dev
 ```
@@ -162,14 +162,14 @@ on the default look before submitting a PR that touches the render loop.
 
 ### Bug reports
 
-Use the [Bug report](https://github.com/alevizio/worlddots/issues/new?template=bug-report.yml)
+Use the [Bug report](https://github.com/alevizio/globestudio/issues/new?template=bug-report.yml)
 template. The form asks for repro steps, browser/OS, and what you expected.
 Screenshots and short screen recordings are gold.
 
 ### Feature requests
 
-Open a [Discussion in Ideas](https://github.com/alevizio/worlddots/discussions/new?category=ideas)
-first if it's open-ended. Use the [Feature request](https://github.com/alevizio/worlddots/issues/new?template=feature-request.yml)
+Open a [Discussion in Ideas](https://github.com/alevizio/globestudio/discussions/new?category=ideas)
+first if it's open-ended. Use the [Feature request](https://github.com/alevizio/globestudio/issues/new?template=feature-request.yml)
 issue template when the idea is concrete enough to scope.
 
 ### Preset submissions
@@ -179,7 +179,7 @@ one:
 
 1. Build the look in the live tool
 2. Click Export → Share → Copy share link (or the export modal → Config → Export config)
-3. Open the [Preset submission](https://github.com/alevizio/worlddots/issues/new?template=preset-submission.yml)
+3. Open the [Preset submission](https://github.com/alevizio/globestudio/issues/new?template=preset-submission.yml)
    issue with the resulting JSON
 4. We'll merge it as a built-in preset and credit you
 
@@ -197,7 +197,7 @@ We want examples that prove the tool is useful in real product work:
 - Animated WebM for a launch video
 - Country-specific data story
 
-Open a [Show & Tell discussion](https://github.com/alevizio/worlddots/discussions/new?category=show-and-tell)
+Open a [Show & Tell discussion](https://github.com/alevizio/globestudio/discussions/new?category=show-and-tell)
 with a link to your repo or a CodeSandbox.
 
 ### Documentation
@@ -251,7 +251,7 @@ Conventional commits-ish, but light. Imperative, no enforcement:
 
 Right now the project has a single maintainer (alevizio). Direction is set in
 the [Roadmap](ROADMAP.md) and refined in
-[Discussions](https://github.com/alevizio/worlddots/discussions). As the
+[Discussions](https://github.com/alevizio/globestudio/discussions). As the
 contributor base grows, we'll formalize this in [GOVERNANCE.md](GOVERNANCE.md).
 
 If you have a deeper question about scope, philosophy, or where the project

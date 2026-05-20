@@ -1,14 +1,14 @@
 <div align="center">
 
-# Worlddots
+# Globestudio
 
 **Open-source dotted maps and animated 3D globes for designers, animators, and creative developers.**
 
 Pick a country or the whole world, customize dots and shapes, apply shader effects, and export PNG, SVG, or animated WebM. Built on React + Three.js.
 
-[**worlddots.app**](https://worlddots.app/) · [Live demos](https://worlddots.app/) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/alevizio/worlddots/discussions)
+[**globestudio.app**](https://globestudio.app/) · [Live demos](https://globestudio.app/) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/alevizio/globestudio/discussions)
 
-[![Deploy status](https://github.com/alevizio/worlddots/actions/workflows/deploy.yml/badge.svg)](https://github.com/alevizio/worlddots/actions/workflows/deploy.yml)
+[![Deploy status](https://github.com/alevizio/globestudio/actions/workflows/deploy.yml/badge.svg)](https://github.com/alevizio/globestudio/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-f6f2ea.svg)](LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-9adfff.svg)](CONTRIBUTING.md)
 
@@ -16,10 +16,10 @@ Pick a country or the whole world, customize dots and shapes, apply shader effec
 
 ---
 
-## Why Worlddots?
+## Why Globestudio?
 
 Most open-source map tooling is built for engineers — tile servers, geocoding,
-GIS data pipelines. Worlddots is built for the **other half of the stack**:
+GIS data pipelines. Globestudio is built for the **other half of the stack**:
 the landing-page hero shot, the launch teaser, the explainer scrollytell, the
 deck slide that needs a globe but not a database.
 
@@ -55,7 +55,7 @@ yours to remix.
 
 The live tool runs entirely client-side:
 
-→ **[worlddots.app](https://worlddots.app/)**
+→ **[globestudio.app](https://globestudio.app/)**
 
 Pick a country, tweak the look, export.
 
@@ -64,8 +64,8 @@ Pick a country, tweak the look, export.
 Requires Node 20+ and npm.
 
 ```bash
-git clone https://github.com/alevizio/worlddots
-cd worlddots
+git clone https://github.com/alevizio/globestudio
+cd globestudio
 npm install
 npm run dev
 ```
@@ -82,17 +82,17 @@ npm test -- --run  # 119 tests across 18 files
 
 ## Embed it anywhere
 
-Worlddots ships an iframe-friendly `/embed` route — drop the globe into
+Globestudio ships an iframe-friendly `/embed` route — drop the globe into
 Webflow, Framer, Notion, plain HTML, or any iframe-supporting tool:
 
 ```html
 <iframe
-  src="https://worlddots.app/embed?look=halftone&density=70&autoSpin=1"
+  src="https://globestudio.app/embed?look=halftone&density=70&autoSpin=1"
   width="100%"
   height="500"
   style="border:0"
   loading="lazy"
-  title="Worlddots dotted globe"
+  title="Globestudio dotted globe"
 ></iframe>
 ```
 
@@ -102,7 +102,7 @@ Webflow, Framer, Notion, plain HTML, or any iframe-supporting tool:
 previews), `transparent`, `background`, `source` (analytics tag).
 
 Resize-aware via `postMessage` — listen for
-`{ type: "worlddots-resize", height }` from the embed and resize the
+`{ type: "globestudio-resize", height }` from the embed and resize the
 iframe to match. WebGL 2 required; falls back to a "your browser doesn't
 support WebGL 2" message if not available.
 
@@ -140,7 +140,7 @@ runnable HTML and adaptation guides. Highlights:
 - [`shader-presets-showcase`](./examples/shader-presets-showcase) — all 16
   presets in one auto-fit gallery, perfect for picking a look.
 
-Share what you make in [Show & Tell](https://github.com/alevizio/worlddots/discussions/categories/show-and-tell).
+Share what you make in [Show & Tell](https://github.com/alevizio/globestudio/discussions/categories/show-and-tell).
 
 ## Documentation
 
@@ -176,10 +176,10 @@ rewrites — all of it counts.
 The shortest path:
 
 1. **Build something cool with the live tool** → drop it in
-   [Show & Tell](https://github.com/alevizio/worlddots/discussions/categories/show-and-tell)
-2. **Found a bug?** → [Bug report](https://github.com/alevizio/worlddots/issues/new?template=bug-report.yml)
-3. **Made a preset you love?** → [Preset submission](https://github.com/alevizio/worlddots/issues/new?template=preset-submission.yml)
-4. **Have an idea?** → [Ideas discussion](https://github.com/alevizio/worlddots/discussions/new?category=ideas)
+   [Show & Tell](https://github.com/alevizio/globestudio/discussions/categories/show-and-tell)
+2. **Found a bug?** → [Bug report](https://github.com/alevizio/globestudio/issues/new?template=bug-report.yml)
+3. **Made a preset you love?** → [Preset submission](https://github.com/alevizio/globestudio/issues/new?template=preset-submission.yml)
+4. **Have an idea?** → [Ideas discussion](https://github.com/alevizio/globestudio/discussions/new?category=ideas)
 
 Full guide in [CONTRIBUTING.md](CONTRIBUTING.md).
 

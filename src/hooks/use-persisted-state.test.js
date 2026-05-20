@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { clearPersistedState, usePersistedState } from "./use-persisted-state.js";
 
-const PREFIX = "worlddots:";
+const PREFIX = "globestudio:";
 
 describe("usePersistedState", () => {
   beforeEach(() => {
@@ -41,7 +41,7 @@ describe("usePersistedState", () => {
     expect(result.current[0]).toBe(40);
   });
 
-  it("namespaces keys under 'worlddots:'", () => {
+  it("namespaces keys under 'globestudio:'", () => {
     const { result } = renderHook(() => usePersistedState("shape", "Circle"));
     act(() => result.current[1]("Hexagon"));
     expect(window.localStorage.getItem(`${PREFIX}shape`)).toBe(`"Hexagon"`);
@@ -56,7 +56,7 @@ describe("clearPersistedState", () => {
     window.localStorage.clear();
   });
 
-  it("removes only worlddots-namespaced keys", () => {
+  it("removes only globestudio-namespaced keys", () => {
     window.localStorage.setItem(`${PREFIX}density`, "40");
     window.localStorage.setItem(`${PREFIX}shape`, `"Circle"`);
     window.localStorage.setItem("other-app", "untouched");

@@ -16,14 +16,14 @@ designer panel, and integrate with Webflow's Interactions engine.
 
 **Distribution is workspace-scoped, not Marketplace-public.** The
 public Marketplace requires libraries to ship 50+ layouts. For
-Worlddots, that means the realistic distribution model is "publish the
+Globestudio, that means the realistic distribution model is "publish the
 DevLink package on npm so any developer can install it into their own
 workspace" — closer to Lottie's player model than Framer's
 marketplace flywheel.
 
 Prop types are notably less rich than Framer's: no native color
 picker in the v1 prop type list, no nested objects, no array/repeat
-controls. Worlddots props will need a few adapter conventions (color
+controls. Globestudio props will need a few adapter conventions (color
 as hex `Text`, enum as `Variant`).
 
 ## API surface
@@ -58,7 +58,7 @@ import { WorldGlobe } from "./WorldGlobe"
 declareComponent(WorldGlobe, {
   name: "WorldGlobe",
   description: "Interactive dotted globe",
-  group: "Worlddots",
+  group: "Globestudio",
   props: {
     look: {
       type: "Variant",
@@ -102,7 +102,7 @@ Other sites *in that Workspace* can then open the Libraries panel
 
 ## Available prop types
 
-| Prop type      | Designer control                | Worlddots use                          |
+| Prop type      | Designer control                | Globestudio use                          |
 | -------------- | ------------------------------- | -------------------------------------- |
 | `Text`         | Single line text                | Color hex strings, ASCII symbol        |
 | `Rich Text`    | Multi-line with formatting      | (Not used)                             |
@@ -122,7 +122,7 @@ Other sites *in that Workspace* can then open the Libraries panel
 - Nested objects (workaround = flatten)
 - File upload beyond Image type
 
-These gaps push Worlddots toward a **slimmer prop surface** on Webflow
+These gaps push Globestudio toward a **slimmer prop surface** on Webflow
 than on Framer. Reasonable tradeoff: Webflow gets a tighter v1
 component with the most-used controls; advanced controls (gradients,
 shaders, ASCII patterns) come via a single `presetId` Variant that
@@ -143,21 +143,21 @@ critical to get right:**
   if possible — Three.js parses cleanly server-side, but a dynamic
   `import("three")` inside the `useEffect` is safer.
 
-The existing Worlddots `<GlobeBackground>` already does this correctly
+The existing Globestudio `<GlobeBackground>` already does this correctly
 — the entire Three.js setup is inside a `useEffect`. The component is
 SSR-ready as-is.
 
 ## Distribution reality
 
 The Webflow Marketplace is **not the right channel for a single
-Worlddots component**. The 50-layout-minimum bar is built for design
+Globestudio component**. The 50-layout-minimum bar is built for design
 system libraries, not single dev components.
 
 The realistic paths:
 
 ### Path A — npm package, designer installs into their own Workspace
 
-Publish `@worlddots/webflow-component` on npm. Developer/designer
+Publish `@globestudio/webflow-component` on npm. Developer/designer
 runs `webflow devlink import` to pull it into their Workspace. Same
 distribution Lottie's official Webflow integration uses.
 
@@ -168,7 +168,7 @@ some CLI comfort. Not pure no-code.
 ### Path B — Webflow App (Designer App)
 
 Build a Webflow Designer Extension that, when activated, installs
-the Worlddots code component library into the user's Workspace.
+the Globestudio code component library into the user's Workspace.
 Hides the CLI step behind a click.
 
 **Pros:** zero CLI friction for the designer.
@@ -177,10 +177,10 @@ is its own track.
 
 ### Path C — Skip code components, use Custom Code Embed instead
 
-The escape hatch. For most Worlddots users on Webflow, this is what
+The escape hatch. For most Globestudio users on Webflow, this is what
 they'll actually do. Already documented in
 [`2026-05-integrations.md`](2026-05-integrations.md) — paste an
-`<iframe src="https://worlddots.vercel.app/embed?...">` into a Code
+`<iframe src="https://globestudio.vercel.app/embed?...">` into a Code
 Embed block.
 
 **Recommendation:** ship **Path C** as the documented Webflow story
@@ -195,7 +195,7 @@ Two genuine wins of Code Components over iframe embed:
 
 1. **SEO**: Code Components render as real DOM. Search engines see the
    page structure. The iframe approach has zero SEO benefit for the
-   parent site (Worlddots itself benefits, parent site doesn't).
+   parent site (Globestudio itself benefits, parent site doesn't).
 2. **Webflow Interactions**: Code Components can be targets of
    Webflow's native interaction system (scroll triggers, click
    triggers, hover effects). The iframe is opaque to Interactions.
@@ -208,7 +208,7 @@ for the early-adopter wave.
 - Is there a TypeScript definitions file? The docs reference
   `@webflow/data-types` but I haven't confirmed the type ergonomics
   match what we'd want.
-- How does `declareComponent` handle React 19? Worlddots is on
+- How does `declareComponent` handle React 19? Globestudio is on
   React 19; some Webflow tooling may still target React 18.
 - What's the bundle size limit per Workspace library? Three.js is
   560KB; if Webflow has a 1MB cap we need the tree-shaken slim
@@ -224,7 +224,7 @@ for the early-adopter wave.
 In order:
 
 1. **No Webflow work for v0/v1** — invest in Framer first. Document
-   the iframe-embed Path C in the Worlddots README so Webflow users
+   the iframe-embed Path C in the Globestudio README so Webflow users
    can use the tool today.
 2. **Validate before building** — add a `?source=webflow` analytics
    tag on the embed route. If >10% of embed installs come from

@@ -1,6 +1,6 @@
 # Sponsors
 
-Worlddots is MIT-licensed and free forever. If it saves you time on a
+Globestudio is MIT-licensed and free forever. If it saves you time on a
 project — a deck, a hero animation, an annual report — and you have
 the means, [GitHub Sponsors](https://github.com/sponsors/alevizio)
 keeps the lights on.

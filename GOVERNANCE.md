@@ -1,6 +1,6 @@
 # Governance
 
-This document describes how decisions are made on Worlddots. It's intentionally
+This document describes how decisions are made on Globestudio. It's intentionally
 small — the project is small. As the contributor base grows, this will grow
 with it.
 

@@ -42,7 +42,7 @@ export const buildExportFilename = (label, ext, viewMode) => {
     .replace(/^-+|-+$/g, "")
     .slice(0, 32) || "world";
   const view = viewMode === "globe" ? "globe" : "map";
-  return `worlddots-${slug}-${view}.${ext}`;
+  return `globestudio-${slug}-${view}.${ext}`;
 };
 
 // Choose the best supported video MIME type for canvas recording. WebM is the

@@ -7,7 +7,7 @@
 
 ## Goal
 
-Expand Worlddots's map data palette in three orthogonal directions:
+Expand Globestudio's map data palette in three orthogonal directions:
 **resolution** (better coastlines), **projection** (modern equal-area
 alternatives), and **topology categories** (rivers, cities). Each
 new data point opens distinct designer aesthetics. Maintain bundle
@@ -19,7 +19,7 @@ discipline — opt-in for anything over 300KB.
 - **Not shipping elevation contours by default** — wrong density.
 - **Not removing Mercator.** It's the universal "everyone knows this"
   projection; default Equal Earth but keep Mercator selectable.
-- **Not building a GIS-style data layer editor.** Worlddots stays
+- **Not building a GIS-style data layer editor.** Globestudio stays
   curated.
 
 ## Phases
@@ -183,7 +183,7 @@ night" aesthetic.
 ### Phase 6 (open feature) — Custom TopoJSON upload
 
 Mirror the existing "Custom shape" pattern. Users paste a TopoJSON
-file or URL → Worlddots uses it as the dot source. Unlocks
+file or URL → Globestudio uses it as the dot source. Unlocks
 elevation contours, transit lines, custom regions.
 
 #### Tasks (open)

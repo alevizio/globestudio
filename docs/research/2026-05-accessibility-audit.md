@@ -7,7 +7,7 @@
 
 ## Executive summary
 
-Worlddots is **above average for an interactive WebGL design tool**
+Globestudio is **above average for an interactive WebGL design tool**
 on accessibility today. 150+ ARIA attributes are wired, semantic
 landmarks are in place, `:focus-visible` styling is universal,
 `prefers-reduced-motion` is honored deeply (CSS + JS gating shipped
@@ -28,7 +28,7 @@ clear the bar.
 Three passes:
 
 1. **WCAG 2.2 success criteria** — went through all 87 criteria,
-   marking each as Pass / Fail / N/A for Worlddots. Skipping
+   marking each as Pass / Fail / N/A for Globestudio. Skipping
    authentication criteria (no auth) and form-redundant-entry (no
    forms).
 2. **Codebase grep** — `grep -rn "aria-" src/` (150 hits),
@@ -106,7 +106,7 @@ custom color picker (`src/components/ui/color-picker.jsx`) likely
 uses drag for the saturation/value square and the hue/alpha tracks.
 If keyboard arrow-key alternatives aren't wired, this is a 2.2 fail.
 
-The native `<input type="range">` sliders are fine (Worlddots uses
+The native `<input type="range">` sliders are fine (Globestudio uses
 those everywhere except inside the color picker). The custom picker
 needs verification.
 
@@ -125,7 +125,7 @@ name but no way to inspect or interact with the actual content
 (continents, selected countries, current settings).
 
 **Best practice from the research:** mirror the canvas state in a
-hidden DOM tree. For Worlddots:
+hidden DOM tree. For Globestudio:
 
 ```html
 <div className="canvas-a11y-proxy" aria-live="polite">
@@ -143,7 +143,7 @@ The proxy updates on state changes. Visually hidden via
 changes via `aria-live="polite"`.
 
 **Effort:** 1-2 days. Real user benefit beyond compliance — a blind
-designer could pair-program with a sighted designer using Worlddots,
+designer could pair-program with a sighted designer using Globestudio,
 and the proxy gives them a real description of what's happening.
 
 ### Gap 5 — Modal focus trap incomplete ⚠️ Quick verify
@@ -240,7 +240,7 @@ Pass: 14 · Verify: 5 · Fail: 3 · N/A: 3
 ## Risks & uncertainties
 
 - **Canvas proxy DOM scope creep.** Building a fully-narrated proxy
-  DOM (Gap 4) could grow into a small product feature ("Worlddots
+  DOM (Gap 4) could grow into a small product feature ("Globestudio
   for screen readers"). Worth resisting; start with a minimal
   "current state" announcement and expand only if real users ask.
 - **Modal native `<dialog>` migration.** Tempting to swap the
@@ -273,7 +273,7 @@ DOM) is a 1-2 day effort with real user value.
    real screen reader user feedback.
 5. **Wire `axe-core` into CI** so accessibility regressions get
    caught automatically. ~2 hours setup.
-6. **Document A11Y story in README.** "Worlddots is WCAG 2.2 AA"
+6. **Document A11Y story in README.** "Globestudio is WCAG 2.2 AA"
    becomes a real differentiator for the OSS community. Once Gaps
    1-7 are closed, add a section.
 
@@ -284,7 +284,7 @@ Explicitly **deferred**:
   designer tool.
 - Color picker AAA contrast modes. Not realistic for a creative
   tool whose whole point is custom color choice.
-- Print accessibility (no print stylesheet). Worlddots is
+- Print accessibility (no print stylesheet). Globestudio is
   screen-only.
 
 ## Open questions

@@ -10,14 +10,14 @@
 
 ## Goal
 
-Make Worlddots available *inside* the tools designers already use —
+Make Globestudio available *inside* the tools designers already use —
 Framer, Webflow, Figma — without forcing them to leave and re-import.
 Treat each integration as a discrete shippable unit; do not block
 later phases on earlier ones working.
 
 ## Non-goals
 
-- Not building a full design tool. Worlddots is a single aesthetic
+- Not building a full design tool. Globestudio is a single aesthetic
   (dotted maps + globes); generalizing kills the brand.
 - Not building a 50-layout library to satisfy Webflow's public
   Marketplace gate. Distribution via npm package is fine.
@@ -57,7 +57,7 @@ that renders just the canvas, fully driven by query string.
 
 #### Acceptance
 
-- Paste `<iframe src="https://worlddots.vercel.app/embed?look=halftone&density=70">` into a CodePen and the dotted halftone globe renders.
+- Paste `<iframe src="https://globestudio.vercel.app/embed?look=halftone&density=70">` into a CodePen and the dotted halftone globe renders.
 - Query-string changes hot-reload the canvas (in-page) and update on a fresh load.
 - Embed works on Webflow, Framer, plain HTML.
 - Analytics show source attribution for each test embed.
@@ -73,14 +73,14 @@ new code beyond what Phase 0 ships.
 
 - [ ] Write `docs/integrations/webflow.md` — step-by-step "paste this
       in a Code Embed block" with screenshots.
-- [ ] Add a "Use in Webflow" call-out on the Worlddots site.
+- [ ] Add a "Use in Webflow" call-out on the Globestudio site.
 - [ ] Watch analytics for 2-4 weeks. If `?source=webflow` shows
       meaningful volume, advance to Phase 4.
 
 #### Acceptance
 
 - Documentation page live.
-- A Webflow site successfully embeds Worlddots (test internally).
+- A Webflow site successfully embeds Globestudio (test internally).
 - Analytics tagging works end-to-end.
 
 ---
@@ -94,9 +94,9 @@ Three.js bundling worries.
 #### Tasks
 
 - [ ] Create new Framer project, add a code component with the prop
-      surface in [`2026-05-framer-code-component.md`](../research/2026-05-framer-code-component.md#property-control-map-for-worlddots).
+      surface in [`2026-05-framer-code-component.md`](../research/2026-05-framer-code-component.md#property-control-map-for-globestudio).
 - [ ] Implement the component as an `<iframe>` pointing at
-      `worlddots.vercel.app/embed?` with query string built from
+      `globestudio.vercel.app/embed?` with query string built from
       props. ~50 lines of code.
 - [ ] Use `useIsStaticRenderer()` to send `?static=1` when in canvas
       mode — embed honors this by rendering a single still frame.
@@ -105,7 +105,7 @@ Three.js bundling worries.
 - [ ] Take 3 preview screenshots / a short video clip showing
       different presets.
 - [ ] Submit to Framer Marketplace as **free**. Component name:
-      "Worlddots Globe". Description: emphasize "interactive dotted
+      "Globestudio Globe". Description: emphasize "interactive dotted
       globe, 11 presets, no setup."
 - [ ] Wait 14 days for review.
 
@@ -116,24 +116,24 @@ Three.js bundling worries.
 - Changing the Look enum or Density slider in the right-hand panel
   updates the canvas in real time.
 - Static mode (canvas) doesn't burn frames.
-- Component description links back to worlddots.vercel.app.
+- Component description links back to globestudio.vercel.app.
 
 ---
 
 ### Phase 3 — Figma plugin (1–2 weeks, can run parallel to Phase 2 review)
 
-"Export from Worlddots → into Figma frame" plugin. Uses the
+"Export from Globestudio → into Figma frame" plugin. Uses the
 `figma.createImage()` flow documented in the research. No SDK
-extraction needed — the plugin embeds the same Worlddots iframe in
+extraction needed — the plugin embeds the same Globestudio iframe in
 its UI panel.
 
 #### Tasks
 
 - [ ] Scaffold Figma plugin via Figma's Plugin Quickstart. Manifest
       with `editorType: ["figma"]`, network access whitelist
-      `worlddots.vercel.app`.
+      `globestudio.vercel.app`.
 - [ ] Plugin UI: an iframe pointing at
-      `worlddots.vercel.app/embed?plugin=figma` — the embed shows
+      `globestudio.vercel.app/embed?plugin=figma` — the embed shows
       basic preset picker + density slider; on "Insert", the embed
       captures the canvas at 2x and `postMessage`s the PNG bytes
       back to the plugin.
@@ -141,7 +141,7 @@ its UI panel.
       creates a frame with that image as fill, places it at the
       cursor.
 - [ ] Add "Update selected" command — re-render in place when the
-      user has an existing Worlddots-generated frame selected.
+      user has an existing Globestudio-generated frame selected.
 - [ ] Test free-tier plugin permissions (no payment integration).
 - [ ] Submit to Figma Community.
 
@@ -164,7 +164,7 @@ audience.
 
 #### Tasks (gated)
 
-- [ ] Scaffold `@worlddots/webflow-component` as a separate npm
+- [ ] Scaffold `@globestudio/webflow-component` as a separate npm
       package in the repo monorepo (or sibling repo).
 - [ ] Implement `WorldGlobe.tsx` + `WorldGlobe.webflow.tsx` per the
       [Webflow research's API map](../research/2026-05-webflow-devlink.md#component-shape).
@@ -178,7 +178,7 @@ audience.
 
 #### Acceptance
 
-- A Webflow CMS-plan user can run two commands and have Worlddots
+- A Webflow CMS-plan user can run two commands and have Globestudio
   components in their Libraries panel.
 - Component renders SSR-clean (no hydration errors).
 - Props match the Framer component's surface as closely as Webflow's
@@ -189,7 +189,7 @@ audience.
 ### Phase 5 — `.worlddot` portable format spec (background, no deadline)
 
 **Long-term play.** Define a single JSON schema that any tool can
-render, plus a `@worlddots/player` JS runtime that mounts a `.worlddot`
+render, plus a `@globestudio/player` JS runtime that mounts a `.worlddot`
 file into any DOM element. Models after `.lottie`.
 
 This is exploratory until we have multiple integrations actually
@@ -204,7 +204,7 @@ is 95% of what we need.
 - [ ] Versioning rules: semver, with `version: "1.0.0"` baked in
       every file. Player rejects unknown major versions.
 - [ ] Compression: investigate dotLottie's gzip+container approach.
-- [ ] Prototype `@worlddots/player`: a 50KB JS runtime that takes
+- [ ] Prototype `@globestudio/player`: a 50KB JS runtime that takes
       a `.worlddot` + DOM element + (optional) config overrides and
       renders. Internally just instantiates the existing canvas code.
 
@@ -224,7 +224,7 @@ is 95% of what we need.
   SVG export, custom shape upload via the plugin/component. Decide
   when one integration crosses 1,000 active users.
 - **Analytics infrastructure.** The `?source=` tags assume we have
-  analytics on the embed route. Current Worlddots site likely uses
+  analytics on the embed route. Current Globestudio site likely uses
   Vercel Analytics — confirm it captures query params.
 - **Webflow App (Path B).** When does it become worthwhile? Probably
   when Webflow embed traffic exceeds ~5% of total, AND we have
