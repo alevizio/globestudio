@@ -16,7 +16,27 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://worlddots.app/looks/risograph</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://worlddots.app/looks/newsprint</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://worlddots.app/looks/aurora</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://worlddots.app/looks/pixel</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://worlddots.app/looks/bayer</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -47,6 +67,11 @@
   </url>
   <url>
     <loc>https://worlddots.app/looks/metal</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://worlddots.app/looks/iridescent</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

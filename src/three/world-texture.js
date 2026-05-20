@@ -148,6 +148,13 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
     // supplied). Sphere always uses equirectangular regardless. Default is
     // mercator to match dotted-map's internal projection.
     projection: projectionKey = "mercator",
+    // Optional rivers + lake centerlines overlay. Pass a FeatureCollection
+    // of Line/MultiLine features in WGS84. Drawn after country fills but
+    // before country strokes so they don't obscure the political borders.
+    rivers = null,
+    riversVisible = false,
+    riversColor = "rgba(120, 184, 220, 0.72)",
+    riversWidth = 1.1,
   } = options;
 
   // Resolve canvas dimensions. When the caller supplies an aspect (from the
@@ -198,6 +205,25 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
       ctx.beginPath();
       path(feature);
       ctx.fill();
+    });
+  }
+
+  // Rivers + lake centerlines draw between fill and country stroke so the
+  // political borders read on top. Lazy-loaded; only present when caller
+  // passes a FeatureCollection AND riversVisible is on. River scalerank
+  // (1 = major like Amazon/Nile, 9 = small tributary) scales the line
+  // width so important rivers read first.
+  if (riversVisible && rivers?.features?.length) {
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.strokeStyle = riversColor;
+    rivers.features.forEach((feature) => {
+      const scaleRank = feature.properties?.scalerank ?? 5;
+      // Major rivers (low scalerank) draw thicker. Range ~0.5x to ~1.4x.
+      ctx.lineWidth = riversWidth * (1.4 - Math.min(8, scaleRank) * 0.11);
+      ctx.beginPath();
+      path(feature);
+      ctx.stroke();
     });
   }
 

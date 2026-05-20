@@ -104,6 +104,8 @@ export const ControlPanel = ({
   setWorldStrokeWidth,
   flatProjection = "mercator",
   setFlatProjection,
+  riversVisible = false,
+  setRiversVisible,
   dotsVisible,
   setDotsVisible,
   shaderSettings,
@@ -266,6 +268,17 @@ export const ControlPanel = ({
                 </OptionRow>
               </>
             )}
+            {/* Rivers overlay — lazy-loads ~120KB of slim Natural Earth river +
+                lake centerlines on first toggle. Drawn into the solid-mode
+                texture between fill and country stroke. See docs/plans/
+                map-data-rollout.md Phase 4. */}
+            <OptionRow label="Rivers">
+              <ToggleControl
+                label="Show rivers + lake centerlines"
+                checked={riversVisible}
+                onChange={(value) => setRiversVisible?.(value)}
+              />
+            </OptionRow>
             {/* Flat-plane projection picker. Only visible in flat view since
                 the sphere always uses equirectangular for UV unwrap. Solid
                 mode only — when dots are active they're stuck in Mercator

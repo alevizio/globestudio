@@ -101,6 +101,9 @@ const App = () => {
   // equirectangular regardless. See docs/research/2026-05-map-data-alternatives.md
   // Finding 3 for the projection inventory.
   const [flatProjection, setFlatProjection] = usePersistedState("flatProjection", "mercator");
+  // Rivers overlay (solid mode only in v1). Toggle is off by default so the
+  // ~120KB gzipped river dataset isn't fetched until designers opt in.
+  const [riversVisible, setRiversVisible] = usePersistedState("riversVisible", false);
   const [shaderSettings, setShaderSettings] = usePersistedState("shaderSettings", DEFAULT_SHADER_SETTINGS);
   const [globeSettings, setGlobeSettings] = usePersistedState("globeSettings", DEFAULT_GLOBE_SETTINGS);
   // First-time mobile visitors land on the globe with the panel hidden so the
@@ -932,6 +935,7 @@ const App = () => {
             worldStrokeVisible={worldStrokeVisible}
             worldStrokeWidth={worldStrokeWidth}
             flatProjection={flatProjection}
+            riversVisible={riversVisible}
             selectionCountryCodes={selected.countryCodes}
             selectionCollection={selected.collection}
             background={isSpaceBackground ? "#03030a" : background}
@@ -1118,6 +1122,8 @@ const App = () => {
             setWorldStrokeWidth={setWorldStrokeWidth}
             flatProjection={flatProjection}
             setFlatProjection={setFlatProjection}
+            riversVisible={riversVisible}
+            setRiversVisible={setRiversVisible}
             shaderSettings={shaderSettings}
             setShaderSettings={setShaderSettings}
             globeSettings={globeSettings}

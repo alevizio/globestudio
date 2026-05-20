@@ -28,6 +28,7 @@ import { createSpaceBackgroundMesh } from "../three/space-mesh.js";
 import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
 import { loadWorldCountries } from "../data/world-countries-topology.js";
+import { getCachedWorldRivers, loadWorldRivers } from "../data/world-rivers-topology.js";
 import { cca3ToCcn3 } from "../data/geography.js";
 import { PerfMonitor } from "./perf-monitor.jsx";
 
@@ -70,6 +71,12 @@ export const GlobeBackground = ({
   // Solid-mode flat-plane projection. Only affects the flat texture; sphere
   // always uses equirectangular. See FLAT_PROJECTION_OPTIONS in world-texture.js.
   flatProjection = "mercator",
+  // Rivers overlay (Phase 4 of map-data-rollout). Lazy-loads ~120KB of slim
+  // Natural Earth 1:50m river + lake centerlines on first toggle. Drawn into
+  // the solid mode texture — does not affect dot mode in v1.
+  riversVisible = false,
+  riversColor = "rgba(120, 184, 220, 0.72)",
+  riversWidth = 1.1,
   selectionCountryCodes = [],
   selectionCollection = null,
   dotsVisible,
@@ -975,7 +982,12 @@ export const GlobeBackground = ({
       applyGlobeShellProgress(liveRefs, morphRef.current.progress, globeSettingsRef.current);
     };
 
-    loadWorldCountries().then((countries) => {
+    // Kick off the rivers fetch in parallel with the countries fetch when
+    // they're requested. If they're not requested, getCachedWorldRivers()
+    // returns null and the rivers block in the texture is a no-op.
+    const riversPromise = riversVisible ? loadWorldRivers().catch(() => null) : Promise.resolve(null);
+
+    Promise.all([loadWorldCountries(), riversPromise]).then(([countries, rivers]) => {
       if (cancelled) return;
       // Mirror the dot-pipeline's filtering on the solid texture so the
       // selected region/country/state actually shows up here too.
@@ -1018,6 +1030,10 @@ export const GlobeBackground = ({
         strokeGradient: worldStrokeGradient,
         strokeVisible: worldStrokeVisible,
         strokeWidth: worldStrokeWidth,
+        rivers,
+        riversVisible: riversVisible && Boolean(rivers),
+        riversColor,
+        riversWidth,
       };
       const sphereTexture = createWorldTexture(featureCollection, textureOptions);
       const flatTexture = region && aspect
@@ -1041,7 +1057,7 @@ export const GlobeBackground = ({
     // which are stable when the selection doesn't change. The selection
     // deps cover the only mutations that actually matter here, and
     // leaving mapData out avoids a texture rebuild every density slide.
-  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection, flatProjection]);
+  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection, flatProjection, riversVisible, riversColor, riversWidth]);
 
   useEffect(() => {
     const target = morphMode === "globe" ? 1 : 0;
