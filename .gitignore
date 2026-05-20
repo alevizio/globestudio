@@ -4,3 +4,5 @@ artifacts
 .DS_Store
 .claude/
 .vercel
+# Font cache for scripts/generate-og-images.js. Re-downloaded on demand.
+scripts/.cache/
