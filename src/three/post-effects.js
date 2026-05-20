@@ -28,6 +28,7 @@ export const EFFECT_INDEX = {
   risograph: 20,
   newsprint: 21,
   aurora: 22,
+  atkinson: 23,
 };
 
 const VERTEX_SHADER = /* glsl */ `
@@ -218,6 +219,44 @@ const FRAGMENT_SHADER = /* glsl */ `
     vec3 ink = src.rgb / max(max(max(src.r, src.g), src.b), 0.0001);
     vec3 dithered = ink * quantized;
     // Intensity blends from passthrough (0) to pure dither (1).
+    vec3 outRgb = mix(src.rgb, dithered, uIntensity);
+    return vec4(outRgb, max(src.a, quantized * uIntensity));
+  }
+
+  // Atkinson dither — true Atkinson is error-diffusion (each pixel's
+  // quantization error propagates to its neighbors), which can't run in a
+  // single fragment pass. This shader produces the *visual character* of
+  // Atkinson — clustered blobs, "crunchy" classic-Mac look — via a hash-
+  // based threshold map that mimics blue-noise distribution.
+  //
+  // Compared to bayer (regular 4x4 grid), Atkinson uses a higher-frequency
+  // hash that breaks up the regular grid pattern. The threshold curve is
+  // shaped so dark regions cluster tightly (classic Atkinson trait) while
+  // mid-tones spread evenly. Single-pass; identical perf to Bayer.
+  //
+  // Reference: https://en.wikipedia.org/wiki/Atkinson_dithering
+  vec4 atkinsonPass(vec2 uv) {
+    vec4 src = sampleTex(uv);
+    float cell = max(uCellSize * 0.5, 2.0);
+    vec2 pixel = floor(uv * uResolution / cell);
+    // Two interleaved hashes at different scales — produces a clustered
+    // blue-noise-like distribution that breaks up the regular grid.
+    // Magic constants are sqrt(2) and sqrt(5)-ish to avoid axis-aligned
+    // patterns. Combined hash hits the [0, 1] range with reasonable
+    // blue-noise spectral character.
+    float h1 = fract(sin(dot(pixel, vec2(12.9898, 78.233))) * 43758.5453);
+    float h2 = fract(sin(dot(pixel * 1.7321, vec2(39.346, 11.135))) * 21421.6533);
+    float threshold = mix(h1, h2, 0.55);
+    // Reshape: dark regions cluster tighter (smoothstep curve pushes the
+    // threshold distribution away from extremes for the characteristic
+    // "blobby" Atkinson grain).
+    threshold = smoothstep(0.1, 0.9, threshold);
+    float lum = dot(src.rgb, vec3(0.299, 0.587, 0.114));
+    float quantized = lum > threshold ? 1.0 : 0.0;
+    // Same ink-preservation trick as Bayer — keep the source color's hue
+    // while quantizing brightness.
+    vec3 ink = src.rgb / max(max(max(src.r, src.g), src.b), 0.0001);
+    vec3 dithered = ink * quantized;
     vec3 outRgb = mix(src.rgb, dithered, uIntensity);
     return vec4(outRgb, max(src.a, quantized * uIntensity));
   }
@@ -903,6 +942,8 @@ const FRAGMENT_SHADER = /* glsl */ `
       color = newsprintPass(vUv);
     } else if (uEffect > 21.5 && uEffect < 22.5) {
       color = auroraPass(vUv);
+    } else if (uEffect > 22.5 && uEffect < 23.5) {
+      color = atkinsonPass(vUv);
     }
 
     if (uEffect > 0.5 && uGrain > 0.0) {

@@ -19,6 +19,7 @@ const LOOK_PRESET_DESCRIPTIONS = {
   aurora: "Aurora — flowing northern-lights bands",
   pixel: "Pixel — 8-bit blocky pixelation",
   bayer: "Bayer — classic-Mac binary dither",
+  atkinson: "Atkinson — blue-noise blobby dither",
   iridescent: "Iridescent — pearlescent foil sheen",
   wireframe: "Wireframe — edge-traced outlines",
   crt: "CRT — cathode-ray phosphor scanlines",

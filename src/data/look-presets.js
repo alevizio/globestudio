@@ -149,6 +149,23 @@ export const lookPresets = [
     }),
   },
   {
+    id: "atkinson",
+    name: "Atkinson",
+    blurb: "Blue-noise Atkinson dither",
+    settings: merge({
+      density: 65,
+      dotSize: 11,
+      shape: "Square",
+      shaderSettings: {
+        ...effectPresets.atkinson,
+        effect: "atkinson",
+        cellSize: 6,
+        intensity: 90,
+      },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
+    }),
+  },
+  {
     id: "wireframe",
     name: "Wireframe",
     blurb: "Edge-traced lithograph",
