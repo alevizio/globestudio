@@ -410,6 +410,29 @@ button {
   opacity: 0.78;
 }
 
+/* Row of actions in the error fallback — Reload + Report this issue. */
+.map-background-error-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Ghost button variant — used for the secondary "Report this" link
+   next to a primary Reload button. Same dimensions + a11y as .button,
+   transparent background, subtler border. */
+.button-ghost {
+  background: transparent !important;
+  border-color: var(--border) !important;
+  font-weight: 500 !important;
+  text-decoration: none;
+}
+
+.button-ghost:hover {
+  background: var(--panel-2) !important;
+  border-color: var(--border-strong) !important;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

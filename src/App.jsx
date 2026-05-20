@@ -36,7 +36,7 @@ import { getPresetSeo } from "./data/preset-seo.js";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
-import { DottedGlobe, Download, Github, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
+import { Bug, DottedGlobe, Download, Github, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
@@ -1022,12 +1022,25 @@ const App = () => {
 
 
       <ErrorBoundary
-        fallback={({ reset }) => (
+        fallback={({ reset, error }) => (
           <div className="map-background-error" role="alert">
             <p>Couldn’t load the globe view.</p>
-            <button type="button" className="button" onClick={() => { reset(); window.location.reload(); }}>
-              Reload
-            </button>
+            <div className="map-background-error-actions">
+              <button type="button" className="button" onClick={() => { reset(); window.location.reload(); }}>
+                Reload
+              </button>
+              {/* Pre-fills the bug-report form with the error message so we
+                  see what the user hit. Encoded so newlines + special chars
+                  flow through cleanly. */}
+              <a
+                className="button button-ghost"
+                href={`https://github.com/alevizio/worlddots/issues/new?template=bug-report.yml&title=${encodeURIComponent("[bug]: globe view failed to load")}&what-happened=${encodeURIComponent(`Error: ${error?.message || "unknown"}\n\nURL: ${typeof window !== "undefined" ? window.location.href : ""}\nUA: ${typeof navigator !== "undefined" ? navigator.userAgent : ""}`)}`}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                Report this issue
+              </a>
+            </div>
           </div>
         )}
       >
@@ -1093,6 +1106,16 @@ const App = () => {
       <MapZoomControls value={mapZoom} onChange={setMapZoom} />
 
       <nav className="social-links" aria-label="Project links">
+        <a
+          className="social-link"
+          href="https://github.com/alevizio/worlddots/issues/new?template=bug-report.yml"
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label="Report a bug"
+          data-tooltip="Report a bug"
+        >
+          <Bug size={15} />
+        </a>
         <a
           className="social-link"
           href="https://github.com/alevizio/worlddots"
