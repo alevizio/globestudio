@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Worlddots presets — full gallery</title>
+    <meta name="color-scheme" content="dark" />
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --card: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: #f6f2ea;
+        --muted: rgba(246, 242, 234, 0.62);
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { background: var(--bg); color: var(--text); min-height: 100vh; }
+      header {
+        padding: 48px 6vw 24px;
+        text-align: center;
+      }
+      header h1 {
+        font-size: clamp(32px, 5vw, 56px);
+        font-weight: 500;
+        letter-spacing: -0.02em;
+      }
+      header p {
+        color: var(--muted);
+        font-size: 16px;
+        max-width: 560px;
+        margin: 16px auto 0;
+        line-height: 1.55;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        padding: 24px 6vw 64px;
+      }
+      @media (max-width: 760px) {
+        .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: border-color 200ms, transform 200ms;
+      }
+      .card:hover { border-color: rgba(255, 255, 255, 0.3); }
+      .card-frame {
+        aspect-ratio: 4 / 3;
+        background: var(--bg);
+      }
+      .card-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+      .card-meta {
+        padding: 14px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .card-name {
+        font-weight: 500;
+        font-size: 14px;
+        letter-spacing: -0.01em;
+      }
+      .card-desc {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 2px;
+      }
+      .card-open {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 12px;
+        white-space: nowrap;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        transition: color 180ms, border-color 180ms, background 180ms;
+      }
+      .card-open:hover {
+        color: var(--text);
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.06);
+      }
+      footer {
+        padding: 24px 6vw 64px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      footer a { color: var(--text); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>The full Worlddots preset gallery</h1>
+      <p>
+        16 live preset embeds. Hover, click, share the URL. Each card
+        is just <code>&lt;iframe src="/looks/:id"&gt;</code>.
+      </p>
+    </header>
+
+    <main class="grid" id="grid"></main>
+
+    <footer>
+      Built with <a href="https://worlddots.vercel.app/">Worlddots</a> · MIT
+    </footer>
+
+    <script>
+      const PRESETS = [
+        { id: "default", name: "Default", desc: "Clean dotted globe" },
+        { id: "halftone", name: "Halftone", desc: "Newspaper print" },
+        { id: "risograph", name: "Risograph", desc: "Pink + cyan ink" },
+        { id: "newsprint", name: "Newsprint", desc: "CMYK halftone" },
+        { id: "aurora", name: "Aurora", desc: "Northern lights bands" },
+        { id: "pixel", name: "Pixel", desc: "8-bit pixelation" },
+        { id: "bayer", name: "Bayer", desc: "Classic-Mac dither" },
+        { id: "iridescent", name: "Iridescent", desc: "Foil sticker" },
+        { id: "wireframe", name: "Wireframe", desc: "Edge-traced" },
+        { id: "crt", name: "CRT", desc: "Cathode-ray phosphor" },
+        { id: "glitch", name: "Glitch", desc: "Broken signal" },
+        { id: "badtv", name: "Bad TV", desc: "VHS distortion" },
+        { id: "bloom", name: "Bloom", desc: "Glowing aurora" },
+        { id: "metal", name: "Metal", desc: "Polished chrome" },
+        { id: "pencil", name: "Pencil", desc: "Cross-hatched sketch" },
+        { id: "corrupt", name: "Corrupt", desc: "Datamosh" },
+      ];
+
+      const grid = document.getElementById("grid");
+      PRESETS.forEach((preset) => {
+        const card = document.createElement("article");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-frame">
+            <iframe
+              src="https://worlddots.vercel.app/looks/${preset.id}"
+              title="${preset.name} preset"
+              loading="lazy"
+            ></iframe>
+          </div>
+          <div class="card-meta">
+            <div>
+              <div class="card-name">${preset.name}</div>
+              <div class="card-desc">${preset.desc}</div>
+            </div>
+            <a class="card-open" href="https://worlddots.vercel.app/looks/${preset.id}" target="_blank" rel="noopener">Open ↗</a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    </script>
+  </body>
+</html>

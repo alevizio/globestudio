@@ -1,77 +1,86 @@
 # Example: `funding-map-story`
 
-> **Status**: 🟡 Stubbed — README only. Code to come.
+> **Status**: 🟢 Ready (via iframe) — see `index.html`
 
-A scrollytelling article that uses Worlddots maps as section anchors. As the
-reader scrolls, the map zooms from world → region → country → state,
-highlighting different data at each scope.
+A scroll-driven data story: section-by-section narrative where each
+section pins a Worlddots iframe to a different country or region. The
+classic annual-report / impact-report layout — "in 2025, we served
+customers across 47 countries" → the regions light up as the reader
+scrolls.
 
 ## What this proves
 
-Worlddots can power **narrative data journalism** — not just decorative
-visuals. The same selection / preset machinery that drives the live tool
-also drives a guided story.
+Worlddots scales from a single embed to a **narrative spine** for a
+data-driven page. Same iframe primitive, scroll-coordinated.
 
-## Use cases we have in mind
+## The pattern
 
-- **Annual reports** — "Where our customers are this year"
-- **Climate / policy stories** — country-by-country emissions, flowing into
-  state-level detail for the US
-- **Launch maps** — where your beta users came from, animated over time
-- **Travel pieces** — a route across multiple countries with dot density
-  intensity scaling by miles spent
+Each story section has:
 
-## Planned structure
+1. **Headline + paragraph** on the left (or above on mobile)
+2. **Worlddots iframe** on the right (or below) pinned to a specific
+   `/looks/:preset` URL
+3. **Stats** floating over or below the map
 
-```
-funding-map-story/
-├─ README.md
-├─ package.json
-├─ index.html
-├─ src/
-│  ├─ main.jsx
-│  ├─ Story.jsx                  (long-form article scroll)
-│  ├─ MapStep.jsx                (sticky map that re-renders per scroll-step)
-│  └─ steps/
-│     ├─ step-1-world.js         (preset + selection for world view)
-│     ├─ step-2-region-eu.js
-│     ├─ step-3-country-de.js
-│     ├─ step-4-state-bavaria.js (if region supports states)
-│     └─ step-5-summary.js
-├─ data/
-│  └─ funding.csv                (per-country values feeding the gradient)
-└─ public/
-   └─ exports/                   (pre-rendered PNG fallbacks per step)
+The iframe URLs use the existing `/looks/:id` shareable preset URLs.
+Each section swaps its iframe when scrolled into view via
+`IntersectionObserver`, so designers see the right map at the right
+moment.
+
+## When to reach for this
+
+- Annual reports / impact reports
+- Series-A pitch decks ("here's our global footprint")
+- VC portfolio company pages
+- News features with geographic context
+- Substack/Beehiiv posts with map-driven framing
+
+## Run the demo
+
+```bash
+cd examples/funding-map-story
+python3 -m http.server 8000
+# open http://localhost:8000
 ```
 
-## Tech sketch
+Or open `index.html` directly.
 
-The standard pattern is:
+## What `index.html` shows
 
-1. Use [`intersection-observer`](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
-   to detect which step is in the viewport.
-2. Apply that step's preset + selection to the live tool.
-3. Bind the gradient `from`/`to` to a normalized value from `funding.csv`.
-4. Pre-render a static PNG fallback per step so the article still works
-   without WebGL.
+Five story sections stacked vertically, each pinning a different
+`/looks/:id` to the iframe:
 
-## Data binding
+1. **Global presence** — Aurora preset
+2. **Americas focus** — Halftone preset
+3. **Europe expansion** — Risograph preset
+4. **APAC growth** — Newsprint preset
+5. **Future markets** — Iridescent preset
 
-The roadmap includes **CSV → gradient** binding for choropleth-style stories.
-Until that ships, this example will hardcode the per-step gradient. Once it
-ships, the same example becomes a 5-line code change.
+Each section uses `IntersectionObserver` to swap the iframe src as the
+user scrolls — only the active section's iframe is "live."
 
-## Why this matters
+## Production notes
 
-People consume long-form data stories on the New York Times, Pudding,
-Reuters Graphics — but **none of those publications open-source their
-toolchain.** Worlddots could be the missing layer: "I have a story, I have
-a CSV, I want a globe-driven scrollytell, I want to ship it on my own site."
+- **Pre-fetch the next look** via `<link rel="prefetch">` before the
+  user scrolls into it. Cuts the iframe swap from ~200ms to ~30ms.
+- **Embed at lower aspect ratios** for mobile (`aspect-ratio: 4/3`)
+  vs desktop (`16/9`).
+- **Consider WebM background** for performance-critical contexts —
+  Worlddots exports WebM at any preset.
 
-This example is the proof of concept.
+## Static-export workflow
 
-## Want to build this?
+For a polished PDF-ready annual report:
 
-[→ Start a Discussion](https://github.com/alevizio/worlddots/discussions/categories/ideas)
-to align on the data-binding API before code lands. Until that's settled,
-the example is hardcoded steps + screenshots.
+1. For each section, open the preset URL on `worlddots.app`
+2. Configure the selection + look settings
+3. Export PNG at 2× resolution
+4. Drop into InDesign / Affinity Publisher
+5. Lay typography over
+
+## See also
+
+- [`hero-globe`](../hero-globe/) — single-section hero version
+- [`shader-presets-showcase`](../shader-presets-showcase/) — preset
+  catalog for picking the right look per section
+- [`embed-snippet`](../embed-snippet/) — minimum-viable embed pattern

@@ -1,82 +1,53 @@
 # Example: `shader-presets-showcase`
 
-> **Status**: 🟡 Stubbed — README only. Code to come.
+> **Status**: 🟢 Ready — see `index.html`
 
-A side-by-side gallery showing all 10+ built-in presets running live. The
-intent is half marketing piece, half interactive documentation.
+A grid gallery showing every Worlddots preset side-by-side, each as a
+live mini-iframe. Useful as:
 
-## What this proves
+- A **picker tool** for designers comparing presets before committing
+- A **demo page** for blog posts / portfolios introducing Worlddots
+- A **screen-recording subject** for social posts ("16 dotted-globe
+  looks in 30 seconds")
 
-Worlddots is a **creative surface**, not just a map renderer. The shader
-effect system isn't an afterthought — it's the reason the tool exists.
+## What's in the gallery
 
-## Planned design
+All 16 presets:
 
-```
-┌────────────────────────────────────────────────────────────┐
-│  Worlddots — Look Gallery                                  │
-├──────────┬──────────┬──────────┬──────────┬───────────────┤
-│  Default │  Print   │ Wireframe│   CRT    │   Glitch      │
-│  [globe] │  [globe] │  [globe] │  [globe] │  [globe]      │
-│  small   │  small   │  small   │  small   │  small        │
-├──────────┼──────────┼──────────┼──────────┼───────────────┤
-│  Bloom   │  Pixel   │  ASCII   │   Topo   │   Space       │
-│  [globe] │  [globe] │  [globe] │  [globe] │  [globe]      │
-│  small   │  small   │  small   │  small   │  small        │
-└──────────┴──────────┴──────────┴──────────┴───────────────┘
-```
+`default`, `halftone`, `risograph`, `newsprint`, `aurora`, `pixel`,
+`bayer`, `iridescent`, `wireframe`, `crt`, `glitch`, `badtv`, `bloom`,
+`metal`, `pencil`, `corrupt`.
 
-Hovering a cell brings up the preset name + a short description + an "Open
-in tool" button that links to `/looks/:id`.
+Each card:
 
-## Performance considerations
+- Iframe pointing at `/looks/:id`
+- Preset name + one-line description
+- "Open in Worlddots →" link to the full app with that preset
 
-Running 10 globes at once is **not free**. The plan:
+## Run
 
-- Globes are paused (no render loop) when their cell is offscreen via
-  IntersectionObserver
-- Default DPR is 1 (no Retina) in the gallery — full resolution kicks in
-  only when a cell is hovered
-- Each globe shares the same `mapData` to avoid duplicate dot generation
-- Render loops are throttled to 30fps in the gallery (instead of 60)
-
-If a user's device can't handle even that, we swap to pre-rendered PNGs.
-
-## Planned structure
-
-```
-shader-presets-showcase/
-├─ README.md
-├─ package.json
-├─ index.html
-├─ src/
-│  ├─ main.jsx
-│  ├─ Gallery.jsx
-│  ├─ PresetCell.jsx
-│  └─ shared-mapdata.js
-└─ public/
-   └─ static-fallbacks/
-      ├─ default.png
-      ├─ wireframe.png
-      └─ …
+```bash
+cd examples/shader-presets-showcase
+python3 -m http.server 8000
 ```
 
-## Why this matters
+Or open `index.html` directly.
 
-Right now the only way to compare presets is to click each one in the live
-tool — which means resetting your other settings. The showcase makes the
-difference between presets visible at a glance, which is useful for:
+## Performance notes
 
-- **Documentation** — "show me what 'Glitch' looks like before I pick it"
-- **Inspiration** — "I want something similar to 'Print' but darker"
-- **Bug surface** — a single page that exercises every shader is a great
-  smoke test
+16 iframes is a lot. The page uses `loading="lazy"` on each so iframes
+below the fold don't load until scrolled into view. On mobile, the
+gallery switches to 2 columns to keep memory usage reasonable.
 
-## Want to build this?
+## When to reach for this
 
-This is the most front-end-friendly example. If you've never contributed to
-Worlddots and want a starter project, this is a good one. The hardest part
-is the perf budget for running 10 globes — the rest is React + CSS Grid.
+- Picking a look for a client project (compare 4 visually similar
+  presets at once)
+- Internal design-system page documenting the available styles
+- Blog post about how Worlddots looks vary
+- Conference talk slide with the full catalog visible
 
-[→ Open an issue](https://github.com/alevizio/worlddots/issues/new?template=feature-request.yml)
-or just open a draft PR and we'll iterate.
+## See also
+
+- [`embed-snippet`](../embed-snippet/) — single-preset version
+- [`hero-globe`](../hero-globe/) — when you've already picked one

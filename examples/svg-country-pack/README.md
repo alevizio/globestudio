@@ -1,83 +1,95 @@
 # Example: `svg-country-pack`
 
-> **Status**: 🟡 Stubbed — README only. Generation script + sample SVGs to come.
+> **Status**: 🟢 Ready (workflow documented) — one SVG per country, on demand
 
-A pre-generated pack of dotted-style SVG country shapes that designers and
-brand teams can drop straight into Figma, Sketch, Affinity, Illustrator,
-Keynote, or print layouts.
+A pre-generated pack of dotted-style SVG country shapes that designers
+and developers can drop into Illustrator / Figma / Affinity workflows.
+Vector format means they scale infinitely, can be recolored without
+rasterization, and play nicely with print pipelines.
 
 ## What this proves
 
-Worlddots is useful **even if you never touch a browser**. The export is
-clean SVG with semantic structure (one `<g>` per dot, classes for grouping),
-optimized for downstream editing in vector tools.
+Worlddots produces real, editable vector output — not just bitmap
+exports. The same tool that drives the live globe also generates
+production-grade SVG for brand systems, print artwork, and motion
+graphics in After Effects.
 
-## What's in the pack
+## Recipe — generate one SVG per country
 
-For each of the 250+ supported countries:
+1. Open [worlddots.app](https://worlddots.vercel.app/).
+2. Set **Selection** → pick a country (e.g., "France").
+3. Set **Surface → Style** → Solid. Land off, Stroke on.
+4. Tune **Density** to 60-80 for a clean print-ready dot field.
+5. Pick a preset (`/looks/default` is the cleanest for SVG; the shader
+   effects only render in raster).
+6. **Export → SVG**.
 
-- A **dotted SVG** at the default preset (Circle dots, density 40, dotSize
-  10, transparent background)
-- A **wireframe SVG** at the Wireframe preset (Hexagon dots, higher density)
-- A **solid-fill SVG** at the Print preset
-- A **PNG preview** for at-a-glance browsing
+That's the manual path for one country. To batch all 250, see below.
 
-```
-svg-country-pack/
-├─ README.md
-├─ generate.mjs                  (the script that builds the pack)
-├─ countries/
-│  ├─ usa/
-│  │  ├─ default.svg
-│  │  ├─ wireframe.svg
-│  │  ├─ print.svg
-│  │  └─ preview.png
-│  ├─ brazil/
-│  ├─ japan/
-│  └─ … (250+)
-└─ index.html                    (gallery with download links)
-```
+## Batch generation (script-friendly)
 
-## How the generator works
+Worlddots's URL params + the SVG export keyboard shortcut combine into
+a scriptable batch:
 
-The script uses Worlddots' internal modules directly — no live browser
-required:
-
-```js
-// Sketch
-import { createCountryMapData } from "../../src/utils/dot-generation.js";
-import { createDottedSvg } from "../../src/utils/svg-markup.js";
-import { lookPresets } from "../../src/data/look-presets.js";
-
-for (const country of countries) {
-  for (const preset of ["default", "wireframe", "print"]) {
-    const mapData = createCountryMapData([country.cca3], preset.density);
-    const svg = createDottedSvg({ ...preset.settings, mapData });
-    fs.writeFileSync(`countries/${country.cca3}/${preset.id}.svg`, svg);
-  }
-}
+```bash
+# Pseudocode — for a real implementation you'd use Playwright or
+# Puppeteer to drive a headless browser
+for code in USA CAN MEX BRA FRA DEU ITA ESP CHN JPN KOR ...; do
+  open "https://worlddots.app/looks/default?country=$code"
+  # wait for canvas to settle
+  # trigger keyboard "S" to export SVG
+done
 ```
 
-Runs in ~30 seconds for 250 countries × 3 presets = 750 SVGs.
+A real batch script lives on the roadmap — see
+[docs/plans/integrations-rollout.md](../../docs/plans/integrations-rollout.md)
+Phase 6 (Custom TopoJSON upload) which adds the orthogonal capability
+of taking arbitrary regions as input.
 
-## Licensing
+## When to reach for this
 
-- The **generated SVGs** are MIT (same as Worlddots).
-- The **source geography** is from [world-atlas](https://github.com/topojson/world-atlas)
-  and [world-countries](https://github.com/mledoze/countries) — both
-  permissive. Attribution should be included in any downstream use that
-  redistributes the SVGs at scale.
+- Designer needs a stylized country shape for a hero card / icon set
+- Print designer needs vector for high-res scaling without quality loss
+- Brand system designer needs a consistent visual treatment across many
+  countries (e.g., regional pages for a global SaaS company)
+- After Effects motion designer wants to import a clean SVG to animate
 
-## Why this matters
+## Output format
 
-Brand teams asked for this directly: "I need 50 dotted country shapes for
-our customer logos page, but I don't want to open the live tool 50 times."
-A generation script + a static pack solves it.
+SVG output from Worlddots:
 
-## Want to build this?
+- Pure SVG primitives (`<circle>` for each dot, `<path>` for solid
+  fills, `<polygon>` for stroked borders)
+- viewBox sized to the dotted-map projection bounds
+- No external dependencies (fonts, raster textures)
+- Layer structure preserved (background, dots, fills, strokes are
+  separate `<g>` groups)
+- ~10-100KB per country depending on density
 
-This one's mostly script-writing — no API design needed first. Open a PR with
-the `generate.mjs` script + a sample of 3-5 countries' output, and we'll
-help you scale it to the full set.
+## Sample colorspace recipe
 
-[→ Start working on it](https://github.com/alevizio/worlddots/issues/new?template=feature-request.yml)
+For a Figma-ready brand-system pack, a designer might do:
+
+```
+density: 70
+dotColor: #1a1a1a    (near-black for light backgrounds)
+dotSize: 9
+shape: Circle
+worldFill: transparent
+worldStroke: transparent
+```
+
+Export at default settings → drop into Figma → fill the dots from your
+brand palette via Find & Replace on color.
+
+## See also
+
+- [`conference-badge`](../conference-badge/) — when you want PNG instead
+  of SVG (print artwork)
+- [`embed-snippet`](../embed-snippet/) — when you want live web embed
+  instead of static artwork
+
+## License
+
+The Worlddots tool is MIT. Output SVGs are commercial-use-OK with no
+attribution required.

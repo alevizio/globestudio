@@ -1,70 +1,113 @@
 # Example: `hero-globe`
 
-> **Status**: 🟡 Stubbed — README only. Code to come.
+> **Status**: 🟢 Ready (via iframe) · 🟡 Native `mountGlobe` API queued
 
-A landing-page hero with an animated dotted globe as the background. Headline
-copy sits on top, the globe spins gently, and the whole thing degrades
-gracefully on slower devices and with `prefers-reduced-motion`.
+A landing-page hero with an animated dotted globe as the background.
+Headline copy sits on top, the globe spins gently, and the whole thing
+degrades gracefully on slower devices and with `prefers-reduced-motion`.
 
 ## What this proves
 
-Worlddots isn't just an export tool — it's also a **live embeddable** for the
-landing pages you build. This example shows the recommended setup for:
+Worlddots isn't just an export tool — it's a **live embeddable** for
+the landing pages you build. This example shows the recommended setup.
 
-- Mounting the globe inside a Next.js / Astro / Vite app
-- Keeping the canvas non-interactive (no drag, no zoom — it's a background)
-- Falling back to a static PNG export below a CSS media query
+## The shippable version (today)
 
-## Planned structure
+Drop this into your hero section:
 
+```html
+<section class="hero">
+  <iframe
+    class="hero-bg"
+    src="https://worlddots.app/looks/bloom"
+    title="Dotted globe background"
+    loading="eager"
+    aria-hidden="true"
+  ></iframe>
+  <div class="hero-content">
+    <h1>Your headline goes here</h1>
+    <p>Your subtitle. Your CTA.</p>
+  </div>
+</section>
 ```
-hero-globe/
-├─ README.md         (this file)
-├─ package.json
-├─ index.html
-├─ src/
-│  ├─ main.jsx       (React entry)
-│  ├─ Hero.jsx       (the actual hero component)
-│  └─ globe-mount.js (small wrapper around buildGlobeDotLayer)
-├─ public/
-│  └─ fallback.png   (high-res PNG export for low-end devices)
-└─ vercel.json       (or netlify.toml)
+
+```css
+.hero {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none; /* let your CTAs handle clicks */
+}
+.hero-content {
+  position: relative;
+  z-index: 1;
+  padding: 12vh 6vw;
+  color: #fff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg { opacity: 0.6; }
+}
 ```
 
-## Configuration
+That's it. The globe spins via Worlddots's `autoSpin`, the iframe is
+non-interactive so your CTAs receive clicks, and reduced-motion users
+get a dimmed-but-static version (the inner Worlddots app already pauses
+animation under the OS preference; this CSS layer is extra polish).
 
-The globe will use the **Bloom** preset by default — soft glow, dark
-background, network arcs on. The configuration object is hardcoded so the
-hero doesn't depend on the full panel UI.
+## Preset suggestions
+
+The Bloom preset (`/looks/bloom`) is the strongest hero candidate —
+soft glow, dark background, network arcs on. Other good fits:
+
+- `/looks/aurora` — northern-lights bands, ethereal mood
+- `/looks/iridescent` — pearlescent, modern
+- `/looks/default` — calm classic
+
+Avoid the "stamped" looks (`halftone`, `risograph`, `newsprint`,
+`bayer`) for full-bleed hero backgrounds — they read better at
+medium sizes where the dot grid is legible.
+
+## Future: `mountGlobe` native API
+
+The iframe approach has one limitation: no JS API for fine-grained
+control (scroll-driven parameter changes, parallax-tied tilt, etc).
+A future `@worlddots/embed` npm package will expose:
 
 ```js
-// Sketch of the intended API
-import { mountGlobe } from "worlddots";
+import { mountGlobe } from "@worlddots/embed";
 
-mountGlobe(canvasRef.current, {
+const globe = mountGlobe(canvasRef.current, {
   preset: "bloom",
   interactive: false,
   rotateAnimating: true,
   network: true,
-  panelCollapsed: true,
+});
+
+// Later — react to scroll
+window.addEventListener("scroll", () => {
+  globe.set({ tiltX: window.scrollY * 0.02 });
 });
 ```
 
-> ⚠️ This API doesn't exist yet — it's part of the roadmap for an
-> **embeddable mode**. Until then, you can fork the main repo and run the
-> whole app in iframe-friendly mode.
+Tracked in [docs/plans/integrations-rollout.md](../../docs/plans/integrations-rollout.md)
+Phase 0 (the `/embed` route foundation) + Phase 5 (portable format).
 
-## Why this matters
+## Reference implementation links
 
-The number one question we hear is "could I drop this on my marketing site?"
-Right now the answer is "fork the repo and hand-mount the canvas." This
-example gets that down to **one npm install + 20 lines of JSX**.
+- [Vercel deployment of Worlddots itself](https://worlddots.app/) uses
+  the dotted globe as its own background — view source for production
+  CSS techniques.
+- [`embed-snippet`](../embed-snippet/) — runnable HTML demo of the
+  iframe pattern.
 
-## Want to build this?
+## License
 
-If you'd like to take a swing at this example before we get to it, please
-open a Discussion first — there's an embeddable-mode API design we need to
-align on. The whole thing should be roughly a day of work once that API is
-stable.
-
-[→ Start a Discussion](https://github.com/alevizio/worlddots/discussions/categories/ideas)
+MIT.

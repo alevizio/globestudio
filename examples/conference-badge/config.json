@@ -1,0 +1,42 @@
+{
+  "$schema": "https://worlddots.app/schema/config.json",
+  "version": "1.0",
+  "preset": "wireframe",
+  "selection": "country:USA",
+  "density": 80,
+  "dotSize": 14,
+  "shape": "Hexagon",
+  "renderMode": "solid",
+  "worldFill": "#5a5a64",
+  "worldFillVisible": false,
+  "worldStroke": "#f6f2ea",
+  "worldStrokeVisible": true,
+  "worldStrokeWidth": 2.4,
+  "flatProjection": "mercator",
+  "riversVisible": true,
+  "citiesVisible": false,
+  "shaderSettings": {
+    "effect": "edge",
+    "intensity": 65,
+    "threshold": 16,
+    "grain": 0,
+    "scanlines": 0,
+    "motion": 0
+  },
+  "globeSettings": {
+    "look": "classic",
+    "glow": false,
+    "glowStrength": 0,
+    "grid": false,
+    "gridStrength": 64,
+    "surface": true,
+    "surfaceStrength": 82,
+    "autoSpin": false,
+    "network": false
+  },
+  "background": "#0a0a0a",
+  "backgroundStyle": "solid",
+  "tiltX": 0,
+  "tiltY": 0,
+  "mapDepth": 55
+}

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Worlddots scrollytelling — 2025 Impact Report</title>
+    <meta name="color-scheme" content="dark" />
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --panel: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: #f6f2ea;
+        --muted: rgba(246, 242, 234, 0.7);
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { background: var(--bg); color: var(--text); }
+      .intro {
+        min-height: 70vh;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 0 6vw;
+      }
+      .intro .eyebrow {
+        letter-spacing: 0.18em;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
+      .intro h1 {
+        font-size: clamp(36px, 6vw, 72px);
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        max-width: 720px;
+      }
+      .intro p {
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.55;
+        margin-top: 20px;
+        max-width: 560px;
+      }
+      .section {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        padding: 12vh 6vw;
+        align-items: center;
+        border-top: 1px solid var(--border);
+      }
+      @media (max-width: 760px) {
+        .section { grid-template-columns: 1fr; padding: 8vh 6vw; }
+      }
+      .section-text .stat {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 56px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        line-height: 1;
+        margin-bottom: 14px;
+      }
+      .section-text h2 {
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        line-height: 1.2;
+        margin-bottom: 12px;
+      }
+      .section-text p {
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.6;
+        max-width: 460px;
+      }
+      .map-frame {
+        aspect-ratio: 4 / 3;
+        width: 100%;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #0a0a0a;
+        border: 1px solid var(--border);
+      }
+      .map-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+      .outro {
+        min-height: 50vh;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 6vh 6vw;
+        border-top: 1px solid var(--border);
+      }
+      .outro p { color: var(--muted); font-size: 14px; }
+      .outro a { color: var(--text); }
+      @media (prefers-reduced-motion: reduce) {
+        .map-frame { opacity: 0.72; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="intro">
+      <div>
+        <div class="eyebrow">2025 Impact Report — Sample</div>
+        <h1>How we showed up across the world this year.</h1>
+        <p>
+          A scrollytelling example built with Worlddots. Each section pins
+          the globe to a different region as you scroll.
+        </p>
+      </div>
+    </header>
+
+    <section class="section" data-look="aurora">
+      <div class="section-text">
+        <div class="stat">47</div>
+        <h2>Countries served</h2>
+        <p>
+          From eight in 2022 to forty-seven this year. The global expansion
+          tracked customer demand more than market projections — we followed
+          where we were already useful.
+        </p>
+      </div>
+      <div class="map-frame"><iframe data-base="aurora" src="https://worlddots.vercel.app/looks/aurora" title="Global presence" loading="lazy"></iframe></div>
+    </section>
+
+    <section class="section" data-look="halftone">
+      <div class="section-text">
+        <div class="stat">12.4M</div>
+        <h2>Americas reach</h2>
+        <p>
+          North + South America together accounted for the largest single
+          region by user count. The US, Canada, Brazil, and Mexico led; the
+          Caribbean grew fastest year-over-year.
+        </p>
+      </div>
+      <div class="map-frame"><iframe data-base="halftone" src="https://worlddots.vercel.app/looks/halftone" title="Americas focus" loading="lazy"></iframe></div>
+    </section>
+
+    <section class="section" data-look="risograph">
+      <div class="section-text">
+        <div class="stat">+38%</div>
+        <h2>European expansion</h2>
+        <p>
+          New offices in Berlin, Lisbon, and Stockholm anchored EU operations.
+          GDPR-native engineering let us spin up regional infrastructure in
+          weeks, not quarters.
+        </p>
+      </div>
+      <div class="map-frame"><iframe data-base="risograph" src="https://worlddots.vercel.app/looks/risograph" title="European expansion" loading="lazy"></iframe></div>
+    </section>
+
+    <section class="section" data-look="newsprint">
+      <div class="section-text">
+        <div class="stat">9</div>
+        <h2>APAC launches</h2>
+        <p>
+          Tokyo, Singapore, Seoul, Sydney, Bangkok, Manila, Jakarta, Mumbai,
+          and Hanoi. Each market needed a localized onboarding flow; the
+          template held up across nine variants.
+        </p>
+      </div>
+      <div class="map-frame"><iframe data-base="newsprint" src="https://worlddots.vercel.app/looks/newsprint" title="APAC growth" loading="lazy"></iframe></div>
+    </section>
+
+    <section class="section" data-look="iridescent">
+      <div class="section-text">
+        <div class="stat">2026</div>
+        <h2>What's next</h2>
+        <p>
+          Africa, Eastern Europe, and Central Asia open in Q1. Same playbook,
+          same product, more of where customers already are.
+        </p>
+      </div>
+      <div class="map-frame"><iframe data-base="iridescent" src="https://worlddots.vercel.app/looks/iridescent" title="Future markets" loading="lazy"></iframe></div>
+    </section>
+
+    <footer class="outro">
+      <p>
+        Demo built with <a href="https://worlddots.vercel.app/">Worlddots</a>. Fully iframe-driven; no
+        framework, no build step.
+      </p>
+    </footer>
+
+    <script>
+      // Pre-warm the iframe of the next visible section so the swap on
+      // scroll is instant. Watches every section via IntersectionObserver;
+      // when one enters the viewport we trigger a no-op preload via Image()
+      // on the preset's preview image.
+      const sections = document.querySelectorAll(".section");
+      const presetImg = (look) => `https://worlddots.vercel.app/looks/${look}.png`;
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const next = entry.target.nextElementSibling;
+            const nextLook = next?.dataset?.look;
+            if (nextLook) {
+              // Touch the URL via a 0-byte image to nudge the cache.
+              new Image().src = presetImg(nextLook);
+            }
+          }
+        });
+      }, { rootMargin: "20% 0px" });
+      sections.forEach((s) => observer.observe(s));
+    </script>
+  </body>
+</html>

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Worlddots hero example — Acme Globally Available</title>
+    <meta name="color-scheme" content="dark" />
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --text: #f6f2ea;
+        --muted: rgba(246, 242, 234, 0.72);
+        --accent: #4c8bff;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { background: var(--bg); color: var(--text); height: 100%; }
+      .hero {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+        text-align: center;
+      }
+      .hero-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        pointer-events: none;
+      }
+      .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 720px;
+        padding: 0 6vw;
+        animation: fade-up 800ms cubic-bezier(0.2, 0.7, 0.2, 1) 200ms both;
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 24px;
+      }
+      h1 {
+        font-size: clamp(40px, 7vw, 88px);
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        line-height: 1.04;
+        margin-bottom: 24px;
+      }
+      .subtitle {
+        font-size: clamp(16px, 2vw, 20px);
+        color: var(--muted);
+        line-height: 1.5;
+        margin-bottom: 36px;
+        max-width: 540px;
+        margin-inline: auto;
+      }
+      .cta {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        background: var(--text);
+        color: var(--bg);
+        padding: 14px 24px;
+        border-radius: 999px;
+        font-weight: 500;
+        font-size: 15px;
+        text-decoration: none;
+        transition: transform 200ms ease-out, opacity 200ms;
+      }
+      .cta:hover { transform: scale(1.03); }
+      .footer {
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .footer a { color: inherit; }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-bg { opacity: 0.55; }
+        .hero-content { animation: none; }
+      }
+      @keyframes fade-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="hero">
+      <!-- The single iframe is the entire hero background. Swap /looks/bloom
+           to /looks/aurora or /looks/iridescent for different moods. -->
+      <iframe
+        class="hero-bg"
+        src="https://worlddots.vercel.app/looks/bloom"
+        title="Animated dotted globe background"
+        loading="eager"
+        aria-hidden="true"
+      ></iframe>
+
+      <div class="hero-content">
+        <div class="eyebrow">Now available worldwide</div>
+        <h1>The platform that scales with your maps.</h1>
+        <p class="subtitle">
+          From a single country to every continent, Acme ships everywhere your
+          customers do. With native infrastructure across 47 regions.
+        </p>
+        <a class="cta" href="#start">Get started →</a>
+      </div>
+
+      <div class="footer">
+        Background: <a href="https://worlddots.vercel.app/">Worlddots</a> · Bloom preset
+      </div>
+    </section>
+  </body>
+</html>

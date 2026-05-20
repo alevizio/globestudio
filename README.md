@@ -90,6 +90,18 @@ npm test -- --run  # 119 tests across 18 files
 | **Brand system** | A consistent dotted-globe mark across your site, app, and docs. |
 | **Stream / podcast graphic** | Looping WebM background with the CRT or Glitch preset. |
 
+### Runnable examples
+
+The [`examples/`](./examples) directory holds 7 reference projects with
+runnable HTML and adaptation guides. Highlights:
+
+- [`embed-snippet`](./examples/embed-snippet) — the minimum-viable iframe
+  pattern. Copy into Webflow, Framer, Notion, plain HTML, anywhere.
+- [`hero-globe`](./examples/hero-globe) — full-bleed animated globe behind
+  a landing-page hero.
+- [`shader-presets-showcase`](./examples/shader-presets-showcase) — all 16
+  presets in one auto-fit gallery, perfect for picking a look.
+
 Share what you make in [Show & Tell](https://github.com/alevizio/worlddots/discussions/categories/show-and-tell).
 
 ## Documentation

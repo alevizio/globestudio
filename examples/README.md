@@ -11,7 +11,7 @@ makes the answer obvious.
 
 Each example is in one of these states:
 
-- 🟢 **Ready** — full code, deployed somewhere, README explains the use case
+- 🟢 **Ready** — runnable HTML, deployable, documented
 - 🟡 **Stubbed** — README exists, code is a placeholder
 - 🔴 **Idea** — only listed, not started
 
@@ -19,10 +19,44 @@ Each example is in one of these states:
 
 | | Example | What it proves | Status |
 |---|---|---|---|
-| 🌍 | [`hero-globe`](./hero-globe) | Animated globe behind a landing page hero | 🟡 Stubbed |
-| 🔭 | [`funding-map-story`](./funding-map-story) | Country-by-country data story / report | 🟡 Stubbed |
-| 🗺️ | [`svg-country-pack`](./svg-country-pack) | Pre-exported SVG country shapes for brand systems | 🟡 Stubbed |
-| 🎨 | [`shader-presets-showcase`](./shader-presets-showcase) | Side-by-side gallery of every preset | 🟡 Stubbed |
+| 🧩 | [`embed-snippet`](./embed-snippet) | The minimum-viable iframe embed pattern — paste into any site | 🟢 Ready |
+| 🌍 | [`hero-globe`](./hero-globe) | Animated globe behind a landing page hero | 🟢 Ready |
+| 📊 | [`funding-map-story`](./funding-map-story) | Scroll-driven annual-report data story | 🟢 Ready |
+| 🎨 | [`shader-presets-showcase`](./shader-presets-showcase) | All 16 presets in one auto-fit gallery | 🟢 Ready |
+| 🏷️ | [`conference-badge`](./conference-badge) | Single-country PNG for print artwork | 🟢 Ready |
+| 🗺️ | [`country-highlight`](./country-highlight) | Single-country profile page template | 🟢 Ready |
+| 🎯 | [`svg-country-pack`](./svg-country-pack) | Vector country shapes for Illustrator / Figma | 🟢 Ready (workflow docs) |
+
+## Run an example locally
+
+Each `index.html` works standalone. Two options:
+
+```bash
+# Option 1 — open the HTML file directly in your browser
+open examples/hero-globe/index.html
+
+# Option 2 — serve via Python (recommended for caching headers)
+cd examples/hero-globe && python3 -m http.server 8000
+# open http://localhost:8000
+```
+
+All examples use `https://worlddots.vercel.app/looks/:id` URLs for live
+embeds — no build step or npm install required.
+
+## Adapt an example for your project
+
+Each example folder contains:
+
+- `README.md` — what it shows + how to adapt it for your project
+- `index.html` (where applicable) — runnable demo
+- `config.json` (where applicable) — exact Worlddots config that
+  reproduces the look
+
+Most adaptations are a matter of:
+
+1. Copy the `index.html` into your project
+2. Change the preset URL in the iframe `src`
+3. Restyle the surrounding HTML/CSS to match your brand
 
 ## Contributing an example
 
@@ -39,15 +73,12 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full guide.
 
 ## What we'd love to see
 
-These aren't planned, but if you ship any of them as a PR we'll feature it:
+Community examples we'd put on the front page if someone built them:
 
-- A **scrollytelling article** that uses dotted globe sections as section
-  dividers
-- A **brand microsite** that uses Worlddots as the only visual asset (logo +
-  hero + footer)
-- A **video opener** export — WebM looped behind a typeface, designed for a
-  conference talk or stream
-- A **data-journalism piece** with per-country dot intensity bound to a CSV
-- A **404 page** that uses a glitched globe as the visual
-
-Pitch ideas in [Show & Tell](https://github.com/alevizio/worlddots/discussions/categories/show-and-tell).
+- Webflow showcase template
+- Framer code component (gated on integrations Phase 2)
+- Figma plugin (gated on integrations Phase 3)
+- Astro starter with Worlddots embedded
+- After Effects template — animated tag-along map for video projects
+- Notion embed cookbook
+- Cloudflare Worker that proxies preset URLs to a custom domain
