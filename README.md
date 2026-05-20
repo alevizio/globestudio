@@ -80,6 +80,32 @@ npm run preview    # serve dist/ locally
 npm test -- --run  # 119 tests across 18 files
 ```
 
+## Embed it anywhere
+
+Worlddots ships an iframe-friendly `/embed` route — drop the globe into
+Webflow, Framer, Notion, plain HTML, or any iframe-supporting tool:
+
+```html
+<iframe
+  src="https://worlddots.app/embed?look=halftone&density=70&autoSpin=1"
+  width="100%"
+  height="500"
+  style="border:0"
+  loading="lazy"
+  title="Worlddots dotted globe"
+></iframe>
+```
+
+**Query parameters:** `look`, `density`, `dotSize`, `dotColor`, `worldFill`,
+`renderMode` (dots/solid), `selection`, `motion`, `tiltX`, `tiltY`,
+`autoSpin`, `view` (flat/globe), `static` (freeze motion for static
+previews), `transparent`, `background`, `source` (analytics tag).
+
+Resize-aware via `postMessage` — listen for
+`{ type: "worlddots-resize", height }` from the embed and resize the
+iframe to match. WebGL 2 required; falls back to a "your browser doesn't
+support WebGL 2" message if not available.
+
 ## What you can build with it
 
 | Use case | What it gives you |

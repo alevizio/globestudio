@@ -109,6 +109,45 @@ button {
   background: var(--preview-bg, var(--bg));
 }
 
+/* Embed view — fills the viewport with no chrome. Used by /embed for
+   iframe embeds in Framer / Webflow / external pages. The wrapper sets a
+   stable height so parent iframes can use the postMessage resize protocol
+   to size correctly. See src/components/embed-view.jsx. */
+.embed-view {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.embed-view-placeholder {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 60% 50%, rgba(120, 140, 200, 0.04) 0%, transparent 38%),
+    var(--bg);
+}
+
+.embed-view-fallback {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-align: center;
+}
+
+.embed-view-fallback a {
+  color: var(--text);
+  text-decoration: underline;
+}
+
 .app-shell::after {
   content: "";
   position: fixed;
