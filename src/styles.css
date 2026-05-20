@@ -1767,6 +1767,13 @@ button {
   gap: 6px;
 }
 
+.bug-link {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 4;
+}
+
 /* Each link is its own self-contained chip — same panel chrome as the
    view-mode-switch / segmented controls (border, blur, shadow), just
    one icon wide. Reads as a cluster of independent shortcuts rather

@@ -1105,17 +1105,17 @@ const App = () => {
       <ViewModeSwitch viewMode={viewMode} setViewMode={changeViewMode} />
       <MapZoomControls value={mapZoom} onChange={setMapZoom} />
 
+      <a
+        className="social-link bug-link"
+        href="https://github.com/alevizio/worlddots/issues/new?template=bug-report.yml"
+        target="_blank"
+        rel="noreferrer noopener"
+        aria-label="Report a bug"
+        data-tooltip="Report a bug"
+      >
+        <Bug size={15} />
+      </a>
       <nav className="social-links" aria-label="Project links">
-        <a
-          className="social-link"
-          href="https://github.com/alevizio/worlddots/issues/new?template=bug-report.yml"
-          target="_blank"
-          rel="noreferrer noopener"
-          aria-label="Report a bug"
-          data-tooltip="Report a bug"
-        >
-          <Bug size={15} />
-        </a>
         <a
           className="social-link"
           href="https://github.com/alevizio/worlddots"
