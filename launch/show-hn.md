@@ -47,23 +47,32 @@ remembers worlddots.
 > component, and Webflow docs. "Dots" stopped describing it. Globestudio
 > is the proper name for what it actually is now.
 >
-> The angle: most open-source map tooling (MapLibre, deck.gl, react-simple-maps,
-> Protomaps) is built for engineers — tile servers, vector tiles, large
-> datasets. Globestudio is built for the designer half of the stack — the
-> landing page hero, the deck slide, the launch teaser, the explainer scroll.
+> The angle: open-source map tooling splits into two camps — engineering
+> libraries (MapLibre, deck.gl, react-simple-maps, Protomaps) built for
+> tile servers and big datasets, and globe libraries (globe.gl, COBE,
+> three-globe, github-globe) that ship as code-in-code-out building
+> blocks. Globestudio is neither. It's the **designer-facing GUI** on
+> top of that conceptual space — presets, sliders, hex pickers, instant
+> export. The output isn't a webmap; it's a stylized PNG/SVG/WebM that
+> ships in a landing page, deck slide, OG card, or launch teaser.
 >
-> What it does:
+> What's in it:
 >
-> - Maps for world, country, region, subregion, or US state
-> - 12 dot shapes plus custom SVG/PNG upload + paste
-> - Linear gradients with per-stop opacity on dots, land fill, and stroke
-> - Shader effects: bloom, chromatic split, CRT, halftone, pixel, edge,
->   glitch, wave (all via WebGL post-processing)
-> - 10+ presets, shareable at /looks/:id
+> - Maps: world, country, region, subregion, US state
+> - 12 dot shapes + custom SVG/PNG upload + paste
+> - Linear gradients with per-stop opacity on dots, land fill, stroke
+> - **17 stackable shader looks**: Halftone, Risograph, Newsprint, Aurora,
+>   Pixel, Bayer dither, Atkinson dither, Wireframe, CRT, Glitch, BadTV,
+>   Bloom, Metal, Pencil, Iridescent, Corrupt, default. All WebGL
+>   post-processing — this is the wedge no other map tool ships.
+> - 5 projections: Mercator, Equal Earth, Winkel Tripel, Robinson, sphere
+> - Custom GeoJSON upload, rivers + cities overlays, French country search
+> - **`/embed` route** for iframe-ing into Webflow / Framer / Notion / HTML
+> - Framer code component reference + Webflow integration docs
 > - Animated network arcs, twinkle, optional rotation
-> - Exports: PNG (high-res via WebGL re-render at N× resolution), SVG (with
->   shader effects baked into <feFilter> when possible), WebM video, JSON
->   config
+> - Exports: PNG (WebGL re-render at any scale), SVG (with shaders baked
+>   in), WebM video, JSON config
+> - **No signup, no API key, no telemetry. MIT.**
 >
 > Some implementation notes that might be interesting:
 >
@@ -113,6 +122,28 @@ response matters on HN.
 > under-styled. The output isn't a webmap — it's a PNG / SVG / WebM that
 > ships in a landing page or deck. Different audience, different ergonomics.
 
+### "Why not just use globe.gl (or COBE) and write the shaders yourself?"
+
+> globe.gl is the engine; Globestudio is the GUI. globe.gl is the OSS gold
+> standard for 3D globe rendering — I considered building on it. But the
+> 17 shader looks (halftone, riso, dither, glitch, CRT, aurora) aren't in
+> globe.gl — that's net-new WebGL post-processing work most people won't
+> spend a weekend on. And designers (the actual audience) can't `npm
+> install`. The wedge is: presets and sliders for the people who don't
+> want to write a fragment shader, video/SVG export with shaders baked in,
+> and a no-signup web tool. If you're a dev who'd rather code it from
+> scratch — go for it, globe.gl is great. I'm aiming at the other 95%
+> of the audience.
+
+### "Isn't amCharts Pixel Map Generator the same thing?"
+
+> amCharts is the closest analog on the dotted-map dimension and it's
+> genuinely good — 90+ projections, free with their branding link. The
+> differences: (a) no 3D globe, (b) no shader-style looks, (c) older
+> design language, (d) proprietary, paid for the unbranded export.
+> Globestudio is MIT, ships the 3D globe and the 17 shader looks, and
+> the GUI is a 2026-era designer tool. Different shelf.
+
 ### "It lags on my machine."
 
 > Sorry — file it here, please:
@@ -132,9 +163,12 @@ response matters on HN.
 
 ### "Is there a way to embed it?"
 
-> Not yet. Embeddable mode (read-only iframe with a config JSON or look ID)
-> is in the ROADMAP for the next 2-3 months. Vote it up:
-> https://github.com/alevizio/globestudio/discussions/categories/ideas
+> Yes — every preset URL has a matching `/embed` route. Drop
+> `<iframe src="https://globestudio.app/embed?look=halftone">` into any
+> HTML page, Webflow, or Framer site. Query string accepts all the same
+> controls as the main app (look, density, dotColor, view, motion, etc.)
+> so you can configure the embed without forking the source. Per-tool
+> integration guides live at /docs/integrations/.
 
 ### "How is the SVG export so big / small?"
 

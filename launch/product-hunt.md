@@ -23,26 +23,34 @@
 
 ## Description (PH "post" body)
 
-> Globestudio is an open-source tool for making **dotted maps and animated 3D
-> globes**. Pick any country, region, or US state, customize dot shapes,
-> gradients, and shader effects, then export PNG, SVG, or animated WebM.
+> **Make a Stripe-style globe (or a riso-printed Mercator) in 30 seconds.**
+> Open source, designer-first, no signup, no API key, no code.
 >
-> It's built for **designers, animators, and creative developers** who want
-> map-based visuals for landing pages, decks, and launches — without needing
-> a GIS workflow.
+> Globestudio turns the planet into a hero visual. Pick any country, region,
+> or US state, customize dot shapes, gradients, and shader effects, then
+> export PNG, SVG, or animated WebM.
 >
-> Some of what's inside:
+> Built for **designers, animators, and creative developers** who want
+> map-based visuals for landing pages, decks, OG cards, and launch teasers
+> — without needing GIS workflow, npm install, or a $5/1k-loads bill.
+>
+> What's inside:
 > - 12 dot shapes + custom SVG/PNG upload + paste
 > - Linear gradients with per-stop opacity on dots, land, and stroke
-> - Shader effects: bloom, chromatic split, CRT, halftone, glitch, edge
-> - 10+ named presets, shareable at `/looks/:id`
+> - **17 stackable shader looks** — Halftone, Risograph, Aurora, Bayer +
+>   Atkinson dither, CRT, Glitch, BadTV, Bloom, Metal, Pencil, Iridescent,
+>   Wireframe, Pixel, Corrupt, Newsprint, and the default
+> - 5 projections: Mercator, Equal Earth, Winkel Tripel, Robinson, sphere
+> - Custom GeoJSON upload, rivers + cities overlays
+> - **`/embed` route** + Framer code component + Webflow integration docs
+> - Shareable preset URLs at `/looks/:id` with hand-designed OG cards
 > - Live animations with `prefers-reduced-motion` support
 > - Full keyboard system (`S` shuffle, `[`/`]` cycle presets, `D` export…)
-> - Exports: PNG (high-res via WebGL re-render), SVG (with shaders baked in),
+> - Exports: PNG (WebGL re-render at any scale), SVG (shaders baked in),
 >   WebM video, JSON config
 > - No backend, no accounts, no telemetry — everything in your browser
 >
-> MIT licensed. Built with React + Three.js.
+> MIT licensed. Built with React + Three.js. WCAG 2.2 AA conformant.
 
 ---
 

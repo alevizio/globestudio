@@ -154,6 +154,36 @@ Share what you make in [Show & Tell](https://github.com/alevizio/globestudio/dis
 | [SECURITY](SECURITY.md) | Reporting vulnerabilities |
 | [SUPPORT](SUPPORT.md) | Where to ask questions |
 
+## How it compares
+
+There's no shortage of map and globe tools — Globestudio doesn't try
+to replace any of them. It owns the **aesthetic-asset shelf**: stylized
+output that ships to a landing page hero, deck slide, OG card, or
+launch teaser. Different tools for different jobs:
+
+| | Globestudio | [globe.gl](https://github.com/vasturiano/globe.gl) | [Mapbox Studio](https://www.mapbox.com/mapbox-studio) | [Felt](https://felt.com) | [Haikei](https://haikei.app) |
+|---|---|---|---|---|---|
+| **3D globe out of box** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Dotted maps** | ✅ 12 shapes | partial | ❌ | ❌ | ❌ |
+| **Shader aesthetic looks** | ✅ **17** | ❌ | custom WebGL only | ❌ | ❌ |
+| **Multiple projections** | 5 | sphere only | many | many | n/a |
+| **No-code GUI** | ✅ | ❌ library | ✅ | ✅ | ✅ |
+| **PNG / SVG / WebM export** | ✅ | manual | print / PDF | ✅ | PNG / SVG |
+| **Embed iframe** | ✅ `/embed` | DIY | ✅ | ✅ | DIY |
+| **Framer / Webflow components** | ✅ | ❌ | plugins | ❌ | ❌ |
+| **No signup / no API key** | ✅ | n/a | ❌ | ❌ | ✅ |
+| **Free + MIT** | ✅ | ✅ (library) | freemium | paid | free, closed |
+
+**What Globestudio gives up**: GIS-accurate data overlays, large dataset
+analysis, real-time collaboration. If those are what you need, reach
+for Mapbox / Felt / Kepler — they're great at them.
+
+**Built on the shoulders of**: [globe.gl](https://github.com/vasturiano/globe.gl)
+and [COBE](https://github.com/shuding/cobe) defined what a modern OSS
+3D globe library looks like. [dotted-map](https://github.com/NTag/dotted-map)
+is the engine under the dot field. [Stamen Maps](https://maps.stamen.com)
+was the spiritual ancestor of "maps as visual aesthetic."
+
 ## Tech stack
 
 Built with:
