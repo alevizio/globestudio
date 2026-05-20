@@ -16,6 +16,10 @@ product docs (those go in the README) and **not** community policy
 - **`plans/`** — Execution plans drawn from the research. Phased,
   sprint-level, with explicit success criteria. Treat these as the
   "what we're doing next" — closer to a punch list than a roadmap.
+- **`integrations/`** — User-facing how-to docs for embedding
+  Worlddots in Webflow, Framer, Notion, plain HTML, etc. These ARE
+  linked from the main README — they live here so the root stays
+  uncluttered.
 
 ## When to add a doc here
 

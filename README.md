@@ -106,6 +106,13 @@ Resize-aware via `postMessage` — listen for
 iframe to match. WebGL 2 required; falls back to a "your browser doesn't
 support WebGL 2" message if not available.
 
+**Per-tool integration guides:**
+[Webflow](docs/integrations/webflow.md) ·
+[Framer](docs/integrations/framer.md) ·
+[Notion](docs/integrations/notion.md) ·
+[Plain HTML](docs/integrations/embed.md) ·
+[All integrations →](docs/integrations/)
+
 ## What you can build with it
 
 | Use case | What it gives you |
