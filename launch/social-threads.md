@@ -15,15 +15,18 @@ isolation. Attach the visual asset described in `[asset: …]` to that tweet.
 
 **1/9** (hook — pin this if you can)
 
-> i just shipped globestudio — open-source dotted maps and animated 3D globes
-> for designers, animators, and creative developers
+> remember worlddots? i renamed it.
+>
+> meet globestudio — open-source dotted maps and animated 3D globes for
+> designers, animators, and creative developers. v1 was just dots. v2 is
+> 17 shader looks, a 3D globe, embed anywhere.
 >
 > built with three.js + react. MIT.
 >
 > live: https://globestudio.app
 > source: https://github.com/alevizio/globestudio
 >
-> here's what's in it 🧵
+> here's what changed 🧵
 >
 > *[asset: 20s demo video — pick country → cycle presets → tweak gradient → export]*
 

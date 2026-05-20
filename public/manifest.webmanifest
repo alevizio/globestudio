@@ -1,6 +1,6 @@
 {
-  "name": "Worlddots",
-  "short_name": "Worlddots",
+  "name": "Globestudio",
+  "short_name": "Globestudio",
   "description": "Dotted map and animated 3D globe generator. PNG, SVG, and WebM export.",
   "start_url": "/",
   "scope": "/",

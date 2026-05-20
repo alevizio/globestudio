@@ -18,7 +18,11 @@ Variants if the primary doesn't feel right on the morning of:
 
 - `Show HN: Globestudio – Dotted maps and animated 3D globes in your browser`
 - `Show HN: A designer-first map motion tool with shaders, gradients, exports`
-- `Show HN: Globestudio – Stylized dotted maps and 3D globes (open source)`
+- `Show HN: Globestudio (was worlddots) – Stylized maps + 3D globes, open source`
+
+The rename angle is a strong title for a re-launch — it signals "we shipped
+v1 and learned what this actually is." Use it if traffic from v1 still
+remembers worlddots.
 
 ---
 
@@ -35,6 +39,13 @@ Variants if the primary doesn't feel right on the morning of:
 
 > Hi HN — I built Globestudio, an open-source tool for making dotted maps and
 > animated 3D globes in the browser. Source: https://github.com/alevizio/globestudio
+>
+> Quick context for anyone who recognizes the v1: this used to be called
+> *worlddots*. The original launch was a single-feature thing — dotted maps.
+> Since then it's grown into 17 shader looks (halftone, risograph, aurora,
+> dither, CRT, glitch, foil), a 3D globe, embed route, Framer reference
+> component, and Webflow docs. "Dots" stopped describing it. Globestudio
+> is the proper name for what it actually is now.
 >
 > The angle: most open-source map tooling (MapLibre, deck.gl, react-simple-maps,
 > Protomaps) is built for engineers — tile servers, vector tiles, large

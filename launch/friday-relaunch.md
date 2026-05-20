@@ -1,15 +1,19 @@
 # Friday relaunch — day-of checklist
 
-A focused checklist for the **Friday, May 22 2026** push. The original
-launch already ran (see [`README.md`](./README.md) for the from-scratch
-playbook); this is a **wave-2 push** highlighting everything that landed
-in the last ~30 commits — 17 shader looks (up from 11), embed route,
-Framer reference component, custom GeoJSON, rivers + cities overlays,
-WCAG 2.2 AA conformance, fully-designed OG share cards, French country
-search.
+A focused checklist for the **Friday, May 29 2026** push — also the
+**Globestudio rebrand launch**. The original launch already ran under
+the name *worlddots* (see [`README.md`](./README.md) for the from-scratch
+playbook); this is a **wave-2 push** that doubles as a rename milestone.
 
-Think of it less as a launch and more as a *credible second swing*:
-people who scrolled past last time may have a reason this time.
+What changed since v1:
+17 shader looks (up from 11), embed route, Framer reference component,
+custom GeoJSON, rivers + cities overlays, WCAG 2.2 AA conformance,
+fully-designed OG share cards, French country search — **and** the
+project is now called Globestudio. The name is the story.
+
+The rebrand narrative — "we outgrew worlddots, meet Globestudio" — frames
+the second swing as a milestone, not a course-correction. People who
+scrolled past last time now have *two* reasons to look again.
 
 ---
 
@@ -131,7 +135,7 @@ so threads with multiple preset links all get visual previews:
 
 Open these tabs at 7am and leave them open:
 
-1. **Vercel Analytics** — `vercel.com/litebox/globestudio/analytics`. Watch
+1. **Vercel Analytics** — `vercel.com/alevizio/globestudio/analytics`. Watch
    for traffic spikes, top referrers, conversion-equivalent metrics.
 2. **GitHub Insights → Traffic** — `github.com/alevizio/globestudio/graphs/traffic`.
    Updates every ~2 hours. Watch for spikes after each post.

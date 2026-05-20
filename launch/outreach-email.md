@@ -16,13 +16,14 @@ Replace anything in `{curly braces}`. Keep the email under 200 words —
 people skim.
 
 ```text
-Subject: New open-source dotted map + 3D globe tool — {personal angle for them}
+Subject: Globestudio (was worlddots) — open-source dotted maps + 3D globes
 
 Hi {Name},
 
-I'm launching Globestudio next {weekday} — an open-source tool for making
-dotted maps and animated 3D globes. Pick any country, customize dot shapes
-and gradients, layer shader effects, and export PNG, SVG, or WebM video.
+I'm relaunching the project formerly known as *worlddots* under a new name:
+**Globestudio**. Open-source tool for dotted maps and animated 3D globes
+— it outgrew the old name when I shipped 17 shader looks, a 3D globe,
+and an embed route since v1. Launching next {weekday}.
 
 {ONE-SENTENCE PERSONAL HOOK — see hooks library below}
 

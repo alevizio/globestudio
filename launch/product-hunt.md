@@ -50,10 +50,16 @@
 
 > Hi PH 👋 — Alejandro here.
 >
-> I built Globestudio because every time I needed a dotted globe or a stylized
-> country map for a landing page or deck, I'd either reach for a paid design
-> tool, screenshot something off Stripe's homepage, or fight with a generic
-> map library that wasn't built for visuals.
+> Globestudio started as a small experiment called *worlddots* — literally
+> just dotted maps. Over the last few months it grew up: 17 shader looks
+> (halftone, risograph, aurora, dither, foil), a 3D globe, an embed route,
+> a Framer reference component, Webflow docs. The name stopped fitting.
+> So I renamed it Globestudio — the proper name for what it actually does.
+>
+> I built it because every time I needed a stylized world map or animated
+> globe for a landing page or deck, I'd either reach for a paid design tool,
+> screenshot something off Stripe's homepage, or fight with a generic map
+> library that wasn't built for visuals.
 >
 > So I made the designer-first version: presets, sliders, shader effects,
 > and exports that drop straight into Figma, Keynote, or a launch video. The
