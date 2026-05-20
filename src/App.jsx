@@ -443,6 +443,12 @@ const App = () => {
       setMeta('meta[name="twitter:title"]', title);
       setMeta('meta[name="twitter:description"]', description);
       setMeta('meta[name="twitter:image"]', previewImage);
+      // Canonical URL — points at the preset path WITHOUT any query (?locale=
+      // etc.) so search engines treat all locale variants as the same page.
+      // Per SEO Phase 5a — prevents duplicate-content penalties when users
+      // share /looks/halftone?locale=fr vs /looks/halftone.
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute("href", absoluteUrl);
       // BreadcrumbList JSON-LD for the preset route. Helps Google + AI Overview
       // understand "this preset page is two levels deep from home". Replaces
       // any existing breadcrumb tag so we don't accrete duplicates on rapid
@@ -526,6 +532,9 @@ const App = () => {
       setMeta('meta[name="twitter:title"]', "Worlddots — Open-Source Dotted Maps and 3D Globes");
       setMeta('meta[name="twitter:description"]', homeDescription);
       setMeta('meta[name="twitter:image"]', homeImage);
+      // Restore the canonical URL to the homepage when navigating back to root.
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute("href", "https://worlddots.app/");
       // Remove the per-route breadcrumb script when navigating back to root
       // so the homepage doesn't carry stale breadcrumb context.
       const breadcrumbScript = document.getElementById("breadcrumb-ld");

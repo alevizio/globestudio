@@ -113,6 +113,10 @@ support WebGL 2" message if not available.
 [Plain HTML](docs/integrations/embed.md) ·
 [All integrations →](docs/integrations/)
 
+**Reading material:**
+[How to make a dotted world map in 2026](docs/blog/2026-05-how-to-make-a-dotted-world-map.md) ·
+[All articles →](docs/blog/)
+
 ## What you can build with it
 
 | Use case | What it gives you |
