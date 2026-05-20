@@ -29,6 +29,7 @@ import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
 import { loadWorldCountries } from "../data/world-countries-topology.js";
 import { getCachedWorldRivers, loadWorldRivers } from "../data/world-rivers-topology.js";
+import { getCachedWorldCities, loadWorldCities } from "../data/world-cities-topology.js";
 import { cca3ToCcn3 } from "../data/geography.js";
 import { PerfMonitor } from "./perf-monitor.jsx";
 
@@ -77,6 +78,12 @@ export const GlobeBackground = ({
   riversVisible = false,
   riversColor = "rgba(120, 184, 220, 0.72)",
   riversWidth = 1.1,
+  // Cities overlay (Phase 5 of map-data-rollout). Lazy-loads ~50KB of slim
+  // Natural Earth populated places. citiesMinPop filters by pop_max so
+  // designers can pick "all cities" or "major cities only".
+  citiesVisible = false,
+  citiesColor = "rgba(255, 220, 120, 0.86)",
+  citiesMinPop = 0,
   selectionCountryCodes = [],
   selectionCollection = null,
   dotsVisible,
@@ -982,12 +989,13 @@ export const GlobeBackground = ({
       applyGlobeShellProgress(liveRefs, morphRef.current.progress, globeSettingsRef.current);
     };
 
-    // Kick off the rivers fetch in parallel with the countries fetch when
-    // they're requested. If they're not requested, getCachedWorldRivers()
-    // returns null and the rivers block in the texture is a no-op.
+    // Kick off the rivers + cities fetches in parallel with the countries
+    // fetch when they're requested. Each lazy loader caches after first hit
+    // so toggling on/off doesn't refetch.
     const riversPromise = riversVisible ? loadWorldRivers().catch(() => null) : Promise.resolve(null);
+    const citiesPromise = citiesVisible ? loadWorldCities().catch(() => null) : Promise.resolve(null);
 
-    Promise.all([loadWorldCountries(), riversPromise]).then(([countries, rivers]) => {
+    Promise.all([loadWorldCountries(), riversPromise, citiesPromise]).then(([countries, rivers, cities]) => {
       if (cancelled) return;
       // Mirror the dot-pipeline's filtering on the solid texture so the
       // selected region/country/state actually shows up here too.
@@ -1034,6 +1042,10 @@ export const GlobeBackground = ({
         riversVisible: riversVisible && Boolean(rivers),
         riversColor,
         riversWidth,
+        cities,
+        citiesVisible: citiesVisible && Boolean(cities),
+        citiesColor,
+        citiesMinPop,
       };
       const sphereTexture = createWorldTexture(featureCollection, textureOptions);
       const flatTexture = region && aspect
@@ -1057,7 +1069,7 @@ export const GlobeBackground = ({
     // which are stable when the selection doesn't change. The selection
     // deps cover the only mutations that actually matter here, and
     // leaving mapData out avoids a texture rebuild every density slide.
-  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection, flatProjection, riversVisible, riversColor, riversWidth]);
+  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection, flatProjection, riversVisible, riversColor, riversWidth, citiesVisible, citiesColor, citiesMinPop]);
 
   useEffect(() => {
     const target = morphMode === "globe" ? 1 : 0;

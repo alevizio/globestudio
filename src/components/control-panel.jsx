@@ -106,6 +106,10 @@ export const ControlPanel = ({
   setFlatProjection,
   riversVisible = false,
   setRiversVisible,
+  citiesVisible = false,
+  setCitiesVisible,
+  citiesMinPop = 0,
+  setCitiesMinPop,
   dotsVisible,
   setDotsVisible,
   shaderSettings,
@@ -279,6 +283,29 @@ export const ControlPanel = ({
                 onChange={(value) => setRiversVisible?.(value)}
               />
             </OptionRow>
+            {/* Cities overlay — lazy-loads ~50KB of slim Natural Earth
+                populated places. Dot size scales by log(pop_max) so a 30M
+                megacity reads bigger than a 500k regional capital. See
+                docs/plans/map-data-rollout.md Phase 5. */}
+            <OptionRow label="Cities">
+              <ToggleControl
+                label="Show populated places"
+                checked={citiesVisible}
+                onChange={(value) => setCitiesVisible?.(value)}
+              />
+            </OptionRow>
+            {citiesVisible && (
+              <OptionRow label="Min population" value={citiesMinPop >= 1e6 ? `${(citiesMinPop / 1e6).toFixed(1)}M` : citiesMinPop >= 1e3 ? `${Math.round(citiesMinPop / 1e3)}k` : citiesMinPop}>
+                <RangeControl
+                  label="Minimum city population"
+                  min={0}
+                  max={5000000}
+                  step={50000}
+                  value={citiesMinPop}
+                  onChange={setCitiesMinPop}
+                />
+              </OptionRow>
+            )}
             {/* Flat-plane projection picker. Only visible in flat view since
                 the sphere always uses equirectangular for UV unwrap. Solid
                 mode only — when dots are active they're stuck in Mercator

@@ -155,6 +155,14 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
     riversVisible = false,
     riversColor = "rgba(120, 184, 220, 0.72)",
     riversWidth = 1.1,
+    // Optional populated places (cities) overlay. Pass a FeatureCollection
+    // of Point features with pop_max in properties. Drawn last so dots sit
+    // on top of country fills + strokes + rivers. citiesMinPop filters out
+    // smaller cities — useful for "major cities only" mode.
+    cities = null,
+    citiesVisible = false,
+    citiesColor = "rgba(255, 220, 120, 0.86)",
+    citiesMinPop = 0,
   } = options;
 
   // Resolve canvas dimensions. When the caller supplies an aspect (from the
@@ -238,6 +246,30 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
       ctx.beginPath();
       path(feature);
       ctx.stroke();
+    });
+  }
+
+  // Cities overlay — drawn last so each city dot sits on top of country fill,
+  // stroke, and any river polylines. Radius scales with pop_max via a log
+  // curve so a 30M-person megacity reads bigger than a 500k regional capital
+  // without dwarfing it entirely. citiesMinPop filters out smaller cities
+  // for "major cities only" mode. Uses projection.invert via path.pointRadius
+  // — but we draw direct circles for finer control.
+  if (citiesVisible && cities?.features?.length) {
+    ctx.fillStyle = citiesColor;
+    cities.features.forEach((feature) => {
+      const pop = feature.properties?.pop_max ?? 0;
+      if (pop < citiesMinPop) return;
+      const coords = feature.geometry?.coordinates;
+      if (!coords) return;
+      const projected = projection(coords);
+      if (!projected || !Number.isFinite(projected[0]) || !Number.isFinite(projected[1])) return;
+      // Log scale: 100k city ≈ 1px, 1M city ≈ 1.6px, 10M city ≈ 2.6px, 30M ≈ 3.0px.
+      // Scaled up x2 for visibility at the 2048-wide texture.
+      const radius = Math.max(1.2, Math.min(5, 1 + Math.log10(Math.max(pop, 1) / 1e5)) * 2);
+      ctx.beginPath();
+      ctx.arc(projected[0], projected[1], radius, 0, Math.PI * 2);
+      ctx.fill();
     });
   }
 

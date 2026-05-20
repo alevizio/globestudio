@@ -104,6 +104,12 @@ const App = () => {
   // Rivers overlay (solid mode only in v1). Toggle is off by default so the
   // ~120KB gzipped river dataset isn't fetched until designers opt in.
   const [riversVisible, setRiversVisible] = usePersistedState("riversVisible", false);
+  // Cities overlay — populated places drawn as size-scaled dots. Off by
+  // default; same lazy-load + texture-rebuild architecture as rivers.
+  // citiesMinPop filters by population threshold so designers can hide
+  // small towns when they only want major cities.
+  const [citiesVisible, setCitiesVisible] = usePersistedState("citiesVisible", false);
+  const [citiesMinPop, setCitiesMinPop] = usePersistedState("citiesMinPop", 0);
   const [shaderSettings, setShaderSettings] = usePersistedState("shaderSettings", DEFAULT_SHADER_SETTINGS);
   const [globeSettings, setGlobeSettings] = usePersistedState("globeSettings", DEFAULT_GLOBE_SETTINGS);
   // First-time mobile visitors land on the globe with the panel hidden so the
@@ -496,6 +502,11 @@ const App = () => {
     setRiversVisible(next);
     setStatusMessage(next ? "Rivers shown" : "Rivers hidden");
   }, [setRiversVisible]);
+
+  const handleCitiesToggle = useCallback((next) => {
+    setCitiesVisible(next);
+    setStatusMessage(next ? "Cities shown" : "Cities hidden");
+  }, [setCitiesVisible]);
 
   const handleProjectionChange = useCallback((next) => {
     setFlatProjection(next);
@@ -972,6 +983,8 @@ const App = () => {
             worldStrokeWidth={worldStrokeWidth}
             flatProjection={flatProjection}
             riversVisible={riversVisible}
+            citiesVisible={citiesVisible}
+            citiesMinPop={citiesMinPop}
             selectionCountryCodes={selected.countryCodes}
             selectionCollection={selected.collection}
             background={isSpaceBackground ? "#03030a" : background}
@@ -1160,6 +1173,10 @@ const App = () => {
             setFlatProjection={handleProjectionChange}
             riversVisible={riversVisible}
             setRiversVisible={handleRiversToggle}
+            citiesVisible={citiesVisible}
+            setCitiesVisible={handleCitiesToggle}
+            citiesMinPop={citiesMinPop}
+            setCitiesMinPop={setCitiesMinPop}
             shaderSettings={shaderSettings}
             setShaderSettings={setShaderSettings}
             globeSettings={globeSettings}
