@@ -1,0 +1,66 @@
+name: ♿ Accessibility issue
+description: Something broken or missing for keyboard / screen reader / low-vision use
+title: "[a11y]: "
+labels: ["accessibility"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Accessibility issues are prioritized like security
+        bugs — they go ahead of feature work.
+
+        See [ACCESSIBILITY.md](../blob/main/ACCESSIBILITY.md) for what's currently
+        shipped if you want to check whether the issue is in scope.
+
+  - type: textarea
+    id: assistive-tech
+    attributes:
+      label: Assistive technology + OS
+      description: E.g. "VoiceOver, macOS 15.4" or "NVDA, Windows 11" or "Keyboard only, Firefox 128"
+      placeholder: VoiceOver, macOS 15.4
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-you-were-doing
+    attributes:
+      label: What you were trying to do
+      description: The task you were attempting when the issue surfaced.
+      placeholder: I was trying to switch from the Halftone preset to the Bayer preset by tabbing through the looks bar.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The actual behavior. Quote screen reader narration verbatim if relevant.
+      placeholder: VoiceOver announced "Halftone, button" but pressing Enter did nothing.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: What you expected
+      description: The behavior that would have been correct.
+      placeholder: Pressing Enter should have applied the Bayer preset and triggered an announcement like "Applied Bayer."
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: URL where this happened
+      description: Production worlddots.app, a specific preset like /looks/halftone, or an embed integration?
+      placeholder: https://worlddots.app/looks/halftone
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, video, code snippets, browser version. Anything that helps reproduce.
+    validations:
+      required: false

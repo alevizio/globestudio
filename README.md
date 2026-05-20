@@ -45,8 +45,9 @@ yours to remix.
   effects baked in), WebM video (looped or one-shot), JSON config
 - ⌨️ **Full keyboard system** — `S` shuffle, `[`/`]` cycle presets, `D` export,
   `R` reset, `G` toggle view, `H` toggle panel, `?` help
-- ♿ **Accessibility** — keyboard-first, ARIA-correct dialogs, focus
-  restoration, motion preferences honored
+- ♿ **Accessibility** — WCAG 2.2 AA conformant. Keyboard-first, screen-
+  reader proxy DOM for canvas state, focus trap on modals, motion
+  preferences honored. See [`ACCESSIBILITY.md`](ACCESSIBILITY.md)
 
 ## Quickstart
 
