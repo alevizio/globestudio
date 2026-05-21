@@ -3358,18 +3358,21 @@ input[type="range"]:active::-moz-range-thumb {
   background: transparent;
 }
 
-.color-picker-hue input[type="range"]::-webkit-slider-thumb {
+.color-picker-hue input[type="range"]::-webkit-slider-thumb,
+.color-picker-alpha input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  margin-top: 0;
+  /* Centers the 16px thumb on the 12px track — (12 - 16) / 2 = -2 */
+  margin-top: -2px;
   border-radius: 3px;
   background: var(--thumb-fill);
   box-shadow: var(--shadow-thumb);
   cursor: grab;
 }
 
-.color-picker-hue input[type="range"]::-moz-range-thumb {
+.color-picker-hue input[type="range"]::-moz-range-thumb,
+.color-picker-alpha input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border: 0;
@@ -3408,26 +3411,6 @@ input[type="range"]:active::-moz-range-thumb {
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
-}
-
-.color-picker-alpha input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
-  background: var(--thumb-fill);
-  box-shadow: var(--shadow-thumb);
-  cursor: grab;
-}
-
-.color-picker-alpha input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border: 0;
-  border-radius: 3px;
-  background: var(--thumb-fill);
-  box-shadow: var(--shadow-thumb);
-  cursor: grab;
 }
 
 .color-picker-alpha input[type="range"]::-moz-range-track {
