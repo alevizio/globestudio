@@ -81,6 +81,57 @@ const FRAGMENT_SHADER = /* glsl */ `
     return dot(c, vec3(0.299, 0.587, 0.114));
   }
 
+  // Smooth value noise — bilinear interpolation between hash-random
+  // anchors at integer lattice points. Building block for FBM below.
+  float valueNoise2(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    float a = rand(i);
+    float b = rand(i + vec2(1.0, 0.0));
+    float c = rand(i + vec2(0.0, 1.0));
+    float d = rand(i + vec2(1.0, 1.0));
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  }
+
+  // 4-octave FBM (fractal Brownian motion). Each octave doubles the
+  // frequency and halves the amplitude, giving rich multi-scale texture
+  // that reads as paper-fiber grain instead of uniform hash noise.
+  // Same technique used by paper.design's paper-texture shader (with
+  // hash-random instead of a noise-texture sample so we don't need an
+  // extra texture upload).
+  float fbm4(vec2 n) {
+    float total = 0.0;
+    float amp = 0.5;
+    for (int i = 0; i < 4; i++) {
+      total += valueNoise2(n) * amp;
+      n *= 2.02;
+      amp *= 0.55;
+    }
+    return total;
+  }
+
+  // Fibre-like streak noise — FBM sampled in an anisotropically
+  // stretched coordinate space so the noise lobes elongate along a
+  // direction, mimicking the fibres in pressed paper. Returns roughly
+  // 0..1 with a soft bias toward the mid-range for natural grain.
+  float fiberNoise(vec2 p) {
+    vec2 stretched = vec2(p.x * 0.32, p.y * 2.8);
+    float a = fbm4(stretched * 1.7);
+    float b = fbm4(stretched.yx * 1.3 + 17.0);
+    return mix(a, b, 0.45);
+  }
+
+  // Composite paper grain: combines fine multi-octave noise (the surface
+  // tooth) with the fibre noise (directional streaks) for a tactile
+  // pressed-paper look. Output centred at 0 with range ~[-0.5, 0.5].
+  float paperGrain(vec2 uv, float scale) {
+    vec2 p = uv * uResolution / max(scale, 2.0);
+    float fine = fbm4(p * 2.3);
+    float fiber = fiberNoise(p * 0.45);
+    return mix(fine, fiber, 0.55) - 0.5;
+  }
+
   vec2 rotateUv(vec2 uv, float angle) {
     float c = cos(angle);
     float s = sin(angle);
@@ -315,10 +366,11 @@ const FRAGMENT_SHADER = /* glsl */ `
     // Classic riso "fluoro pink" + "federal blue" ink palette.
     vec3 pinkInk = vec3(1.0, 0.36, 0.62);
     vec3 cyanInk = vec3(0.25, 0.46, 0.95);
-    // Paper grain — low-frequency noise that breaks up the flats.
-    float grainScale = max(uCellSize * 0.5, 2.0);
-    vec2 grainSeed = floor(uv * uResolution / grainScale);
-    float grain = (rand(grainSeed * 0.7) - 0.5) * uGrain * 0.4;
+    // Multi-octave paper grain with fibre-like streaks. The old single-
+    // octave hash noise gave a flat speckle that read as digital static;
+    // this gives the press-paper "tooth" feel where the grain has
+    // multiple scales of variation across the surface.
+    float grain = paperGrain(uv, uCellSize * 0.6) * uGrain * 0.5;
     vec3 inked = pinkInk * maskPink + cyanInk * maskCyan + grain;
     // Where neither ink prints we keep the original colour (ocean stays
     // black for the dark theme). uIntensity blends toward full riso.
@@ -630,6 +682,65 @@ const FRAGMENT_SHADER = /* glsl */ `
   // luminance, which acts as the "darkness factor" in our case: where
   // the dot field draws something, the cross-hatching kicks in. The
   // background is paper-white so it reads as a sketch on a page.
+  // Single discrete pencil stroke with tapered pressure profile. p is
+  // the pixel-space position to evaluate; the stroke runs from origin
+  // along dir (unit) for len pixels with halfWidth * pressure visible
+  // width. Returns 0..1 ink density with the classic light-at-ends,
+  // heavy-in-middle pressure curve of a real pencil stroke. Slight
+  // perpendicular wobble via FBM along the stroke makes each one look
+  // hand-drawn vs machine-straight.
+  float pencilStroke(vec2 p, vec2 origin, vec2 dir, float len, float halfWidth, float pressure) {
+    vec2 d = p - origin;
+    float along = dot(d, dir);
+    if (along < -2.0 || along > len + 2.0) return 0.0;
+    vec2 perpDir = vec2(-dir.y, dir.x);
+    float perp = dot(d, perpDir);
+    // Subtle hand-tremor across the stroke length.
+    float wobble = (valueNoise2(vec2(along * 0.06, origin.x * 0.01)) - 0.5) * 2.0;
+    perp += wobble;
+    // Tapered pressure profile — fades in over first 15% of length,
+    // peaks in the middle, fades out over last 15%. Matches how a real
+    // pencil starts light, presses heavier mid-stroke, lifts off.
+    float tIn = smoothstep(0.0, len * 0.15, along);
+    float tOut = 1.0 - smoothstep(len * 0.85, len, along);
+    float taper = tIn * tOut;
+    float w = halfWidth * pressure * (0.7 + 0.3 * taper);
+    float edge = 1.0 - smoothstep(w * 0.55, w * 1.15, abs(perp));
+    return edge * taper;
+  }
+
+  // A region of pencil strokes — divides screen into cells (~22px each),
+  // each cell hosts ONE stroke whose origin/length/angle/pressure vary
+  // by hash. Strokes only appear where the source content is dark
+  // enough (densitySignal), giving the impression of an artist building
+  // up tone exactly where the form needs shading. 3×3 neighbor sampling
+  // lets strokes spill across cell boundaries for a natural look.
+  float pencilHatch(vec2 pixelPos, float baseAngle, float angleJitter, float densitySignal, float cellSize, float strokeWidth) {
+    if (densitySignal < 0.05) return 0.0;
+    vec2 cell = floor(pixelPos / cellSize);
+    float ink = 0.0;
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        vec2 c = cell + vec2(float(i), float(j));
+        // Per-cell density check — sparser cells in lighter regions.
+        float drawChance = rand(c * 7.13 + baseAngle);
+        if (drawChance > densitySignal * 1.15 + 0.02) continue;
+        // Stroke origin: somewhere inside the cell.
+        vec2 originOffset = vec2(rand(c * 3.17), rand(c * 5.71)) * cellSize;
+        vec2 origin = c * cellSize + originOffset;
+        // Slight angle jitter — each stroke isn't perfectly aligned to
+        // the band angle, which is the cue that breaks "machine grid".
+        float ang = baseAngle + (rand(c * 11.31) - 0.5) * angleJitter;
+        vec2 dir = vec2(cos(ang), sin(ang));
+        // Varying stroke length (1.4× to 2.6× cell size) and pressure.
+        float len = cellSize * (1.4 + rand(c * 13.79) * 1.2);
+        float pressure = 0.55 + 0.45 * rand(c * 23.11);
+        ink += pencilStroke(pixelPos, origin, dir, len, strokeWidth, pressure);
+      }
+    }
+    return clamp(ink, 0.0, 1.0);
+  }
+
   vec4 pencilPass(vec2 uv) {
     vec2 px = 1.0 / max(uResolution, vec2(1.0));
     vec4 src = sampleTex(uv);
@@ -642,51 +753,83 @@ const FRAGMENT_SHADER = /* glsl */ `
     );
     float signal = max(luma(blur.rgb), blur.a);
 
-    // Pixel-space coords centred — line spacing reads consistently across
-    // resolutions because we work in actual pixels, not normalised uv.
-    vec2 pos = (uv - 0.5) * uResolution;
+    // Sobel-style edge magnitude on the source. Lets us darken
+    // silhouettes with a confident outline stroke — the move every
+    // sketch artist makes after the hatching is down.
+    float cN = max(luma(sampleTex(uv + vec2(0.0, px.y * 2.0)).rgb), sampleTex(uv + vec2(0.0, px.y * 2.0)).a);
+    float cS = max(luma(sampleTex(uv - vec2(0.0, px.y * 2.0)).rgb), sampleTex(uv - vec2(0.0, px.y * 2.0)).a);
+    float cE = max(luma(sampleTex(uv + vec2(px.x * 2.0, 0.0)).rgb), sampleTex(uv + vec2(px.x * 2.0, 0.0)).a);
+    float cW = max(luma(sampleTex(uv - vec2(px.x * 2.0, 0.0)).rgb), sampleTex(uv - vec2(px.x * 2.0, 0.0)).a);
+    float edge = clamp(length(vec2(cE - cW, cN - cS)) * 2.4, 0.0, 1.0);
 
-    // Line width grows with signal (more content → darker → thicker
-    // strokes), tuned via uIntensity. +0.5 keeps the lightest areas
-    // still showing a faint trace.
-    float lineWidth = (5.0 + uIntensity * 6.0) * signal + 0.5;
+    // Pixel-space coords — strokes operate in actual pixels so cell
+    // sizes read consistently across resolutions.
+    vec2 pixelPos = uv * uResolution;
 
-    // First group: 20°, spacing 16px
-    pos = rotateUv(pos, radians(20.0));
-    float linesSep1 = 16.0;
-    vec2 gridPos = vec2(pos.x, mod(pos.y, linesSep1));
-    float line1 = horizontalLine(gridPos, linesSep1 * 0.5, lineWidth);
-    gridPos.y = mod(pos.y + linesSep1 * 0.5, linesSep1);
-    float line2 = horizontalLine(gridPos, linesSep1 * 0.5, lineWidth);
+    // Variable graphite "pressure" across regions — slow FBM modulates
+    // how heavily an artist would have shaded each area, so adjacent
+    // strokes don't all read at the same tonal weight.
+    float pressure = 0.7 + 0.6 * fbm4(uv * 4.0);
+    float densitySignal = clamp(signal * pressure * (0.85 + uIntensity * 0.4), 0.0, 1.0);
 
-    // Second group: another -50° (= 20° + -50° = -30° absolute), spacing 12px
-    pos = rotateUv(pos, radians(-50.0));
-    float linesSep2 = 12.0;
-    gridPos = vec2(pos.x, mod(pos.y, linesSep2));
-    float line3 = horizontalLine(gridPos, linesSep2 * 0.5, lineWidth);
-    gridPos.y = mod(pos.y + linesSep2 * 0.5, linesSep2);
-    float line4 = horizontalLine(gridPos, linesSep2 * 0.5, lineWidth);
+    float strokeWidth = 1.6 + uIntensity * 0.8;
+    float cellSize = 22.0;
 
-    // Paper-white base, then each line layer kicks in at a progressively
-    // higher signal threshold — same pattern as the reference shader,
-    // gives the layered cross-hatching effect (light fills get one layer,
-    // mid-tones two, dark zones all four).
+    // 4 layers of discrete strokes at different angles. Each cell hosts
+    // ONE stroke (finite, tapered, slightly off-axis) rather than the
+    // infinite parallel lines of a math hatch. This is the difference
+    // between "shader pretending to be pencil" and "an artist's hand".
+    // - Layer 1 (light tones): only the primary angle, sparse
+    // - Layer 2 (mid tones): adds counter-angle cross
+    // - Layer 3 (dark tones): adds steep diagonal
+    // - Layer 4 (deep darks): adds horizontal accent
+    float angleJitter = 0.35;
+    float hatch1 = pencilHatch(pixelPos, radians(20.0), angleJitter, densitySignal, cellSize, strokeWidth);
+    float hatch2 = pencilHatch(pixelPos, radians(-32.0), angleJitter, densitySignal * 0.85, cellSize * 1.05, strokeWidth);
+    float hatch3 = pencilHatch(pixelPos, radians(70.0), angleJitter, densitySignal * 0.7, cellSize * 0.95, strokeWidth * 0.9);
+    float hatch4 = pencilHatch(pixelPos, radians(0.0), angleJitter, densitySignal * 0.55, cellSize * 1.1, strokeWidth * 0.95);
+
+    // Paper-tooth mask — graphite catches the raised fibres, skips the
+    // recessed ones. The most distinctive cue of pencil-on-paper.
+    float tooth = clamp(paperGrain(uv, 4.0) + 0.6, 0.0, 1.0);
+    tooth = smoothstep(0.15, 0.85, tooth);
+    float toothMix = mix(0.55, 1.0, tooth);
+
+    // Threshold each layer by signal so light tones don't suddenly get
+    // all 4 layers at once. Builds up tone gradually like a real sketch.
     float surface = 1.0;
-    surface -= 0.8 * line1 * smoothstep(0.04, 0.25, signal);
-    surface -= 0.8 * line2 * smoothstep(0.12, 0.35, signal);
-    surface -= 0.8 * line3 * smoothstep(0.22, 0.5, signal);
-    surface -= 0.8 * line4 * smoothstep(0.35, 0.65, signal);
-    surface = clamp(surface, 0.06, 1.0);
+    surface -= 0.55 * hatch1 * smoothstep(0.04, 0.25, signal) * toothMix;
+    surface -= 0.55 * hatch2 * smoothstep(0.18, 0.42, signal) * toothMix;
+    surface -= 0.55 * hatch3 * smoothstep(0.32, 0.6, signal) * toothMix;
+    surface -= 0.55 * hatch4 * smoothstep(0.5, 0.75, signal) * toothMix;
 
-    // Very subtle paper grain — sells the sketched feel without
-    // overpowering the line work.
-    float grain = (rand(uv * uResolution * 0.5) - 0.5) * 0.04;
+    // Edge contour — the silhouette stroke every artist adds after the
+    // hatching. Darker than the hatch lines, modulated by paper tooth
+    // so it isn't a perfect mechanical outline.
+    float contour = edge * smoothstep(0.08, 0.35, signal) * mix(0.7, 1.0, tooth);
+    surface -= 0.6 * contour;
+    surface = clamp(surface, 0.04, 1.0);
+
+    // Sketchbook page vignette — corners read slightly darker than the
+    // centre, like a real spread under directional light.
+    vec2 vc = (uv - 0.5) * vec2(uResolution.x / max(uResolution.y, 1.0), 1.0);
+    float vignette = 1.0 - 0.08 * dot(vc, vc);
+    surface *= vignette;
+
+    // Paper grain — multi-octave fibre noise sells the pressed-paper
+    // feel, slightly stronger than before now that the hatching has
+    // tooth-aware skipping.
+    float grain = paperGrain(uv, 3.2) * 0.08;
     surface += grain;
     surface = clamp(surface, 0.0, 1.0);
 
-    // Warm off-white paper tone instead of pure 1.0 grey.
-    vec3 paper = vec3(0.97, 0.94, 0.88);
-    vec3 graphite = vec3(0.12, 0.10, 0.08);
+    // Warm off-white paper tone, plus subtle warmth shift in dark
+    // graphite zones where real pencil starts to read brown-grey from
+    // the wax binder catching the light.
+    vec3 paper = vec3(0.97, 0.94, 0.87);
+    vec3 graphiteCool = vec3(0.10, 0.09, 0.08);
+    vec3 graphiteWarm = vec3(0.16, 0.12, 0.08);
+    vec3 graphite = mix(graphiteCool, graphiteWarm, 1.0 - surface);
     vec3 color = mix(graphite, paper, surface);
 
     return vec4(color, 1.0);

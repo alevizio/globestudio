@@ -45,6 +45,7 @@ export const lookPresets = [
     blurb: "Halftone shader print",
     previewImage: "/looks/halftone.png",
     settings: merge({
+      background: "#0a0a0c",
       density: 50,
       dotSize: 11,
       shape: "Circle",
@@ -64,6 +65,7 @@ export const lookPresets = [
     name: "Risograph",
     blurb: "Pink + cyan ink print",
     settings: merge({
+      background: "#1a1410",
       density: 55,
       dotSize: 12,
       shape: "Circle",
@@ -83,6 +85,7 @@ export const lookPresets = [
     name: "Newsprint",
     blurb: "CMYK halftone newspaper print",
     settings: merge({
+      background: "#15110c",
       density: 60,
       dotSize: 11,
       shape: "Circle",
@@ -101,9 +104,12 @@ export const lookPresets = [
     name: "Aurora",
     blurb: "Northern lights bands",
     settings: merge({
+      background: "#020610",
+      backgroundStyle: "space",
       density: 70,
       dotSize: 12,
       shape: "Circle",
+      spaceSettings: { density: 55, motion: 25, nebula: 70, hue: 160, brightness: 80 },
       shaderSettings: {
         ...effectPresets.aurora,
         effect: "aurora",
@@ -119,6 +125,7 @@ export const lookPresets = [
     name: "Pixel",
     blurb: "8-bit pixelation",
     settings: merge({
+      background: "#0a0814",
       density: 75,
       dotSize: 15,
       shape: "Square",
@@ -136,6 +143,7 @@ export const lookPresets = [
     name: "Bayer",
     blurb: "Classic-Mac ordered dither",
     settings: merge({
+      background: "#171719",
       density: 70,
       dotSize: 12,
       shape: "Square",
@@ -153,6 +161,7 @@ export const lookPresets = [
     name: "Atkinson",
     blurb: "Blue-noise Atkinson dither",
     settings: merge({
+      background: "#171719",
       density: 65,
       dotSize: 11,
       shape: "Square",
@@ -170,6 +179,7 @@ export const lookPresets = [
     name: "Wireframe",
     blurb: "Edge-traced lithograph",
     settings: merge({
+      transparent: true,
       density: 90,
       dotSize: 16,
       shape: "Hexagon",
@@ -182,6 +192,7 @@ export const lookPresets = [
     name: "CRT",
     blurb: "Cathode-ray phosphor",
     settings: merge({
+      background: "#020a10",
       density: 70,
       dotSize: 14,
       shaderSettings: { ...effectPresets.crt, effect: "crt", intensity: 65, scanlines: 78, cellSize: 9 },
@@ -193,6 +204,7 @@ export const lookPresets = [
     name: "Glitch",
     blurb: "Broken signal",
     settings: merge({
+      background: "#08020c",
       density: 75,
       dotSize: 14,
       shape: "Square",
@@ -205,6 +217,7 @@ export const lookPresets = [
     name: "Bad TV",
     blurb: "VHS analog distortion",
     settings: merge({
+      background: "#060608",
       density: 70,
       dotSize: 13,
       shape: "Square",
@@ -223,8 +236,11 @@ export const lookPresets = [
     name: "Bloom",
     blurb: "Glowing aurora",
     settings: merge({
+      background: "#01010a",
+      backgroundStyle: "space",
       density: 80,
       dotSize: 12,
+      spaceSettings: { density: 70, motion: 30, nebula: 45, hue: 220, brightness: 95 },
       shaderSettings: { ...effectPresets.bloom, effect: "bloom", intensity: 78 },
       globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: true, glowStrength: 85 },
     }),
@@ -234,6 +250,7 @@ export const lookPresets = [
     name: "Metal",
     blurb: "Polished chrome",
     settings: merge({
+      background: "#08080e",
       density: 70,
       dotSize: 13,
       shape: "Hexagon",
@@ -246,6 +263,7 @@ export const lookPresets = [
     name: "Iridescent",
     blurb: "Holographic foil sticker",
     settings: merge({
+      background: "#000000",
       density: 70,
       dotSize: 13,
       shape: "Circle",
@@ -265,6 +283,7 @@ export const lookPresets = [
     name: "Pencil",
     blurb: "Cross-hatched sketch",
     settings: merge({
+      background: "#14100a",
       density: 60,
       dotSize: 14,
       shape: "Circle",
@@ -277,6 +296,7 @@ export const lookPresets = [
     name: "Corrupt",
     blurb: "Channel-corrupted datamosh",
     settings: merge({
+      background: "#100008",
       density: 80,
       dotSize: 12,
       shape: "Square",
