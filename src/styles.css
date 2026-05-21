@@ -1284,9 +1284,9 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.62);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(6, 6, 8, 0.32);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -1295,12 +1295,18 @@ button {
   max-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
-  background: var(--panel);
+  background: rgba(18, 18, 20, 0.82);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: export-modal-rise-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-theme="light"] .export-modal {
+  background: rgba(252, 251, 248, 0.82);
 }
 
 @keyframes export-modal-fade-in {
@@ -1320,19 +1326,6 @@ button {
   justify-content: space-between;
   gap: 12px;
   padding: 16px 16px 16px 20px;
-}
-
-.export-modal-header::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-image: linear-gradient(to right, var(--stroke-faint) 1px, transparent 1px);
-  background-size: 2px 1px;
-  background-repeat: repeat-x;
-  pointer-events: none;
 }
 
 .export-modal-title {
@@ -1390,9 +1383,9 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.62);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(6, 6, 8, 0.32);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -1400,12 +1393,18 @@ button {
   width: min(380px, 100%);
   display: flex;
   flex-direction: column;
-  background: var(--panel);
+  background: rgba(18, 18, 20, 0.82);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: export-modal-rise-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-theme="light"] .shortcuts-overlay {
+  background: rgba(252, 251, 248, 0.82);
 }
 
 .shortcuts-overlay-header {
@@ -1593,7 +1592,7 @@ button {
 
 .export-modal-tab {
   position: relative;
-  padding: 6px 12px 10px;
+  padding: 12px 20px 10px;
   border: 0;
   background: transparent;
   color: var(--dim);
@@ -1601,8 +1600,6 @@ button {
   font-weight: 700;
   cursor: pointer;
   transition: color 160ms var(--ease);
-  border-bottom: 1px solid transparent;
-  margin-bottom: -1px;
 }
 
 .export-modal-tab:hover {
@@ -1611,11 +1608,18 @@ button {
 
 .export-modal-tab.is-active {
   color: var(--text);
-  border: 1px solid var(--border);
-  border-bottom-color: transparent;
-  background: var(--surface-hover);
-  border-radius: 8px 8px 0 0;
-  padding: 6px 12px 10px;
+}
+
+.export-modal-tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+  z-index: 1;
 }
 
 .export-modal-body {
