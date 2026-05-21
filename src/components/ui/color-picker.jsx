@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { GripVertical, X } from "../icons.jsx";
+import { X } from "../icons.jsx";
 import {
   hexToRgb,
   hsbToRgb,
@@ -338,7 +338,7 @@ export const ColorPicker = ({
         aria-label="Drag to move"
       >
         <span className="color-picker-grip" aria-hidden="true">
-          <GripVertical size={18} />
+          <span /><span /><span /><span /><span /><span />
         </span>
         <h2 className="color-picker-title">
           {supportsGradient && fillMode === "gradient" ? "Gradient" : "Color"}
@@ -354,7 +354,13 @@ export const ColorPicker = ({
       </header>
       <div className="color-picker-body">
       {supportsGradient && (
-        <div className="color-picker-fill" role="tablist" aria-label="Fill type">
+        <div
+          className="color-picker-fill"
+          role="tablist"
+          aria-label="Fill type"
+          data-active={fillMode}
+        >
+          <span className="color-picker-fill-indicator" aria-hidden="true" />
           <button
             type="button"
             role="tab"
@@ -541,8 +547,7 @@ export const ColorPicker = ({
 
       <div className="color-picker-fields">
         {mode === "HEX" && (
-          <label className="color-picker-field is-wide">
-            <span>Hex</span>
+          <label className="color-picker-field is-wide is-bare">
             <input
               type="text"
               value={hex}

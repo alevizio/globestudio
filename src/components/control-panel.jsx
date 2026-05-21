@@ -1,4 +1,13 @@
 import { useRef, useState } from "react";
+// Smooth enter/exit for sections that appear/disappear when the user
+// flips between Flat and Globe modes. Uses the modern grid-template-rows
+// 0fr → 1fr animation so the container can grow to fit its child's
+// natural height without us having to measure it.
+const Collapsible = ({ open, children }) => (
+  <div className={`collapsible-section ${open ? "is-open" : ""}`} aria-hidden={!open}>
+    <div className="collapsible-section-inner">{children}</div>
+  </div>
+);
 import { US_COUNTRY_ID, dotShapeOptions } from "../config/constants.js";
 import { readCustomShapeFile, readCustomShapeText } from "../utils/custom-shape.js";
 import {
@@ -350,7 +359,7 @@ export const ControlPanel = ({
                 mode only — when dots are active they're stuck in Mercator
                 via dotted-map. See docs/research/2026-05-map-data-alternatives.md
                 Finding 3. */}
-            {viewMode === "flat" && (
+            <Collapsible open={viewMode === "flat"}>
               <OptionRow label="Projection">
                 <SearchableSelect
                   label="Flat plane projection"
@@ -359,7 +368,7 @@ export const ControlPanel = ({
                   options={FLAT_PROJECTION_OPTIONS}
                 />
               </OptionRow>
-            )}
+            </Collapsible>
           </>
         )}
         {renderMode === "dots" && (<>
@@ -525,7 +534,7 @@ export const ControlPanel = ({
         </>)}
       </PanelSection>
 
-      {viewMode === "globe" && (
+      <Collapsible open={viewMode === "globe"}>
         <PanelSection title="Globe">
           {/* Top-level pivots — affect everything else in the section */}
           <OptionRow label="Look">
@@ -727,7 +736,7 @@ export const ControlPanel = ({
             />
           </OptionRow>
         </PanelSection>
-      )}
+      </Collapsible>
 
       <PanelSection title="Shaders">
         <OptionRow label="Pass">
@@ -906,19 +915,17 @@ export const ControlPanel = ({
             </OptionRow>
           </>
         )}
-        {viewMode === "flat" && (
-          <>
-            <OptionRow label="Tilt X" value={`${tiltX} deg`}>
-              <TiltControl label="Tilt X" value={tiltX} onChange={setTiltX} />
-            </OptionRow>
-            <OptionRow label="Tilt Y" value={`${tiltY} deg`}>
-              <TiltControl label="Tilt Y" value={tiltY} onChange={setTiltY} />
-            </OptionRow>
-            <OptionRow label="Depth" value={`${mapDepth}%`}>
-              <DepthControl value={mapDepth} onChange={setMapDepth} />
-            </OptionRow>
-          </>
-        )}
+        <Collapsible open={viewMode === "flat"}>
+          <OptionRow label="Tilt X" value={`${tiltX} deg`}>
+            <TiltControl label="Tilt X" value={tiltX} onChange={setTiltX} />
+          </OptionRow>
+          <OptionRow label="Tilt Y" value={`${tiltY} deg`}>
+            <TiltControl label="Tilt Y" value={tiltY} onChange={setTiltY} />
+          </OptionRow>
+          <OptionRow label="Depth" value={`${mapDepth}%`}>
+            <DepthControl value={mapDepth} onChange={setMapDepth} />
+          </OptionRow>
+        </Collapsible>
       </PanelSection>
     </aside>
   );

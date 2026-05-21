@@ -231,14 +231,19 @@
       }
     </script>
 
-    <!-- Space Mono — used app-wide. Cohesive mono aesthetic with a more
-         characterful, slab-leaning shape than Geist Mono. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
-    />
+    <!-- Geist Pixel (Square variant) — Vercel's open-source pixel typeface,
+         hosted on GitHub. Five shape variants exist; Square pairs cleanest
+         with the pixelarticons icon set. Single weight (no bold), so the
+         font-weight: 700 rules across the app fall back to 400 gracefully. -->
+    <style>
+      @font-face {
+        font-family: "Geist Pixel";
+        src: url("https://cdn.jsdelivr.net/gh/vercel/geist-pixel-font@main/fonts/webfonts/GeistPixel-Square.woff2") format("woff2");
+        font-weight: 400 700;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
   </head>
   <body>
     <div id="root">

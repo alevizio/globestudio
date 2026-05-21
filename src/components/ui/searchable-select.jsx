@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown } from "../icons.jsx";
 
 // Combobox-style select with type-to-filter. Native <select> with 250+ country
@@ -33,6 +34,44 @@ export const SearchableSelect = ({ value, onChange, options, label, placeholder 
     });
   }, [options, query]);
 
+  // Floating popover positioning — read the trigger's viewport rect and
+  // decide whether to anchor the popover below it (default) or flip up
+  // (when there isn't enough room below). Recompute on scroll/resize so
+  // it follows the trigger if the rail scrolls under it.
+  const [popoverStyle, setPopoverStyle] = useState(null);
+  useEffect(() => {
+    if (!open || !containerRef.current) {
+      setPopoverStyle(null);
+      return undefined;
+    }
+    const updatePosition = () => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const POPOVER_MAX_H = 320;
+      const GAP = 4;
+      const spaceBelow = window.innerHeight - rect.bottom - GAP;
+      const spaceAbove = rect.top - GAP;
+      const flipUp = spaceBelow < 200 && spaceAbove > spaceBelow;
+      const maxHeight = Math.max(160, Math.min(POPOVER_MAX_H, flipUp ? spaceAbove : spaceBelow));
+      setPopoverStyle({
+        position: "fixed",
+        left: `${rect.left}px`,
+        width: `${rect.width}px`,
+        ...(flipUp
+          ? { bottom: `${window.innerHeight - rect.top + GAP}px` }
+          : { top: `${rect.bottom + GAP}px` }),
+        maxHeight: `${maxHeight}px`,
+      });
+    };
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [open]);
+
   // Reset query + scroll-active when the popover closes.
   useEffect(() => {
     if (!open) {
@@ -61,11 +100,15 @@ export const SearchableSelect = ({ value, onChange, options, label, placeholder 
     }
   }, [activeIndex, open]);
 
-  // Click outside closes.
+  // Click outside closes. The popover is portaled to body, so we keep a
+  // ref to it and also exclude clicks inside the portaled element.
+  const popoverRef = useRef(null);
   useEffect(() => {
     if (!open) return undefined;
     const onDown = (event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
+      const inTrigger = containerRef.current?.contains(event.target);
+      const inPopover = popoverRef.current?.contains(event.target);
+      if (!inTrigger && !inPopover) {
         setOpen(false);
       }
     };
@@ -108,8 +151,13 @@ export const SearchableSelect = ({ value, onChange, options, label, placeholder 
         <span className="searchable-select-value">{currentLabel}</span>
         <ChevronDown size={16} />
       </button>
-      {open && (
-        <div className="searchable-select-popover" role="dialog">
+      {open && popoverStyle && createPortal(
+        <div
+          ref={popoverRef}
+          className="searchable-select-popover"
+          role="dialog"
+          style={popoverStyle}
+        >
           <input
             ref={inputRef}
             type="text"
@@ -151,7 +199,8 @@ export const SearchableSelect = ({ value, onChange, options, label, placeholder 
               );
             })}
           </ul>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

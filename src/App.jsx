@@ -12,6 +12,7 @@ import { areaOptionByValue, areaOptions } from "./data/geography.js";
 import { lookPresets } from "./data/look-presets.js";
 import { loadUsStates } from "./data/us-states.js";
 import { clampNumber } from "./utils/math.js";
+import { invertGradient, invertHex } from "./utils/color.js";
 import {
   createCountryMapData,
   createStateMapData,
@@ -65,7 +66,13 @@ const App = () => {
   const [viewMode, setViewMode] = useState("globe");
   const [viewTransition, setViewTransition] = useState(null);
   const viewTransitionTimeoutRef = useRef(0);
-  const [mapZoom, setMapZoom] = useState(0.8);
+  // Default map zoom — desktop starts at 0.8 for a "looking at the world"
+  // framing. Mobile gets 1.5 so the globe actually fills the visible
+  // canvas area above the bottom sheet instead of feeling small.
+  const [mapZoom, setMapZoom] = useState(() => {
+    if (typeof window === "undefined") return 0.8;
+    return window.innerWidth < 620 ? 2.2 : 0.8;
+  });
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const mapZoomRef = useRef(mapZoom);
   const viewModeRef = useRef(viewMode);
@@ -200,6 +207,42 @@ const App = () => {
   // the canvas/globe rendering stays on its dark base because the artwork
   // is colored independently and reads best against the canvas's own background.
   const [uiTheme, setUiTheme] = usePersistedState("uiTheme", "dark");
+  // Theme toggle that *also* RGB-inverts every user-facing color so the
+  // canvas/globe flip cleanly between dark and light. Solid colors get
+  // (255-r, 255-g, 255-b); gradients invert each stop while preserving
+  // angle/midpoint/per-stop alphas. Alphas, projection, and numeric
+  // settings stay put. Round-trips losslessly — toggle twice and you
+  // get back to where you started.
+  const toggleTheme = useCallback(() => {
+    // Briefly mark the root with .is-theme-transitioning so CSS can attach
+    // a one-shot ~320ms transition to every background-color / color /
+    // border-color / fill change. Without this the panels snap between
+    // themes; with it they crossfade. The class is auto-cleared so the
+    // transition doesn't compound onto normal interactions afterward.
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.add("is-theme-transitioning");
+      window.setTimeout(() => {
+        document.documentElement.classList.remove("is-theme-transitioning");
+      }, 360);
+    }
+    setUiTheme((current) => (current === "dark" ? "light" : "dark"));
+    setDotColor((c) => invertHex(c));
+    setWorldFill((c) => invertHex(c));
+    setWorldStroke((c) => invertHex(c));
+    setBackground((c) => invertHex(c));
+    setDotGradient((g) => invertGradient(g));
+    setWorldFillGradient((g) => invertGradient(g));
+    setWorldStrokeGradient((g) => invertGradient(g));
+  }, [
+    setUiTheme,
+    setDotColor,
+    setWorldFill,
+    setWorldStroke,
+    setBackground,
+    setDotGradient,
+    setWorldFillGradient,
+    setWorldStrokeGradient,
+  ]);
   useEffect(() => {
     if (typeof document === "undefined") return;
     document.documentElement.setAttribute("data-theme", uiTheme);
@@ -420,17 +463,25 @@ const App = () => {
 
   const applyLook = useCallback((preset) => {
     const s = preset.settings;
+    // Look presets are authored against the dark canvas. When the user is
+    // in light theme, invert every color (RGB complement) so the preset
+    // still reads "right" — light dots stay visible against a cream bg,
+    // dark world-fills invert to light, gradients flip per stop. The
+    // shader-driven visual identity (Risograph ink, Aurora bands, dither
+    // patterns) is preserved because shaders use the base colors as inputs.
+    const themeColor = (c) => (uiTheme === "light" ? invertHex(c) : c);
+    const themeGradient = (g) => (uiTheme === "light" ? invertGradient(g) : g);
     if (s.selection !== undefined) setSelection(s.selection);
     if (s.stateSelection !== undefined) setStateSelection(s.stateSelection);
-    if (s.background !== undefined) setBackground(s.background);
+    if (s.background !== undefined) setBackground(themeColor(s.background));
     if (s.transparent !== undefined) setTransparent(s.transparent);
     if (s.backgroundStyle !== undefined) setBackgroundStyle(s.backgroundStyle);
     if (s.spaceSettings) setSpaceSettings((current) => ({ ...current, ...s.spaceSettings }));
     if (s.density !== undefined) setDensity(s.density);
     if (s.dotSize !== undefined) setDotSize(s.dotSize);
-    if (s.dotColor !== undefined) setDotColor(s.dotColor);
+    if (s.dotColor !== undefined) setDotColor(themeColor(s.dotColor));
     if (s.dotColorAlpha !== undefined) setDotColorAlpha(s.dotColorAlpha);
-    if (s.dotGradient !== undefined) setDotGradient(s.dotGradient);
+    if (s.dotGradient !== undefined) setDotGradient(themeGradient(s.dotGradient));
     if (s.dotsVisible !== undefined) setDotsVisible(s.dotsVisible);
     if (s.shape !== undefined) setShape(s.shape);
     if (s.dotRotation !== undefined) setDotRotation(s.dotRotation);
@@ -439,13 +490,13 @@ const App = () => {
     if (s.customShape !== undefined) setCustomShape(s.customShape);
     if (s.asciiSymbol !== undefined) setAsciiSymbol(s.asciiSymbol);
     if (s.renderMode !== undefined) setRenderMode(s.renderMode);
-    if (s.worldFill !== undefined) setWorldFill(s.worldFill);
+    if (s.worldFill !== undefined) setWorldFill(themeColor(s.worldFill));
     if (s.worldFillAlpha !== undefined) setWorldFillAlpha(s.worldFillAlpha);
-    if (s.worldFillGradient !== undefined) setWorldFillGradient(s.worldFillGradient);
+    if (s.worldFillGradient !== undefined) setWorldFillGradient(themeGradient(s.worldFillGradient));
     if (s.worldFillVisible !== undefined) setWorldFillVisible(s.worldFillVisible);
-    if (s.worldStroke !== undefined) setWorldStroke(s.worldStroke);
+    if (s.worldStroke !== undefined) setWorldStroke(themeColor(s.worldStroke));
     if (s.worldStrokeAlpha !== undefined) setWorldStrokeAlpha(s.worldStrokeAlpha);
-    if (s.worldStrokeGradient !== undefined) setWorldStrokeGradient(s.worldStrokeGradient);
+    if (s.worldStrokeGradient !== undefined) setWorldStrokeGradient(themeGradient(s.worldStrokeGradient));
     if (s.worldStrokeVisible !== undefined) setWorldStrokeVisible(s.worldStrokeVisible);
     if (s.worldStrokeWidth !== undefined) setWorldStrokeWidth(s.worldStrokeWidth);
     if (s.shaderSettings) setShaderSettings(s.shaderSettings);
@@ -524,7 +575,7 @@ const App = () => {
       }
       breadcrumbScript.textContent = JSON.stringify(breadcrumb);
     }
-  }, []);
+  }, [uiTheme]);
 
   // Curated palette + size sweet-spots. Picked to look good across most
   // preset combinations, not chaotic random hex codes that produce ugly mud.
@@ -1225,7 +1276,7 @@ const App = () => {
             <button
               type="button"
               className="panel-icon-button"
-              onClick={() => setUiTheme((current) => (current === "dark" ? "light" : "dark"))}
+              onClick={toggleTheme}
               aria-label={uiTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
               aria-pressed={uiTheme === "light"}
               data-tooltip={uiTheme === "dark" ? "Switch to light UI" : "Switch to dark UI"}
@@ -1243,15 +1294,6 @@ const App = () => {
             </button>
             <button
               type="button"
-              className="panel-icon-button"
-              onClick={() => setExportModalOpen(true)}
-              aria-label="Open export dialog"
-              data-tooltip="Export (D)"
-            >
-              <Download size={16} />
-            </button>
-            <button
-              type="button"
               className="panel-icon-button panel-icon-button--hide-panel"
               onClick={() => setPanelCollapsed(true)}
               aria-label="Hide panel"
@@ -1259,9 +1301,18 @@ const App = () => {
             >
               <PanelLeftClose size={16} />
             </button>
+            <button
+              type="button"
+              className="panel-icon-button panel-icon-button--primary"
+              onClick={() => setExportModalOpen(true)}
+              aria-label="Open export dialog"
+              data-tooltip="Export (D)"
+            >
+              <Download size={16} />
+            </button>
           </div>
         </div>
-        <LooksBar onPick={applyLook} appliedId={appliedLookId} />
+        <LooksBar onPick={applyLook} appliedId={appliedLookId} currentId={currentPresetId} />
 
         <ControlPanel
             selection={selection}

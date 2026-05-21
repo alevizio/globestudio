@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { lookPresets } from "../data/look-presets.js";
-import { LookPreview } from "./look-preview.jsx";
 
 // Scroll-aware edge fade indicators so users know there are more looks to the
 // right (the bar overflows by ~450px on a default panel width). The data
 // attributes drive CSS masks: hide the left fade at the start, hide the right
 // fade once scrolled to the end.
-export const LooksBar = ({ onPick, appliedId = null }) => {
+export const LooksBar = ({ onPick, appliedId = null, currentId = null }) => {
   const ref = useRef(null);
   const chipRefs = useRef(new Map());
   const [edges, setEdges] = useState({ atStart: true, atEnd: false });
@@ -60,11 +59,10 @@ export const LooksBar = ({ onPick, appliedId = null }) => {
           }}
           type="button"
           role="listitem"
-          className={`looks-chip ${appliedId === preset.id ? "is-applied" : ""}`}
+          className={`looks-chip ${appliedId === preset.id ? "is-applied" : ""} ${currentId === preset.id ? "is-current" : ""}`}
           title={preset.blurb}
           onClick={() => onPick(preset)}
         >
-          <LookPreview preset={preset} />
           <span>{preset.name}</span>
         </button>
       ))}

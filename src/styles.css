@@ -1,9 +1,9 @@
 :root {
   color-scheme: dark;
   font-family:
-    "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  background: #0b0b0c;
-  color: #f6f2ea;
+    "Geist Pixel", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: var(--bg);
+  color: var(--text);
   font-synthesis: none;
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
@@ -23,10 +23,43 @@
   --accent: #f6f2ea;
   --accent-soft: rgba(246, 242, 234, 0.22);
   --accent-softer: rgba(246, 242, 234, 0.08);
+  /* Always contrasts against --accent — used for text/icons on filled
+     accent backgrounds (primary buttons, current-look chip). Dark in
+     dark mode (because --accent is light), light in light mode. */
+  --on-accent: #0b0b0c;
+  /* Shadow tokens — set to `none` in light theme so the UI reads as
+     flat in light mode and only the dark canvas gets the lift cards. */
+  --shadow-sm: 0 6px 14px rgba(0, 0, 0, 0.32);
+  --shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
+  --shadow-md: 0 18px 54px rgba(0, 0, 0, 0.38);
+  --shadow-lg: 0 24px 80px rgba(0, 0, 0, 0.44);
+  --shadow-xl: 0 32px 80px rgba(0, 0, 0, 0.55);
+  --shadow-thumb: 0 1px 2px rgba(0, 0, 0, 0.55);
+  --shadow-up: 0 -16px 40px rgba(0, 0, 0, 0.55);
+  /* Theme-aware faint stroke — used by the dashed dividers, slider track
+     idle fill, and inset hairlines so they swap polarity in light mode
+     instead of becoming invisible white-on-cream. */
+  --stroke-faint: rgba(255, 255, 255, 0.18);
+  --stroke-fill: rgba(255, 255, 255, 0.28);
+  --stroke-empty: rgba(255, 255, 255, 0.08);
+  /* Slider thumb fill — light in dark theme (visible against dark track),
+     dark in light theme (visible against light track). */
+  --thumb-fill: #ffffff;
+  /* Surface hover/active overlays — soft white on dark, soft dark on
+     light, so subtle hover states stay visible in both themes. */
+  --surface-hover: rgba(255, 255, 255, 0.04);
+  --surface-active: rgba(255, 255, 255, 0.06);
+  /* Vignette tints used by the canvas edge gradient. Each represents
+     "the bg color, but extra concentrated" — dark mode pulls toward
+     deep black, light mode lifts to near-white. Light mode also dials
+     down the opacity so the edges don't crush the dotted globe. */
+  --vignette-strong: rgba(11, 11, 12, 0.58);
+  --vignette-mid: rgba(11, 11, 12, 0.16);
+  --vignette-soft: rgba(11, 11, 12, 0.08);
   --radius: 16px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-mono-2: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-mono-2: "Geist Pixel", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 /* iOS-style continuous corners (squircle / G2 continuity). Replaces the
@@ -46,10 +79,15 @@
    of which UI theme the user is in. */
 [data-theme="light"] {
   color-scheme: light;
-  --panel: rgba(252, 251, 248, 0.92);
-  --panel-2: rgba(0, 0, 0, 0.045);
-  --panel-3: rgba(0, 0, 0, 0.085);
-  --field: rgba(255, 255, 255, 0.78);
+  /* Opaque panel surfaces — kills the alpha bleed-through that was
+     letting the dotted-globe canvas show through the backdrop-filter
+     as a soft gradient under every translucent panel. Light mode now
+     reads as flat solid surfaces, matching how dark mode looks on a
+     uniformly-dark canvas. */
+  --panel: #fcfbf8;
+  --panel-2: #f1efeb;
+  --panel-3: #e8e6e1;
+  --field: #ffffff;
   --border: rgba(0, 0, 0, 0.1);
   --border-strong: rgba(0, 0, 0, 0.18);
   --text: #18171a;
@@ -58,6 +96,57 @@
   --accent: #18171a;
   --accent-soft: rgba(24, 23, 26, 0.16);
   --accent-softer: rgba(24, 23, 26, 0.06);
+  --on-accent: #f6f2ea;
+  /* Canvas/body background — warm cream, lighter than --panel so panels
+     still float visibly on top of the canvas in light mode. */
+  --bg: #f4f1ea;
+  /* Strip all card-level drop shadows in light mode — the cream-on-cream
+     contrast doesn't need them, and they cast visible dark halos that
+     fight the flat aesthetic. Slider thumb keeps a tiny shadow so the
+     puck stays visible against the track. */
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-up: none;
+  /* Flip stroke colors to dark-on-light so dashed dividers, slider
+     track fills, and hairlines stay visible on the cream canvas. */
+  --stroke-faint: rgba(0, 0, 0, 0.18);
+  --stroke-fill: rgba(0, 0, 0, 0.36);
+  --stroke-empty: rgba(0, 0, 0, 0.1);
+  /* Slider thumb flips to dark so it pops against the light track. */
+  --thumb-fill: #18171a;
+  /* Hover overlays use dark wash on the cream canvas. */
+  --surface-hover: rgba(0, 0, 0, 0.04);
+  --surface-active: rgba(0, 0, 0, 0.06);
+  /* Light-mode vignette uses warm dark tones at *very* low alpha — the
+     cream bg doesn't need a heavy edge crush; a hint is enough. */
+  --vignette-strong: rgba(60, 50, 30, 0.06);
+  --vignette-mid: rgba(60, 50, 30, 0.02);
+  --vignette-soft: transparent;
+}
+
+/* One-shot transition class applied to <html> for ~320ms when the user
+   toggles dark↔light. Crossfades every color-bearing property across
+   the entire tree so panels, text, borders, fills, and dashed strokes
+   slide between themes instead of snapping. Respects reduced-motion. */
+.is-theme-transitioning,
+.is-theme-transitioning *,
+.is-theme-transitioning *::before,
+.is-theme-transitioning *::after {
+  transition-property: background-color, background, color, border-color, fill, stroke, box-shadow !important;
+  transition-duration: 320ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-theme-transitioning,
+  .is-theme-transitioning *,
+  .is-theme-transitioning *::before,
+  .is-theme-transitioning *::after {
+    transition: none !important;
+  }
 }
 
 output,
@@ -132,9 +221,22 @@ button {
 }
 
 .preset-detail-header {
+  position: relative;
   margin-bottom: 32px;
   padding-bottom: 24px;
-  border-bottom: 1px solid var(--border);
+}
+
+.preset-detail-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, var(--stroke-faint) 1px, transparent 1px);
+  background-size: 2px 1px;
+  background-repeat: repeat-x;
+  pointer-events: none;
 }
 
 .preset-detail-title {
@@ -194,9 +296,9 @@ button {
 }
 
 .preset-detail-footer {
+  position: relative;
   margin-top: 40px;
   padding-top: 24px;
-  border-top: 1px solid var(--border);
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
@@ -204,6 +306,19 @@ button {
   align-items: center;
   color: var(--muted);
   font-size: 14px;
+}
+
+.preset-detail-footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, var(--stroke-faint) 1px, transparent 1px);
+  background-size: 2px 1px;
+  background-repeat: repeat-x;
+  pointer-events: none;
 }
 
 .preset-detail-back {
@@ -221,7 +336,7 @@ button {
   font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   background: var(--panel-2);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 8px;
   color: var(--muted);
 }
 
@@ -282,14 +397,14 @@ button {
   background:
     linear-gradient(
       90deg,
-      rgba(11, 11, 12, 0.58),
-      rgba(11, 11, 12, 0.14) 24%,
+      var(--vignette-strong),
+      var(--vignette-mid) 24%,
       transparent 42%,
       transparent 58%,
-      rgba(11, 11, 12, 0.16) 76%,
-      rgba(11, 11, 12, 0.62)
+      var(--vignette-mid) 76%,
+      var(--vignette-strong)
     ),
-    linear-gradient(180deg, rgba(11, 11, 12, 0.08), rgba(11, 11, 12, 0.28));
+    linear-gradient(180deg, var(--vignette-soft), var(--vignette-mid));
 }
 
 .map-background {
@@ -338,18 +453,22 @@ button {
   display: grid;
   grid-template-columns: auto auto;
   gap: 2px 8px;
-  padding: 6px 9px;
-  border-radius: 6px;
-  background: rgba(8, 10, 14, 0.78);
-  color: #d3e4ff;
+  padding: 0;
+  background: transparent;
+  color: var(--text);
   font: 700 10px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   letter-spacing: 0.02em;
   pointer-events: none;
   z-index: 10;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 0;
   user-select: none;
+  /* Background-colored halo so the readout stays legible against any
+     canvas content (dotted globe, shader output, gradients) without
+     needing an actual background chip. */
+  text-shadow:
+    0 0 6px var(--bg),
+    0 0 3px var(--bg),
+    0 0 1px var(--bg);
 }
 
 .perf-monitor-row {
@@ -357,7 +476,8 @@ button {
 }
 
 .perf-monitor-label {
-  color: rgba(211, 228, 255, 0.55);
+  color: var(--dim);
+  opacity: 0.7;
   text-transform: uppercase;
   font-size: 10px;
   align-self: center;
@@ -366,7 +486,8 @@ button {
 .perf-monitor-value {
   font-variant-numeric: tabular-nums;
   text-align: right;
-  color: #f4f8ff;
+  color: var(--dim);
+  opacity: 0.7;
 }
 
 .map-background-placeholder::after {
@@ -454,14 +575,14 @@ button {
   left: 8px;
   z-index: 100;
   padding: 10px 14px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--panel);
   color: var(--text);
   text-decoration: none;
   font-size: 14px;
   font-weight: 700;
   border: 1px solid var(--border-strong);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--shadow);
   transform: translateY(-200%);
   transition: transform 180ms var(--ease);
 }
@@ -525,7 +646,7 @@ button {
 .globe-background canvas:focus-visible {
   outline: 2px solid var(--accent, #f6f2ea);
   outline-offset: -4px;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 /* Reduced-transparency: simplify backdrop filters so the panel doesn't lag
@@ -538,7 +659,7 @@ button {
   .view-mode-switch {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: rgba(12, 12, 14, 0.92) !important;
+    background: var(--panel) !important;
   }
 }
 
@@ -634,14 +755,14 @@ button {
   background:
     linear-gradient(
       90deg,
-      rgba(11, 11, 12, 0.54),
-      rgba(11, 11, 12, 0.12) 24%,
+      var(--vignette-strong),
+      var(--vignette-mid) 24%,
       transparent 47%,
       transparent 63%,
-      rgba(11, 11, 12, 0.16) 79%,
-      rgba(11, 11, 12, 0.58)
+      var(--vignette-mid) 79%,
+      var(--vignette-strong)
     ),
-    linear-gradient(180deg, rgba(11, 11, 12, 0.05), rgba(11, 11, 12, 0.24));
+    linear-gradient(180deg, var(--vignette-soft), var(--vignette-mid));
 }
 
 .app-shell.is-borderless-globe::after {
@@ -827,12 +948,12 @@ button {
   display: grid;
   align-content: start;
   gap: 10px;
-  padding: 10px;
+  padding: 4px 10px 10px;
   background: var(--panel);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
+  box-shadow: var(--shadow-lg);
   backdrop-filter: blur(18px);
   border: 1px solid var(--border);
-  border-radius: 28px;
+  border-radius: 14px;
   overflow: hidden auto;
   scrollbar-width: thin;
   scrollbar-color: var(--panel-3) transparent;
@@ -853,7 +974,7 @@ button {
 .panel-header-actions {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 8px;
 }
 
 .looks-bar {
@@ -899,19 +1020,12 @@ button {
 
 .looks-chip {
   flex: 0 0 auto;
-  min-height: 40px;
-  /* No left padding — the preview block takes the entire left end of
-     the chip and is flush with the chip's top, left and bottom edges.
-     Right padding still buffers the label from the chip border. */
-  padding: 0 14px 0 0;
+  min-height: 36px;
+  padding: 0 14px;
   display: inline-flex;
   align-items: center;
   gap: 14px;
   border: 1px solid var(--border);
-  /* Soft-cornered rectangle (not a full pill) so the left-side square
-     preview reads as a square — the chip's small 10px corner radius
-     clips just the outer corners of the preview, keeping it
-     unmistakably square overall. */
   border-radius: 10px;
   background: var(--field);
   color: var(--muted);
@@ -920,7 +1034,9 @@ button {
   white-space: nowrap;
   cursor: pointer;
   overflow: hidden;
-  transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
+  transform: scale(1);
+  transition: background 180ms var(--ease), border-color 180ms var(--ease),
+    color 180ms var(--ease), transform 140ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 /* Chip's left-cell preview. Solid black backdrop with a 1px stroke on
@@ -999,7 +1115,23 @@ button {
 
 
 .looks-chip:active {
-  transform: translateY(0.5px);
+  transform: scale(0.94);
+}
+
+/* Persistent "currently active preset" state — solid border + accent fill +
+   contrasting text. Stays on while this preset is the one applied to the
+   canvas, separate from the brief is-applied flash below. */
+.looks-chip.is-current {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.looks-chip.is-current:hover {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--on-accent);
 }
 
 /* Brief glow + lift when a preset is freshly applied — confirms the action
@@ -1087,14 +1219,43 @@ button {
   color: var(--text);
 }
 
+/* Primary variant — for the action the user most often wants from the
+   panel header (export). Gives it filled chrome so it reads as a button
+   instead of a ghost icon next to the other passive controls. */
+.panel-icon-button--primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1px solid var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.panel-icon-button--primary:hover {
+  background: var(--text);
+  color: var(--on-accent);
+  border-color: var(--text);
+}
+
 .export-info {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 8px 2px 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   margin-bottom: 4px;
+}
+
+.export-info::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, var(--stroke-faint) 1px, transparent 1px);
+  background-size: 2px 1px;
+  background-repeat: repeat-x;
+  pointer-events: none;
 }
 
 .export-info-label {
@@ -1134,10 +1295,10 @@ button {
   max-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
-  background: rgba(14, 14, 16, 0.96);
+  background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55);
+  border-radius: 14px;
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: export-modal-rise-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -1153,12 +1314,25 @@ button {
 }
 
 .export-modal-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 16px 16px 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.export-modal-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, var(--stroke-faint) 1px, transparent 1px);
+  background-size: 2px 1px;
+  background-repeat: repeat-x;
+  pointer-events: none;
 }
 
 .export-modal-title {
@@ -1190,10 +1364,23 @@ button {
 }
 
 .export-modal-tabs {
+  position: relative;
   display: flex;
   gap: 4px;
   padding: 12px 16px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.export-modal-tabs::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, var(--stroke-faint) 1px, transparent 1px);
+  background-size: 2px 1px;
+  background-repeat: repeat-x;
+  pointer-events: none;
 }
 
 .shortcuts-overlay-backdrop {
@@ -1213,10 +1400,10 @@ button {
   width: min(380px, 100%);
   display: flex;
   flex-direction: column;
-  background: rgba(14, 14, 16, 0.96);
+  background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55);
+  border-radius: 14px;
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: export-modal-rise-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -1277,26 +1464,34 @@ button {
 }
 
 .shortcuts-overlay-row:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-hover);
   color: var(--text);
 }
 
+/* Physical-keyboard-key look — soft top highlight, taller bottom border
+   acting as the cap's edge, multi-layer drop shadow for depth, slight
+   inner gloss. Reads as a key you could press instead of a flat chip. */
 .shortcuts-overlay-key {
   flex: 0 0 auto;
   min-width: 28px;
-  height: 24px;
+  height: 26px;
   padding: 0 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border-strong);
-  border-bottom-width: 2px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
+  border-bottom-width: 3px;
+  border-radius: 8px;
+  background: var(--panel-3);
   color: var(--text);
   font-family: var(--font-mono-2);
   font-size: 12px;
   font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 2px 0 rgba(0, 0, 0, 0.35),
+    0 3px 6px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
 }
 
 .shortcuts-overlay-label {
@@ -1310,11 +1505,9 @@ button {
   z-index: 60;
   padding: 5px 10px;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(14, 14, 16, 0.94);
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.42);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
   color: var(--text);
   font-size: 11.5px;
   font-weight: 700;
@@ -1347,10 +1540,8 @@ button {
   padding: 8px 14px 8px 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(14, 14, 16, 0.92);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  background: var(--panel);
+  box-shadow: var(--shadow);
   color: var(--text);
   font-size: 13px;
   font-weight: 700;
@@ -1368,8 +1559,8 @@ button {
   justify-content: center;
   border: 1px solid var(--border-strong);
   border-bottom-width: 2px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  background: var(--surface-hover);
   font-family: var(--font-mono-2);
   font-size: 12px;
   font-weight: 700;
@@ -1422,7 +1613,7 @@ button {
   color: var(--text);
   border: 1px solid var(--border);
   border-bottom-color: transparent;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-hover);
   border-radius: 8px 8px 0 0;
   padding: 6px 12px 10px;
 }
@@ -1512,7 +1703,7 @@ button {
 .export-modal-input:focus {
   outline: none;
   border-color: rgba(246, 242, 234, 0.5);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-hover);
 }
 
 .export-modal-row {
@@ -1538,7 +1729,7 @@ button {
   gap: 10px;
   padding: 0 16px;
   border: 1px solid rgba(246, 242, 234, 0.22);
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(246, 242, 234, 0.08);
   color: var(--text);
   font-size: 14px;
@@ -1578,7 +1769,7 @@ button {
 .export-modal-progress {
   height: 3px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-active);
   overflow: hidden;
 }
 
@@ -1594,9 +1785,9 @@ button {
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
-  border: 1px dashed var(--border-strong);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--surface-hover);
   color: var(--muted);
   cursor: pointer;
   transition: border-color 160ms var(--ease), background 160ms var(--ease), color 160ms var(--ease);
@@ -1605,7 +1796,7 @@ button {
 .export-modal-dropzone:hover,
 .export-modal-dropzone:focus-visible {
   border-color: rgba(246, 242, 234, 0.45);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-hover);
   color: var(--text);
   outline: none;
 }
@@ -1641,7 +1832,7 @@ button {
 .export-progress {
   height: 3px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-active);
   overflow: hidden;
   margin-top: 4px;
 }
@@ -1666,7 +1857,7 @@ button {
   gap: 10px;
   padding: 0 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--field);
   color: var(--text);
   font-size: 13px;
@@ -1725,6 +1916,34 @@ button {
   display: none;
 }
 
+/* Accordion wrapper used by the panel sections that appear/disappear
+   when the user flips between Flat and Globe view modes. Uses the
+   grid-template-rows 0fr → 1fr technique so the wrapper animates to
+   its child's natural height without us measuring anything. */
+.collapsible-section {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 320ms cubic-bezier(0.34, 1.3, 0.5, 1),
+    opacity 220ms var(--ease);
+  opacity: 0;
+}
+
+.collapsible-section.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.collapsible-section-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collapsible-section {
+    transition: none;
+  }
+}
+
 .panel-toggle {
   position: fixed;
   top: 16px;
@@ -1738,7 +1957,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--panel);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   color: var(--muted);
@@ -1794,7 +2013,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--panel);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   color: var(--muted);
@@ -1819,9 +2038,9 @@ button {
   gap: 5px;
   padding: 5px;
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 14px;
   background: var(--panel);
-  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.38);
+  box-shadow: var(--shadow-md);
   backdrop-filter: blur(18px);
   transform: translateX(-50%);
 }
@@ -1836,9 +2055,9 @@ button {
   bottom: 5px;
   left: 5px;
   width: calc((100% - 15px) / 2);
-  border-radius: 17px;
-  border: 1px solid rgba(246, 242, 234, 0.32);
-  background: rgba(246, 242, 234, 0.06);
+  border-radius: 10px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
   transform: translateX(0);
   transition: transform 360ms cubic-bezier(0.34, 1.3, 0.5, 1);
   pointer-events: none;
@@ -1860,11 +2079,13 @@ button {
   z-index: 1;
   min-height: 34px;
   display: inline-flex;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
   gap: 7px;
+  white-space: nowrap;
   border: 1px solid transparent;
-  border-radius: 17px;
+  border-radius: 10px;
   background: transparent;
   color: var(--muted);
   font-size: 13px;
@@ -1879,7 +2100,7 @@ button {
 }
 
 .view-mode-button.is-active {
-  color: var(--accent);
+  color: var(--on-accent);
 }
 
 .map-zoom-controls {
@@ -1892,11 +2113,11 @@ button {
   gap: 2px;
   padding: 4px;
   border: 1px solid var(--border);
-  border-radius: 18px;
-  background: rgba(12, 12, 14, 0.72);
+  border-radius: 14px;
+  background: var(--panel);
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.42);
+  box-shadow: var(--shadow);
   transform: translateX(-50%);
 }
 
@@ -1928,7 +2149,7 @@ button {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   user-select: none;
   outline: 0;
@@ -1936,7 +2157,7 @@ button {
 }
 
 .map-zoom-display:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-hover);
 }
 
 .map-zoom-display:focus-visible {
@@ -1961,18 +2182,31 @@ button {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.42);
+  box-shadow: var(--shadow-md);
   backdrop-filter: blur(18px);
 }
 
 .export-scale-group {
+  position: relative;
   display: grid;
   gap: 8px;
   padding: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--muted);
   font-size: 13px;
   font-weight: 740;
+}
+
+.export-scale-group::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, var(--stroke-faint) 1px, transparent 1px);
+  background-size: 2px 1px;
+  background-repeat: repeat-x;
+  pointer-events: none;
 }
 
 .export-scale-options {
@@ -1984,7 +2218,7 @@ button {
 .export-scale-option {
   min-height: 28px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--field);
   color: var(--muted);
   font-size: 12px;
@@ -2097,8 +2331,30 @@ button {
   padding: 8px 4px 12px;
 }
 
-.option-block + .option-block {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+/* Dashed 1px-on / 1px-off divider — pixel-art-style separation between
+   panel sections. Rendered as a ::before so the dashes can be inset
+   from the panel sides without affecting the option-block's content. */
+.option-block + .option-block::before,
+.collapsible-section + .option-block::before,
+.collapsible-section .option-block::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    var(--stroke-faint) 1px,
+    transparent 1px
+  );
+  background-size: 2px 1px;
+  background-repeat: repeat-x;
+  pointer-events: none;
+}
+
+.option-block {
+  position: relative;
 }
 
 .map-area-section {
@@ -2236,7 +2492,7 @@ button {
   padding: 3px;
   min-height: 32px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--field);
 }
 
@@ -2247,7 +2503,7 @@ button {
   left: 3px;
   /* indicator-width = (full row − padding ×2 − gap ×(count−1)) / count */
   width: calc((100% - 6px - 3px * (var(--segment-count, 2) - 1)) / var(--segment-count, 2));
-  border-radius: 9px;
+  border-radius: 10px;
   background: var(--panel-3);
   border: 1px solid rgba(246, 242, 234, 0.22);
   /* translateX(100%) is the indicator's own width, +3px adds the gap so
@@ -2269,7 +2525,7 @@ button {
   z-index: 1;
   min-height: 24px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 10px;
   background: transparent;
   color: var(--muted);
   font-size: 13px;
@@ -2289,10 +2545,10 @@ button {
 
 select {
   width: 100%;
-  min-height: 32px;
-  padding: 0 32px 0 10px;
+  min-height: 36px;
+  padding: 0 32px 0 14px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 10px;
   background: var(--field);
   color: var(--text);
   font-size: 13px;
@@ -2303,7 +2559,7 @@ select {
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23a8a39b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right 12px center;
   background-size: 10px 10px;
   transition: border-color 180ms var(--ease), background-color 180ms var(--ease);
 }
@@ -2319,13 +2575,13 @@ select:hover {
 
 .shape-select-trigger {
   width: 100%;
-  min-height: 32px;
+  min-height: 36px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 0 10px;
+  padding: 0 14px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 10px;
   background: var(--field);
   color: var(--text);
   font: inherit;
@@ -2341,7 +2597,7 @@ select:hover {
 
 .shape-select-trigger[aria-expanded="true"] {
   border-color: var(--border-strong);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-hover);
 }
 
 .shape-select-trigger .shape-preview {
@@ -2369,10 +2625,10 @@ select:hover {
   list-style: none;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgba(18, 18, 20, 0.96);
+  background: var(--panel);
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--shadow-md);
   max-height: 240px;
   overflow-y: auto;
 }
@@ -2384,7 +2640,7 @@ select:hover {
   gap: 10px;
   padding: 6px 8px;
   border: 0;
-  border-radius: 5px;
+  border-radius: 8px;
   background: transparent;
   color: var(--muted);
   font: inherit;
@@ -2396,7 +2652,7 @@ select:hover {
 }
 
 .shape-select-option:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-active);
   color: var(--text);
 }
 
@@ -2419,11 +2675,11 @@ select:hover {
 
 .searchable-select-trigger {
   width: 100%;
-  min-height: 32px;
+  min-height: 36px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 0 10px;
+  padding: 0 14px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--field);
@@ -2442,7 +2698,7 @@ select:hover {
 
 .searchable-select.is-open .searchable-select-trigger {
   border-color: var(--border-strong);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-hover);
 }
 
 .searchable-select-value {
@@ -2457,18 +2713,18 @@ select:hover {
   opacity: 0.6;
 }
 
+/* Positioning (left/top/width) is set inline by the SearchableSelect
+   component, which portals this to <body> and updates the rect on
+   scroll/resize so the popover can escape the rail's overflow:hidden
+   and never gets clipped by the card edge. */
 .searchable-select-popover {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 12;
+  z-index: 50;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  border-radius: 18px;
-  background: #121214;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
 }
 
@@ -2519,7 +2775,7 @@ select:hover {
 }
 
 .searchable-select-option.is-active {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-active);
   color: var(--text);
 }
 
@@ -2539,7 +2795,7 @@ select:hover {
   min-height: 32px;
   padding: 0 10px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--field);
   color: var(--text);
   font-family: var(--font-mono-2);
@@ -2584,7 +2840,7 @@ select:hover {
   width: 100%;
   min-height: 36px;
   padding: 4px 10px 4px 4px;
-  border: 1px dashed var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   background: var(--field);
   color: var(--text);
@@ -2597,7 +2853,7 @@ select:hover {
 
 .custom-shape-pick:hover {
   border-color: var(--accent-soft);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-hover);
 }
 
 .custom-shape-pick-icon {
@@ -2606,8 +2862,8 @@ select:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  background: var(--surface-active);
   color: var(--muted);
   font-size: 16px;
   font-weight: 400;
@@ -2627,8 +2883,8 @@ select:hover {
   width: 28px;
   height: 28px;
   object-fit: contain;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  background: var(--surface-active);
   padding: 3px;
 }
 
@@ -2668,7 +2924,7 @@ select:hover {
   min-height: 64px;
   padding: 8px 10px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--field);
   color: var(--text);
   font-family: var(--font-mono-2);
@@ -2696,7 +2952,7 @@ select:hover {
   border: 1px solid var(--accent-soft);
   border-radius: 999px;
   background: var(--accent);
-  color: #18171a;
+  color: var(--on-accent);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -2755,13 +3011,13 @@ input[type="range"] {
 .slider::-webkit-slider-runnable-track,
 input[type="range"]::-webkit-slider-runnable-track {
   height: 6px;
-  border-radius: 1px;
+  border-radius: 3px;
   background: linear-gradient(
     to right,
-    rgba(255, 255, 255, 0.28) 0%,
-    rgba(255, 255, 255, 0.28) var(--fill, 50%),
-    rgba(255, 255, 255, 0.08) var(--fill, 50%),
-    rgba(255, 255, 255, 0.08) 100%
+    var(--stroke-fill) 0%,
+    var(--stroke-fill) var(--fill, 50%),
+    var(--stroke-empty) var(--fill, 50%),
+    var(--stroke-empty) 100%
   );
 }
 
@@ -2772,9 +3028,9 @@ input[type="range"]::-webkit-slider-thumb {
   width: 16px;
   height: 16px;
   border-radius: 3px;
-  background: #ffffff;
+  background: var(--thumb-fill);
   border: 0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--shadow-thumb);
   cursor: grab;
   transition: transform 140ms var(--ease), box-shadow 140ms var(--ease);
 }
@@ -2796,15 +3052,15 @@ input[type="range"]:active::-webkit-slider-thumb {
 .slider::-moz-range-track,
 input[type="range"]::-moz-range-track {
   height: 6px;
-  border-radius: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  background: var(--stroke-empty);
 }
 
 .slider::-moz-range-progress,
 input[type="range"]::-moz-range-progress {
   height: 6px;
-  border-radius: 1px;
-  background: rgba(255, 255, 255, 0.28);
+  border-radius: 3px;
+  background: var(--stroke-fill);
 }
 
 .slider::-moz-range-thumb,
@@ -2812,9 +3068,9 @@ input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 3px;
-  background: #ffffff;
+  background: var(--thumb-fill);
   border: 0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--shadow-thumb);
   cursor: grab;
   transition: transform 140ms var(--ease);
 }
@@ -2862,7 +3118,7 @@ input[type="range"]:active::-moz-range-thumb {
   justify-content: center;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 5px;
+  border-radius: 8px;
   background: #fff;
   cursor: pointer;
   transition: border-color 180ms var(--ease);
@@ -2894,7 +3150,7 @@ input[type="range"]:active::-moz-range-thumb {
   background: var(--panel);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: color-picker-pop 180ms var(--ease);
 }
@@ -2914,7 +3170,7 @@ input[type="range"]:active::-moz-range-thumb {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px 6px 14px;
+  padding: 4px 10px 6px;
   cursor: grab;
   user-select: none;
   flex: 0 0 auto;
@@ -2924,19 +3180,32 @@ input[type="range"]:active::-moz-range-thumb {
   cursor: grabbing;
 }
 
+/* Six-dot drag handle — 2 columns × 3 rows of pixel squares, like the
+   six face of a die. Reads as a classic "grip" affordance and matches
+   the pixel aesthetic of the rest of the UI. */
 .color-picker-grip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
+  display: inline-grid;
+  grid-template-columns: repeat(2, 2px);
+  grid-template-rows: repeat(3, 2px);
+  gap: 2px;
   flex: 0 0 auto;
-  color: var(--dim);
-  transition: color 140ms var(--ease);
+  opacity: 0.55;
+  transition: opacity 140ms var(--ease);
+}
+
+.color-picker-grip > span {
+  width: 2px;
+  height: 2px;
+  background: var(--muted);
+  transition: background 140ms var(--ease);
 }
 
 .color-picker-header:hover .color-picker-grip {
-  color: var(--muted);
+  opacity: 1;
+}
+
+.color-picker-header:hover .color-picker-grip > span {
+  background: var(--text);
 }
 
 .color-picker-title {
@@ -2956,7 +3225,7 @@ input[type="range"]:active::-moz-range-thumb {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
@@ -2964,7 +3233,7 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .color-picker-close:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-active);
   color: var(--text);
   border-color: var(--border-strong);
 }
@@ -2992,14 +3261,14 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .color-picker-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--stroke-faint);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 .color-picker-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.24);
+  background: var(--stroke-fill);
   background-clip: padding-box;
 }
 
@@ -3035,7 +3304,7 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-hue {
   height: 12px;
-  border-radius: 999px;
+  border-radius: 3px;
   background: linear-gradient(
     to right,
     #ff0000 0%,
@@ -3046,7 +3315,6 @@ input[type="range"]:active::-moz-range-thumb {
     #ff00ff 83%,
     #ff0000 100%
   );
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   position: relative;
 }
 
@@ -3063,24 +3331,47 @@ input[type="range"]:active::-moz-range-thumb {
   cursor: pointer;
 }
 
+/* Reset all global ::-webkit and ::-moz slider track defaults — the
+   6px tall gradient bar from the main panel sliders would otherwise
+   show through the hue and alpha tracks as a thin horizontal line. */
+.color-picker-hue input[type="range"]::-webkit-slider-runnable-track,
+.color-picker-alpha input[type="range"]::-webkit-slider-runnable-track {
+  height: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.color-picker-hue input[type="range"]::-moz-range-track,
+.color-picker-alpha input[type="range"]::-moz-range-track {
+  height: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.color-picker-hue input[type="range"]::-moz-range-progress,
+.color-picker-alpha input[type="range"]::-moz-range-progress {
+  height: 0;
+  background: transparent;
+}
+
 .color-picker-hue input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   margin-top: 0;
-  border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.45);
+  border-radius: 3px;
+  background: var(--thumb-fill);
+  box-shadow: var(--shadow-thumb);
   cursor: grab;
 }
 
 .color-picker-hue input[type="range"]::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: 0;
-  border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.45);
+  border-radius: 3px;
+  background: var(--thumb-fill);
+  box-shadow: var(--shadow-thumb);
   cursor: grab;
 }
 
@@ -3093,14 +3384,13 @@ input[type="range"]:active::-moz-range-thumb {
 .color-picker-alpha {
   position: relative;
   height: 12px;
-  border-radius: 999px;
+  border-radius: 3px;
   /* Checkerboard tile + color gradient on top so transparency is visible. */
   background-image:
     linear-gradient(to right, rgba(0, 0, 0, 0), var(--alpha-color, #ffffff)),
     conic-gradient(rgba(255, 255, 255, 0.6) 25%, rgba(180, 180, 180, 0.6) 0 50%, rgba(255, 255, 255, 0.6) 0 75%, rgba(180, 180, 180, 0.6) 0);
   background-size: 100% 100%, 8px 8px;
   background-position: 0 0, 0 0;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .color-picker-alpha input[type="range"] {
@@ -3118,21 +3408,21 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-alpha input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.45);
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--thumb-fill);
+  box-shadow: var(--shadow-thumb);
   cursor: grab;
 }
 
 .color-picker-alpha input[type="range"]::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: 0;
-  border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.45);
+  border-radius: 3px;
+  background: var(--thumb-fill);
+  box-shadow: var(--shadow-thumb);
   cursor: grab;
 }
 
@@ -3145,37 +3435,35 @@ input[type="range"]:active::-moz-range-thumb {
 .color-picker-modes {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-  padding: 5px;
-  border: 1px solid var(--border);
+  gap: 3px;
+  padding: 3px;
+  border: 0;
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--field);
 }
 
 .color-picker-mode {
   min-height: 28px;
   padding: 0;
-  border: 1px solid transparent;
-  border-radius: 7px;
+  border: 0;
+  border-radius: 8px;
   background: transparent;
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease);
+  transition: background 180ms var(--ease), color 180ms var(--ease);
 }
 
 .color-picker-mode:hover,
 .color-picker-mode:focus-visible {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.055);
 }
 
 .color-picker-mode.is-active {
-  border-color: rgba(246, 242, 234, 0.32);
-  background: rgba(246, 242, 234, 0.06);
-  color: var(--accent);
+  background: var(--panel-3);
+  color: var(--text);
 }
 
 .color-picker-fields {
@@ -3204,10 +3492,10 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-field > input {
   width: 100%;
-  min-height: 26px;
+  min-height: 28px;
   padding: 0 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: 0;
+  border-radius: 8px;
   background: var(--field);
   color: var(--text);
   font-family: var(--font-mono-2);
@@ -3215,11 +3503,17 @@ input[type="range"]:active::-moz-range-thumb {
   font-weight: 700;
   text-align: center;
   outline: 0;
-  transition: border-color 180ms var(--ease);
+  transition: background 180ms var(--ease);
 }
 
 .color-picker-field > input:focus-visible {
-  border-color: var(--border-strong);
+  background: var(--panel-3);
+}
+
+.color-picker-field.is-bare > input {
+  min-height: 36px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
 }
 
 .color-picker-field > input[type="number"] {
@@ -3232,40 +3526,69 @@ input[type="range"]:active::-moz-range-thumb {
   margin: 0;
 }
 
+/* Solid / Gradient toggle — same sliding-indicator pattern as the
+   view-mode-switch (Flat / Globe). The indicator pill is positioned
+   absolute behind the buttons and animates between the two slots via
+   the data-active attribute on the parent. */
 .color-picker-fill {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 5px;
   padding: 5px;
-  border: 1px solid var(--border);
+  border: 0;
+  border-radius: 14px;
+  background: var(--field);
+}
+
+.color-picker-fill-indicator {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc((100% - 15px) / 2);
   border-radius: 10px;
-  background: var(--panel);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  transform: translateX(0);
+  transition: transform 360ms cubic-bezier(0.34, 1.3, 0.5, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.color-picker-fill[data-active="gradient"] .color-picker-fill-indicator {
+  transform: translateX(calc(100% + 5px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .color-picker-fill-indicator {
+    transition: none;
+  }
 }
 
 .color-picker-fill-tab {
+  position: relative;
+  z-index: 1;
   min-height: 30px;
   padding: 0;
-  border: 1px solid transparent;
-  border-radius: 7px;
+  border: 0;
+  border-radius: 10px;
   background: transparent;
   color: var(--muted);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease);
+  transition: color 220ms var(--ease);
 }
 
 .color-picker-fill-tab:hover,
 .color-picker-fill-tab:focus-visible {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.055);
 }
 
 .color-picker-fill-tab.is-active {
-  border-color: rgba(246, 242, 234, 0.32);
-  background: rgba(246, 242, 234, 0.06);
-  color: var(--accent);
+  color: var(--on-accent);
 }
 
 .color-picker-gradient {
@@ -3275,46 +3598,48 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-gradient-track {
   width: 100%;
-  height: 64px;
-  border-radius: 10px;
+  height: 52px;
+  border-radius: 8px;
 }
 
 .color-picker-stops {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--field);
 }
 
 .color-picker-stop {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 4px 7px;
-  min-height: 30px;
-  border: 1px solid var(--border);
+  gap: 10px;
+  padding: 6px 8px;
+  min-height: 34px;
+  border: 0;
   border-radius: 8px;
-  background: var(--field);
-  color: var(--text);
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
   text-align: left;
-  transition: border-color 140ms var(--ease), background 140ms var(--ease);
+  transition: background 140ms var(--ease), color 140ms var(--ease);
 }
 
 .color-picker-stop:hover {
-  border-color: var(--border-strong);
+  color: var(--text);
 }
 
 .color-picker-stop.is-active {
-  border-color: rgba(246, 242, 234, 0.32);
-  background: rgba(246, 242, 234, 0.06);
+  background: var(--panel-3);
+  color: var(--text);
 }
 
 .color-picker-stop-swatch {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   flex: 0 0 auto;
-  border-radius: 5px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
 }
 
 .color-picker-stop-meta {
@@ -3333,17 +3658,13 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .color-picker-stop-value {
-  color: var(--muted);
+  color: inherit;
   font-family: var(--font-mono-2);
   font-size: 12px;
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.color-picker-stop.is-active .color-picker-stop-value {
-  color: var(--text);
 }
 
 .color-picker-angle {
@@ -3381,7 +3702,7 @@ input[type="range"]:active::-moz-range-thumb {
   justify-content: center;
   padding: 0 10px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--field);
   color: var(--muted);
   font-size: 12px;
@@ -3445,7 +3766,7 @@ input[type="range"]:active::-moz-range-thumb {
 .toggle-knob {
   width: 50%;
   height: 100%;
-  border-radius: 7px;
+  border-radius: 8px;
   background: var(--panel-3);
   border: 1px solid var(--border);
   transform: translateX(0);
@@ -3494,14 +3815,14 @@ input[type="range"]:active::-moz-range-thumb {
   }
 
   .app-shell::after {
-    background: rgba(11, 11, 12, 0.42);
+    background: var(--vignette-mid);
   }
 
   .map-background .dot-map,
   .shader-canvas {
-    width: 150vw;
+    width: 220vw;
     max-width: none;
-    max-height: 78svh;
+    max-height: 100svh;
   }
 
   .map-background .dot-map {
@@ -3519,18 +3840,17 @@ input[type="range"]:active::-moz-range-thumb {
   .control-rail {
     position: fixed;
     top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    width: auto;
     max-height: 82svh;
     margin-top: 0;
-    padding: 28px 10px 32px;
+    padding: 6px 10px 18px;
     border: 1px solid var(--border);
-    border-bottom: 0;
-    border-radius: 22px 22px 0 0;
+    border-radius: 14px;
     background: var(--panel);
-    box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.55);
+    box-shadow: var(--shadow-up);
     transform: translateY(var(--drag-offset, 0px));
     transform-origin: bottom;
     transition:
@@ -3541,13 +3861,22 @@ input[type="range"]:active::-moz-range-thumb {
     z-index: 8;
   }
 
+  /* Shrink the brand-mark logo in the panel header on mobile so the
+     header row is shorter — that brings the drag bar (which sits at
+     the top) into visual alignment with the row between the logo and
+     the right-side icon buttons. */
+  .panel-meta-icon {
+    width: 44px;
+    height: 44px;
+  }
+
   /* On mobile, "collapsed" doesn't shrink-and-fade — it slides down to a
-     peek that shows the drag handle + panel header + looks bar + the
-     first option row (the Region/World dropdown). Drag up to reveal
+     small peek showing the drag handle + panel header + the looks bar
+     for quick preset switching. Drag up to reveal the dropdown and
      the rest of the panel. The --drag-offset CSS var carries any live
      finger delta during a drag so the sheet follows the touch 1:1. */
   .control-rail.is-collapsed {
-    transform: translateY(calc(100% - 280px + var(--drag-offset, 0px)));
+    transform: translateY(calc(100% - 200px + var(--drag-offset, 0px)));
     opacity: 1;
     filter: none;
     pointer-events: auto;
@@ -3618,6 +3947,28 @@ input[type="range"]:active::-moz-range-thumb {
     display: none;
   }
 
+  /* Tooltips are a hover-discoverability pattern that doesn't translate to
+     touch — every tap fires a "hover" and flashes a tooltip the user
+     didn't ask for. Hide them entirely on mobile. */
+  .follow-tooltip {
+    display: none !important;
+  }
+
+  /* GitHub + bug-report links sit above the bottom sheet's collapsed peek
+     line (200px + the sheet's 10px floating gap) so they stay visible at
+     rest. When the user expands the sheet they're hidden under it, which
+     is the same behavior as desktop when a modal opens — they reappear
+     once the sheet collapses again. */
+  .social-links {
+    bottom: 224px;
+    right: 14px;
+  }
+
+  .bug-link {
+    bottom: 224px;
+    left: 14px;
+  }
+
   .top-actions {
     top: 10px;
     right: 10px;
@@ -3625,7 +3976,7 @@ input[type="range"]:active::-moz-range-thumb {
   }
 
   .view-mode-switch {
-    top: 60px;
+    top: 16px;
     right: 10px;
     left: 10px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3637,7 +3988,7 @@ input[type="range"]:active::-moz-range-thumb {
      toggle so the two read as a stack instead of fighting for the same
      row. */
   .perf-monitor {
-    top: 118px;
+    top: 76px;
     right: 10px;
   }
 

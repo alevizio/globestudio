@@ -35,6 +35,41 @@ export const hexToRgb = (hex) => {
 export const rgbToHex = ({ r, g, b }) =>
   `#${toHexByte(r)}${toHexByte(g)}${toHexByte(b)}`;
 
+// Theme-aware color flip. Uses HSL lightness inversion (l → 100-l) so:
+// - hue + saturation are preserved (a designer's red stays red, just
+//   light↔dark instead of inverting to cyan like a CMYK plate),
+// - whites↔blacks, off-whites↔near-blacks,
+// - low-saturation neutrals (the gray world-fills) get an extra nudge
+//   away from middle-gray so they actually CHANGE lightness instead of
+//   staying stuck at l~50% (the failure mode that made solid mode look
+//   washed-out in light theme).
+// Round-trips ARE NOT exact through the amplifier — a single toggle
+// looks much better than a round-trip-preserving identity invert.
+export const invertHex = (hex) => {
+  if (!hex || hex === "transparent") return hex;
+  if (!isValidHex(hex)) return hex;
+  const rgb = hexToRgb(hex);
+  const hsl = rgbToHsl(rgb);
+  let newL = 100 - hsl.l;
+  if (hsl.s < 12) {
+    if (newL >= 50) newL = Math.min(100, newL + 18);
+    else newL = Math.max(0, newL - 18);
+  }
+  return rgbToHex(hslToRgb({ h: hsl.h, s: hsl.s, l: newL }));
+};
+
+// Invert a gradient's color stops while preserving angle, midpoint, and
+// per-stop alphas. Returns null pass-through so the caller can keep its
+// existing nullable semantics.
+export const invertGradient = (gradient) => {
+  if (!gradient) return gradient;
+  return {
+    ...gradient,
+    from: invertHex(gradient.from),
+    to: invertHex(gradient.to),
+  };
+};
+
 export const rgbToHsb = ({ r, g, b }) => {
   const rn = r / 255;
   const gn = g / 255;
