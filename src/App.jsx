@@ -420,7 +420,11 @@ const App = () => {
     setSelection("world");
     setStateSelection("all");
     setCanvasScale("1x");
-    setBackground("#0a0a0a");
+    // Reset to theme-aware defaults — apply light-mode equivalents when the
+    // user is in light theme so the canvas doesn't snap back to a dark-on-light
+    // palette after they reset.
+    const t = (c) => (uiTheme === "light" ? invertHex(c) : c);
+    setBackground(t("#0a0a0a"));
     setTransparent(false);
     setBackgroundStyle("solid");
     setSpaceSettings({ ...DEFAULT_SPACE_SETTINGS });
@@ -434,7 +438,7 @@ const App = () => {
     setTiltY(0);
     setDensity(40);
     setDotSize(10);
-    setDotColor("#ffffff");
+    setDotColor(t("#ffffff"));
     setDotsVisible(true);
     setShape("Circle");
     setDotRotation(0);
@@ -445,11 +449,11 @@ const App = () => {
     setDotColorAlpha(1);
     setAsciiSymbol("*");
     setRenderMode("dots");
-    setWorldFill("#5a5a64");
+    setWorldFill(t("#5a5a64"));
     setWorldFillAlpha(1);
     setWorldFillGradient(null);
     setWorldFillVisible(true);
-    setWorldStroke("#f6f2ea");
+    setWorldStroke(t("#f6f2ea"));
     setWorldStrokeAlpha(1);
     setWorldStrokeGradient(null);
     setWorldStrokeVisible(true);
@@ -1188,6 +1192,7 @@ const App = () => {
             mapZoom={mapZoom}
             setMapZoom={setMapZoom}
             mapDepth={mapDepth}
+            uiTheme={uiTheme}
             tiltX={tiltX}
             tiltY={tiltY}
             setSelectedDots={setSelectedDots}

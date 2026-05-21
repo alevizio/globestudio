@@ -110,6 +110,7 @@ export const GlobeBackground = ({
   globeSettings,
   spaceSettings,
   backgroundStyle,
+  uiTheme = "dark",
   reducedMotion = false,
   label,
   canvasHandleRef,
@@ -1104,17 +1105,33 @@ export const GlobeBackground = ({
 
     const look = globeSettings?.look ?? DEFAULT_GLOBE_SETTINGS.look;
     const isBorderless = look === "borderless";
-    const bgColor = new THREE.Color(transparent ? "#151517" : background);
+    const isLight = uiTheme === "light";
+    // Theme-aware fallback chrome for the Three.js scene. Dark theme keeps
+    // the cinematic-night palette (deep blue/violet glows, warm white halo);
+    // light theme flips to a cream-and-graphite palette so the sphere and
+    // glow read against the cream canvas instead of fighting it.
+    const transparentFallback = isLight ? "#ebe7dc" : "#151517";
+    const surfaceLerpTarget = isLight ? "#cfcabd" : "#23262d";
+    const borderlessLerpTarget = isLight ? "#d9d4c4" : "#091326";
+    const borderlessGlowFrom = isLight ? "#1f1d22" : "#7fe4ff";
+    const borderlessGlowTo = isLight ? "#3a3742" : "#ac8cff";
+    const defaultGlow = isLight ? "#3a3742" : GLOBE_DEFAULT_GLOW;
+    // Solid mode used to hardcode white for the sphere. In light mode that
+    // makes the "ocean" disappear into the cream canvas. Use the accent's
+    // counterpart (dark in light, white in dark) so continents always
+    // contrast with the sphere underneath them.
+    const solidSphereColor = isLight ? "#18171a" : "#ffffff";
+    const bgColor = new THREE.Color(transparent ? transparentFallback : background);
     const surfaceColor = isBorderless
-      ? new THREE.Color("#091326").lerp(bgColor, transparent ? 0.12 : 0.22)
-      : bgColor.clone().lerp(new THREE.Color("#23262d"), transparent ? 0.52 : 0.36);
+      ? new THREE.Color(borderlessLerpTarget).lerp(bgColor, transparent ? 0.12 : 0.22)
+      : bgColor.clone().lerp(new THREE.Color(surfaceLerpTarget), transparent ? 0.52 : 0.36);
     const glowColor = isBorderless
-      ? new THREE.Color("#7fe4ff").lerp(new THREE.Color("#ac8cff"), 0.28)
-      : new THREE.Color(dotColor === "#ffffff" ? GLOBE_DEFAULT_GLOW : dotColor);
+      ? new THREE.Color(borderlessGlowFrom).lerp(new THREE.Color(borderlessGlowTo), 0.28)
+      : new THREE.Color(dotColor === "#ffffff" ? defaultGlow : dotColor);
     const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
 
     const solidActive = refs.solidActive;
-    refs.baseMaterial.color.copy(solidActive ? new THREE.Color("#ffffff") : surfaceColor);
+    refs.baseMaterial.color.copy(solidActive ? new THREE.Color(solidSphereColor) : surfaceColor);
     refs.baseMaterial.metalness = solidActive ? 0 : isBorderless ? 0.22 : 0.12;
     refs.baseMaterial.roughness = solidActive ? 0.92 : isBorderless ? 0.46 : 0.78;
     refs.baseOpacity = solidActive ? 1 : isBorderless ? (transparent ? 0.18 : 0.34) : (transparent ? 0.2 : 0.3);
@@ -1125,7 +1142,7 @@ export const GlobeBackground = ({
       line.material.color.copy(isBorderless ? new THREE.Color("#7bdcff") : glowColor.clone().lerp(new THREE.Color("#ffffff"), 0.62));
     });
     applyGlobeShellProgress(refs, morphRef.current.progress, globeSettingsRef.current);
-  }, [background, dotColor, globeSettings, renderMode, shaderSettings.intensity, transparent]);
+  }, [background, dotColor, globeSettings, renderMode, shaderSettings.intensity, transparent, uiTheme]);
 
   return (
     <div
