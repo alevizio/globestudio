@@ -145,6 +145,56 @@ const App = () => {
     "panelCollapsed",
     typeof window !== "undefined" && window.innerWidth < 720,
   );
+  // Mobile drag-to-resize for the bottom sheet. Pointer capture guarantees
+  // that once pointerdown fires on the handle, all moves + the up fire on
+  // the same element regardless of where the finger goes. All gesture
+  // state lives in refs so the closures in the move/up handlers don't go
+  // stale between renders (setIsDragging is async — the first move fires
+  // before React commits the new state).
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ y: 0, wasCollapsed: false });
+  const dragOffsetRef = useRef(0);
+  const draggedRef = useRef(false);
+  const handleSheetPointerDown = useCallback(
+    (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      dragStartRef.current = { y: event.clientY, wasCollapsed: panelCollapsed };
+      dragOffsetRef.current = 0;
+      draggedRef.current = false;
+      setIsDragging(true);
+      setDragOffset(0);
+    },
+    [panelCollapsed],
+  );
+  const handleSheetPointerMove = useCallback((event) => {
+    const delta = event.clientY - dragStartRef.current.y;
+    if (Math.abs(delta) > 6) draggedRef.current = true;
+    dragOffsetRef.current = delta;
+    setDragOffset(delta);
+  }, []);
+  const handleSheetPointerUp = useCallback(() => {
+    setIsDragging(false);
+    if (draggedRef.current) {
+      const snapThreshold = 60;
+      const finalDelta = dragOffsetRef.current;
+      if (dragStartRef.current.wasCollapsed) {
+        if (finalDelta < -snapThreshold) setPanelCollapsed(false);
+      } else if (finalDelta > snapThreshold) {
+        setPanelCollapsed(true);
+      }
+    }
+    dragOffsetRef.current = 0;
+    setDragOffset(0);
+  }, [setPanelCollapsed]);
+  const handleSheetClick = useCallback(() => {
+    if (draggedRef.current) {
+      draggedRef.current = false;
+      return;
+    }
+    setPanelCollapsed((value) => !value);
+  }, [setPanelCollapsed]);
   const [animationsEnabled, setAnimationsEnabled] = usePersistedState("animationsEnabled", true);
   // UI theme: "dark" (default) or "light". Only swaps the panel/picker tokens —
   // the canvas/globe rendering stays on its dark base because the artwork
@@ -1141,9 +1191,22 @@ const App = () => {
       )}
 
       <section
-        className={`control-rail ${panelCollapsed ? "is-collapsed" : ""}`}
+        className={`control-rail ${panelCollapsed ? "is-collapsed" : ""} ${isDragging ? "is-dragging" : ""}`}
+        style={{ "--drag-offset": `${dragOffset}px` }}
         aria-hidden={panelCollapsed}
       >
+        <button
+          type="button"
+          className="mobile-drag-handle"
+          onPointerDown={handleSheetPointerDown}
+          onPointerMove={handleSheetPointerMove}
+          onPointerUp={handleSheetPointerUp}
+          onPointerCancel={handleSheetPointerUp}
+          onClick={handleSheetClick}
+          aria-label={panelCollapsed ? "Expand options panel" : "Collapse options panel"}
+        >
+          <span className="mobile-drag-handle-bar" aria-hidden="true" />
+        </button>
         <div className="panel-header">
           <div className="panel-meta">
             <span
@@ -1171,7 +1234,7 @@ const App = () => {
             </button>
             <button
               type="button"
-              className="panel-icon-button"
+              className="panel-icon-button panel-icon-button--keyboard"
               onClick={() => setShortcutsOpen(true)}
               aria-label="Show keyboard shortcuts"
               data-tooltip="Keyboard shortcuts (?)"
@@ -1189,7 +1252,7 @@ const App = () => {
             </button>
             <button
               type="button"
-              className="panel-icon-button"
+              className="panel-icon-button panel-icon-button--hide-panel"
               onClick={() => setPanelCollapsed(true)}
               aria-label="Hide panel"
               data-tooltip="Hide panel (H)"
