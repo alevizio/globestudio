@@ -194,7 +194,7 @@ Built with:
 - **[d3-geo](https://d3js.org/d3-geo)** + **[d3-geo-projection](https://github.com/d3/d3-geo-projection)** + **[topojson-client](https://github.com/topojson/topojson-client)** for projections (Mercator, Equal Earth, Winkel Tripel, Robinson) and topology decoding
 - **[world-countries](https://github.com/mledoze/countries)** + **[world-atlas](https://github.com/topojson/world-atlas)** + **[us-atlas](https://github.com/topojson/us-atlas)** for source geography
 - **[satori](https://github.com/vercel/satori)** + **[@resvg/resvg-js](https://github.com/yisibl/resvg-js)** for the OG share card pipeline (JSX → SVG → PNG at build time)
-- **[lucide-react](https://lucide.dev)** for icons
+- **[Pixelarticons](https://pixelarticons.com)** by Gerrit Halfmann for the in-app icon set — 24×24 pixel-grid icons with `currentColor` fill so they theme cleanly
 - **[Vitest](https://vitest.dev)** + **[Testing Library](https://testing-library.com)** + **[axe-core](https://github.com/dequelabs/axe-core)** for tests and the WCAG 2.2 AA accessibility guard
 
 No backend, no accounts, no telemetry. Everything renders in your browser.

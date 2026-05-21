@@ -9,7 +9,7 @@ export const PanelSection = ({ title, children, icon, defaultOpen = false }) => 
       <summary>
         {icon}
         <span>{title}</span>
-        <ChevronDown size={15} />
+        <ChevronDown size={17} />
       </summary>
       <div className="option-content">{children}</div>
     </details>

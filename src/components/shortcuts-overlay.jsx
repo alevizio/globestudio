@@ -51,7 +51,7 @@ export const ShortcutsOverlay = ({ open, onClose }) => {
             onClick={onClose}
             aria-label="Close shortcuts"
           >
-            <X size={14} />
+            <X size={16} />
           </button>
         </div>
         <ul className="shortcuts-overlay-list">

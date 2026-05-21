@@ -1,38 +1,548 @@
-export {
-  Check,
-  ChevronDown,
-  Clipboard,
-  Download,
-  Globe,
-  Globe2,
-  GripHorizontal,
-  GripVertical,
-  Keyboard,
-  Minus,
-  Moon,
-  Move,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Plus,
-  RotateCcw,
-  Share2,
-  Shuffle,
-  Sun,
-  Upload,
-  X,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
+// Pixelarticons icon set — generated from
+// https://alevizio.github.io/icons/svg/pixelarticons/iconjar/
+// All icons are 24×24 grid with rect-based pixel art, fill currentColor so
+// they inherit theme color in light + dark modes.
+// Brand marks (DottedGlobe) and the Twitter fallback are hand-authored
+// below the generated section.
 
-export { Map as MapIcon } from "lucide-react";
+export const Check = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M10 18H8V16H10V18ZM8 16H6V14H8V16ZM12 14V16H10V14H12ZM6 14H4V12H6V14ZM14 14H12V12H14V14ZM16 12H14V10H16V12ZM18 10H16V8H18V10ZM20 8H18V6H20V8Z"/>
+  </svg>
+);
+
+export const ChevronDown = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M13 16H11V14H13V16ZM11 14H9V12H11V14ZM15 14H13V12H15V14ZM9 12H7V10H9V12ZM17 12H15V10H17V12ZM7 10H5V8H7V10ZM19 10H17V8H19V10Z"/>
+  </svg>
+);
+
+export const Clipboard = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="4" y="6" width="2" height="14"/>
+    <rect x="6" y="20" width="12" height="2"/>
+    <rect x="18" y="6" width="2" height="14"/>
+    <rect x="6" y="4" width="2" height="2"/>
+    <rect x="16" y="4" width="2" height="2"/>
+    <rect x="10" y="2" width="4" height="2"/>
+    <rect x="10" y="6" width="4" height="2"/>
+    <rect x="8" y="2" width="2" height="6"/>
+    <rect x="14" y="2" width="2" height="6"/>
+  </svg>
+);
+
+export const X = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M7 19H5V17H7V19ZM19 19H17V17H19V19ZM9 15V17H7V15H9ZM17 17H15V15H17V17ZM11 15H9V13H11V15ZM15 15H13V13H15V15ZM13 13H11V11H13V13ZM11 11H9V9H11V11ZM15 11H13V9H15V11ZM9 9H7V7H9V9ZM17 9H15V7H17V9ZM7 7H5V5H7V7ZM19 7H17V5H19V7Z"/>
+  </svg>
+);
+
+export const Download = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="21" y="15" width="4" height="2" transform="rotate(90 21 15)"/>
+    <rect x="19" y="19" width="2" height="14" transform="rotate(90 19 19)"/>
+    <rect x="5" y="15" width="4" height="2" transform="rotate(90 5 15)"/>
+    <rect x="13" y="3.00006" width="14" height="2" transform="rotate(90 13 3.00006)"/>
+    <rect width="2" height="10" transform="matrix(-4.37114e-08 1 1 4.37114e-08 7 11)"/>
+    <rect width="2" height="2" transform="matrix(-4.37114e-08 1 1 4.37114e-08 9 13)"/>
+    <rect width="2" height="2" transform="matrix(-4.37114e-08 1 1 4.37114e-08 13 13)"/>
+    <rect width="2" height="2" transform="matrix(-4.37114e-08 1 1 4.37114e-08 15 11)"/>
+  </svg>
+);
+
+export const Globe = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="6" y="2" width="12" height="2"/>
+    <rect x="6" y="20" width="12" height="2"/>
+    <rect x="4" y="4" width="2" height="2"/>
+    <rect x="9" y="4" width="2" height="2"/>
+    <rect x="9" y="18" width="2" height="2"/>
+    <rect x="13" y="18" width="2" height="2"/>
+    <rect x="7" y="6" width="2" height="12"/>
+    <rect x="15" y="6" width="2" height="12"/>
+    <rect x="13" y="4" width="2" height="2"/>
+    <rect width="2" height="2" transform="matrix(-1 0 0 1 20 4)"/>
+    <rect x="2" y="6" width="2" height="12"/>
+    <rect width="2" height="12" transform="matrix(-1 0 0 1 22 6)"/>
+    <rect x="4" y="18" width="2" height="2"/>
+    <rect width="2" height="2" transform="matrix(-1 0 0 1 20 18)"/>
+    <rect x="3" y="11" width="18" height="2"/>
+  </svg>
+);
+
+export const Globe2 = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="6" y="2" width="12" height="2"/>
+    <rect x="6" y="20" width="12" height="2"/>
+    <rect x="4" y="4" width="2" height="2"/>
+    <rect x="9" y="4" width="2" height="2"/>
+    <rect x="9" y="18" width="2" height="2"/>
+    <rect x="13" y="18" width="2" height="2"/>
+    <rect x="7" y="6" width="2" height="12"/>
+    <rect x="15" y="6" width="2" height="12"/>
+    <rect x="13" y="4" width="2" height="2"/>
+    <rect width="2" height="2" transform="matrix(-1 0 0 1 20 4)"/>
+    <rect x="2" y="6" width="2" height="12"/>
+    <rect width="2" height="12" transform="matrix(-1 0 0 1 22 6)"/>
+    <rect x="4" y="18" width="2" height="2"/>
+    <rect width="2" height="2" transform="matrix(-1 0 0 1 20 18)"/>
+    <rect x="3" y="11" width="18" height="2"/>
+  </svg>
+);
+
+export const Keyboard = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="5" y="7" width="2" height="2"/>
+    <rect x="9" y="7" width="2" height="2"/>
+    <rect x="13" y="7" width="2" height="2"/>
+    <rect x="17" y="7" width="2" height="2"/>
+    <rect x="15" y="11" width="2" height="2"/>
+    <rect x="11" y="11" width="2" height="2"/>
+    <rect x="7" y="11" width="2" height="2"/>
+    <rect x="6" y="15" width="12" height="2"/>
+    <rect x="3" y="3" width="18" height="2"/>
+    <rect x="3" y="19" width="18" height="2"/>
+    <rect x="1" y="5" width="2" height="14"/>
+    <rect x="21" y="5" width="2" height="14"/>
+  </svg>
+);
+
+export const MapIcon = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="2" y="6" width="2" height="16"/>
+    <rect x="14" y="6" width="2" height="16"/>
+    <rect x="8" y="2" width="2" height="16"/>
+    <rect x="20" y="2" width="2" height="16"/>
+    <rect x="4" y="4" width="2" height="2"/>
+    <rect x="16" y="4" width="2" height="2"/>
+    <rect x="12" y="6" width="2" height="2"/>
+    <rect x="12" y="18" width="2" height="2"/>
+    <rect x="10" y="4" width="2" height="2"/>
+    <rect x="10" y="16" width="2" height="2"/>
+    <rect x="4" y="20" width="2" height="2"/>
+    <rect x="16" y="20" width="2" height="2"/>
+    <rect x="6" y="2" width="2" height="2"/>
+    <rect x="18" y="2" width="2" height="2"/>
+    <rect x="6" y="18" width="2" height="2"/>
+    <rect x="18" y="18" width="2" height="2"/>
+  </svg>
+);
+
+export const Minus = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="4" y="11" width="16" height="2"/>
+  </svg>
+);
+
+export const Moon = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M18 22H8V20H18V22ZM8 20H6V18H8V20ZM20 20H18V18H20V20ZM6 18H4V16H6V18ZM22 18H20V14H18V12H20V10H22V18ZM4 16H2V6H4V16ZM18 16H12V14H18V16ZM12 14H10V12H12V14ZM10 12H8V6H10V12ZM6 6H4V4H6V6ZM14 4H12V6H10V4H6V2H14V4Z"/>
+  </svg>
+);
+
+export const GripHorizontal = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="3" y="9" width="2" height="2"/>
+    <rect x="11" y="9" width="2" height="2"/>
+    <rect x="19" y="9" width="2" height="2"/>
+    <rect x="1" y="11" width="2" height="2"/>
+    <rect x="9" y="11" width="2" height="2"/>
+    <rect x="17" y="11" width="2" height="2"/>
+    <rect x="3" y="13" width="2" height="2"/>
+    <rect x="11" y="13" width="2" height="2"/>
+    <rect x="19" y="13" width="2" height="2"/>
+    <rect x="5" y="11" width="2" height="2"/>
+    <rect x="13" y="11" width="2" height="2"/>
+    <rect x="21" y="11" width="2" height="2"/>
+  </svg>
+);
+
+export const GripVertical = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="15" y="3" width="2" height="2" transform="rotate(90 15 3)"/>
+    <rect x="15" y="11" width="2" height="2" transform="rotate(90 15 11)"/>
+    <rect x="15" y="19" width="2" height="2" transform="rotate(90 15 19)"/>
+    <rect x="13" y="1" width="2" height="2" transform="rotate(90 13 1)"/>
+    <rect x="13" y="9" width="2" height="2" transform="rotate(90 13 9)"/>
+    <rect x="13" y="17" width="2" height="2" transform="rotate(90 13 17)"/>
+    <rect x="11" y="3" width="2" height="2" transform="rotate(90 11 3)"/>
+    <rect x="11" y="11" width="2" height="2" transform="rotate(90 11 11)"/>
+    <rect x="11" y="19" width="2" height="2" transform="rotate(90 11 19)"/>
+    <rect x="13" y="5" width="2" height="2" transform="rotate(90 13 5)"/>
+    <rect x="13" y="13" width="2" height="2" transform="rotate(90 13 13)"/>
+    <rect x="13" y="21" width="2" height="2" transform="rotate(90 13 21)"/>
+  </svg>
+);
+
+export const Move = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="11" y="2" width="2" height="2"/>
+    <rect x="11" y="2" width="2" height="2"/>
+    <rect x="11" y="20" width="2" height="2"/>
+    <rect x="7" y="4" width="10" height="2"/>
+    <rect x="9" y="2" width="6" height="2"/>
+    <rect x="9" y="20" width="6" height="2"/>
+    <rect x="7" y="18" width="10" height="2"/>
+    <rect x="2" y="11" width="2" height="2"/>
+    <rect width="2" height="2" transform="matrix(-1 0 0 1 22 11)"/>
+    <rect x="2" y="9" width="2" height="6"/>
+    <rect x="4" y="7" width="2" height="10"/>
+    <rect width="2" height="10" transform="matrix(-1 0 0 1 20 7)"/>
+    <rect width="2" height="6" transform="matrix(-1 0 0 1 22 9)"/>
+    <rect y="11" width="24" height="2"/>
+    <rect x="11" y="6" width="2" height="3"/>
+    <rect x="11" width="2" height="24"/>
+  </svg>
+);
+
+export const PanelLeftClose = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="4" y="4" width="16" height="2" transform="rotate(90 4 4)"/>
+    <rect x="22" y="11" width="2" height="16" transform="rotate(90 22 11)"/>
+    <rect x="10" y="13" width="2" height="2" transform="rotate(90 10 13)"/>
+    <rect x="12" y="15" width="2" height="2" transform="rotate(90 12 15)"/>
+    <rect x="14" y="17" width="2" height="2" transform="rotate(90 14 17)"/>
+    <rect x="10" y="9" width="2" height="2" transform="rotate(90 10 9)"/>
+    <rect x="12" y="7" width="2" height="2" transform="rotate(90 12 7)"/>
+    <rect x="14" y="5" width="2" height="2" transform="rotate(90 14 5)"/>
+  </svg>
+);
+
+export const PanelLeftOpen = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="4" y="4" width="16" height="2" transform="rotate(90 4 4)"/>
+    <rect x="22" y="11" width="2" height="16" transform="rotate(90 22 11)"/>
+    <rect x="10" y="13" width="2" height="2" transform="rotate(90 10 13)"/>
+    <rect x="12" y="15" width="2" height="2" transform="rotate(90 12 15)"/>
+    <rect x="14" y="17" width="2" height="2" transform="rotate(90 14 17)"/>
+    <rect x="10" y="9" width="2" height="2" transform="rotate(90 10 9)"/>
+    <rect x="12" y="7" width="2" height="2" transform="rotate(90 12 7)"/>
+    <rect x="14" y="5" width="2" height="2" transform="rotate(90 14 5)"/>
+  </svg>
+);
+
+export const Plus = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M13 11H20V13H13V20H11V13H4V11H11V4H13V11Z"/>
+  </svg>
+);
+
+export const RotateCcw = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="16" y="4" width="2" height="6"/>
+    <rect x="14" y="2" width="2" height="2"/>
+    <rect x="14" y="4" width="2" height="8"/>
+    <rect width="2" height="5" transform="matrix(-1 0 0 1 4 8)"/>
+    <rect x="4" y="6" width="16" height="2"/>
+    <rect x="8" y="20" width="2" height="6" transform="rotate(180 8 20)"/>
+    <rect x="10" y="22" width="2" height="2" transform="rotate(180 10 22)"/>
+    <rect x="10" y="20" width="2" height="8" transform="rotate(180 10 20)"/>
+    <rect width="2" height="5" transform="matrix(1 0 0 -1 20 16)"/>
+    <rect x="20" y="18" width="16" height="2" transform="rotate(180 20 18)"/>
+  </svg>
+);
+
+export const Shuffle = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M10 19H2V17H10V19ZM22 19H14V17H22V19ZM12 17H10V11H12V17ZM18 7H20V9H22V11H20V13H18V15H16V11H12V9H16V5H18V7ZM8 11H2V9H8V11Z"/>
+  </svg>
+);
+
+export const Sun = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="9" y="7" width="6" height="2"/>
+    <rect x="7" y="9" width="2" height="6"/>
+    <rect x="9" y="15" width="6" height="2"/>
+    <rect x="15" y="9" width="2" height="6"/>
+    <rect x="11" y="2" width="2" height="3"/>
+    <rect x="11" y="19" width="2" height="3"/>
+    <rect x="2" y="11" width="3" height="2"/>
+    <rect x="19" y="11" width="3" height="2"/>
+    <rect x="17" y="5" width="2" height="2"/>
+    <rect x="5" y="5" width="2" height="2"/>
+    <rect x="5" y="17" width="2" height="2"/>
+    <rect x="17" y="17" width="2" height="2"/>
+  </svg>
+);
+
+export const Upload = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M19 21.0001H5V19.0001H19V21.0001ZM5 19.0001H3V15.0001H5V19.0001ZM21 19.0001H19V15.0001H21V19.0001ZM13 5.00006H15V7.00006H17V9.00006H13V17.0001H11V9.00006H7V7.00006H9V5.00006H11V3.00006H13V5.00006Z"/>
+  </svg>
+);
+
+export const ZoomIn = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M22 22H20V20H22V22ZM20 20H18V18H20V20ZM14 18H6V16H14V18ZM18 18H16V16H18V18ZM6 16H4V14H6V16ZM16 16H14V14H16V16ZM4 14H2V6H4V14ZM11 9H14V11H11V14H9V11H6V9H9V6H11V9ZM18 14H16V6H18V14ZM6 6H4V4H6V6ZM16 6H14V4H16V6ZM14 4H6V2H14V4Z"/>
+  </svg>
+);
+
+export const ZoomOut = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M22 22H20V20H22V22ZM20 20H18V18H20V20ZM14 18H6V16H14V18ZM18 18H16V16H18V18ZM6 16H4V14H6V16ZM16 16H14V14H16V16ZM4 14H2V6H4V14ZM18 14H16V6H18V14ZM14 9V11H6V9H14ZM6 6H4V4H6V6ZM16 6H14V4H16V6ZM14 4H6V2H14V4Z"/>
+  </svg>
+);
+
+export const Share2 = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M20 22H4V20H20V22ZM4 20H2V14H4V20ZM22 20H20V14H22V20ZM13 4H15V6H17V8H13V18H11V8H7V6H9V4H11V2H13V4ZM9 14H4V12H9V14ZM20 14H15V12H20V14Z"/>
+  </svg>
+);
+
+export const Github = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <path d="M5 2H9V4H7V6H5V2Z"/>
+    <path d="M5 12H3V6H5V12Z"/>
+    <path d="M7 14H5V12H7V14Z"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M9 16V14H7V16H3V14H1V16H3V18H7V22H9V18H11V16H9ZM9 16V18H7V16H9Z"/>
+    <path d="M15 4V6H9V4H15Z"/>
+    <path d="M19 6H17V4H15V2H19V6Z"/>
+    <path d="M19 12V6H21V12H19Z"/>
+    <path d="M17 14V12H19V14H17Z"/>
+    <path d="M15 16V14H17V16H15Z"/>
+    <path d="M15 18H13V16H15V18Z"/>
+    <path d="M15 18H17V22H15V18Z"/>
+  </svg>
+);
+
+export const Bug = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="2" y="5" width="2" height="4"/>
+    <rect width="2" height="4" transform="matrix(-1 0 0 1 22 5)"/>
+    <rect x="4" y="9" width="2" height="2"/>
+    <rect width="2" height="2" transform="matrix(-1 0 0 1 20 9)"/>
+    <rect x="2" y="13" width="4" height="2"/>
+    <rect width="4" height="2" transform="matrix(-1 0 0 1 22 13)"/>
+    <rect x="4" y="17" width="2" height="2"/>
+    <rect width="2" height="2" transform="matrix(-1 0 0 1 20 17)"/>
+    <rect x="2" y="19" width="2" height="2"/>
+    <rect width="2" height="2" transform="matrix(-1 0 0 1 22 19)"/>
+    <rect x="6" y="11" width="12" height="2"/>
+    <rect x="6" y="7" width="2" height="12"/>
+    <rect x="16" y="7" width="2" height="12"/>
+    <rect x="8" y="19" width="8" height="2"/>
+    <rect x="8" y="5" width="8" height="2"/>
+    <rect x="11" y="15" width="2" height="6"/>
+    <rect x="8" y="1" width="2" height="6"/>
+    <rect x="14" y="1" width="2" height="6"/>
+  </svg>
+);
+
+// --- Brand + fallback marks ---
 
 // Brand mark — stylized globe with the equatorial bulge and continent paths
 // forming the world. Mirrors the favicon at /public/favicon.svg so the icon
 // in the panel header carries the same identity as the tab favicon and the
-// OG image. Source viewBox is 965×573 (1.685:1); we expose it through a
-// square 965×965 viewBox with the glyph vertically centered so the `size`
-// prop produces a square render the way every other icon in this file does.
-export const DottedGlobe = ({ size = 20, ...props }) => (
+// OG image. Intentionally NOT a pixel-art icon — this is the wordmark glyph.
+export const DottedGlobe = ({ size = 22, ...props }) => (
   <svg
     width={size}
     height={size}
@@ -72,55 +582,11 @@ export const DottedGlobe = ({ size = 20, ...props }) => (
   </svg>
 );
 
-export const Github = ({ size = 24, ...props }) => (
-  <svg
-    className="lucide lucide-github"
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    aria-hidden="true"
-    focusable="false"
-    {...props}
-  >
-    <path d="M12 .5a11.5 11.5 0 0 0-3.64 22.4c.58.11.79-.25.79-.55v-2.04c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.19 1.18a11.05 11.05 0 0 1 5.81 0c2.22-1.49 3.19-1.18 3.19-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.14v3.18c0 .3.21.67.8.55A11.5 11.5 0 0 0 12 .5Z" />
-  </svg>
-);
-
-// Bug icon for the "Report a bug" link in the social-links cluster.
-// Lucide's bug glyph — a beetle silhouette with antennae and legs.
-export const Bug = ({ size = 24, ...props }) => (
-  <svg
-    className="lucide lucide-bug"
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-    focusable="false"
-    {...props}
-  >
-    <path d="m8 2 1.88 1.88" />
-    <path d="M14.12 3.88 16 2" />
-    <path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" />
-    <path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6" />
-    <path d="M12 20v-9" />
-    <path d="M6.53 9C4.6 8.8 3 7.1 3 5" />
-    <path d="M6 13H2" />
-    <path d="M3 21c0-2.1 1.7-3.9 3.8-4" />
-    <path d="M20.97 5c0 2.1-1.6 3.8-3.5 4" />
-    <path d="M22 13h-4" />
-    <path d="M17.2 17c2.1.1 3.8 1.9 3.8 4" />
-  </svg>
-);
-
+// Twitter / X — kept as a fallback because pixelarticons has no twitter
+// equivalent. Not currently rendered anywhere in-app but exported for
+// completeness so external integrations can still import it.
 export const Twitter = ({ size = 24, ...props }) => (
   <svg
-    className="lucide lucide-twitter"
     width={size}
     height={size}
     viewBox="0 0 24 24"

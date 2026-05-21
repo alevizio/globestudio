@@ -338,7 +338,7 @@ export const ColorPicker = ({
         aria-label="Drag to move"
       >
         <span className="color-picker-grip" aria-hidden="true">
-          <GripVertical size={16} />
+          <GripVertical size={18} />
         </span>
         <h2 className="color-picker-title">
           {supportsGradient && fillMode === "gradient" ? "Gradient" : "Color"}
@@ -349,7 +349,7 @@ export const ColorPicker = ({
           onClick={onClose}
           aria-label="Close color picker"
         >
-          <X size={12} />
+          <X size={14} />
         </button>
       </header>
       <div className="color-picker-body">

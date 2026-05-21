@@ -24,7 +24,7 @@ export const ViewModeSwitch = ({ viewMode, setViewMode }) => (
           aria-pressed={active}
           title={`${mode.label} view (G)`}
         >
-          <Icon size={15} />
+          <Icon size={17} />
           {mode.label}
         </button>
       );

@@ -1113,7 +1113,7 @@ const App = () => {
         aria-label="Report a bug"
         data-tooltip="Report a bug"
       >
-        <Bug size={15} />
+        <Bug size={17} />
       </a>
       <nav className="social-links" aria-label="Project links">
         <a
@@ -1124,7 +1124,7 @@ const App = () => {
           aria-label="View source on GitHub"
           data-tooltip="View source on GitHub"
         >
-          <Github size={15} />
+          <Github size={17} />
         </a>
       </nav>
 
@@ -1136,7 +1136,7 @@ const App = () => {
           aria-label="Show panel"
           data-tooltip="Show panel (H)"
         >
-          <PanelLeftOpen size={15} />
+          <PanelLeftOpen size={17} />
         </button>
       )}
 
@@ -1167,7 +1167,7 @@ const App = () => {
               aria-pressed={uiTheme === "light"}
               data-tooltip={uiTheme === "dark" ? "Switch to light UI" : "Switch to dark UI"}
             >
-              {uiTheme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+              {uiTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             <button
               type="button"
@@ -1176,7 +1176,7 @@ const App = () => {
               aria-label="Show keyboard shortcuts"
               data-tooltip="Keyboard shortcuts (?)"
             >
-              <Keyboard size={14} />
+              <Keyboard size={16} />
             </button>
             <button
               type="button"
@@ -1185,7 +1185,7 @@ const App = () => {
               aria-label="Open export dialog"
               data-tooltip="Export (D)"
             >
-              <Download size={14} />
+              <Download size={16} />
             </button>
             <button
               type="button"
@@ -1194,7 +1194,7 @@ const App = () => {
               aria-label="Hide panel"
               data-tooltip="Hide panel (H)"
             >
-              <PanelLeftClose size={14} />
+              <PanelLeftClose size={16} />
             </button>
           </div>
         </div>

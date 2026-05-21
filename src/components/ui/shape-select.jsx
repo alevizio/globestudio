@@ -36,7 +36,7 @@ export const ShapeSelect = ({ value, onChange, options, asciiSymbol = "*", custo
       >
         <ShapePreview shape={value} asciiSymbol={asciiSymbol} customShape={customShape} />
         <span className="shape-select-label">{value}</span>
-        <ChevronDown size={12} />
+        <ChevronDown size={14} />
       </button>
       {open && (
         <ul className="shape-select-menu" role="listbox" aria-label={label}>

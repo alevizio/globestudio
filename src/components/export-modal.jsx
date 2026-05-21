@@ -289,7 +289,7 @@ export const ExportModal = ({
             onClick={onClose}
             aria-label="Close export dialog"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </header>
 
@@ -318,7 +318,7 @@ export const ExportModal = ({
                 className={`export-modal-cta ${pngStatus === "saved" ? "is-success" : ""}`}
                 onClick={handlePng}
               >
-                {pngStatus === "saved" ? <Check size={15} /> : <Download size={15} />}
+                {pngStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
                 <span>{pngStatus === "saved" ? "PNG saved" : "Export PNG"}</span>
               </button>
             </>
@@ -374,7 +374,7 @@ export const ExportModal = ({
                 onClick={handleVideo}
                 disabled={isRecording}
               >
-                <Download size={15} />
+                <Download size={17} />
                 <span>{isRecording ? `Recording… ${recordingPct}%` : "Export WebM"}</span>
               </button>
             </>
@@ -388,7 +388,7 @@ export const ExportModal = ({
                 className={`export-modal-cta ${svgStatus === "saved" ? "is-success" : ""}`}
                 onClick={exportSvg}
               >
-                {svgStatus === "saved" ? <Check size={15} /> : <Download size={15} />}
+                {svgStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
                 <span>{svgStatus === "saved" ? "SVG saved" : "Download SVG"}</span>
               </button>
               <button
@@ -396,7 +396,7 @@ export const ExportModal = ({
                 className={`export-modal-cta is-secondary ${copyStatus === "copied" ? "is-success" : ""}`}
                 onClick={copySvg}
               >
-                {copyStatus === "copied" ? <Check size={15} /> : <Clipboard size={15} />}
+                {copyStatus === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
                 <span>
                   {copyStatus === "copied"
                     ? "SVG copied to clipboard"
@@ -419,7 +419,7 @@ export const ExportModal = ({
                 className={`export-modal-cta ${linkStatus === "copied" ? "is-success" : ""}`}
                 onClick={handleCopyLink}
               >
-                {linkStatus === "copied" ? <Check size={15} /> : <Clipboard size={15} />}
+                {linkStatus === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
                 <span>
                   {linkStatus === "copied"
                     ? "Link copied to clipboard"
@@ -433,7 +433,7 @@ export const ExportModal = ({
                 className="export-modal-cta is-secondary"
                 onClick={exportConfig}
               >
-                <Share2 size={15} />
+                <Share2 size={17} />
                 <span>Export configuration</span>
               </button>
               <div
@@ -450,7 +450,7 @@ export const ExportModal = ({
                 }}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Upload size={18} />
+                <Upload size={20} />
                 <div className="export-modal-dropzone-text">
                   <strong>Import .json configuration</strong>
                   <span>Drag & drop or click to choose a file.</span>

@@ -106,7 +106,7 @@ export const SearchableSelect = ({ value, onChange, options, label, placeholder 
         onClick={() => setOpen((value) => !value)}
       >
         <span className="searchable-select-value">{currentLabel}</span>
-        <ChevronDown size={14} />
+        <ChevronDown size={16} />
       </button>
       {open && (
         <div className="searchable-select-popover" role="dialog">
