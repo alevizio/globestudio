@@ -54,6 +54,7 @@ const FRAGMENT_SHADER = /* glsl */ `
   uniform float uThreshold;
   uniform float uWarp;
   uniform float uMotion;
+  uniform vec3 uInk;
 
   varying vec2 vUv;
 
@@ -171,7 +172,7 @@ const FRAGMENT_SHADER = /* glsl */ `
     // Hard cutoff on the raw signal so atmosphere haze and outer-halo glow don't
     // produce a spurious dot grid across empty space.
     mask *= smoothstep(0.08, 0.2, realSignal);
-    return vec4(vec3(mask), mask);
+    return vec4(uInk * mask, mask);
   }
 
   // Bayer ordered dither — classic-Mac aesthetic. Distinct from halftone:
@@ -446,7 +447,7 @@ const FRAGMENT_SHADER = /* glsl */ `
     float g = (rand(uv * uResolution + floor(t * 30.0)) - 0.5) * uGrain * 0.65;
     float edge = mix(0.08, 0.02, uIntensity);
     float mask = smoothstep(uThreshold - edge, uThreshold + edge, signal + g);
-    return vec4(vec3(mask), mask);
+    return vec4(uInk * mask, mask);
   }
 
   vec4 glitchPass(vec2 uv) {
@@ -512,7 +513,7 @@ const FRAGMENT_SHADER = /* glsl */ `
     float mag = clamp(max(lumaMag, alphaMag) * (1.5 + uIntensity * 5.5), 0.0, 1.0);
     float edge = smoothstep(uThreshold - 0.04, uThreshold + 0.08, mag);
 
-    return vec4(vec3(edge), edge);
+    return vec4(uInk * edge, edge);
   }
 
   vec4 bloomEnhancePass(vec2 uv) {
@@ -716,7 +717,7 @@ const FRAGMENT_SHADER = /* glsl */ `
     s = (floor(s) + smoothstep(0.45, 0.55, fract(s))) / nSteps;
     float shaded = s * s;
 
-    return vec4(vec3(shaded), max(src.a, signal));
+    return vec4(uInk * shaded, max(src.a, signal));
   }
 
   // Stripes — discards horizontal bands so the source content shows
@@ -981,6 +982,11 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
       uThreshold: { value: 0.5 },
       uWarp: { value: 0.24 },
       uMotion: { value: 0.35 },
+      // Theme-aware ink color for shaders that draw their own stylized
+      // marks on top of the scene (halftone dots, newsprint CMYK plates,
+      // pixel cells, dither thresholds). White in dark mode → dark in
+      // light mode so the marks stay visible against the inverted bg.
+      uInk: { value: new THREE.Vector3(1, 1, 1) },
     },
     vertexShader: VERTEX_SHADER,
     fragmentShader: FRAGMENT_SHADER,
@@ -1005,7 +1011,7 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
-export const updatePostEffects = (handle, shaderSettings, time) => {
+export const updatePostEffects = (handle, shaderSettings, time, uiTheme = "dark") => {
   if (!handle) return;
   const effect = shaderSettings.effect || "none";
   const intensity = clamp01((shaderSettings.intensity ?? 45) / 100);
@@ -1033,6 +1039,14 @@ export const updatePostEffects = (handle, shaderSettings, time) => {
   u.uThreshold.value = clamp01((shaderSettings.threshold ?? 50) / 100);
   u.uWarp.value = clamp01((shaderSettings.warp ?? 24) / 100);
   u.uMotion.value = clamp01((shaderSettings.motion ?? 35) / 100);
+  // Theme-aware ink color — graphite in light mode so the halftone /
+  // newsprint / pixel / dither marks render visibly against the cream
+  // canvas instead of disappearing as white-on-white.
+  if (uiTheme === "light") {
+    u.uInk.value.set(0.094, 0.090, 0.102); // #18171a in 0..1
+  } else {
+    u.uInk.value.set(1, 1, 1);
+  }
 
   handle.customPass.enabled = effect !== "none";
 };

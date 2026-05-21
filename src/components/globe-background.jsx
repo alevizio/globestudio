@@ -165,6 +165,7 @@ export const GlobeBackground = ({
   });
   const settingsRef = useRef(shaderSettings);
   const globeSettingsRef = useRef(globeSettings);
+  const uiThemeRef = useRef(uiTheme);
   const transformRef = useRef({ mapDepth, tiltX, tiltY });
   const [isDraggingGlobe, setIsDraggingGlobe] = useState(false);
 
@@ -174,6 +175,7 @@ export const GlobeBackground = ({
   panelCollapsedRef.current = panelCollapsed;
   settingsRef.current = shaderSettings;
   globeSettingsRef.current = globeSettings;
+  uiThemeRef.current = uiTheme;
   transformRef.current = { mapDepth, tiltX, tiltY };
 
   const startDrag = useCallback((event) => {
@@ -703,7 +705,7 @@ export const GlobeBackground = ({
 
       // Uniform writes are cheap and keep the composer chain ready for an
       // instant switch when the user picks a non-default effect.
-      updatePostEffects(threeRef.current?.postHandle, settingsRef.current, now / 1000);
+      updatePostEffects(threeRef.current?.postHandle, settingsRef.current, now / 1000, uiThemeRef.current);
       // Manual reset — accumulates draw call totals across the full
       // render path (composer or direct) for the dev HUD. See
       // `renderer.info.autoReset = false` at renderer init for context.
