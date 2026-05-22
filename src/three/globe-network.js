@@ -70,12 +70,15 @@ const createCityAnchor = (city, index) => {
   const color = new THREE.Color(city.color);
 
   const coreMaterial = new THREE.MeshBasicMaterial({
-    color,
+    color: color.clone(),
     transparent: true,
     opacity: 0.9,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
+  // Stash the original tint so toggling networkMono off can restore it
+  // without re-creating the material.
+  coreMaterial.userData.originalColor = color.clone();
   const core = new THREE.Mesh(new THREE.SphereGeometry(0.022, 14, 10), coreMaterial);
   core.userData.role = "core";
   core.userData.basePulse = 0.55 + (index % 3) * 0.15;
@@ -83,13 +86,14 @@ const createCityAnchor = (city, index) => {
 
   for (let i = 0; i < 2; i++) {
     const ringMaterial = new THREE.MeshBasicMaterial({
-      color,
+      color: color.clone(),
       transparent: true,
       opacity: 0,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       side: THREE.DoubleSide,
     });
+    ringMaterial.userData.originalColor = color.clone();
     const ring = new THREE.Mesh(new THREE.SphereGeometry(0.024, 16, 12), ringMaterial);
     ring.userData.role = "ring";
     ring.userData.phase = (index * 0.43 + i * 0.5) % 1;
@@ -121,12 +125,13 @@ const createRoute = (route, cityMap, index) => {
   // Base line — always visible but very subtle.
   const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
   const lineMaterial = new THREE.LineBasicMaterial({
-    color,
+    color: color.clone(),
     transparent: true,
     opacity: 0,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
+  lineMaterial.userData.originalColor = color.clone();
   const line = new THREE.Line(lineGeometry, lineMaterial);
   line.userData.role = "line";
   line.userData.baseOpacity = 0.32;
@@ -141,7 +146,7 @@ const createRoute = (route, cityMap, index) => {
   trailGeometry.setAttribute("aOpacity", new THREE.BufferAttribute(opacityBuffer, 1));
   const trailMaterial = new THREE.ShaderMaterial({
     uniforms: {
-      color: { value: color },
+      color: { value: color.clone() },
       uOpacity: { value: 0 },
     },
     vertexShader: `
@@ -164,6 +169,7 @@ const createRoute = (route, cityMap, index) => {
     depthWrite: false,
     blending: THREE.AdditiveBlending,
   });
+  trailMaterial.userData.originalColor = color.clone();
   const trail = new THREE.Line(trailGeometry, trailMaterial);
   trail.userData.role = "trail";
   trail.userData.trailLength = trailLength;
@@ -171,12 +177,13 @@ const createRoute = (route, cityMap, index) => {
 
   // Traveling head pulse — a bright glowing sphere riding the curve.
   const headMaterial = new THREE.MeshBasicMaterial({
-    color,
+    color: color.clone(),
     transparent: true,
     opacity: 0,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
+  headMaterial.userData.originalColor = color.clone();
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.024, 14, 10), headMaterial);
   head.userData.role = "head";
   group.add(head);
@@ -226,6 +233,33 @@ const setTrailVertices = (trail, points, headIndex, length) => {
   }
   positionAttr.needsUpdate = true;
   opacityAttr.needsUpdate = true;
+};
+
+// Switches the network between its polychrome default (each city/route uses
+// its own hardcoded tint) and a monochrome ink (every material flat-colored
+// in `monoHex` — usually the theme's foreground color). Called when the
+// `networkMono` setting or the UI theme changes, NOT every frame — the
+// material colors persist until something else flips them.
+export const setNetworkColorMode = (root, mono, monoHex = "#ffffff") => {
+  if (!root) return;
+  const monoColor = mono ? new THREE.Color(monoHex) : null;
+  const apply = (material) => {
+    if (!material) return;
+    if (material.uniforms?.color?.value) {
+      // ShaderMaterial (the route trail). The trail's color uniform lives
+      // separately from material.color, so handle it here.
+      const original = material.userData.originalColor;
+      if (!original) return;
+      material.uniforms.color.value.copy(monoColor ?? original);
+      return;
+    }
+    const original = material.userData.originalColor;
+    if (!original || !material.color) return;
+    material.color.copy(monoColor ?? original);
+  };
+  root.traverse((node) => {
+    if (node.material) apply(node.material);
+  });
 };
 
 export const updateGlobeNetwork = (root, nowSeconds) => {

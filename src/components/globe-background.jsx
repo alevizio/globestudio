@@ -23,7 +23,7 @@ import {
   twinkleUniforms,
   updateBorderlessNetworkMotion,
 } from "../three/globe.js";
-import { createGlobeNetwork, updateGlobeNetwork } from "../three/globe-network.js";
+import { createGlobeNetwork, setNetworkColorMode, updateGlobeNetwork } from "../three/globe-network.js";
 import { createSpaceBackgroundMesh } from "../three/space-mesh.js";
 import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
@@ -1100,6 +1100,19 @@ export const GlobeBackground = ({
     morph.startTime = window.performance.now();
     morph.active = true;
   }, [morphMode]);
+
+  // Network color mode — flat ink vs polychrome. Walks the network tree
+  // and rewrites each material's color; only re-runs when the toggle or
+  // the UI theme changes, not every frame. Mono ink picks up the theme
+  // (cream-white in dark mode, graphite in light mode) so the network
+  // reads against whatever background the user has.
+  useEffect(() => {
+    const network = threeRef.current?.globeNetwork;
+    if (!network) return;
+    const mono = globeSettings?.networkMono ?? DEFAULT_GLOBE_SETTINGS.networkMono;
+    const monoHex = uiTheme === "light" ? "#18171a" : "#f6f2ea";
+    setNetworkColorMode(network, mono, monoHex);
+  }, [globeSettings?.networkMono, uiTheme]);
 
   useEffect(() => {
     const refs = threeRef.current;

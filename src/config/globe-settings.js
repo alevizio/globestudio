@@ -21,6 +21,10 @@ export const DEFAULT_GLOBE_SETTINGS = {
   networkStrength: 70,
   networkArcs: true,
   networkPulses: true,
+  // Tints all hub + route materials with a single neutral ink instead of
+  // their per-city / per-route colors. Reads "minimalist / wireframe" vs
+  // the default Stripe-style polychrome.
+  networkMono: false,
   routes: true,
   routesStrength: 82,
   surface: true,

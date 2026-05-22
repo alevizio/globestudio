@@ -2411,6 +2411,21 @@ button {
   align-items: center;
   gap: 10px;
   padding: 6px 8px 4px;
+  /* Sticky so the logo + action icons (theme, keyboard, hide, export)
+     stay pinned to the top of the rail as the user scrolls through
+     Surface / Globe / Shader / Background sections. The rail itself
+     is the scroll container (overflow: hidden auto), so top: 0 lands
+     the header at the rail's interior top edge.
+     Margin counteracts the rail's 4px top padding so the header sits
+     flush at the rail's top edge while sticky. */
+  position: sticky;
+  top: -4px;
+  margin: -4px -10px 0;
+  padding: 10px 16px 8px;
+  z-index: 3;
+  background: var(--panel);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
 }
 
 .panel-meta {

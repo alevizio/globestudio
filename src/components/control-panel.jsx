@@ -693,6 +693,13 @@ export const ControlPanel = ({
                   onChange={(value) => updateGlobeSetting("networkPulses", value)}
                 />
               </OptionRow>
+              <OptionRow label="Mono">
+                <ToggleControl
+                  label="Toggle monochrome network"
+                  checked={globeSettings.networkMono ?? false}
+                  onChange={(value) => updateGlobeSetting("networkMono", value)}
+                />
+              </OptionRow>
               <OptionRow label="Strength" value={globeSettings.networkStrength ?? 70}>
                 <RangeControl
                   label="Network strength"
