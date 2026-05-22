@@ -12,29 +12,47 @@ export const consoleGreeting = () => {
   greeted = true;
   if (typeof window === "undefined" || typeof console?.log !== "function") return;
 
-  // Continent silhouettes on a dotted globe — ● is land, · is ocean.
-  // Centered roughly on 0° longitude so Americas read as the left strip,
-  // Africa + Europe as the right cluster, with a hint of Australia at
-  // the bottom right. Hand-laid for monospace metrics; don't reflow
-  // unless re-tuning per-row column counts.
+  // Continent silhouettes on a sphere — # is land, - is ocean. Output
+  // of an orthographic projection of world-atlas's countries-110m.json
+  // generated once via /tmp/gen-console-globe.mjs (see commit history),
+  // hand-trimmed for trailing whitespace. Centered ~15°W so Americas
+  // land on the left, Africa and Eurasia on the right.
+  // Aspect: 21 rows × 45 cols ≈ 2:1 horizontal stretch, which lands as
+  // a near-circular sphere at default terminal cell metrics (~2:1
+  // height:width per char).
   const globe = [
     "",
-    "           · · · · · ·            ",
-    "      · ● ● ● · · · · · · · ●     ",
-    "   · · ● ● ● ● ● · · ● ● ● ● ● ·  ",
-    "  · · · ● ● · · · · ● ● ● ● ● ● · ",
-    " · · · ● ● · · · · · ● ● ● · ● ●  ",
-    " · · · · ● · · · · · ● ● ● · · · ·",
-    " · · · · ● · · · · · ● ● ● · · · ·",
-    "  · · · ● · · · · · · ● ● · · ●   ",
-    "   · · · ● · · · · · · ● · · ·    ",
-    "     · · · · · · · · · · · ·      ",
-    "        · · · · · · · ·           ",
+    "                      -",
+    "             ##--#---#-----#####",
+    "         #-###----------##-#########",
+    "       ####---------------#######--#-#",
+    "     ##------------------#---#----######",
+    "   #--------------------##################",
+    "  --------------------################-###-",
+    "  --------------------#################-##-",
+    " ---#-----------------###################---",
+    " --######---------------####--############--",
+    "---#######----------------------#########----",
+    " --############-----------------########----",
+    " --###########-------------------#######----",
+    "  ---#########------------------#######-#--",
+    "  ----######--------------------######-----",
+    "   ----#####---------------------###------",
+    "     ---###-----------------------------",
+    "       --#----------------------------",
+    "         --#------------------------",
+    "             -------------------",
+    "                      #",
     "",
   ].join("\n");
 
   const globeStyle =
-    "font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; color: #f6f2ea; line-height: 1.0; letter-spacing: 0;";
+    // Tight line-height + a slight horizontal letter-spacing tweak land
+    // the orthographic-projection output as a near-circular sphere in
+    // most browser-devtools default monospace fonts. Cream foreground
+    // for both glyphs — visual contrast between `#` (land) and `-`
+    // (ocean) comes from the glyph weight, not color.
+    "font: 11px/1.0 ui-monospace, SFMono-Regular, Menlo, monospace; color: #f6f2ea; letter-spacing: 0;";
   const titleStyle =
     "font: 700 26px ui-monospace, SFMono-Regular, Menlo, monospace; color: #f6f2ea; letter-spacing: -0.02em; padding-top: 4px;";
   const subtitleStyle =
