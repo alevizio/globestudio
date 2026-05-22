@@ -696,7 +696,7 @@ export const ControlPanel = ({
               <OptionRow label="Mono">
                 <ToggleControl
                   label="Toggle monochrome network"
-                  checked={globeSettings.networkMono ?? false}
+                  checked={globeSettings.networkMono ?? true}
                   onChange={(value) => updateGlobeSetting("networkMono", value)}
                 />
               </OptionRow>
