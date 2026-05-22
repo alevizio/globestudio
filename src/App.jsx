@@ -356,7 +356,7 @@ const App = () => {
 
     return {
       mode: "country",
-      label: option.label.replace(" (Region)", "").replace(" (Subregion)", ""),
+      label: option.label.replace(" (Continent)", "").replace(" (Subregion)", ""),
       countryCodes: option.ids,
       collection: null,
     };
@@ -678,7 +678,7 @@ const App = () => {
 
   const handleSelectionChange = useCallback((next) => {
     setSelection(next);
-    // Selection values are namespaced ("country:USA", "region:Europe", etc.)
+    // Selection values are namespaced ("country:USA", "continent:Europe", etc.)
     // — only announce a friendly label for known shapes; skip the raw value
     // for "world" since the visual update is obvious.
     if (typeof next === "string" && next !== "world") {

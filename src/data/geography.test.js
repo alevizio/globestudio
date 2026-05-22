@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   areaOptionByValue,
   areaOptions,
+  continentOptions,
   countries,
-  regionOptions,
   subregionOptions,
 } from "./geography.js";
 
@@ -29,13 +29,20 @@ describe("countries", () => {
   });
 });
 
-describe("region & subregion options", () => {
-  it("formats region labels with '(Region)'", () => {
-    regionOptions.forEach((option) => {
-      expect(option.label.endsWith("(Region)")).toBe(true);
-      expect(option.value.startsWith("region:")).toBe(true);
+describe("continent & subregion options", () => {
+  it("formats continent labels with '(Continent)'", () => {
+    continentOptions.forEach((option) => {
+      expect(option.label.endsWith("(Continent)")).toBe(true);
+      expect(option.value.startsWith("continent:")).toBe(true);
       expect(option.ids.length).toBeGreaterThan(0);
     });
+  });
+
+  it("splits the Americas into North America + South America", () => {
+    const names = continentOptions.map((o) => o.label.replace(" (Continent)", ""));
+    expect(names).toContain("North America");
+    expect(names).toContain("South America");
+    expect(names).not.toContain("Americas");
   });
 
   it("formats subregion labels with '(Subregion)'", () => {

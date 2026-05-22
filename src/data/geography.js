@@ -36,6 +36,24 @@ const detectLocaleIso3 = () => {
 
 const activeLocale = detectLocaleIso3();
 
+// The world-countries `region` field uses the UN M49 5-region split, which
+// lumps the entire western hemisphere into "Americas". That's not how most
+// people think about continents — splitting on subregion gives us the
+// conventional 6-continent model (we have no Antarctica since it's filtered
+// out above). Central America + Caribbean roll up into North America by
+// the standard geographic-continent convention.
+const AMERICAS_SUBREGION_TO_CONTINENT = {
+  "North America": "North America",
+  "Central America": "North America",
+  Caribbean: "North America",
+  "South America": "South America",
+};
+
+const continentFor = (region, subregion) => {
+  if (region === "Americas") return AMERICAS_SUBREGION_TO_CONTINENT[subregion] || "Americas";
+  return region;
+};
+
 export const countries = countryData
   .filter(
     (country) =>
@@ -58,11 +76,14 @@ export const countries = countryData
         if (value) searchTokens.push(value.toLowerCase());
       }
     }
+    const region = country.region || "Other";
+    const subregion = country.subregion || "";
     return {
       _id: country.cca3,
       _displayName: display,
-      _region: country.region || "Other",
-      _subregion: country.subregion || "",
+      _region: region,
+      _subregion: subregion,
+      _continent: continentFor(region, subregion),
       _searchTokens: searchTokens,
     };
   })
@@ -78,7 +99,12 @@ export const cca3ToCcn3 = new Map(
     .map((country) => [country.cca3, String(parseInt(country.ccn3, 10))]),
 );
 
-const buildGroupedOptions = (field, typeLabel) => {
+const GROUP_LABELS = {
+  continent: "Continent",
+  subregion: "Subregion",
+};
+
+const buildGroupedOptions = (field, typeKey) => {
   const groups = new Map();
   countries.forEach((item) => {
     const value = item[field];
@@ -91,13 +117,13 @@ const buildGroupedOptions = (field, typeLabel) => {
   return [...groups.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([name, ids]) => ({
-      value: `${typeLabel}:${name}`,
-      label: `${name} (${typeLabel === "region" ? "Region" : "Subregion"})`,
+      value: `${typeKey}:${name}`,
+      label: `${name} (${GROUP_LABELS[typeKey]})`,
       ids,
     }));
 };
 
-export const regionOptions = buildGroupedOptions("_region", "region");
+export const continentOptions = buildGroupedOptions("_continent", "continent");
 export const subregionOptions = buildGroupedOptions("_subregion", "subregion");
 
 export const areaOptions = [
@@ -111,7 +137,7 @@ export const areaOptions = [
     searchTokens: item._searchTokens,
     ids: [item._id],
   })),
-  ...regionOptions,
+  ...continentOptions,
   ...subregionOptions,
 ];
 
