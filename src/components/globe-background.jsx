@@ -603,7 +603,14 @@ export const GlobeBackground = ({
       const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.z;
       const visibleWidth = visibleHeight * camera.aspect;
       const offset = mapOffsetRef.current || { x: 0, y: 0 };
-      const narrowFocus = clampNumber((760 - rectWidth) / 260, 0, 1);
+      // narrow viewports + open desktop panel → shift the globe horizontally
+      // so it sits in the dead area NEXT to the panel rather than half-
+      // covered by it. On mobile (viewport ≤ 620px) the panel is a bottom
+      // sheet, not a left-side rail, so this horizontal nudge is the wrong
+      // axis and just shoves the globe off-center. Gate the nudge on a
+      // desktop-only width check.
+      const isMobileLayout = rectWidth <= 620;
+      const narrowFocus = isMobileLayout ? 0 : clampNumber((760 - rectWidth) / 260, 0, 1);
       const panelFocusPixels = panelCollapsedRef.current ? 0 : narrowFocus * 104;
       const globeFocusOffset = (panelFocusPixels / Math.max(rectWidth, 1)) * visibleWidth;
 

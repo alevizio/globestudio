@@ -3945,22 +3945,27 @@ input[type="range"]:active::-moz-range-thumb {
     opacity: 0.012;
   }
 
-  /* Bottom sheet peeks 200px from the viewport bottom in its collapsed
-     state. Without this override, the scene container fills the full
-     viewport via inset: 0 and the Three.js camera renders the globe
-     centered in the full screen — but 200px of that "center" is hidden
-     under the sheet, so the visible globe sits noticeably low.
-     Pulling the container's bottom up by 200px (+ 10px gap for the
-     sheet's bottom margin) makes the globe center on the *visible*
-     area when the sheet is in its default peek state, which is the
-     state users see 90% of the time. The ResizeObserver inside
-     globe-background.jsx picks up the height change and re-fits the
-     camera + dot scale automatically.
-     The flat dot-map and shader-canvas already self-center via the
-     parent's place-items: center grid, so this only needs to apply
-     to .globe-background. */
+  /* The scene container would otherwise fill the full viewport (inset: 0)
+     and Three.js would center the globe at 50vh — but the bottom
+     200-500px is hidden under the bottom sheet, so the visible globe
+     sits low.
+     `--mobile-globe-bottom` is set from App.jsx and tracks the actual
+     rail height: ~210px in peek state, ~rail.height + 10 in expanded.
+     The ResizeObserver inside globe-background.jsx picks up the
+     container resize and refits the camera + adaptive DPR.
+     Fallback default sized to the peek state. */
   .globe-background {
-    bottom: 210px;
+    bottom: var(--mobile-globe-bottom, 210px);
+    transition: bottom 360ms cubic-bezier(0.34, 1.3, 0.5, 1);
+  }
+
+  /* Flat dot-map and shader-canvas already self-center via the parent
+     .map-background grid's place-items: center, but the sheet still
+     clips their bottom edge. Same bottom-offset treatment so the
+     2D path matches the 3D path visually. */
+  .map-background {
+    bottom: var(--mobile-globe-bottom, 210px);
+    transition: bottom 360ms cubic-bezier(0.34, 1.3, 0.5, 1);
   }
 
   /* Mobile bottom-sheet pattern — control-rail is pinned to the bottom of
@@ -3998,6 +4003,27 @@ input[type="range"]:active::-moz-range-thumb {
   .panel-meta-icon {
     width: 44px;
     height: 44px;
+  }
+
+  /* The desktop sticky behavior conflicts with the mobile drag handle:
+     the handle is position: absolute; top: 0; height: 32px; z-index: 2
+     and the sticky panel-header has z-index: 3, so it would steal the
+     pointer events for the drag gesture. On mobile we drop sticky
+     entirely (the rail is a bottom sheet, not a long-scrolling list,
+     so a sticky header doesn't add value) and let the header flow
+     beneath the drag bar in its natural position. Also drop the
+     negative margins that pulled the header up into the drag-handle
+     zone. */
+  .panel-header {
+    position: static;
+    margin: 0;
+    padding: 6px 8px 4px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: transparent;
+    /* Push the header below the 32px drag-handle strip so the handle
+       gets the first 32px of pointer events uncontested. */
+    margin-top: 28px;
   }
 
   /* On mobile, "collapsed" doesn't shrink-and-fade — it slides down to a
