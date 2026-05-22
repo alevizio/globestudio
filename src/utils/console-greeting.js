@@ -12,23 +12,24 @@ export const consoleGreeting = () => {
   greeted = true;
   if (typeof window === "undefined" || typeof console?.log !== "function") return;
 
-  // Dot-sphere — rows go 5→9→11→13→14→14→14→13→11→9→5 to suggest spherical
-  // curvature. Outer rows are the "limb" of the globe; middle rows the
-  // equator. Single en-space between dots keeps the silhouette circular at
-  // the console's default monospace metrics.
+  // Continent silhouettes on a dotted globe — ● is land, · is ocean.
+  // Centered roughly on 0° longitude so Americas read as the left strip,
+  // Africa + Europe as the right cluster, with a hint of Australia at
+  // the bottom right. Hand-laid for monospace metrics; don't reflow
+  // unless re-tuning per-row column counts.
   const globe = [
     "",
-    "             · · · · ·            ",
-    "         · · · · · · · · ·        ",
-    "       · · · · · · · · · · ·      ",
-    "     · · · · · · · · · · · · ·    ",
-    "    · · · · · · · · · · · · · ·   ",
-    "    · · · · · · · · · · · · · ·   ",
-    "    · · · · · · · · · · · · · ·   ",
-    "     · · · · · · · · · · · · ·    ",
-    "       · · · · · · · · · · ·      ",
-    "         · · · · · · · · ·        ",
-    "             · · · · ·            ",
+    "           · · · · · ·            ",
+    "      · ● ● ● · · · · · · · ●     ",
+    "   · · ● ● ● ● ● · · ● ● ● ● ● ·  ",
+    "  · · · ● ● · · · · ● ● ● ● ● ● · ",
+    " · · · ● ● · · · · · ● ● ● · ● ●  ",
+    " · · · · ● · · · · · ● ● ● · · · ·",
+    " · · · · ● · · · · · ● ● ● · · · ·",
+    "  · · · ● · · · · · · ● ● · · ●   ",
+    "   · · · ● · · · · · · ● · · ·    ",
+    "     · · · · · · · · · · · ·      ",
+    "        · · · · · · · ·           ",
     "",
   ].join("\n");
 
