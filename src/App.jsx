@@ -29,9 +29,11 @@ import {
 } from "./utils/export.js";
 import { clearPersistedState, usePersistedState } from "./hooks/use-persisted-state.js";
 import { usePrefersReducedMotion } from "./hooks/use-prefers-reduced-motion.js";
+import { hasWebGL } from "./utils/webgl-support.js";
 import { CanvasA11yProxy } from "./components/canvas-a11y-proxy.jsx";
 import { ControlPanel } from "./components/control-panel.jsx";
 import { ErrorBoundary } from "./components/error-boundary.jsx";
+import { NoWebGLFallback } from "./components/no-webgl-fallback.jsx";
 import { PresetDetail } from "./components/preset-detail.jsx";
 import { getPresetSeo } from "./data/preset-seo.js";
 import { ExportModal } from "./components/export-modal.jsx";
@@ -49,6 +51,18 @@ const GlobeBackground = lazy(() =>
 
 const App = () => {
   const globeCanvasRef = useRef(null);
+  // Probe once on first mount whether WebGL is available. If not, the
+  // <GlobeBackground> render path below is replaced by <NoWebGLFallback>
+  // and Three.js never loads. The probe is synchronous + cheap (creates
+  // and discards a 1x1 canvas) so doing it during render is fine.
+  const webglSupported = useMemo(() => hasWebGL(), []);
+  // Toggle a body class so the fallback's stylesheet can hide
+  // canvas-dependent chrome (control panel, looks bar, zoom, perf hud).
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    document.body.classList.toggle("is-no-webgl", !webglSupported);
+    return () => document.body.classList.remove("is-no-webgl");
+  }, [webglSupported]);
   const [selection, setSelection] = usePersistedState("selection", "world");
   const [stateSelection, setStateSelection] = usePersistedState("stateSelection", "all");
   const [canvasScale, setCanvasScale] = usePersistedState("canvasScale", "1x");
@@ -1126,6 +1140,9 @@ const App = () => {
       />
 
 
+      {!webglSupported ? (
+        <NoWebGLFallback />
+      ) : (
       <ErrorBoundary
         fallback={({ reset, error }) => (
           <div className="map-background-error" role="alert">
@@ -1207,6 +1224,7 @@ const App = () => {
           />
         </Suspense>
       </ErrorBoundary>
+      )}
 
       <ViewModeSwitch viewMode={viewMode} setViewMode={changeViewMode} />
       <MapZoomControls value={mapZoom} onChange={setMapZoom} />

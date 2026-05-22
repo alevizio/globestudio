@@ -538,6 +538,116 @@ button {
   justify-content: center;
 }
 
+/* WebGL-unsupported fallback. Pre-flight: rendered instead of the canvas
+   when hasWebGL() returns false on first mount. Three.js never loads in
+   this path. Designed to feel intentional, not broken.
+   Sits above the control panel + bottom chrome because none of those
+   tools work without a live canvas — the user gets a clean still + a
+   path to fix or report. */
+.no-webgl {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 32px 24px;
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* When the fallback is on, hide the control rail + bottom chrome since
+   they're all canvas-dependent. Body gets `is-no-webgl` from App.jsx
+   when hasWebGL() returns false — we use a class instead of CSS :has()
+   so older browsers (Firefox < 121, Safari < 15.4) still get a clean
+   fallback presentation. */
+.is-no-webgl .control-panel,
+.is-no-webgl .looks-bar,
+.is-no-webgl .map-zoom,
+.is-no-webgl .view-mode-switch,
+.is-no-webgl .canvas-controls,
+.is-no-webgl .perf-monitor {
+  display: none !important;
+}
+
+.no-webgl-inner {
+  max-width: 560px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.no-webgl-image {
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+}
+
+.no-webgl-title {
+  margin: 4px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.no-webgl-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--dim);
+  max-width: 460px;
+}
+
+.no-webgl-details {
+  align-self: stretch;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: var(--panel);
+  font-size: 13px;
+  color: var(--dim);
+}
+
+.no-webgl-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--text);
+  padding: 2px 0;
+}
+
+.no-webgl-details ul {
+  margin: 10px 0 4px;
+  padding-left: 18px;
+  line-height: 1.6;
+}
+
+.no-webgl-details li + li {
+  margin-top: 6px;
+}
+
+.no-webgl-details code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  background: var(--panel-2);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.no-webgl-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+
 /* Ghost button variant — used for the secondary "Report this" link
    next to a primary Reload button. Same dimensions + a11y as .button,
    transparent background, subtler border. */
