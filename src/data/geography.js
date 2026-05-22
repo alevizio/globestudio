@@ -128,6 +128,12 @@ export const subregionOptions = buildGroupedOptions("_subregion", "subregion");
 
 export const areaOptions = [
   { value: "world", label: "World", ids: [] },
+  // Continents first so the dropdown reads top-down by zoom level: World
+  // → Continent → Subregion → individual Country. Most users picking
+  // anything other than World are reaching for a continent, so putting
+  // them next to the top trims the scroll/search distance.
+  ...continentOptions,
+  ...subregionOptions,
   ...countries.map((item) => ({
     value: `country:${item._id}`,
     label: item._displayName,
@@ -137,8 +143,6 @@ export const areaOptions = [
     searchTokens: item._searchTokens,
     ids: [item._id],
   })),
-  ...continentOptions,
-  ...subregionOptions,
 ];
 
 export const areaOptionByValue = new Map(areaOptions.map((option) => [option.value, option]));
