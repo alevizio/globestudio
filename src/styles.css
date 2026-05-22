@@ -3945,6 +3945,24 @@ input[type="range"]:active::-moz-range-thumb {
     opacity: 0.012;
   }
 
+  /* Bottom sheet peeks 200px from the viewport bottom in its collapsed
+     state. Without this override, the scene container fills the full
+     viewport via inset: 0 and the Three.js camera renders the globe
+     centered in the full screen — but 200px of that "center" is hidden
+     under the sheet, so the visible globe sits noticeably low.
+     Pulling the container's bottom up by 200px (+ 10px gap for the
+     sheet's bottom margin) makes the globe center on the *visible*
+     area when the sheet is in its default peek state, which is the
+     state users see 90% of the time. The ResizeObserver inside
+     globe-background.jsx picks up the height change and re-fits the
+     camera + dot scale automatically.
+     The flat dot-map and shader-canvas already self-center via the
+     parent's place-items: center grid, so this only needs to apply
+     to .globe-background. */
+  .globe-background {
+    bottom: 210px;
+  }
+
   /* Mobile bottom-sheet pattern — control-rail is pinned to the bottom of
      the viewport and slides up/down. Drag handle replaces the desktop
      panel-toggle chip. Looks bar stays visible in the peek state so
