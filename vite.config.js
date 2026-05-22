@@ -65,7 +65,12 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (!id.includes("node_modules")) return undefined;
-          if (id.includes("/us-atlas/") || id.includes("/topojson-client/")) return undefined;
+          if (
+            id.includes("/us-atlas/") ||
+            id.includes("/world-atlas/") ||
+            id.includes("/topojson-client/")
+          )
+            return undefined;
           if (id.includes("/three/")) return "three";
           if (id.includes("/dotted-map/")) return "dotted-map";
           if (id.includes("/d3-geo/") || id.includes("/d3-array/")) return "geo";
