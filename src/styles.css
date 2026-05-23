@@ -1639,7 +1639,8 @@ button {
   padding: 12px 16px 0;
 }
 
-.export-modal-tabs::after {
+/* Dashed divider line under the tab strip. */
+.export-modal-tabs::before {
   content: "";
   position: absolute;
   bottom: 0;
@@ -1650,6 +1651,35 @@ button {
   background-size: 2px 1px;
   background-repeat: repeat-x;
   pointer-events: none;
+}
+
+/* Single shared active-tab underline indicator. Position + width are
+   set as CSS variables from React after measuring the active tab; the
+   transform-based transition makes it slide smoothly when the user
+   switches tabs, rather than hard-cutting from one tab to the next. */
+.export-modal-tabs::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  width: var(--tab-indicator-width, 0);
+  background: var(--accent);
+  border-radius: 1px;
+  opacity: var(--tab-indicator-opacity, 0);
+  transform: translateX(var(--tab-indicator-left, 0));
+  transition:
+    transform 280ms cubic-bezier(0.4, 0, 0.2, 1),
+    width 280ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 180ms ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .export-modal-tabs::after {
+    transition: opacity 180ms ease;
+  }
 }
 
 .shortcuts-overlay-backdrop {
@@ -2248,24 +2278,36 @@ button {
   color: var(--text);
 }
 
-.export-modal-tab.is-active::after {
-  content: "";
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: -1px;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 1px;
-  z-index: 1;
-}
-
 .export-modal-body {
   display: flex;
   flex-direction: column;
   gap: 18px;
   padding: 20px;
   overflow: auto;
+}
+
+/* Mount-fade on tab content. Keyed re-render per tab swap (see
+   export-modal.jsx <div key={tab}>) means this animation fires on each
+   tab change. Cheap opacity + tiny lift; respects reduced motion. */
+.export-modal-body > .export-modal-pane {
+  animation: export-modal-pane-in 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes export-modal-pane-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .export-modal-body > .export-modal-pane {
+    animation: none;
+  }
 }
 
 .export-modal-field {

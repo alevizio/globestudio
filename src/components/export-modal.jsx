@@ -51,6 +51,34 @@ const Tabs = ({ tab, setTab, hasVideo }) => {
     { id: "share", label: "Share" },
   ].filter(Boolean);
 
+  // Refs to each tab button so we can measure the active one and slide
+  // a single underline indicator to its position. Keyed by tab id so the
+  // map survives re-renders without churn.
+  const listRef = useRef(null);
+  const tabRefs = useRef(new Map());
+  const [indicator, setIndicator] = useState({ left: 0, width: 0, visible: false });
+
+  useEffect(() => {
+    const list = listRef.current;
+    const node = tabRefs.current.get(tab);
+    if (!list || !node) return undefined;
+    const measure = () => {
+      const listRect = list.getBoundingClientRect();
+      const tabRect = node.getBoundingClientRect();
+      setIndicator({
+        left: tabRect.left - listRect.left + 12,
+        width: tabRect.width - 24,
+        visible: true,
+      });
+    };
+    measure();
+    // Re-measure when fonts settle / the panel resizes — both can shift
+    // tab widths after the first paint.
+    const observer = new ResizeObserver(measure);
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [tab]);
+
   // ARIA tablist convention: ArrowLeft/Right move selection, Home/End jump to
   // ends. We wrap around so power users can hold the arrow key.
   const onKeyDown = (event) => {
@@ -73,14 +101,24 @@ const Tabs = ({ tab, setTab, hasVideo }) => {
 
   return (
     <nav
+      ref={listRef}
       className="export-modal-tabs"
       role="tablist"
       aria-label="Export type"
       onKeyDown={onKeyDown}
+      style={{
+        "--tab-indicator-left": `${indicator.left}px`,
+        "--tab-indicator-width": `${indicator.width}px`,
+        "--tab-indicator-opacity": indicator.visible ? 1 : 0,
+      }}
     >
       {tabs.map((t) => (
         <button
           key={t.id}
+          ref={(node) => {
+            if (node) tabRefs.current.set(t.id, node);
+            else tabRefs.current.delete(t.id);
+          }}
           type="button"
           role="tab"
           aria-selected={tab === t.id}
@@ -306,6 +344,7 @@ export const ExportModal = ({
         <Tabs tab={tab} setTab={setTab} hasVideo={videoSupported} />
 
         <div className="export-modal-body">
+        <div key={tab} className="export-modal-pane">
           {tab === "image" && (
             <>
               <PillRow label="Aspect" options={ASPECT_OPTIONS} value={aspect} onChange={setAspect} />
@@ -475,6 +514,7 @@ export const ExportModal = ({
               </div>
             </>
           )}
+        </div>
         </div>
       </div>
     </div>
