@@ -2514,6 +2514,110 @@ button {
   color: var(--on-accent);
 }
 
+/* Ambient mode — full-bleed canvas with every piece of UI chrome
+   suppressed. Activated via the Maximize header button or the B key
+   shortcut. A single floating exit chip stays visible bottom-centre so
+   the affordance is never lost. Animation: chrome fades + slides off
+   over 260ms so the transition reads as a deliberate "step back" rather
+   than a hard cut. */
+.app-shell.is-ambient .control-rail,
+.app-shell.is-ambient .panel-toggle,
+.app-shell.is-ambient .looks-bar,
+.app-shell.is-ambient .view-mode-switch,
+.app-shell.is-ambient .map-zoom-controls,
+.app-shell.is-ambient .social-link {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-shell.is-ambient .control-rail {
+  transform: translateX(-12px);
+}
+
+.app-shell.is-ambient .map-zoom-controls,
+.app-shell.is-ambient .view-mode-switch {
+  transform: translate(-50%, 12px);
+}
+
+.app-shell.is-ambient .social-link {
+  transform: translateY(-12px);
+}
+
+.ambient-exit {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 56;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transform: translate(-50%, 6px);
+  opacity: 0;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 10px 28px -12px rgba(0, 0, 0, 0.55);
+  animation: ambient-exit-in 300ms cubic-bezier(0.2, 0.7, 0.2, 1) 80ms forwards;
+}
+
+.ambient-exit:hover {
+  background: var(--panel-3);
+  border-color: var(--border-strong);
+}
+
+.ambient-exit kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--surface-hover);
+  font-family: var(--font-mono-2);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@keyframes ambient-exit-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-exit {
+    animation: none;
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  .app-shell.is-ambient .control-rail,
+  .app-shell.is-ambient .panel-toggle,
+  .app-shell.is-ambient .looks-bar,
+  .app-shell.is-ambient .view-mode-switch,
+  .app-shell.is-ambient .map-zoom-controls,
+  .app-shell.is-ambient .social-link {
+    transition: opacity 0s;
+    transform: none;
+  }
+}
+
 .map-zoom-controls {
   position: fixed;
   left: 50%;

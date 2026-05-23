@@ -197,6 +197,28 @@ export const Keyboard = ({ size = 22, ...props }) => (
   </svg>
 );
 
+export const Maximize = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    {/* Four corner brackets — universal "enter fullscreen / ambient" affordance. */}
+    <rect x="4" y="4" width="6" height="2" />
+    <rect x="4" y="6" width="2" height="4" />
+    <rect x="14" y="4" width="6" height="2" />
+    <rect x="18" y="6" width="2" height="4" />
+    <rect x="4" y="14" width="2" height="4" />
+    <rect x="4" y="18" width="6" height="2" />
+    <rect x="18" y="14" width="2" height="4" />
+    <rect x="14" y="18" width="6" height="2" />
+  </svg>
+);
+
 export const MapIcon = ({ size = 22, ...props }) => (
   <svg
     width={size}

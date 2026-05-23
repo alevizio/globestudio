@@ -43,7 +43,7 @@ import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { AboutOverlay } from "./components/about-overlay.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
-import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
+import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Maximize, Moon, PanelLeftClose, PanelLeftOpen, Sun, X } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
@@ -246,6 +246,13 @@ const App = () => {
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  // Ambient mode hides every piece of UI chrome (panel, looks bar, view
+  // mode switch, zoom controls, social links) so the canvas reads as a
+  // single full-bleed art piece. Use case: screen-recording a preset,
+  // capturing a screenshot for a deck, projecting at a conference.
+  // Doesn't persist — re-entering should be a deliberate gesture, not a
+  // surprise after page reload.
+  const [ambientMode, setAmbientMode] = useState(false);
   // Transient toast shown when a keyboard shortcut fires. Auto-clears after a
   // short delay; the ref tracks the latest timeout so successive keys reset it
   // instead of stacking.
@@ -661,6 +668,7 @@ const App = () => {
     setShortcutsOpen,
     setPanelCollapsed,
     setMapZoom,
+    setAmbientMode,
     flashHint: flashKeyboardHint,
   });
 
@@ -933,6 +941,8 @@ const App = () => {
         viewTransition ? `is-view-transitioning is-${viewTransition}` : ""
       } ${
         currentPresetId ? "has-preset-detail" : ""
+      } ${
+        ambientMode ? "is-ambient" : ""
       }`}
       style={{
         "--preview-bg": isSpaceBackground ? "#03030a" : isTransparentBackground ? "#f4f4f4" : background,
@@ -1159,6 +1169,15 @@ const App = () => {
             </button>
             <button
               type="button"
+              className="panel-icon-button"
+              onClick={() => setAmbientMode(true)}
+              aria-label="Enter ambient mode"
+              data-tooltip="Ambient mode (B)"
+            >
+              <Maximize size={16} />
+            </button>
+            <button
+              type="button"
               className="panel-icon-button panel-icon-button--hide-panel"
               onClick={() => setPanelCollapsed(true)}
               aria-label="Hide panel"
@@ -1302,6 +1321,19 @@ const App = () => {
           <kbd className="keyboard-hint-key">{keyboardHint.key}</kbd>
           <span className="keyboard-hint-label">{keyboardHint.label}</span>
         </div>
+      )}
+      {ambientMode && (
+        <button
+          type="button"
+          className="ambient-exit"
+          onClick={() => setAmbientMode(false)}
+          aria-label="Exit ambient mode"
+        >
+          <X size={14} />
+          <span>
+            Exit ambient <kbd>B</kbd>
+          </span>
+        </button>
       )}
       <FollowTooltip />
       {/* Per-preset long-form copy below the fold. Renders only when a

@@ -13,6 +13,7 @@ const shortcuts = [
   { key: "R", label: "Reset to defaults" },
   { key: "G", label: "Toggle globe and flat view" },
   { key: "H", label: "Hide or show the control panel" },
+  { key: "B", label: "Toggle ambient mode (hide all chrome)" },
   { key: "?", label: "Show this help" },
   { key: "Esc", label: "Close popovers and dialogs" },
 ];
