@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
-import { Github, Twitter, X } from "./icons.jsx";
+import { DottedGlobe, Github, Twitter, X } from "./icons.jsx";
 
 // About modal — opens from the panel header's info icon. Two short
 // sections: the project, then the maker. Tight copy by design — the
@@ -44,6 +44,10 @@ export const AboutOverlay = ({ open, onClose }) => {
         </div>
 
         <div className="about-overlay-body">
+          <div className="about-logo" aria-hidden="true">
+            <DottedGlobe size={56} />
+          </div>
+
           <section className="about-section">
             <h3 className="about-section-title">Globestudio</h3>
             <p className="about-section-text">
