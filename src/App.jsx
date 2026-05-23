@@ -1,8 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  TRACKPAD_ZOOM_IGNORE_SELECTOR,
-  US_COUNTRY_ID,
-} from "./config/constants.js";
+import { US_COUNTRY_ID } from "./config/constants.js";
 import { DEFAULT_SHADER_SETTINGS } from "./config/shader-effects.js";
 import {
   DEFAULT_GLOBE_SETTINGS,
@@ -13,6 +10,8 @@ import { lookPresets } from "./data/look-presets.js";
 import { useUsStatesLoader } from "./hooks/use-us-states-loader.js";
 import { useShareConfigImport } from "./hooks/use-share-config-import.js";
 import { useRouteLook } from "./hooks/use-route-look.js";
+import { useSheetDrag } from "./hooks/use-sheet-drag.js";
+import { useTrackpadZoom } from "./hooks/use-trackpad-zoom.js";
 import { clampNumber } from "./utils/math.js";
 import { invertGradient, invertHex } from "./utils/color.js";
 import { buildShareUrl } from "./utils/share-config.js";
@@ -170,56 +169,10 @@ const App = () => {
     "panelCollapsed",
     typeof window !== "undefined" && window.innerWidth < 720,
   );
-  // Mobile drag-to-resize for the bottom sheet. Pointer capture guarantees
-  // that once pointerdown fires on the handle, all moves + the up fire on
-  // the same element regardless of where the finger goes. All gesture
-  // state lives in refs so the closures in the move/up handlers don't go
-  // stale between renders (setIsDragging is async — the first move fires
-  // before React commits the new state).
-  const [dragOffset, setDragOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef({ y: 0, wasCollapsed: false });
-  const dragOffsetRef = useRef(0);
-  const draggedRef = useRef(false);
-  const handleSheetPointerDown = useCallback(
-    (event) => {
-      if (event.button !== undefined && event.button !== 0) return;
-      event.currentTarget.setPointerCapture(event.pointerId);
-      dragStartRef.current = { y: event.clientY, wasCollapsed: panelCollapsed };
-      dragOffsetRef.current = 0;
-      draggedRef.current = false;
-      setIsDragging(true);
-      setDragOffset(0);
-    },
-    [panelCollapsed],
+  const { dragOffset, isDragging, handlers: sheetHandlers } = useSheetDrag(
+    panelCollapsed,
+    setPanelCollapsed,
   );
-  const handleSheetPointerMove = useCallback((event) => {
-    const delta = event.clientY - dragStartRef.current.y;
-    if (Math.abs(delta) > 6) draggedRef.current = true;
-    dragOffsetRef.current = delta;
-    setDragOffset(delta);
-  }, []);
-  const handleSheetPointerUp = useCallback(() => {
-    setIsDragging(false);
-    if (draggedRef.current) {
-      const snapThreshold = 60;
-      const finalDelta = dragOffsetRef.current;
-      if (dragStartRef.current.wasCollapsed) {
-        if (finalDelta < -snapThreshold) setPanelCollapsed(false);
-      } else if (finalDelta > snapThreshold) {
-        setPanelCollapsed(true);
-      }
-    }
-    dragOffsetRef.current = 0;
-    setDragOffset(0);
-  }, [setPanelCollapsed]);
-  const handleSheetClick = useCallback(() => {
-    if (draggedRef.current) {
-      draggedRef.current = false;
-      return;
-    }
-    setPanelCollapsed((value) => !value);
-  }, [setPanelCollapsed]);
   const [animationsEnabled, setAnimationsEnabled] = usePersistedState("animationsEnabled", true);
   // UI theme: "dark" (default) or "light". Only swaps the panel/picker tokens —
   // the canvas/globe rendering stays on its dark base because the artwork
@@ -771,80 +724,7 @@ const App = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [shuffleLook, handleReset, changeViewMode, setPanelCollapsed, flashKeyboardHint, applyLook]);
 
-  useEffect(() => {
-    const shouldIgnoreTrackpadZoom = (event) => {
-      const target = event.target instanceof Element ? event.target : null;
-      if (target?.closest(TRACKPAD_ZOOM_IGNORE_SELECTOR)) return true;
-
-      const shell = document.querySelector(".app-shell");
-      return Boolean(target && shell && !shell.contains(target));
-    };
-
-    const applyTrackpadZoom = (event, nextZoom, currentZoom) => {
-      if (Math.abs(nextZoom - currentZoom) < 0.001) return;
-
-      const shell = document.querySelector(".app-shell");
-      if (viewModeRef.current === "flat" && shell) {
-        const rect = shell.getBoundingClientRect();
-        const pointerX = event.clientX - rect.left - rect.width / 2;
-        const pointerY = event.clientY - rect.top - rect.height / 2;
-        const zoomRatio = nextZoom / currentZoom;
-
-        setMapOffset((offset) => ({
-          x: pointerX - (pointerX - offset.x) * zoomRatio,
-          y: pointerY - (pointerY - offset.y) * zoomRatio,
-        }));
-      }
-
-      setMapZoom(Number(nextZoom.toFixed(3)));
-    };
-
-    const handleTrackpadWheel = (event) => {
-      if (event.defaultPrevented || shouldIgnoreTrackpadZoom(event)) return;
-
-      const deltaScale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
-      const dominantDelta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
-      const delta = dominantDelta * deltaScale;
-      if (!Number.isFinite(delta) || Math.abs(delta) < 0.01) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      const currentZoom = clampNumber(mapZoomRef.current, 0.5, 3);
-      const intensity = event.ctrlKey || event.metaKey ? 0.01 : 0.0018;
-      const nextZoom = clampNumber(currentZoom * Math.exp(-delta * intensity), 0.5, 3);
-      applyTrackpadZoom(event, nextZoom, currentZoom);
-    };
-
-    const handleGestureStart = (event) => {
-      if (shouldIgnoreTrackpadZoom(event)) return;
-      event.preventDefault();
-      event.stopPropagation();
-      event.currentTarget.__worldDotsGestureZoom = clampNumber(mapZoomRef.current, 0.5, 3);
-    };
-
-    const handleGestureChange = (event) => {
-      if (shouldIgnoreTrackpadZoom(event)) return;
-      event.preventDefault();
-      event.stopPropagation();
-
-      const currentZoom = clampNumber(mapZoomRef.current, 0.5, 3);
-      const startZoom = clampNumber(event.currentTarget.__worldDotsGestureZoom || currentZoom, 0.5, 3);
-      const scale = Number.isFinite(event.scale) ? event.scale : 1;
-      const nextZoom = clampNumber(startZoom * scale, 0.5, 3);
-      applyTrackpadZoom(event, nextZoom, currentZoom);
-    };
-
-    window.addEventListener("wheel", handleTrackpadWheel, { capture: true, passive: false });
-    window.addEventListener("gesturestart", handleGestureStart, { capture: true, passive: false });
-    window.addEventListener("gesturechange", handleGestureChange, { capture: true, passive: false });
-
-    return () => {
-      window.removeEventListener("wheel", handleTrackpadWheel, { capture: true });
-      window.removeEventListener("gesturestart", handleGestureStart, { capture: true });
-      window.removeEventListener("gesturechange", handleGestureChange, { capture: true });
-    };
-  }, []);
+  useTrackpadZoom({ mapZoomRef, viewModeRef, setMapZoom, setMapOffset });
 
   useEffect(() => () => window.clearTimeout(viewTransitionTimeoutRef.current), []);
 
@@ -1289,11 +1169,7 @@ const App = () => {
         <button
           type="button"
           className="mobile-drag-handle"
-          onPointerDown={handleSheetPointerDown}
-          onPointerMove={handleSheetPointerMove}
-          onPointerUp={handleSheetPointerUp}
-          onPointerCancel={handleSheetPointerUp}
-          onClick={handleSheetClick}
+          {...sheetHandlers}
           aria-label={panelCollapsed ? "Expand options panel" : "Collapse options panel"}
         >
           <span className="mobile-drag-handle-bar" aria-hidden="true" />
