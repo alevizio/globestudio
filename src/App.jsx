@@ -13,6 +13,7 @@ import { useRouteLook } from "./hooks/use-route-look.js";
 import { useSheetDrag } from "./hooks/use-sheet-drag.js";
 import { useTrackpadZoom } from "./hooks/use-trackpad-zoom.js";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts.js";
+import { usePrefetchHeavyChunks } from "./hooks/use-prefetch-heavy-chunks.js";
 import { clampNumber } from "./utils/math.js";
 import { invertGradient, invertHex } from "./utils/color.js";
 import { buildShareUrl } from "./utils/share-config.js";
@@ -44,6 +45,7 @@ import { LooksBar } from "./components/looks-bar.jsx";
 import { AboutOverlay } from "./components/about-overlay.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
 import { CommandPalette } from "./components/command-palette.jsx";
+import { OnboardingHint } from "./components/onboarding-hint.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
@@ -284,6 +286,8 @@ const App = () => {
   viewModeRef.current = viewMode;
 
   useUsStatesLoader(selection, usStates.length, setUsStates);
+
+  usePrefetchHeavyChunks();
   // useRouteLook + useShareConfigImport are deliberately declared further
   // down — they pass `applyLook` and `importConfig`, which are defined
   // later in the component body. Calling them up here would hit the
@@ -1326,6 +1330,7 @@ const App = () => {
         </div>
       )}
       <FollowTooltip />
+      <OnboardingHint />
       {/* Per-preset long-form copy below the fold. Renders only when a
           preset is applied (i.e. on /looks/:id URLs). Drives SEO Phase 4
           — each preset URL gets 200+ words of unique designer-facing
