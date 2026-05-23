@@ -65,6 +65,21 @@ Every integration accepts the same query string:
 | `source` | string | `embed` | Analytics tag — `framer`, `webflow`, `notion`, etc. |
 | `locale` | 2-letter | auto | Force a country-name display language |
 
+## Config files (`.json`)
+
+The Export → Share tab also lets users export their full canvas
+config as a `.json` file. The file format is documented as a JSON
+Schema published at:
+
+```
+https://globestudio.app/schema/config.json
+```
+
+VS Code / Cursor / WebStorm read the `$schema` field in the config
+file and provide autocomplete + validation. The exported configs
+already include the schema reference at the top — IDE intellisense
+works on a downloaded config file without any extra setup.
+
 ## postMessage resize protocol
 
 When iframed, Globestudio posts its desired height to the parent:

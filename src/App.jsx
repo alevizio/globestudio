@@ -975,7 +975,13 @@ const App = () => {
   );
 
   const exportConfig = () => {
-    const config = buildCurrentConfig();
+    // Prepend a $schema reference so editors (VS Code, Cursor, WebStorm)
+    // pick up autocomplete + validation when the user opens the
+    // downloaded file. The schema lives at /public/schema/config.json.
+    const config = {
+      $schema: "https://globestudio.app/schema/config.json",
+      ...buildCurrentConfig(),
+    };
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
     downloadBlob(blob, buildExportFilename(selected.label, "json", viewMode));
     setStatusMessage("Configuration exported");

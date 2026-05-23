@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globestudio.app/schema/config.json",
+  "title": "Globestudio configuration",
+  "description": "Schema for a Globestudio configuration file (the JSON payload produced by Export → Share → Export configuration). Matches the importConfig contract in src/App.jsx.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version"],
+  "properties": {
+    "version": {
+      "type": ["integer", "string"],
+      "description": "Schema version. Currently 1.",
+      "examples": [1]
+    },
+
+    "selection": {
+      "type": "string",
+      "description": "Geographic selection. Use `world`, `country:USA` (3-letter ISO 3166-1 code), `continent:Europe`, or `subregion:Western Europe`.",
+      "examples": ["world", "country:USA", "continent:Europe", "subregion:Western Europe"]
+    },
+    "stateSelection": {
+      "type": "string",
+      "description": "When selection is `country:USA`, the 2-letter US state postal code (`CA`, `TX`, `NY`, `all`).",
+      "examples": ["all", "CA", "TX"]
+    },
+
+    "background": { "type": "string", "description": "Canvas background — hex color.", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+    "transparent": { "type": "boolean", "description": "Use transparent background instead of `background`." },
+    "backgroundStyle": { "type": "string", "enum": ["solid", "space"], "description": "`solid` paints a flat color; `space` paints a starfield-and-nebula scene." },
+
+    "density": { "type": "number", "minimum": 1, "maximum": 100, "description": "Dot density across the visible area." },
+    "dotSize": { "type": "number", "minimum": 0.1, "maximum": 30, "description": "Dot radius." },
+    "dotColor": { "type": "string", "description": "Dot color — hex.", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+    "dotColorAlpha": { "type": "number", "minimum": 0, "maximum": 1 },
+    "dotGradient": {
+      "type": ["object", "null"],
+      "description": "Linear gradient applied to dots (overrides `dotColor` when set).",
+      "properties": {
+        "from": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+        "to": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+        "angle": { "type": "number", "minimum": 0, "maximum": 360 }
+      }
+    },
+    "dotsVisible": { "type": "boolean" },
+
+    "shape": {
+      "type": "string",
+      "enum": ["Circle", "Square", "Hexagon", "Triangle", "Pentagon", "Diamond", "Star", "Plus", "Ring", "Voxel", "ParticleGrid", "ASCII", "Custom"]
+    },
+    "asciiSymbol": { "type": "string", "description": "Symbol used when `shape` is `ASCII`." },
+    "customShape": { "type": ["string", "object", "null"], "description": "Custom SVG/path source when `shape` is `Custom`." },
+    "dotRotation": { "type": "number", "minimum": 0, "maximum": 360 },
+    "sizeVary": { "type": "boolean", "description": "Add per-dot size jitter." },
+    "rotateAnimating": { "type": "boolean" },
+
+    "renderMode": { "type": "string", "enum": ["dots", "solid"] },
+
+    "worldFill": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+    "worldFillAlpha": { "type": "number", "minimum": 0, "maximum": 1 },
+    "worldFillGradient": { "type": ["object", "null"] },
+    "worldFillVisible": { "type": "boolean" },
+
+    "worldStroke": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+    "worldStrokeAlpha": { "type": "number", "minimum": 0, "maximum": 1 },
+    "worldStrokeGradient": { "type": ["object", "null"] },
+    "worldStrokeVisible": { "type": "boolean" },
+    "worldStrokeWidth": { "type": "number", "minimum": 0, "maximum": 10 },
+
+    "mapDepth": { "type": "number", "minimum": 0, "maximum": 100, "description": "FOV-style depth for the 3D map view." },
+    "tiltX": { "type": "number", "minimum": -180, "maximum": 180 },
+    "tiltY": { "type": "number", "minimum": -180, "maximum": 180 },
+
+    "shaderSettings": {
+      "type": "object",
+      "description": "Per-shader configuration. `effect` picks which shader runs; the remaining fields are knobs honored by the selected effect.",
+      "properties": {
+        "effect": {
+          "type": "string",
+          "enum": ["none", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "edge", "threshold", "toon", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt"]
+        },
+        "intensity": { "type": "number", "minimum": 0, "maximum": 100 },
+        "cellSize": { "type": "number", "minimum": 0, "maximum": 30 },
+        "grain": { "type": "number", "minimum": 0, "maximum": 100 },
+        "scanlines": { "type": "number", "minimum": 0, "maximum": 100 },
+        "motion": { "type": "number", "minimum": 0, "maximum": 100 },
+        "threshold": { "type": "number", "minimum": 0, "maximum": 100 },
+        "split": { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "additionalProperties": true
+    },
+
+    "globeSettings": {
+      "type": "object",
+      "description": "3D globe chrome — auto-spin, glow halo, grid mesh, network arcs, etc.",
+      "properties": {
+        "look": { "type": "string", "enum": ["classic", "borderless"] },
+        "autoSpin": { "type": "boolean" },
+        "glow": { "type": "boolean" },
+        "glowStrength": { "type": "number", "minimum": 0, "maximum": 100 },
+        "glowSpread": { "type": "number", "minimum": 0, "maximum": 100 },
+        "grid": { "type": "boolean" },
+        "gridStrength": { "type": "number", "minimum": 0, "maximum": 100 },
+        "network": { "type": "boolean", "description": "City pulses + great-circle route arcs." },
+        "networkStrength": { "type": "number", "minimum": 0, "maximum": 100 },
+        "networkArcs": { "type": "boolean" },
+        "networkPulses": { "type": "boolean" },
+        "networkMono": { "type": "boolean", "description": "Render network in a single theme-aware ink instead of polychrome." },
+        "surface": { "type": "boolean" },
+        "surfaceStrength": { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "additionalProperties": true
+    },
+
+    "spaceSettings": {
+      "type": "object",
+      "description": "Starfield + nebula tuning. Applies when backgroundStyle is `space`.",
+      "properties": {
+        "density": { "type": "number", "minimum": 0, "maximum": 100 },
+        "motion": { "type": "number", "minimum": 0, "maximum": 100 },
+        "nebula": { "type": "number", "minimum": 0, "maximum": 100 },
+        "hue": { "type": "number", "minimum": 0, "maximum": 360 },
+        "brightness": { "type": "number", "minimum": 0, "maximum": 200 }
+      }
+    },
+
+    "animationsEnabled": { "type": "boolean" },
+
+    "preset": {
+      "type": "string",
+      "description": "Optional — when set, the importer applies this preset's defaults first, then layers the other fields on top.",
+      "enum": ["default", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "wireframe", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt"]
+    },
+
+    "flatProjection": {
+      "type": "string",
+      "enum": ["mercator", "equirectangular", "equal-earth", "winkel-tripel", "robinson"],
+      "description": "Projection used for the 2D flat map view."
+    },
+
+    "riversVisible": { "type": "boolean" },
+    "citiesVisible": { "type": "boolean" },
+    "citiesMinPop": { "type": "number", "minimum": 0 }
+  }
+}
