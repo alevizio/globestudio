@@ -4615,7 +4615,12 @@ input[type="range"]:active::-moz-range-thumb {
   width: 100%;
   margin: 0;
   height: 12px;
-  border-radius: 3px;
+  /* Same border-radius as the SV square above so all three elements
+     (SV, hue, alpha) read as a single stacked column rather than
+     mixed corner styles. Anything ≥ height/2 (6 px) reads as a pill;
+     8 px stays a touch squared so the bar still looks like a "track"
+     instead of a fully rounded pill. */
+  border-radius: 8px;
   background: linear-gradient(
     to right,
     #ff0000 0%,
@@ -4700,7 +4705,9 @@ input[type="range"]:active::-moz-range-thumb {
   width: 100%;
   margin: 0;
   height: 12px;
-  border-radius: 3px;
+  /* Matches .color-picker-hue + .color-picker-sv corner radius so the
+     stack reads as one column. */
+  border-radius: 8px;
   /* Checkerboard tile + color gradient on top so transparency is visible.
      `background-repeat: no-repeat, round` makes the checkerboard tile
      auto-scale so an integer number fits across the bar exactly —
