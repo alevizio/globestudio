@@ -20,6 +20,18 @@ All notable changes to Globestudio are tracked here. Format follows
   preset submissions, plus a CI test (`src/data/look-presets.test.js`)
   that validates every shipped preset against it. Locks the
   `look-presets.js` shape so PRs can't drift from the documented contract
+- `NOTICE.md` — third-party attribution for Pixelarticons (MIT) and the
+  geographic atlases the tool depends on. Required by the MIT license
+  of those bundled assets
+
+### Changed
+
+- `src/components/icons.jsx` header comment now credits Pixelarticons
+  (Gerrit Halfmann, MIT) directly instead of the prior iconjar mirror URL
+- Tightened the homepage FAQ JSON-LD and the `svg-country-pack` example
+  README: MIT requires preserving `LICENSE` + `NOTICE` when redistributing
+  source/builds. The exported PNG/SVG/WebM/JSON artifacts remain
+  attribution-free
 
 ---
 

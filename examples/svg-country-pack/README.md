@@ -91,5 +91,9 @@ brand palette via Find & Replace on color.
 
 ## License
 
-The Globestudio tool is MIT. Output SVGs are commercial-use-OK with no
-attribution required.
+The Globestudio tool is MIT (preserve `LICENSE` + `NOTICE` when
+redistributing source or built bundles — `NOTICE` credits Pixelarticons
+and the open atlases). The SVGs you export are yours; no attribution
+on the exports themselves. Country geometry is derived from
+[world-atlas](https://github.com/topojson/world-atlas) (ISC) and
+Natural Earth (public domain).

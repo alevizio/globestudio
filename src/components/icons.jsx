@@ -1,9 +1,12 @@
-// Pixelarticons icon set — generated from
-// https://alevizio.github.io/icons/svg/pixelarticons/iconjar/
+// Pixelarticons by Gerrit Halfmann — MIT licensed.
+// Source: https://github.com/halfmage/pixelarticons
+// SVG paths are normalized to absolute commands for readability but render
+// the same rectangles as the upstream SVGs.
 // All icons are 24×24 grid with rect-based pixel art, fill currentColor so
 // they inherit theme color in light + dark modes.
 // Brand marks (DottedGlobe) and the Twitter fallback are hand-authored
-// below the generated section.
+// below the generated section. The Pixelarticons MIT license is reproduced
+// in NOTICE.md at the repo root, as required by the MIT terms.
 
 export const Check = ({ size = 22, ...props }) => (
   <svg
