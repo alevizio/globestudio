@@ -1562,7 +1562,7 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.5);
+  background: transparent;
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -1571,7 +1571,7 @@ button {
   max-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
-  background: rgba(18, 18, 20, 0.82);
+  background: rgba(18, 18, 20, 0.62);
   backdrop-filter: blur(36px) saturate(160%);
   -webkit-backdrop-filter: blur(36px) saturate(160%);
   border: 1px solid var(--border);
@@ -1582,7 +1582,7 @@ button {
 }
 
 [data-theme="light"] .export-modal {
-  background: rgba(252, 251, 248, 0.82);
+  background: rgba(252, 251, 248, 0.62);
 }
 
 @keyframes export-modal-fade-in {
@@ -1659,7 +1659,7 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.5);
+  background: transparent;
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -1667,7 +1667,7 @@ button {
   width: min(380px, 100%);
   display: flex;
   flex-direction: column;
-  background: rgba(18, 18, 20, 0.82);
+  background: rgba(18, 18, 20, 0.62);
   backdrop-filter: blur(36px) saturate(160%);
   -webkit-backdrop-filter: blur(36px) saturate(160%);
   border: 1px solid var(--border);
@@ -1678,7 +1678,7 @@ button {
 }
 
 [data-theme="light"] .shortcuts-overlay {
-  background: rgba(252, 251, 248, 0.82);
+  background: rgba(252, 251, 248, 0.62);
 }
 
 .shortcuts-overlay-header {
@@ -1782,7 +1782,7 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.5);
+  background: transparent;
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -1790,7 +1790,7 @@ button {
   width: min(420px, 100%);
   display: flex;
   flex-direction: column;
-  background: rgba(18, 18, 20, 0.82);
+  background: rgba(18, 18, 20, 0.62);
   backdrop-filter: blur(36px) saturate(160%);
   -webkit-backdrop-filter: blur(36px) saturate(160%);
   border: 1px solid var(--border);
@@ -1801,7 +1801,7 @@ button {
 }
 
 [data-theme="light"] .about-overlay {
-  background: rgba(252, 251, 248, 0.82);
+  background: rgba(252, 251, 248, 0.62);
 }
 
 .about-overlay-header {
@@ -2053,7 +2053,7 @@ button {
   display: grid;
   place-items: start center;
   padding: 18vh 24px 24px;
-  background: rgba(6, 6, 8, 0.5);
+  background: transparent;
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -2062,7 +2062,7 @@ button {
   max-height: calc(100vh - 28vh);
   display: flex;
   flex-direction: column;
-  background: rgba(18, 18, 20, 0.86);
+  background: rgba(18, 18, 20, 0.62);
   backdrop-filter: blur(36px) saturate(160%);
   -webkit-backdrop-filter: blur(36px) saturate(160%);
   border: 1px solid var(--border);
@@ -2073,7 +2073,7 @@ button {
 }
 
 [data-theme="light"] .command-palette {
-  background: rgba(252, 251, 248, 0.86);
+  background: rgba(252, 251, 248, 0.62);
 }
 
 .command-palette-header {
