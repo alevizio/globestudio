@@ -60,14 +60,14 @@
 
     <div class="embed-frame">
       <!--
-        The whole integration is this one tag. Replace `halftone` with any
-        preset id from /looks/* to get a different look. Width/height come
-        from the parent .embed-frame's CSS — aspect-ratio: 16/9 makes it
-        responsive.
+        The whole integration is this one tag. Swap `look=halftone` for any
+        preset id (default, halftone, risograph, aurora, bloom, etc.) to
+        change the look. Width/height come from the parent .embed-frame's
+        CSS — aspect-ratio: 16/9 makes it responsive.
       -->
       <iframe
         id="globestudio-embed"
-        src="https://globestudio.vercel.app/looks/halftone"
+        src="https://globestudio.app/embed?look=halftone&source=example-snippet"
         loading="lazy"
         title="Globestudio dotted globe"
       ></iframe>
@@ -87,7 +87,7 @@
     </nav>
 
     <footer>
-      Built with <a href="https://globestudio.vercel.app/">Globestudio</a> · MIT
+      Built with <a href="https://globestudio.app/">Globestudio</a> · MIT
     </footer>
 
     <script>
@@ -99,7 +99,7 @@
       buttons.forEach((button) => {
         button.addEventListener("click", () => {
           const look = button.dataset.look;
-          iframe.src = `https://globestudio.vercel.app/looks/${look}`;
+          iframe.src = `https://globestudio.app/embed?look=${look}&source=example-snippet`;
           buttons.forEach((b) => b.classList.toggle("is-active", b === button));
         });
       });

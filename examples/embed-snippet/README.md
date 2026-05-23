@@ -14,15 +14,15 @@ Copy this into your site's HTML:
 
 ```html
 <iframe
-  src="https://globestudio.app/looks/halftone"
+  src="https://globestudio.app/embed?look=halftone"
   style="width: 100%; aspect-ratio: 16/9; border: 0; background: #0a0a0a"
   loading="lazy"
   title="Globestudio dotted globe"
 ></iframe>
 ```
 
-That's the whole integration. Picks the **Halftone** preset; swap to
-`/looks/risograph`, `/looks/aurora`, `/looks/bayer`, etc. for other looks.
+That's the whole integration. Picks the **Halftone** preset; swap
+`look=halftone` for `look=risograph`, `look=aurora`, `look=bayer`, etc.
 
 ## Run the demo locally
 

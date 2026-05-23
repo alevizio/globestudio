@@ -16,7 +16,7 @@ graphics in After Effects.
 
 ## Recipe — generate one SVG per country
 
-1. Open [globestudio.app](https://globestudio.vercel.app/).
+1. Open [globestudio.app](https://globestudio.app/).
 2. Set **Selection** → pick a country (e.g., "France").
 3. Set **Surface → Style** → Solid. Land off, Stroke on.
 4. Tune **Density** to 60-80 for a clean print-ready dot field.

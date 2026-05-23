@@ -101,15 +101,15 @@
     <header>
       <h1>The full Globestudio preset gallery</h1>
       <p>
-        16 live preset embeds. Hover, click, share the URL. Each card
-        is just <code>&lt;iframe src="/looks/:id"&gt;</code>.
+        17 live preset embeds. Hover, click, share the URL. Each card
+        is just <code>&lt;iframe src="/embed?look=:id"&gt;</code>.
       </p>
     </header>
 
     <main class="grid" id="grid"></main>
 
     <footer>
-      Built with <a href="https://globestudio.vercel.app/">Globestudio</a> · MIT
+      Built with <a href="https://globestudio.app/">Globestudio</a> · MIT
     </footer>
 
     <script>
@@ -121,6 +121,7 @@
         { id: "aurora", name: "Aurora", desc: "Northern lights bands" },
         { id: "pixel", name: "Pixel", desc: "8-bit pixelation" },
         { id: "bayer", name: "Bayer", desc: "Classic-Mac dither" },
+        { id: "atkinson", name: "Atkinson", desc: "Blue-noise dither" },
         { id: "iridescent", name: "Iridescent", desc: "Foil sticker" },
         { id: "wireframe", name: "Wireframe", desc: "Edge-traced" },
         { id: "crt", name: "CRT", desc: "Cathode-ray phosphor" },
@@ -139,7 +140,7 @@
         card.innerHTML = `
           <div class="card-frame">
             <iframe
-              src="https://globestudio.vercel.app/looks/${preset.id}"
+              src="https://globestudio.app/embed?look=${preset.id}&autoSpin=1&source=example-showcase"
               title="${preset.name} preset"
               loading="lazy"
             ></iframe>
@@ -149,7 +150,7 @@
               <div class="card-name">${preset.name}</div>
               <div class="card-desc">${preset.desc}</div>
             </div>
-            <a class="card-open" href="https://globestudio.vercel.app/looks/${preset.id}" target="_blank" rel="noopener">Open ↗</a>
+            <a class="card-open" href="https://globestudio.app/looks/${preset.id}" target="_blank" rel="noopener">Open ↗</a>
           </div>
         `;
         grid.appendChild(card);

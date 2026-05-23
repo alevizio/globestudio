@@ -19,7 +19,7 @@ Drop this into your hero section:
 <section class="hero">
   <iframe
     class="hero-bg"
-    src="https://globestudio.app/looks/bloom"
+    src="https://globestudio.app/embed?look=bloom&autoSpin=1"
     title="Dotted globe background"
     loading="eager"
     aria-hidden="true"

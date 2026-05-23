@@ -41,8 +41,11 @@ cd examples/hero-globe && python3 -m http.server 8000
 # open http://localhost:8000
 ```
 
-All examples use `https://globestudio.vercel.app/looks/:id` URLs for live
-embeds — no build step or npm install required.
+All examples embed via `https://globestudio.app/embed?look=:id&…` URLs
+(or the `embed.js` script-tag loader) — no build step or npm install
+required. `globestudio.app/looks/:id` is the **marketing** route that
+loads the full app with chrome; `/embed?look=:id` is the **canvas-only**
+route designed for iframing. Always use `/embed?…` for iframes.
 
 ## Adapt an example for your project
 

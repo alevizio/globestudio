@@ -115,12 +115,11 @@
     </header>
 
     <div class="map-frame">
-      <!-- Iframe lands on Aurora preset; the country selection in this
-           demo is driven by the panel inside the iframe. When URL-driven
-           selection ships (see ../README.md → URL params), this iframe
-           will pin to France automatically. -->
+      <!-- Embed pinned to France via selection=country:FRA + the aurora
+           preset. Switch to selection=country:DEU, country:JPN, or
+           continent:Europe for other geographies. -->
       <iframe
-        src="https://globestudio.vercel.app/looks/aurora"
+        src="https://globestudio.app/embed?look=aurora&selection=country:FRA&autoSpin=1&source=example-country"
         title="Dotted map of France"
         loading="eager"
       ></iframe>
@@ -144,7 +143,7 @@
     <a class="cta" href="#contact">Talk to our Paris team →</a>
 
     <footer>
-      Map: <a href="https://globestudio.vercel.app/looks/aurora">Globestudio — Aurora preset</a>
+      Map: <a href="https://globestudio.app/looks/aurora">Globestudio — Aurora preset</a>
     </footer>
   </body>
 </html>

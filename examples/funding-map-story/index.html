@@ -124,7 +124,7 @@
           where we were already useful.
         </p>
       </div>
-      <div class="map-frame"><iframe data-base="aurora" src="https://globestudio.vercel.app/looks/aurora" title="Global presence" loading="lazy"></iframe></div>
+      <div class="map-frame"><iframe data-base="aurora" src="https://globestudio.app/embed?look=aurora&autoSpin=1&source=example-story" title="Global presence" loading="lazy"></iframe></div>
     </section>
 
     <section class="section" data-look="halftone">
@@ -137,7 +137,7 @@
           Caribbean grew fastest year-over-year.
         </p>
       </div>
-      <div class="map-frame"><iframe data-base="halftone" src="https://globestudio.vercel.app/looks/halftone" title="Americas focus" loading="lazy"></iframe></div>
+      <div class="map-frame"><iframe data-base="halftone" src="https://globestudio.app/embed?look=halftone&autoSpin=1&source=example-story" title="Americas focus" loading="lazy"></iframe></div>
     </section>
 
     <section class="section" data-look="risograph">
@@ -150,7 +150,7 @@
           weeks, not quarters.
         </p>
       </div>
-      <div class="map-frame"><iframe data-base="risograph" src="https://globestudio.vercel.app/looks/risograph" title="European expansion" loading="lazy"></iframe></div>
+      <div class="map-frame"><iframe data-base="risograph" src="https://globestudio.app/embed?look=risograph&autoSpin=1&source=example-story" title="European expansion" loading="lazy"></iframe></div>
     </section>
 
     <section class="section" data-look="newsprint">
@@ -163,7 +163,7 @@
           template held up across nine variants.
         </p>
       </div>
-      <div class="map-frame"><iframe data-base="newsprint" src="https://globestudio.vercel.app/looks/newsprint" title="APAC growth" loading="lazy"></iframe></div>
+      <div class="map-frame"><iframe data-base="newsprint" src="https://globestudio.app/embed?look=newsprint&autoSpin=1&source=example-story" title="APAC growth" loading="lazy"></iframe></div>
     </section>
 
     <section class="section" data-look="iridescent">
@@ -175,12 +175,12 @@
           same product, more of where customers already are.
         </p>
       </div>
-      <div class="map-frame"><iframe data-base="iridescent" src="https://globestudio.vercel.app/looks/iridescent" title="Future markets" loading="lazy"></iframe></div>
+      <div class="map-frame"><iframe data-base="iridescent" src="https://globestudio.app/embed?look=iridescent&autoSpin=1&source=example-story" title="Future markets" loading="lazy"></iframe></div>
     </section>
 
     <footer class="outro">
       <p>
-        Demo built with <a href="https://globestudio.vercel.app/">Globestudio</a>. Fully iframe-driven; no
+        Demo built with <a href="https://globestudio.app/">Globestudio</a>. Fully iframe-driven; no
         framework, no build step.
       </p>
     </footer>
@@ -191,7 +191,7 @@
       // when one enters the viewport we trigger a no-op preload via Image()
       // on the preset's preview image.
       const sections = document.querySelectorAll(".section");
-      const presetImg = (look) => `https://globestudio.vercel.app/looks/${look}.png`;
+      const presetImg = (look) => `https://globestudio.app/og/${look}.png`;
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {

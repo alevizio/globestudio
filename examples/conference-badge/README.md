@@ -16,7 +16,7 @@ InDesign / Affinity Publisher.
 
 ## Recipe
 
-1. Open [globestudio.app](https://globestudio.vercel.app/looks/wireframe).
+1. Open [globestudio.app](https://globestudio.app/looks/wireframe).
 2. **Selection** → pick your country (e.g., "United States" for an
    American conference, "Germany" for Berlin Tech Week).
 3. **Surface → Style** → Solid. Land off, Stroke on.

@@ -22,8 +22,10 @@ This example shows one country profile but the pattern scales to a
 template. Substitute the country code in:
 
 ```html
-<iframe src="https://globestudio.app/looks/aurora" title="..."></iframe>
+<iframe src="https://globestudio.app/embed?look=aurora&selection=country:FRA" title="..."></iframe>
 ```
+
+Swap `FRA` for any 3-letter [ISO 3166-1](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) country code (`USA`, `DEU`, `JPN`, etc.).
 
 For a designer who wants programmatic per-country pages (e.g., a SaaS
 with 47 regional landing pages — "We serve the United Kingdom",
