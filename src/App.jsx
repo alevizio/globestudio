@@ -46,6 +46,8 @@ import { AboutOverlay } from "./components/about-overlay.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
 import { CommandPalette } from "./components/command-palette.jsx";
 import { OnboardingHint } from "./components/onboarding-hint.jsx";
+import { BrandPage } from "./components/brand-page.jsx";
+import { DocsPage } from "./components/docs-page.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
@@ -57,6 +59,16 @@ const GlobeBackground = lazy(() =>
 );
 
 const App = () => {
+  // Static-page routes — /brand and /docs are takeover pages, not the
+  // canvas + panel app. Read the pathname once on first render; SPA
+  // navigation between them happens via full reload (anchor href="/")
+  // so no router needed.
+  if (typeof window !== "undefined") {
+    const path = window.location.pathname;
+    if (path === "/brand" || path === "/brand/") return <BrandPage />;
+    if (path === "/docs" || path === "/docs/") return <DocsPage />;
+  }
+
   const globeCanvasRef = useRef(null);
   // Probe once on first mount whether WebGL is available. If not, the
   // <GlobeBackground> render path below is replaced by <NoWebGLFallback>

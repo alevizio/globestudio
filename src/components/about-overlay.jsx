@@ -58,6 +58,14 @@ export const AboutOverlay = ({ open, onClose }) => {
               Built with React + Three.js. Open source, MIT licensed.
             </p>
             <div className="about-section-links">
+              <a className="about-link" href="/docs">
+                <span aria-hidden="true">→</span>
+                <span>Docs</span>
+              </a>
+              <a className="about-link" href="/brand">
+                <span aria-hidden="true">→</span>
+                <span>Press kit</span>
+              </a>
               <a
                 className="about-link"
                 href="https://github.com/alevizio/globestudio"
