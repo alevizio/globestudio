@@ -4614,13 +4614,8 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-hue input[type="range"] {
   position: absolute;
-  /* Inset by half the thumb width on each side so the thumb's edges
-     stay flush with the track's rounded corners at both extremes —
-     the native range thumb is centered on the value position, which
-     means at value=max it would otherwise extend ~8px past the
-     track's right edge (and clip into nothing at value=min). */
-  inset: 0 8px;
-  width: calc(100% - 16px);
+  inset: 0;
+  width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
@@ -4705,10 +4700,8 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-alpha input[type="range"] {
   position: absolute;
-  /* Same thumb-inset as the hue track so the alpha thumb at value=1
-     aligns flush with the track's right rounded corner. */
-  inset: 0 8px;
-  width: calc(100% - 16px);
+  inset: 0;
+  width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
