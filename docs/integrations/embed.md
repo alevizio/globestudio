@@ -33,6 +33,35 @@ element has no explicit height. ~3kb gzipped, zero dependencies, scans
 the page on load + on any later DOM additions (so it works with SPAs
 and dynamic content too).
 
+### Embedding a custom config (someone else's share link)
+
+When someone shares a custom config with you (a URL like
+`globestudio.app/?c=…`), you can drop that exact look into your own
+page via the `data-config` attribute:
+
+```html
+<div
+  data-globestudio
+  data-config="eyJ2IjoxLCJzZWxlY3Rpb24iOiJjb3VudHJ5OkZSQSJ9…"
+  style="width: 100%; height: 480px;"
+></div>
+<script async src="https://globestudio.app/embed.js"></script>
+```
+
+The value is the token after `?c=` in the share URL (everything after
+the `=`). The loader strips a leading `?c=` if you pasted the whole
+query string, so this also works:
+
+```html
+<div data-globestudio
+     data-config="?c=eyJ2IjoxLCJzZWxlY3Rpb24iOiJjb3VudHJ5OkZSQSJ9…">
+</div>
+```
+
+The shared config layers on top of any other `data-*` attributes on
+the same element. So you can take someone's share token and pin the
+selection or motion separately without re-encoding the whole config.
+
 ## Method 2 — Plain iframe
 
 Useful when you want to pin the iframe URL inline, route it through a

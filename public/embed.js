@@ -55,6 +55,12 @@
     static: "static",
     background: "background",
     transparent: "transparent",
+    // `data-config` carries a Globestudio share-config token — the same
+    // URL-safe blob produced by the Share button in the app. Lets users
+    // embed their *exact* custom look (every shader knob, gradient,
+    // selection, etc.), not just a preset + a few overrides. Strips the
+    // leading "?c=" if a caller pasted the whole query string.
+    config: "c",
   };
 
   // Build the embed URL from the element's data-* attributes. Color
@@ -76,6 +82,15 @@
         value = String(value).replace(/^#/, "");
       } else if (camel === "autoSpin" || camel === "static" || camel === "transparent") {
         value = value === "true" || value === "1" ? "1" : "0";
+      } else if (camel === "c") {
+        // Strip a leading "?c=" or "c=" if the user pasted the whole
+        // query slice instead of just the token, then also strip an
+        // accidental URL prefix if they pasted the entire share URL.
+        var tok = String(value);
+        var idx = tok.indexOf("?c=");
+        if (idx >= 0) tok = tok.slice(idx + 3);
+        else if (tok.indexOf("c=") === 0) tok = tok.slice(2);
+        value = tok;
       }
       params.set(camel, value);
     }
