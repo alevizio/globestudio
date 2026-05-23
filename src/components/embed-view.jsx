@@ -5,6 +5,7 @@ import { effectPresets, DEFAULT_SHADER_SETTINGS } from "../config/shader-effects
 import { areaOptions } from "../data/geography.js";
 import { createCountryMapData } from "../utils/dot-generation.js";
 import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
+import { parseShareConfig } from "../utils/share-config.js";
 
 // Lazy-load the heavy WebGL component so the initial embed payload is small.
 const GlobeBackground = lazy(() =>
@@ -52,11 +53,16 @@ const parseParams = (search) => {
   };
 };
 
-const buildSettings = (raw) => {
+const buildSettings = (raw, shareConfig) => {
   const preset = lookPresets.find((p) => p.id === raw.look) || lookPresets[0];
-  // Start from the preset's full setting tree, then layer query overrides
-  // on top so a designer can pin "halftone but my brand color" or similar.
-  return {
+  // Three layers, each one overriding the last:
+  //   1. The preset's full setting tree (the baseline).
+  //   2. Individual query params (?density=70, ?dotColor=ffffff, …).
+  //   3. The share-config snapshot from ?c=… (the user's exact look).
+  // The share layer wins because it's the most specific intent — the
+  // sender's "this is exactly what I made", overriding any preset
+  // defaults or one-off param overrides on the same URL.
+  const base = {
     ...preset.settings,
     selection: raw.selection || preset.settings.selection,
     density: raw.density || preset.settings.density,
@@ -74,6 +80,18 @@ const buildSettings = (raw) => {
     },
     shaderSettings: preset.settings.shaderSettings || { ...DEFAULT_SHADER_SETTINGS, ...effectPresets.none },
   };
+  if (!shareConfig) return base;
+  // Share config flat keys map 1:1 to settings keys, with the exception
+  // of the nested shaderSettings / globeSettings / spaceSettings — those
+  // need a shallow merge so the share's partial overrides don't blow
+  // away the preset's defaults for fields it didn't customize.
+  return {
+    ...base,
+    ...shareConfig,
+    globeSettings: { ...base.globeSettings, ...(shareConfig.globeSettings ?? {}) },
+    shaderSettings: { ...base.shaderSettings, ...(shareConfig.shaderSettings ?? {}) },
+    spaceSettings: { ...(base.spaceSettings ?? {}), ...(shareConfig.spaceSettings ?? {}) },
+  };
 };
 
 const findAreaIds = (selectionValue) => {
@@ -82,12 +100,19 @@ const findAreaIds = (selectionValue) => {
 };
 
 export const EmbedView = () => {
-  const params = useMemo(
-    () => parseParams(typeof window !== "undefined" ? window.location.search : ""),
-    [],
+  const search = typeof window !== "undefined" ? window.location.search : "";
+  const params = useMemo(() => parseParams(search), [search]);
+  // If the host URL carries ?c=…, the recipient gets the sender's exact
+  // customizations layered on top of preset defaults. See
+  // src/utils/share-config.js for the encoding contract.
+  const shareConfig = useMemo(() => parseShareConfig(search), [search]);
+  const settings = useMemo(
+    () => buildSettings(params, shareConfig),
+    [params, shareConfig],
   );
-  const settings = useMemo(() => buildSettings(params), [params]);
-  const ids = useMemo(() => findAreaIds(params.selection), [params.selection]);
+  // The share config's selection (if any) overrides the URL params' one.
+  const effectiveSelection = shareConfig?.selection || params.selection;
+  const ids = useMemo(() => findAreaIds(effectiveSelection), [effectiveSelection]);
   const mapData = useMemo(() => createCountryMapData(ids, settings.density), [ids, settings.density]);
   const prefersReducedMotion = usePrefersReducedMotion();
   const motionFrozen = prefersReducedMotion || params.staticMode;
