@@ -1180,7 +1180,10 @@ button {
   display: grid;
   align-content: start;
   gap: 10px;
-  padding: 4px 10px 10px;
+  /* Bottom padding gives focus outlines + native select hover shadows
+     room to render at the last child without getting clipped by the
+     rail's overflow: hidden auto. */
+  padding: 4px 10px 18px;
   background: var(--panel);
   box-shadow: var(--shadow-lg);
   backdrop-filter: blur(18px);
