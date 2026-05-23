@@ -12,6 +12,7 @@ import { useShareConfigImport } from "./hooks/use-share-config-import.js";
 import { useRouteLook } from "./hooks/use-route-look.js";
 import { useSheetDrag } from "./hooks/use-sheet-drag.js";
 import { useTrackpadZoom } from "./hooks/use-trackpad-zoom.js";
+import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts.js";
 import { clampNumber } from "./utils/math.js";
 import { invertGradient, invertHex } from "./utils/color.js";
 import { buildShareUrl } from "./utils/share-config.js";
@@ -650,79 +651,18 @@ const App = () => {
     setStatusMessage(nextMode === "globe" ? "Switched to globe view" : "Switched to flat view");
   }, [viewMode]);
 
-  // Single-key shortcuts for the common panel actions. We bail when the user
-  // is in a field so typing in the country search / color picker still works,
-  // and when a modifier is held so OS chords (cmd+r reload, etc.) pass through.
-  useEffect(() => {
-    const onKey = (event) => {
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      const target = event.target;
-      if (target instanceof HTMLElement) {
-        const tag = target.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-        if (target.isContentEditable) return;
-      }
-      const key = event.key.toLowerCase();
-      if (key === "s") {
-        event.preventDefault();
-        shuffleLook();
-        flashKeyboardHint("S", "Shuffle");
-      } else if (key === "d") {
-        event.preventDefault();
-        setExportModalOpen(true);
-        flashKeyboardHint("D", "Export");
-      } else if (key === "r") {
-        event.preventDefault();
-        handleReset();
-        flashKeyboardHint("R", "Reset");
-      } else if (key === "h") {
-        event.preventDefault();
-        setPanelCollapsed((collapsed) => {
-          flashKeyboardHint("H", collapsed ? "Show panel" : "Hide panel");
-          return !collapsed;
-        });
-      } else if (key === "g") {
-        event.preventDefault();
-        const next = viewModeRef.current === "globe" ? "flat" : "globe";
-        changeViewMode(next);
-        flashKeyboardHint("G", next === "globe" ? "Globe view" : "Flat view");
-      } else if (event.key === "+" || event.key === "=" || event.key === "-" || event.key === "_") {
-        // +/= zoom in, -/_ zoom out. Including the unshifted = and _ so users
-        // don't need to hold Shift on US keyboards. 0 resets.
-        event.preventDefault();
-        const direction = event.key === "+" || event.key === "=" ? 1 : -1;
-        setMapZoom((current) => {
-          const next = Math.max(0.5, Math.min(3, +(current + direction * 0.1).toFixed(2)));
-          return next;
-        });
-        flashKeyboardHint(direction > 0 ? "+" : "−", direction > 0 ? "Zoom in" : "Zoom out");
-      } else if (event.key === "0") {
-        event.preventDefault();
-        setMapZoom(1);
-        flashKeyboardHint("0", "Reset zoom");
-      } else if (event.key === "[" || event.key === "]") {
-        // Cycle through look presets. Anchor on the URL (/looks/:id) when
-        // available — that's the canonical "last applied" — otherwise start
-        // from index 0 so the first press always lands somewhere predictable.
-        event.preventDefault();
-        const direction = event.key === "]" ? 1 : -1;
-        const pathMatch = window.location.pathname.match(/^\/looks\/([^/]+)/);
-        const anchorIndex = pathMatch
-          ? lookPresets.findIndex((p) => p.id === pathMatch[1])
-          : -1;
-        const startIndex = anchorIndex >= 0 ? anchorIndex : 0;
-        const nextIndex = (startIndex + direction + lookPresets.length) % lookPresets.length;
-        const next = lookPresets[nextIndex];
-        applyLook(next);
-        flashKeyboardHint(event.key, next.name);
-      } else if (event.key === "?" || (event.key === "/" && event.shiftKey)) {
-        event.preventDefault();
-        setShortcutsOpen((open) => !open);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [shuffleLook, handleReset, changeViewMode, setPanelCollapsed, flashKeyboardHint, applyLook]);
+  useKeyboardShortcuts({
+    viewModeRef,
+    shuffle: shuffleLook,
+    reset: handleReset,
+    applyLook,
+    toggleView: changeViewMode,
+    setExportModalOpen,
+    setShortcutsOpen,
+    setPanelCollapsed,
+    setMapZoom,
+    flashHint: flashKeyboardHint,
+  });
 
   useTrackpadZoom({ mapZoomRef, viewModeRef, setMapZoom, setMapOffset });
 
