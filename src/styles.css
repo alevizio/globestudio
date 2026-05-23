@@ -584,6 +584,66 @@ button {
   color: var(--muted);
 }
 
+/* 404 takeover. Centered, minimal — no canvas. */
+.not-found-page {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text);
+}
+
+.not-found-mark {
+  opacity: 0.75;
+  color: var(--text);
+}
+
+.not-found-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.not-found-lede {
+  margin: 0;
+  max-width: 44ch;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.not-found-links {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.not-found-link {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--field);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 140ms var(--ease), border-color 140ms var(--ease);
+}
+
+.not-found-link:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
 .preset-detail-header {
   position: relative;
   margin-bottom: 32px;

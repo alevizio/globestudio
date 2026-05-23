@@ -23,6 +23,16 @@ const buildSitemap = () => {
       changefreq: "weekly",
       priority: "1.0",
     },
+    {
+      loc: `${SITE_URL}/docs`,
+      changefreq: "monthly",
+      priority: "0.7",
+    },
+    {
+      loc: `${SITE_URL}/brand`,
+      changefreq: "monthly",
+      priority: "0.5",
+    },
     ...lookPresets.map((preset) => ({
       loc: `${SITE_URL}/looks/${preset.id}`,
       changefreq: "monthly",

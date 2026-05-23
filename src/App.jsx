@@ -48,6 +48,7 @@ import { CommandPalette } from "./components/command-palette.jsx";
 import { OnboardingHint } from "./components/onboarding-hint.jsx";
 import { BrandPage } from "./components/brand-page.jsx";
 import { DocsPage } from "./components/docs-page.jsx";
+import { NotFoundPage } from "./components/not-found-page.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
@@ -60,13 +61,18 @@ const GlobeBackground = lazy(() =>
 
 const App = () => {
   // Static-page routes — /brand and /docs are takeover pages, not the
-  // canvas + panel app. Read the pathname once on first render; SPA
-  // navigation between them happens via full reload (anchor href="/")
-  // so no router needed.
+  // canvas + panel app. /looks/:id and / fall through to the canvas
+  // app; anything else lands on the 404 takeover. SPA navigation
+  // happens via full reload (anchor href="/path") so no router
+  // library needed.
   if (typeof window !== "undefined") {
-    const path = window.location.pathname;
-    if (path === "/brand" || path === "/brand/") return <BrandPage />;
-    if (path === "/docs" || path === "/docs/") return <DocsPage />;
+    const path = window.location.pathname.replace(/\/$/, "") || "/";
+    if (path === "/brand") return <BrandPage />;
+    if (path === "/docs") return <DocsPage />;
+    const isHome = path === "/";
+    const isPresetRoute = /^\/looks\/[\w-]+$/.test(path);
+    const isEmbed = path === "/embed";
+    if (!isHome && !isPresetRoute && !isEmbed) return <NotFoundPage />;
   }
 
   const globeCanvasRef = useRef(null);
