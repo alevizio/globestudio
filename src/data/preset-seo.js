@@ -222,6 +222,30 @@ export const presetSeo = {
       "Anti-corporate / critical-design publication headers",
     ],
   },
+  toon: {
+    targetKeyword: "cel shaded map generator",
+    metaDescription:
+      "Toon dotted globe — cel-shaded pop-art pass with bright cyan dots, a soft glow, and a flat blue ground. Comic-book aesthetic, exportable.",
+    longDescription:
+      "Toon flattens the dot-field shading into a couple of discrete tonal bands — the same trick a cel-shaded animation cel pulls to read as 'drawn' instead of 'rendered.' Paired with a saturated cyan dot color and a glow-true globe shell, the result lands somewhere between a Roy Lichtenstein panel and a Saturday-morning cartoon establishing shot. Use Toon when you want the globe to feel illustrated rather than photographed — it slots cleanly into pop-art editorial work, brand systems with an animated character, and any layout that already leans into bold flats and high-contrast outlines. Adjust intensity to dial the tonal banding from subtle (almost a soft posterize) toward the most aggressive cel-shaded read.",
+    useCases: [
+      "Pop-art editorial and zine covers",
+      "Animated brand-system spots with a cartoon character voice",
+      "Children's-book or YA publication interior spreads",
+    ],
+  },
+  threshold: {
+    targetKeyword: "two tone dotted map generator",
+    metaDescription:
+      "Threshold dotted globe — pure black and white binary print look with paper grain. Editorial minimalism, exportable to PNG and SVG.",
+    longDescription:
+      "Threshold drops every dot into one of exactly two states — on or off — based on a luminance cutoff, then sprinkles a fine paper grain across the field so the flats don't read as digital. The effect is an extreme minimalist print look, closer to a screen-printed black-and-white poster than to a photo. It's the aesthetic that magazines reach for when an image needs to feel reduced to its essence: high editorial impact, no color noise, no shading to argue with the type. Tune the threshold control to shift the cutoff (lower values keep more of the field 'on', higher values produce sparser, more graphic compositions). Pair with the flat view for newsprint-style spreads or the globe view for stark cover artwork.",
+    useCases: [
+      "Editorial magazine covers and section openers",
+      "Black-and-white screen-print poster design",
+      "Minimalist annual report dividers",
+    ],
+  },
 };
 
 export const getPresetSeo = (presetId) => presetSeo[presetId] || null;

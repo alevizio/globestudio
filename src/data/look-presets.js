@@ -310,4 +310,42 @@ export const lookPresets = [
       globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
     }),
   },
+  {
+    id: "toon",
+    name: "Toon",
+    blurb: "Cel-shaded pop-art outline",
+    settings: merge({
+      background: "#0b1a2c",
+      density: 60,
+      dotSize: 13,
+      dotColor: "#3df4ff",
+      shape: "Circle",
+      shaderSettings: {
+        ...effectPresets.toon,
+        effect: "toon",
+        intensity: 72,
+      },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: true, glowStrength: 55 },
+    }),
+  },
+  {
+    id: "threshold",
+    name: "Threshold",
+    blurb: "Two-tone binary print",
+    settings: merge({
+      background: "#0a0a0a",
+      density: 65,
+      dotSize: 11,
+      dotColor: "#f6f2ea",
+      shape: "Square",
+      shaderSettings: {
+        ...effectPresets.threshold,
+        effect: "threshold",
+        intensity: 75,
+        threshold: 42,
+        grain: 8,
+      },
+      globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
+    }),
+  },
 ];

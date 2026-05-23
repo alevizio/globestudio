@@ -128,7 +128,7 @@
     "preset": {
       "type": "string",
       "description": "Optional — when set, the importer applies this preset's defaults first, then layers the other fields on top.",
-      "enum": ["default", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "wireframe", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt"]
+      "enum": ["default", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "wireframe", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt", "toon", "threshold"]
     },
 
     "flatProjection": {
