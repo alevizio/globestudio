@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { lookPresets } from "../data/look-presets.js";
-import { LookPreview } from "./look-preview.jsx";
 
 // Scroll-aware edge fade indicators so users know there are more looks to the
 // right (the bar overflows by ~450px on a default panel width). The data
@@ -64,8 +63,7 @@ export const LooksBar = ({ onPick, appliedId = null, currentId = null }) => {
           data-tooltip={preset.blurb}
           onClick={() => onPick(preset)}
         >
-          <LookPreview preset={preset} />
-          <span className="looks-chip-label">{preset.name}</span>
+          <span>{preset.name}</span>
         </button>
       ))}
     </div>
