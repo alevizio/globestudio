@@ -1185,10 +1185,10 @@ button {
 .looks-chip {
   flex: 0 0 auto;
   min-height: 36px;
-  padding: 0 14px;
+  padding: 0 14px 0 0;
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--field);
@@ -1201,6 +1201,10 @@ button {
   transform: scale(1);
   transition: background 180ms var(--ease), border-color 180ms var(--ease),
     color 180ms var(--ease), transform 140ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.looks-chip-label {
+  letter-spacing: 0.01em;
 }
 
 /* Chip's left-cell preview. Solid black backdrop with a 1px stroke on
@@ -1275,11 +1279,13 @@ button {
   border-color: var(--border-strong);
   background: var(--panel-3);
   color: var(--text);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.55);
 }
-
 
 .looks-chip:active {
   transform: scale(0.94);
+  box-shadow: none;
 }
 
 /* Persistent "currently active preset" state — solid border + accent fill +
@@ -1290,12 +1296,51 @@ button {
   border-color: var(--accent);
   background: var(--accent);
   color: var(--on-accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 8px 24px -10px rgba(246, 242, 234, 0.32);
 }
 
 .looks-chip.is-current:hover {
   background: var(--text);
   border-color: var(--text);
   color: var(--on-accent);
+  box-shadow: 0 0 0 1px var(--text), 0 10px 26px -10px rgba(246, 242, 234, 0.4);
+}
+
+/* Sheen sweep across the active chip — a slow, low-contrast diagonal
+   gradient that travels left → right on a 7s loop. Reads as a subtle
+   "this is alive" cue without distracting from the canvas behind it.
+   Respects prefers-reduced-motion: animation pauses to a single static
+   frame for users who don't want motion. */
+.looks-chip.is-current::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.14) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  background-position: -110% 0;
+  animation: looks-chip-sheen 6.4s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+.looks-chip {
+  position: relative;
+}
+
+@keyframes looks-chip-sheen {
+  0%, 12% { background-position: -110% 0; }
+  62%, 100% { background-position: 220% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .looks-chip.is-current::after {
+    animation: none;
+  }
 }
 
 /* Brief glow + lift when a preset is freshly applied — confirms the action
