@@ -874,11 +874,14 @@ const App = () => {
   // Command-palette actions. Built fresh on every render — cheap, and
   // it means the closures always capture the latest values (current
   // viewMode, panel-collapsed state, etc.) without juggling deps.
+  // Preset rows carry the preset object so the palette can render the
+  // matching LookPreview thumbnail.
   const paletteActions = [
     ...lookPresets.map((preset) => ({
       id: `apply:${preset.id}`,
       label: preset.name,
       group: "Look",
+      preset,
       run: () => applyLook(preset),
     })),
     {

@@ -2179,6 +2179,24 @@ button {
   background: var(--surface-hover);
 }
 
+/* Preset rows carry a LookPreview thumbnail — adapt the shared
+   .looks-chip-preview block to fit the palette row aesthetic: smaller
+   square footprint, rounded corners, no stretch. */
+.command-palette-row.has-preview .looks-chip-preview {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  align-self: center;
+  border-right: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.command-palette-row.has-preview .looks-chip-preview-image,
+.command-palette-row.has-preview .looks-chip-preview-globe {
+  border-radius: 8px;
+}
+
 .command-palette-group {
   flex: 0 0 auto;
   padding: 2px 8px;
