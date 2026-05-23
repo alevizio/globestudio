@@ -1562,9 +1562,7 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.38);
-  backdrop-filter: blur(28px) saturate(140%);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  background: rgba(6, 6, 8, 0.5);
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -1661,9 +1659,7 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.38);
-  backdrop-filter: blur(28px) saturate(140%);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  background: rgba(6, 6, 8, 0.5);
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -1786,9 +1782,7 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.38);
-  backdrop-filter: blur(28px) saturate(140%);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  background: rgba(6, 6, 8, 0.5);
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -2059,9 +2053,7 @@ button {
   display: grid;
   place-items: start center;
   padding: 18vh 24px 24px;
-  background: rgba(6, 6, 8, 0.38);
-  backdrop-filter: blur(28px) saturate(140%);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  background: rgba(6, 6, 8, 0.5);
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -4134,8 +4126,13 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-hue input[type="range"] {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  /* Inset by half the thumb width on each side so the thumb's edges
+     stay flush with the track's rounded corners at both extremes —
+     the native range thumb is centered on the value position, which
+     means at value=max it would otherwise extend ~8px past the
+     track's right edge (and clip into nothing at value=min). */
+  inset: 0 8px;
+  width: calc(100% - 16px);
   height: 100%;
   margin: 0;
   padding: 0;
@@ -4212,8 +4209,10 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-alpha input[type="range"] {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  /* Same thumb-inset as the hue track so the alpha thumb at value=1
+     aligns flush with the track's right rounded corner. */
+  inset: 0 8px;
+  width: calc(100% - 16px);
   height: 100%;
   margin: 0;
   padding: 0;
