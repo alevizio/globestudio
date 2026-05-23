@@ -177,40 +177,6 @@ const App = () => {
   const dragStartRef = useRef({ y: 0, wasCollapsed: false });
   const dragOffsetRef = useRef(0);
   const draggedRef = useRef(false);
-  const railRef = useRef(null);
-  // Tracks the bottom sheet's visible height so the canvas container
-  // (.globe-background / .map-background) can shrink to match — i.e.
-  // bottom = rail.height + 10px gap on mobile. ResizeObserver watches
-  // the rail in the effect below; nothing else needs to subscribe.
-  useEffect(() => {
-    if (typeof window === "undefined" || window.innerWidth > 620) {
-      document.documentElement.style.removeProperty("--mobile-globe-bottom");
-      return undefined;
-    }
-    const node = railRef.current;
-    if (!node) return undefined;
-    const apply = () => {
-      const rect = node.getBoundingClientRect();
-      // In the collapsed state the rail is translated down so only ~200px
-      // peeks above the viewport's bottom edge. Reading the geometric
-      // bottom of the post-transform rect tells us how much vertical
-      // space the sheet occupies on screen — exactly what the scene
-      // container needs to clear.
-      const visibleHeight = Math.max(180, window.innerHeight - rect.top);
-      document.documentElement.style.setProperty(
-        "--mobile-globe-bottom",
-        `${Math.round(visibleHeight + 10)}px`,
-      );
-    };
-    apply();
-    const observer = new ResizeObserver(apply);
-    observer.observe(node);
-    window.addEventListener("resize", apply);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", apply);
-    };
-  }, [panelCollapsed, dragOffset]);
   const handleSheetPointerDown = useCallback(
     (event) => {
       if (event.button !== undefined && event.button !== 0) return;
@@ -1299,7 +1265,6 @@ const App = () => {
       )}
 
       <section
-        ref={railRef}
         className={`control-rail ${panelCollapsed ? "is-collapsed" : ""} ${isDragging ? "is-dragging" : ""}`}
         style={{ "--drag-offset": `${dragOffset}px` }}
         aria-hidden={panelCollapsed}
