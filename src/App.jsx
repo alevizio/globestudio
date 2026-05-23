@@ -38,8 +38,9 @@ import { PresetDetail } from "./components/preset-detail.jsx";
 import { getPresetSeo } from "./data/preset-seo.js";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
+import { AboutOverlay } from "./components/about-overlay.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
-import { Bug, DottedGlobe, Download, Github, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
+import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
@@ -287,6 +288,7 @@ const App = () => {
   const [statusMessage, setStatusMessage] = useState("");
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   // Transient toast shown when a keyboard shortcut fires. Auto-clears after a
   // short delay; the ref tracks the latest timeout so successive keys reset it
   // instead of stacking.
@@ -1308,6 +1310,15 @@ const App = () => {
             </button>
             <button
               type="button"
+              className="panel-icon-button"
+              onClick={() => setAboutOpen(true)}
+              aria-label="About Globestudio"
+              data-tooltip="About"
+            >
+              <Info size={16} />
+            </button>
+            <button
+              type="button"
               className="panel-icon-button panel-icon-button--keyboard"
               onClick={() => setShortcutsOpen(true)}
               aria-label="Show keyboard shortcuts"
@@ -1452,6 +1463,7 @@ const App = () => {
       />
 
       <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <AboutOverlay open={aboutOpen} onClose={() => setAboutOpen(false)} />
 
       {keyboardHint && (
         <div className="keyboard-hint" role="status" aria-live="polite">

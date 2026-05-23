@@ -146,6 +146,29 @@ export const Globe2 = ({ size = 22, ...props }) => (
   </svg>
 );
 
+export const Info = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    {/* Outer rounded square frame — matches the chamfered-corner style
+        the Keyboard icon uses (top/bottom bars inset by 2px from the
+        side bars, so corner pixels stay empty). */}
+    <rect x="5" y="3" width="14" height="2" />
+    <rect x="5" y="19" width="14" height="2" />
+    <rect x="3" y="5" width="2" height="14" />
+    <rect x="19" y="5" width="2" height="14" />
+    {/* "i" glyph — dot near top + stem below */}
+    <rect x="11" y="7" width="2" height="2" />
+    <rect x="11" y="11" width="2" height="6" />
+  </svg>
+);
+
 export const Keyboard = ({ size = 22, ...props }) => (
   <svg
     width={size}
