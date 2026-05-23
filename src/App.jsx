@@ -288,11 +288,11 @@ const App = () => {
   mapZoomRef.current = mapZoom;
   viewModeRef.current = viewMode;
 
-  useRouteLook(applyLook);
-
-  useShareConfigImport(importConfig, setStatusMessage);
-
   useUsStatesLoader(selection, usStates.length, setUsStates);
+  // useRouteLook + useShareConfigImport are deliberately declared further
+  // down — they pass `applyLook` and `importConfig`, which are defined
+  // later in the component body. Calling them up here would hit the
+  // temporal dead zone for those `const`s and crash on first render.
 
   const selected = useMemo(() => {
     const selectedCountryId = selection.startsWith("country:") ? selection.replace("country:", "") : "";
@@ -536,6 +536,11 @@ const App = () => {
       breadcrumbScript.textContent = JSON.stringify(breadcrumb);
     }
   }, [uiTheme]);
+
+  // Declared here (not at the top of the component body) so the
+  // `applyLook` const above is already initialized — calling
+  // `useRouteLook(applyLook)` earlier hits the TDZ on first render.
+  useRouteLook(applyLook);
 
   // Curated palette + size sweet-spots. Picked to look good across most
   // preset combinations, not chaotic random hex codes that produce ugly mud.
@@ -828,6 +833,12 @@ const App = () => {
     if (config.spaceSettings) setSpaceSettings((current) => ({ ...current, ...config.spaceSettings }));
     setStatusMessage("Configuration imported");
   };
+
+  // Declared here (not at the top of the component body) so `importConfig`
+  // above is already initialized — calling
+  // `useShareConfigImport(importConfig, …)` earlier hits the TDZ on the
+  // first render.
+  useShareConfigImport(importConfig, setStatusMessage);
 
   const copySvg = useCallback(async () => {
     try {
