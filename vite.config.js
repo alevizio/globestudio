@@ -61,6 +61,14 @@ export default defineConfig({
     setupFiles: ["./src/test-setup.js"],
   },
   build: {
+    // Rolldown's default CSS minifier drops `-webkit-backdrop-filter`
+    // when an unprefixed `backdrop-filter` exists (or vice versa),
+    // breaking the modal frosted-glass effect in Chrome/Firefox/Edge
+    // (which need the unprefixed form) AND iOS 15–17 / macOS Sonoma
+    // Safari (which need the `-webkit-` prefix). Disabling CSS minify
+    // preserves both. The CSS gzip size is ~3 kB heavier; well worth
+    // it for cross-browser blur.
+    cssMinify: false,
     rollupOptions: {
       output: {
         manualChunks: (id) => {

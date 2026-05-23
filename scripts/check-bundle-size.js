@@ -29,7 +29,11 @@ const BUDGETS = [
   { prefix: "src-",              ext: ".js",  raw:  20_000,  gzip:   8_000, lazy: false },
   { prefix: "vendor-",           ext: ".js",  raw:  10_000,  gzip:   5_000, lazy: false },
   { prefix: "rolldown-runtime-", ext: ".js",  raw:   2_000,  gzip:   1_000, lazy: false },
-  { prefix: "index-",            ext: ".css", raw:  90_000,  gzip:  18_000, lazy: false },
+  // CSS is unminified — the build pipeline drops -webkit-backdrop-filter
+  // / backdrop-filter pairs when minified, breaking modal frosted-glass
+  // across browsers (see vite.config.js#cssMinify: false). Budget bumped
+  // accordingly; gzip still small enough that this is worth it.
+  { prefix: "index-",            ext: ".css", raw: 130_000,  gzip:  28_000, lazy: false },
 
   // Lazy chunks (loaded after first paint)
   { prefix: "globe-background-", ext: ".js",  raw: 120_000,  gzip:  40_000, lazy: true },
@@ -41,8 +45,10 @@ const BUDGETS = [
 
 // Total initial-payload budget. Sum of non-lazy chunks' gzip sizes.
 // First-paint floor: this is what a cold user actually downloads before
-// the canvas appears.
-const INITIAL_GZIP_BUDGET = 310_000;
+// the canvas appears. Bumped after disabling CSS minification (see
+// vite.config.js#cssMinify) to keep modal backdrop-filter prefixes
+// intact; this is the floor including that ~7 kB CSS cost.
+const INITIAL_GZIP_BUDGET = 320_000;
 
 const format = (bytes) => {
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
