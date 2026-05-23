@@ -29,18 +29,20 @@ yours to remix.
 
 ## Features
 
-- 🌍 **Maps for any scope** — world, country, region, subregion, US state
+- 🌍 **Maps for any scope** — world, country, continent, subregion, US state
 - 🔄 **Flat ↔ 3D globe** — same dot data, two views, smooth morph
 - 🎨 **12 dot shapes + custom upload** — Circle · Hexagon · Triangle · Pentagon ·
   Square · Diamond · Star · Plus · Ring · Voxel · Particle Grid · ASCII glyphs ·
   your own SVG/PNG
-- 🪄 **Shader effects** — bloom, chromatic split, CRT, halftone, pixel,
-  threshold, edge, glitch, wave
+- 🪄 **17 shader looks** — Halftone, Risograph, Newsprint, Aurora, Pixel,
+  Bayer, Atkinson, Wireframe, CRT, Glitch, Bad TV, Bloom, Metal, Iridescent,
+  Pencil, Corrupt — plus the base Default. Stackable on any preset.
 - 🌈 **Gradients + alpha** on dot color, land fill, and country stroke
 - ✨ **Live animations** — rotation, twinkle, size jitter, network arcs,
   motion-aware (respects `prefers-reduced-motion`)
-- 🎛️ **10+ presets** — Default, Print, Wireframe, CRT, Glitch, Bloom, Pixel,
-  ASCII, Topo, Space. Shareable URLs at `/looks/:id`.
+- 🎛️ **17 curated presets** — every shader look is a one-click preset with
+  matching backgrounds, density, dot size, and globe chrome. Shareable
+  URLs at `/looks/:id`.
 - 💾 **Real exports** — PNG (high-res via WebGL re-render), SVG (with shader
   effects baked in), WebM video (looped or one-shot), JSON config
 - ⌨️ **Full keyboard system** — `S` shuffle, `[`/`]` cycle presets, `D` export,
@@ -82,8 +84,22 @@ npm test -- --run  # 119 tests across 18 files
 
 ## Embed it anywhere
 
-Globestudio ships an iframe-friendly `/embed` route — drop the globe into
-Webflow, Framer, Notion, plain HTML, or any iframe-supporting tool:
+Globestudio ships two embed paths — pick whichever fits the tool:
+
+### One-line script tag (Recommended)
+
+```html
+<div data-globestudio data-look="halftone" data-density="50"
+     style="width: 100%; height: 480px;"></div>
+<script async src="https://globestudio.app/embed.js"></script>
+```
+
+~3kb gzipped, zero dependencies, works in Webflow / Squarespace / blog
+posts / anywhere HTML is allowed. Every embed param has a matching
+`data-*` attribute. Watches the DOM for later-added elements via
+MutationObserver, so SPAs and dynamic content work too.
+
+### Plain iframe
 
 ```html
 <iframe
@@ -97,18 +113,20 @@ Webflow, Framer, Notion, plain HTML, or any iframe-supporting tool:
 ```
 
 **Query parameters:** `look`, `density`, `dotSize`, `dotColor`, `worldFill`,
-`renderMode` (dots/solid), `selection`, `motion`, `tiltX`, `tiltY`,
-`autoSpin`, `view` (flat/globe), `static` (freeze motion for static
-previews), `transparent`, `background`, `source` (analytics tag).
+`renderMode` (dots/solid), `selection` (`world`, `country:USA`,
+`continent:Europe`, `subregion:Western Europe`), `motion`, `tiltX`,
+`tiltY`, `autoSpin`, `view` (flat/globe), `static` (freeze motion for
+static previews), `transparent`, `background`, `source` (analytics tag).
 
 Resize-aware via `postMessage` — listen for
 `{ type: "globestudio-resize", height }` from the embed and resize the
-iframe to match. WebGL 2 required; falls back to a "your browser doesn't
-support WebGL 2" message if not available.
+iframe to match. WebGL required; falls back to a still preview + a
+"how to enable WebGL" panel if the GL context can't be created.
 
 **Per-tool integration guides:**
 [Webflow](docs/integrations/webflow.md) ·
 [Framer](docs/integrations/framer.md) ·
+[Figma](docs/integrations/figma.md) ·
 [Notion](docs/integrations/notion.md) ·
 [Plain HTML](docs/integrations/embed.md) ·
 [All integrations →](docs/integrations/)

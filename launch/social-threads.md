@@ -157,8 +157,8 @@ What's inside:
 - Maps for any country, region, or US state
 - 12 dot shapes + custom SVG/PNG upload + paste
 - Linear gradients with per-stop opacity
-- 9 WebGL shader effects (bloom, chromatic, CRT, halftone, glitch, …)
-- 10+ presets with shareable URLs
+- 17 WebGL shader looks (halftone, risograph, aurora, CRT, glitch, bloom, iridescent, pencil, …)
+- 17 presets with shareable URLs
 - Exports: PNG (high-res), SVG, WebM video
 - Full keyboard shortcuts + reduced-motion respect
 
@@ -255,7 +255,7 @@ for this.
 > Live: https://globestudio.app
 > Source: https://github.com/alevizio/globestudio — MIT
 >
-> It's react + three.js, runs entirely in the browser, and has 10+ presets
+> It's react + three.js, runs entirely in the browser, and has 17 presets
 > + a keyboard system + per-stop opacity gradients. The thing I'm most
 > curious about: what use cases am I missing? I had hero shots, deck
 > visuals, and country-specific brand assets in mind — what else would you
