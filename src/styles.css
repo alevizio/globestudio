@@ -1448,9 +1448,9 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.32);
-  backdrop-filter: blur(18px) saturate(120%);
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  background: rgba(6, 6, 8, 0.38);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -1460,8 +1460,8 @@ button {
   display: flex;
   flex-direction: column;
   background: rgba(18, 18, 20, 0.82);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(36px) saturate(160%);
+  -webkit-backdrop-filter: blur(36px) saturate(160%);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-xl);
@@ -1547,9 +1547,9 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.32);
-  backdrop-filter: blur(18px) saturate(120%);
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  background: rgba(6, 6, 8, 0.38);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -1558,8 +1558,8 @@ button {
   display: flex;
   flex-direction: column;
   background: rgba(18, 18, 20, 0.82);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(36px) saturate(160%);
+  -webkit-backdrop-filter: blur(36px) saturate(160%);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-xl);
@@ -1672,9 +1672,9 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(6, 6, 8, 0.32);
-  backdrop-filter: blur(18px) saturate(120%);
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  background: rgba(6, 6, 8, 0.38);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
   animation: export-modal-fade-in 180ms var(--ease);
 }
 
@@ -1683,8 +1683,8 @@ button {
   display: flex;
   flex-direction: column;
   background: rgba(18, 18, 20, 0.82);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(36px) saturate(160%);
+  -webkit-backdrop-filter: blur(36px) saturate(160%);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-xl);
