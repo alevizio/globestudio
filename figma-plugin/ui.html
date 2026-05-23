@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Globestudio</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100vh; background: #0a0a0c; }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      color-scheme: dark;
+    }
+  </style>
+</head>
+<body>
+  <iframe
+    id="embed"
+    src="https://globestudio.app/embed?plugin=figma&autoSpin=true"
+    title="Globestudio embed"
+    allow="cross-origin-isolated"
+    referrerpolicy="no-referrer-when-downgrade"
+  ></iframe>
+  <script>
+    // Bridge between the embed iframe (globestudio.app) and the Figma
+    // plugin sandbox (code.js).
+    //
+    // Messages we expect from the embed:
+    //   { type: "globestudio-insert", bytes: ArrayBuffer, width, height }
+    //   { type: "globestudio-resize", height }
+    //
+    // We forward via parent.postMessage({ pluginMessage: ... }) which is
+    // how a Figma plugin's UI talks to its sandboxed code.
+    window.addEventListener("message", function (event) {
+      var data = event.data;
+      if (!data || typeof data !== "object") return;
+
+      // Defensive origin check — only accept messages from the embed origin.
+      // event.origin is the empty string for the parent (Figma), and the
+      // embed URL for messages from the iframe.
+      if (event.origin && event.origin !== "https://globestudio.app") return;
+
+      if (data.type === "globestudio-insert") {
+        // bytes is a Uint8Array transferred from the embed; structured clone
+        // copies it into the plugin sandbox cleanly.
+        parent.postMessage(
+          {
+            pluginMessage: {
+              type: "insert",
+              bytes: data.bytes,
+              width: data.width,
+              height: data.height,
+              presetName: data.presetName || "Globestudio",
+            },
+          },
+          "*"
+        );
+      } else if (data.type === "globestudio-resize") {
+        // The embed reports its desired height; we forward to the sandbox
+        // which can resize the panel via figma.ui.resize(width, height).
+        parent.postMessage(
+          { pluginMessage: { type: "resize", height: data.height } },
+          "*"
+        );
+      }
+    });
+  </script>
+</body>
+</html>

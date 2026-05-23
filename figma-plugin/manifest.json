@@ -1,0 +1,16 @@
+{
+  "name": "Globestudio",
+  "id": "globestudio-figma",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma", "figjam"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": [
+      "https://globestudio.app",
+      "https://*.globestudio.app"
+    ],
+    "reasoning": "Loads the Globestudio embed at globestudio.app/embed in the plugin UI iframe so users can pick a preset and insert a dotted globe."
+  }
+}
