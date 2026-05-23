@@ -1765,6 +1765,36 @@ button {
   color: var(--text);
 }
 
+/* Maker section — avatar + heading + bio in a horizontal layout, with
+   the avatar pinned to the top-left so it reads alongside the heading.
+   On narrow modals the section stays readable because the text column
+   wraps within its remaining space. */
+.about-maker {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.about-avatar {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  /* Slight indent below the heading row's baseline so the avatar
+     visually aligns with the heading's cap height. */
+  margin-top: 2px;
+  object-fit: cover;
+}
+
+.about-maker-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
 .about-section-text {
   margin: 0;
   font-size: 13px;

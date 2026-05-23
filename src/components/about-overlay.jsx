@@ -67,11 +67,29 @@ export const AboutOverlay = ({ open, onClose }) => {
           </section>
 
           <section className="about-section">
-            <h3 className="about-section-title">Hi, I’m Alejandro</h3>
-            <p className="about-section-text">
-              Product designer who codes. I make tools for designers and
-              creative developers — Globestudio is the one I reach for most.
-            </p>
+            <div className="about-maker">
+              {/* GitHub serves the user's avatar at <username>.png — redirects
+                  to the actual avatar CDN URL. Stays fresh if Alejandro
+                  updates his GitHub avatar; the ?s=120 param requests a
+                  120px square so the browser doesn't download the full
+                  500px+ original. */}
+              <img
+                className="about-avatar"
+                src="https://github.com/alevizio.png?size=120"
+                alt="Alejandro"
+                width="48"
+                height="48"
+                loading="lazy"
+              />
+              <div className="about-maker-text">
+                <h3 className="about-section-title">Hi, I’m Alejandro</h3>
+                <p className="about-section-text">
+                  Product designer who codes. I make tools for designers and
+                  creative developers — Globestudio is the one I reach for
+                  most.
+                </p>
+              </div>
+            </div>
             <div className="about-section-links">
               <a
                 className="about-link"

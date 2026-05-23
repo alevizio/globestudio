@@ -162,6 +162,7 @@ export const ExportModal = ({
   videoSupported,
   exportConfig,
   importConfig,
+  getShareUrl,
 }) => {
   const [tab, setTab] = useState("image");
   const [aspect, setAspect] = useState("original");
@@ -170,8 +171,17 @@ export const ExportModal = ({
   const [videoSeconds, setVideoSeconds] = useState(Math.round((videoDurationMs ?? 5000) / 1000));
   const [linkStatus, setLinkStatus] = useState("idle");
   const handleCopyLink = async () => {
+    // Prefer the full-config share URL when the parent provides one
+    // — it encodes the user's customizations in a `?c=…` param so the
+    // recipient lands on the exact same look, not just the base preset.
+    // Falls back to window.location.href for callers that haven't
+    // wired the share-URL builder (back-compat).
+    const url =
+      typeof getShareUrl === "function"
+        ? getShareUrl()
+        : window.location.href;
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(url);
       setLinkStatus("copied");
       window.setTimeout(() => setLinkStatus("idle"), 1800);
     } catch {

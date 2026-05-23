@@ -14,6 +14,11 @@ import { loadUsStates } from "./data/us-states.js";
 import { clampNumber } from "./utils/math.js";
 import { invertGradient, invertHex } from "./utils/color.js";
 import {
+  buildShareUrl,
+  clearShareConfigFromUrl,
+  parseShareConfig,
+} from "./utils/share-config.js";
+import {
   createCountryMapData,
   createStateMapData,
   makeFeatureCollection,
@@ -338,6 +343,22 @@ const App = () => {
     window.addEventListener("popstate", applyFromPath);
     return () => window.removeEventListener("popstate", applyFromPath);
     // applyLook is stable via useCallback([]) so safe to depend on identity only at mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Read ?c=… from the URL on first mount and apply that share config.
+  // Declared AFTER the /looks/:id effect so the share config wins when
+  // both are present (e.g. globestudio.app/looks/halftone?c=…) — the
+  // share is the more specific intent. Strips the ?c= param from the
+  // URL afterwards so subsequent edits don't accumulate stale state.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const config = parseShareConfig(window.location.search);
+    if (!config) return;
+    importConfig(config);
+    clearShareConfigFromUrl();
+    setStatusMessage("Loaded shared configuration");
+    // importConfig + setStatusMessage are stable; safe to depend on identity only at mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -901,8 +922,11 @@ const App = () => {
     }
   }, [selected.label, videoDurationMs, videoStatus, viewMode]);
 
-  const exportConfig = () => {
-    const config = {
+  // Snapshot of every user-customizable visual setting. Shared between
+  // exportConfig (downloads as .json) and getShareUrl (encodes into a
+  // ?c=… link). One source of truth so the two paths can't drift.
+  const buildCurrentConfig = useCallback(
+    () => ({
       version: 1,
       selection,
       stateSelection,
@@ -938,11 +962,38 @@ const App = () => {
       globeSettings,
       spaceSettings,
       animationsEnabled,
-    };
+    }),
+    [
+      selection, stateSelection, background, transparent, backgroundStyle,
+      density, dotSize, dotColor, dotColorAlpha, dotGradient, dotsVisible,
+      shape, dotRotation, rotateAnimating, sizeVary, asciiSymbol, customShape,
+      renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible,
+      worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible,
+      worldStrokeWidth, mapDepth, tiltX, tiltY, shaderSettings, globeSettings,
+      spaceSettings, animationsEnabled,
+    ],
+  );
+
+  const exportConfig = () => {
+    const config = buildCurrentConfig();
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
     downloadBlob(blob, buildExportFilename(selected.label, "json", viewMode));
     setStatusMessage("Configuration exported");
   };
+
+  // URL that restores the current customizations when opened — used by
+  // the export modal's Share tab. Lands at "/" (not /looks/:id) so the
+  // landing-page mount doesn't apply preset defaults on top of the
+  // share config and clobber its differences.
+  const getShareUrl = useCallback(
+    () =>
+      buildShareUrl(
+        buildCurrentConfig(),
+        typeof window !== "undefined" ? window.location.origin : "https://globestudio.app",
+        "/",
+      ),
+    [buildCurrentConfig],
+  );
 
   const importConfig = (config) => {
     if (!config || typeof config !== "object") return;
@@ -1460,6 +1511,7 @@ const App = () => {
         videoSupported={videoSupported}
         exportConfig={exportConfig}
         importConfig={importConfig}
+        getShareUrl={getShareUrl}
       />
 
       <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
