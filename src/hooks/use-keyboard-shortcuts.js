@@ -28,10 +28,24 @@ export const useKeyboardShortcuts = ({
   setPanelCollapsed,
   setMapZoom,
   setAmbientMode,
+  setPaletteOpen,
   flashHint,
 }) => {
   useEffect(() => {
     const onKey = (event) => {
+      // Cmd+K / Ctrl+K — open the command palette. Allowed even when
+      // focus is in a text field, because the palette IS the field the
+      // user wants to type into next.
+      const isPaletteCombo =
+        (event.metaKey || event.ctrlKey) &&
+        !event.shiftKey &&
+        !event.altKey &&
+        event.key.toLowerCase() === "k";
+      if (isPaletteCombo) {
+        event.preventDefault();
+        setPaletteOpen((open) => !open);
+        return;
+      }
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target;
       if (target instanceof HTMLElement) {
@@ -114,6 +128,7 @@ export const useKeyboardShortcuts = ({
     setPanelCollapsed,
     setMapZoom,
     setAmbientMode,
+    setPaletteOpen,
     flashHint,
     viewModeRef,
   ]);

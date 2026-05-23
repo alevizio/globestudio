@@ -2048,6 +2048,176 @@ button {
   }
 }
 
+/* Cmd+K command palette. Same frosted-glass language as the other
+   modals; sits a touch higher (top: 18vh) so it reads as a docked
+   surface rather than a centered modal — the canonical command-palette
+   position. */
+.command-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  display: grid;
+  place-items: start center;
+  padding: 18vh 24px 24px;
+  background: rgba(6, 6, 8, 0.38);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  animation: export-modal-fade-in 180ms var(--ease);
+}
+
+.command-palette {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 28vh);
+  display: flex;
+  flex-direction: column;
+  background: rgba(18, 18, 20, 0.86);
+  backdrop-filter: blur(36px) saturate(160%);
+  -webkit-backdrop-filter: blur(36px) saturate(160%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: export-modal-rise-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-theme="light"] .command-palette {
+  background: rgba(252, 251, 248, 0.86);
+}
+
+.command-palette-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.command-palette-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 4px 6px;
+}
+
+.command-palette-input::placeholder {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.command-palette-close {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 140ms var(--ease), color 140ms var(--ease);
+}
+
+.command-palette-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.command-palette-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-3) transparent;
+}
+
+.command-palette-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 100ms linear;
+}
+
+.command-palette-row.is-selected {
+  background: var(--surface-hover);
+}
+
+.command-palette-group {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--field);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.command-palette-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.command-palette-kbd,
+.command-palette-footer kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--surface-hover);
+  font-family: var(--font-mono-2);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.command-palette-empty {
+  padding: 14px 12px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.command-palette-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.command-palette-footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .export-modal-tab {
   position: relative;
   padding: 12px 20px 10px;

@@ -43,6 +43,7 @@ import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { AboutOverlay } from "./components/about-overlay.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
+import { CommandPalette } from "./components/command-palette.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Maximize, Moon, PanelLeftClose, PanelLeftOpen, Sun, X } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
@@ -246,6 +247,7 @@ const App = () => {
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   // Ambient mode hides every piece of UI chrome (panel, looks bar, view
   // mode switch, zoom controls, social links) so the canvas reads as a
   // single full-bleed art piece. Use case: screen-recording a preset,
@@ -612,6 +614,7 @@ const App = () => {
     setPanelCollapsed,
     setMapZoom,
     setAmbientMode,
+    setPaletteOpen,
     flashHint: flashKeyboardHint,
   });
 
@@ -875,6 +878,73 @@ const App = () => {
   const isSpaceBackground = backgroundStyle === "space";
   const isTransparentBackground = backgroundStyle === "transparent" || transparent;
   const effectiveTransparent = isTransparentBackground || isSpaceBackground;
+
+  // Command-palette actions. Built fresh on every render — cheap, and
+  // it means the closures always capture the latest values (current
+  // viewMode, ambient state, etc.) without juggling deps.
+  const paletteActions = [
+    ...lookPresets.map((preset) => ({
+      id: `apply:${preset.id}`,
+      label: preset.name,
+      group: "Look",
+      run: () => applyLook(preset),
+    })),
+    {
+      id: "shuffle",
+      label: "Shuffle to a random look",
+      group: "Action",
+      kbd: "S",
+      run: () => shuffleLook(),
+    },
+    {
+      id: "reset",
+      label: "Reset to defaults",
+      group: "Action",
+      kbd: "R",
+      run: () => handleReset(),
+    },
+    {
+      id: "view",
+      label: viewMode === "globe" ? "Switch to flat view" : "Switch to globe view",
+      group: "View",
+      kbd: "G",
+      run: () => changeViewMode(viewMode === "globe" ? "flat" : "globe"),
+    },
+    {
+      id: "ambient",
+      label: ambientMode ? "Exit ambient mode" : "Enter ambient mode",
+      group: "View",
+      kbd: "B",
+      run: () => setAmbientMode((v) => !v),
+    },
+    {
+      id: "panel",
+      label: panelCollapsed ? "Show control panel" : "Hide control panel",
+      group: "View",
+      kbd: "H",
+      run: () => setPanelCollapsed((v) => !v),
+    },
+    {
+      id: "export",
+      label: "Open export dialog",
+      group: "Action",
+      kbd: "D",
+      run: () => setExportModalOpen(true),
+    },
+    {
+      id: "shortcuts",
+      label: "Show keyboard shortcuts",
+      group: "Help",
+      kbd: "?",
+      run: () => setShortcutsOpen(true),
+    },
+    {
+      id: "about",
+      label: "About Globestudio",
+      group: "Help",
+      run: () => setAboutOpen(true),
+    },
+  ];
 
   return (
     <main
@@ -1266,6 +1336,11 @@ const App = () => {
 
       <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       <AboutOverlay open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        actions={paletteActions}
+      />
 
       {keyboardHint && (
         <div className="keyboard-hint" role="status" aria-live="polite">

@@ -14,6 +14,7 @@ const shortcuts = [
   { key: "G", label: "Toggle globe and flat view" },
   { key: "H", label: "Hide or show the control panel" },
   { key: "B", label: "Toggle ambient mode (hide all chrome)" },
+  { key: "⌘K", label: "Open the command palette" },
   { key: "?", label: "Show this help" },
   { key: "Esc", label: "Close popovers and dialogs" },
 ];
