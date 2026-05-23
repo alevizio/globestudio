@@ -27,7 +27,6 @@ export const useKeyboardShortcuts = ({
   setShortcutsOpen,
   setPanelCollapsed,
   setMapZoom,
-  setAmbientMode,
   setPaletteOpen,
   flashHint,
 }) => {
@@ -77,14 +76,6 @@ export const useKeyboardShortcuts = ({
         const next = viewModeRef.current === "globe" ? "flat" : "globe";
         toggleView(next);
         flashHint("G", next === "globe" ? "Globe view" : "Flat view");
-      } else if (key === "b") {
-        // Ambient mode toggle — hides every piece of UI chrome so the
-        // canvas reads as a single full-bleed art piece.
-        event.preventDefault();
-        setAmbientMode((current) => {
-          flashHint("B", current ? "Exit ambient mode" : "Ambient mode");
-          return !current;
-        });
       } else if (event.key === "+" || event.key === "=" || event.key === "-" || event.key === "_") {
         // +/= zoom in, -/_ zoom out. Including the unshifted = and _ so users
         // don't need to hold Shift on US keyboards. 0 resets.
@@ -127,7 +118,6 @@ export const useKeyboardShortcuts = ({
     setShortcutsOpen,
     setPanelCollapsed,
     setMapZoom,
-    setAmbientMode,
     setPaletteOpen,
     flashHint,
     viewModeRef,
