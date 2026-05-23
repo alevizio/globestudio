@@ -10,14 +10,12 @@ import {
 } from "./config/globe-settings.js";
 import { areaOptionByValue, areaOptions } from "./data/geography.js";
 import { lookPresets } from "./data/look-presets.js";
-import { loadUsStates } from "./data/us-states.js";
+import { useUsStatesLoader } from "./hooks/use-us-states-loader.js";
+import { useShareConfigImport } from "./hooks/use-share-config-import.js";
+import { useRouteLook } from "./hooks/use-route-look.js";
 import { clampNumber } from "./utils/math.js";
 import { invertGradient, invertHex } from "./utils/color.js";
-import {
-  buildShareUrl,
-  clearShareConfigFromUrl,
-  parseShareConfig,
-} from "./utils/share-config.js";
+import { buildShareUrl } from "./utils/share-config.js";
 import {
   createCountryMapData,
   createStateMapData,
@@ -329,51 +327,11 @@ const App = () => {
   mapZoomRef.current = mapZoom;
   viewModeRef.current = viewMode;
 
-  // Read /looks/:id from the URL on first mount and apply that preset.
-  // Also listen for popstate so browser back/forward navigates between presets.
-  useEffect(() => {
-    if (typeof window === "undefined") return undefined;
-    const applyFromPath = () => {
-      const match = window.location.pathname.match(/^\/looks\/([a-z0-9-]+)\/?$/i);
-      if (!match) return;
-      const preset = lookPresets.find((p) => p.id === match[1]);
-      if (preset) applyLook(preset);
-    };
-    applyFromPath();
-    window.addEventListener("popstate", applyFromPath);
-    return () => window.removeEventListener("popstate", applyFromPath);
-    // applyLook is stable via useCallback([]) so safe to depend on identity only at mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useRouteLook(applyLook);
 
-  // Read ?c=… from the URL on first mount and apply that share config.
-  // Declared AFTER the /looks/:id effect so the share config wins when
-  // both are present (e.g. globestudio.app/looks/halftone?c=…) — the
-  // share is the more specific intent. Strips the ?c= param from the
-  // URL afterwards so subsequent edits don't accumulate stale state.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const config = parseShareConfig(window.location.search);
-    if (!config) return;
-    importConfig(config);
-    clearShareConfigFromUrl();
-    setStatusMessage("Loaded shared configuration");
-    // importConfig + setStatusMessage are stable; safe to depend on identity only at mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useShareConfigImport(importConfig, setStatusMessage);
 
-  useEffect(() => {
-    const selectedCountryId = selection.startsWith("country:") ? selection.replace("country:", "") : "";
-    if (selectedCountryId !== US_COUNTRY_ID || usStates.length > 0) return undefined;
-
-    let cancelled = false;
-    loadUsStates().then((states) => {
-      if (!cancelled) setUsStates(states);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [selection, usStates.length]);
+  useUsStatesLoader(selection, usStates.length, setUsStates);
 
   const selected = useMemo(() => {
     const selectedCountryId = selection.startsWith("country:") ? selection.replace("country:", "") : "";
