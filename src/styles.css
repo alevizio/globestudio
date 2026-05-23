@@ -1877,14 +1877,15 @@ button {
   padding: 4px 20px 20px;
 }
 
-/* Brand mark at the top of the body — centered, slight breathing room
-   above and below so it reads as a hero element separate from the
-   sections below. Uses the same DottedGlobe icon as the panel header
-   so the about-overlay feels tied to the running app. */
+/* Brand mark at the top of the body — left-aligned so it anchors the
+   reading order with the section titles below (which are also
+   left-aligned). Slight breathing room above and below so it reads as
+   a hero element separate from the sections below. Uses the same
+   DottedGlobe icon as the panel header. */
 .about-logo {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 12px 0 4px;
   color: var(--text);
 }

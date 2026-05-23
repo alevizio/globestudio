@@ -45,7 +45,7 @@ export const AboutOverlay = ({ open, onClose }) => {
 
         <div className="about-overlay-body">
           <div className="about-logo" aria-hidden="true">
-            <DottedGlobe size={56} />
+            <DottedGlobe size={104} />
           </div>
 
           <section className="about-section">
