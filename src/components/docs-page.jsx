@@ -27,6 +27,26 @@ const EMBED_SNIPPET = `<iframe
   title="Globestudio dotted globe"
 ></iframe>`;
 
+const REACT_SNIPPET = `// Drop-in React component — no install, just paste.
+export const Globe = ({ look = "halftone", width = 640, height = 480 }) => (
+  <iframe
+    src={\`https://globestudio.app/embed?look=\${look}\`}
+    width={width}
+    height={height}
+    style={{ border: 0 }}
+    loading="lazy"
+    title="Globestudio dotted globe"
+  />
+);
+
+// Use it:
+<Globe look="aurora" width={800} height={600} />`;
+
+const SCRIPT_SNIPPET = `<!-- One-line script-tag loader. Drops a div anywhere on the page
+     and reads data-look / data-config attributes from it. -->
+<div data-globestudio data-look="risograph" style="height:480px"></div>
+<script src="https://globestudio.app/embed.js" async></script>`;
+
 const SHORTCUTS = [
   { keys: ["S"], label: "Shuffle to a random look" },
   { keys: ["[", "]"], label: "Cycle preset (prev / next)" },
@@ -77,15 +97,48 @@ export const DocsPage = () => {
         <p>
           Pick any preset by id (<code>halftone</code>, <code>aurora</code>,{" "}
           <code>risograph</code>…) or pass a full config via{" "}
-          <code>?c=&lt;base64&gt;</code> for a customized embed. See{" "}
+          <code>?c=&lt;base64&gt;</code> for a customized embed.
+        </p>
+
+        <h3 className="docs-subsection-title">React component</h3>
+        <p>
+          No install. Paste it into any React/Next.js/Astro/Remix project:
+        </p>
+        <pre className="docs-code">{REACT_SNIPPET}</pre>
+
+        <h3 className="docs-subsection-title">Script-tag loader</h3>
+        <p>
+          For Webflow, Framer, Notion, plain HTML — anywhere you can drop
+          a <code>&lt;script&gt;</code> tag:
+        </p>
+        <pre className="docs-code">{SCRIPT_SNIPPET}</pre>
+
+        <p>
+          Detailed recipes for{" "}
           <a
-            href="https://github.com/alevizio/globestudio/blob/main/docs/integrations/README.md"
+            href="https://github.com/alevizio/globestudio/blob/main/docs/integrations/webflow.md"
             target="_blank"
             rel="noreferrer noopener"
           >
-            docs/integrations/README.md
+            Webflow
+          </a>
+          ,{" "}
+          <a
+            href="https://github.com/alevizio/globestudio/blob/main/docs/integrations/framer.md"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            Framer
+          </a>
+          , and{" "}
+          <a
+            href="https://github.com/alevizio/globestudio/blob/main/docs/integrations/figma.md"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            Figma
           </a>{" "}
-          for Webflow, Framer, Notion, and Astro recipes.
+          live in <code>docs/integrations/</code>.
         </p>
       </section>
 

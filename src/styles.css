@@ -500,6 +500,14 @@ button {
   white-space: pre;
 }
 
+.docs-subsection-title {
+  margin: 24px 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--text);
+}
+
 .docs-shortcuts {
   margin: 0;
   padding: 0;
