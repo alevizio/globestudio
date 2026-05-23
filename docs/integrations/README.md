@@ -82,6 +82,21 @@ file and provide autocomplete + validation. The exported configs
 already include the schema reference at the top — IDE intellisense
 works on a downloaded config file without any extra setup.
 
+## Look presets (`src/data/look-presets.js`)
+
+Built-in look presets are validated against a separate, smaller schema:
+
+```
+https://globestudio.app/schema/look-preset.json
+```
+
+This is the public contract for community preset submissions — it
+documents which fields are required, the `id` kebab-case constraint,
+display copy length limits, and that `settings` follows the main
+config schema minus the `version` envelope. The repo's
+`src/data/look-presets.test.js` enforces it in CI, so a PR that adds a
+preset gets the schema check for free.
+
 ## postMessage resize protocol
 
 When iframed, Globestudio posts its desired height to the parent:

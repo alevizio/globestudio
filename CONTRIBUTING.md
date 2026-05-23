@@ -188,6 +188,13 @@ Good presets:
 - Work at multiple densities
 - Survive both globe and flat view
 
+Preset entries are validated against
+[`public/schema/look-preset.json`](public/schema/look-preset.json) by
+`src/data/look-presets.test.js`. The schema is the public contract — `id`
+must be kebab-case and unique, `name`/`blurb` have length limits, and
+`settings` follows the main config schema. CI will reject PRs that
+break the contract.
+
 ### Example projects
 
 We want examples that prove the tool is useful in real product work:

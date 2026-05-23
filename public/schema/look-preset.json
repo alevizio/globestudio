@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globestudio.app/schema/look-preset.json",
+  "title": "Globestudio look preset",
+  "description": "Shape of a single entry in `src/data/look-presets.js`. Community preset submissions should validate against this schema. The `settings` payload follows the main configuration schema (https://globestudio.app/schema/config.json) minus the `version` envelope.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "blurb", "settings"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable kebab-case identifier. Used in `/looks/:id` URLs, `?look=:id` embed params, and the `preset` enum in config.json. Once shipped, an id must not change — it's a public URL.",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "minLength": 2,
+      "maxLength": 32,
+      "examples": ["default", "halftone", "bad-tv"]
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name shown in the preset switcher. Title Case, short enough to fit in a 160px chip.",
+      "minLength": 2,
+      "maxLength": 24,
+      "examples": ["Default", "Bad TV", "Halftone"]
+    },
+    "blurb": {
+      "type": "string",
+      "description": "One-line tagline shown under the name. No trailing period.",
+      "minLength": 2,
+      "maxLength": 64,
+      "examples": ["Clean dotted globe", "Cathode-ray phosphor"]
+    },
+    "previewImage": {
+      "type": "string",
+      "description": "Optional path (absolute or root-relative) to a static preview image used in social cards and OG previews. PNG, ~1200x630.",
+      "pattern": "^(/|https?://).+\\.(png|jpg|jpeg|webp)$",
+      "examples": ["/looks/halftone.png"]
+    },
+    "settings": {
+      "$ref": "https://globestudio.app/schema/config.json",
+      "description": "The Globestudio configuration that produces this look. Any field accepted by the config schema is allowed here, with one difference: `version` is not required (presets are not versioned files — the bundling app owns the version envelope).",
+      "type": "object"
+    }
+  }
+}

@@ -16,6 +16,10 @@ All notable changes to Globestudio are tracked here. Format follows
 - Designer-first README rewrite
 - `SoftwareApplication` JSON-LD structured data and tightened SEO meta on the
   homepage
+- `public/schema/look-preset.json` — public JSON Schema for community
+  preset submissions, plus a CI test (`src/data/look-presets.test.js`)
+  that validates every shipped preset against it. Locks the
+  `look-presets.js` shape so PRs can't drift from the documented contract
 
 ---
 
