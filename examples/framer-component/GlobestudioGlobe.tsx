@@ -158,7 +158,7 @@ addPropertyControls(GlobestudioGlobe, {
   selection: {
     type: ControlType.String,
     title: "Region",
-    description: "Use `world`, `country:USA`, `region:Europe`, or `subregion:Southern Europe`.",
+    description: "Use `world`, `country:USA`, `continent:Europe`, or `subregion:Southern Europe`.",
     defaultValue: "world",
   },
   renderMode: {

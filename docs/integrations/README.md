@@ -4,13 +4,31 @@ How to drop Globestudio into the tools you already use. Every integration
 is built on the [`/embed` route](https://globestudio.app/embed) — a
 query-string-driven view that renders just the canvas with no chrome.
 
-## Available now
+## Quickest path — one-line script embed
+
+For Webflow / Squarespace / blog posts / any HTML, the easiest method is
+the script-tag loader:
+
+```html
+<div data-globestudio data-look="halftone" data-density="50"
+     style="width: 100%; height: 480px;"></div>
+<script async src="https://globestudio.app/embed.js"></script>
+```
+
+Configure via `data-*` attributes — every embed param has a matching
+attribute (`data-look`, `data-selection`, `data-render-mode`, etc.). The
+script auto-injects the iframe + listens for resize messages. ~3kb
+gzipped, zero dependencies. Works with later-added elements
+(SPAs, Webflow interactions) via a MutationObserver.
+
+## Per-tool guides
 
 | Tool | Method | Doc |
 |---|---|---|
-| **Webflow** | Paste into a Code Embed block | [webflow.md](./webflow.md) |
+| **Webflow** | Script tag or Code Embed block | [webflow.md](./webflow.md) |
 | **Framer** | Code component (or iframe) | [framer.md](./framer.md) |
-| **Plain HTML** | `<iframe>` tag | [embed.md](./embed.md) |
+| **Figma** | Plugin — opens the embed in the side panel, inserts as image | [figma.md](./figma.md) |
+| **Plain HTML** | Script tag or `<iframe>` | [embed.md](./embed.md) |
 | **Notion** | `/embed` slash command | [notion.md](./notion.md) |
 | **Anything iframe-friendly** | Same as plain HTML | [embed.md](./embed.md) |
 
@@ -18,7 +36,7 @@ query-string-driven view that renders just the canvas with no chrome.
 
 | Tool | Plan |
 |---|---|
-| **Figma** | Plugin that hosts the embed UI + exports to a frame fill |
+| **Figma Community submission** | Plugin scaffold ships now; community publishing post-launch |
 | **Webflow Code Component** | DevLink-based native React component (gated on demand) |
 | **`.worlddot` portable format** | Tool-agnostic JSON file + tiny JS player runtime |
 
@@ -37,7 +55,7 @@ Every integration accepts the same query string:
 | `dotColor` | hex (no `#`) | preset's | `?dotColor=ffffff` |
 | `worldFill` | hex (no `#`) | preset's | Solid-mode land fill |
 | `renderMode` | `dots` \| `solid` | preset's | |
-| `selection` | string | `world` | `country:USA`, `region:Europe`, `state:CA`, etc. |
+| `selection` | string | `world` | `country:USA`, `continent:Europe`, `subregion:Western Europe`, etc. |
 | `motion` | 0–100 | `35` | Animation speed |
 | `view` | `flat` \| `globe` | `globe` | |
 | `autoSpin` | 0/1 | `1` | Continuous globe rotation |

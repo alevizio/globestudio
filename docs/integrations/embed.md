@@ -1,9 +1,42 @@
-# Globestudio iframe embed (plain HTML)
+# Globestudio embed (plain HTML)
 
-Drop a Globestudio globe or map into any iframe-supporting page. Works
-in plain HTML, Astro, Next.js, SvelteKit, Eleventy, Jekyll — anything.
+Drop a Globestudio globe or map into any HTML-friendly page. Works in
+plain HTML, Astro, Next.js, SvelteKit, Eleventy, Jekyll — anything.
 
-## Minimum-viable snippet
+## Method 1 — Script tag (Recommended)
+
+The easiest method. Drop a div with `data-*` attributes and the
+`embed.js` loader; the script swaps it for an iframe configured from
+the attributes.
+
+```html
+<div data-globestudio data-look="halftone" data-density="50"
+     style="width: 100%; height: 480px;"></div>
+<script async src="https://globestudio.app/embed.js"></script>
+```
+
+You can drop multiple `[data-globestudio]` divs with different
+attributes on the same page — they each get their own iframe.
+
+```html
+<div data-globestudio data-look="aurora" data-selection="continent:Europe"
+     style="width: 100%; height: 420px;"></div>
+
+<div data-globestudio data-look="risograph" data-selection="country:JPN"
+     data-render-mode="solid" style="width: 100%; height: 420px;"></div>
+
+<script async src="https://globestudio.app/embed.js"></script>
+```
+
+Auto-resizes the iframe height to match the canvas aspect when the host
+element has no explicit height. ~3kb gzipped, zero dependencies, scans
+the page on load + on any later DOM additions (so it works with SPAs
+and dynamic content too).
+
+## Method 2 — Plain iframe
+
+Useful when you want to pin the iframe URL inline, route it through a
+CDN, or apply custom iframe styles.
 
 ```html
 <iframe

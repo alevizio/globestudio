@@ -27,7 +27,7 @@ Open your Framer project, then:
 The component panel on the right shows:
 
 - **Look** — 17 preset options (Default, Halftone, Bayer, Iridescent, Aurora, etc.)
-- **Region** — string field for `world`, `country:USA`, `region:Europe`, etc.
+- **Region** — string field for `world`, `country:USA`, `continent:Europe`, etc.
 - **Render mode** — dots vs solid
 - **Density** — 10–90 slider
 - **Dot color** + **World fill** — Framer color pickers

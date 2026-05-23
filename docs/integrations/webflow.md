@@ -4,32 +4,64 @@ Drop a dotted globe or map into any Webflow project via the Code Embed
 block. No plugins, no account, no React. The full Globestudio tool renders
 inside the iframe; query-string parameters configure the look.
 
-## 5-minute setup
+## Quick — script-tag embed (Recommended)
 
-1. **Open your Webflow Designer.** Pick the section or div where you
-   want the globe to live.
-2. **Drag in a Code Embed block** from the Add Elements panel
-   (`Components → Code Embed`).
-3. **Paste this snippet** and tune the `look` + `density` to taste:
+Easiest path. Paste this into a Code Embed block. Customize via
+`data-*` attributes — no iframe / URL editing required.
 
-   ```html
-   <iframe
-     src="https://globestudio.app/embed?look=halftone&density=70&autoSpin=1&source=webflow"
-     width="100%"
-     height="500"
-     style="border:0; display:block;"
-     loading="lazy"
-     title="Globestudio dotted globe"
-     allow="autoplay"
-   ></iframe>
-   ```
+```html
+<div
+  data-globestudio
+  data-look="halftone"
+  data-density="50"
+  style="width: 100%; height: 480px;"
+></div>
+<script async src="https://globestudio.app/embed.js"></script>
+```
 
-4. **Click "Save & close"**, then preview the page. The globe renders.
-5. **Publish.** Done.
+Add more `data-*` attributes to customize:
 
-> The `?source=webflow` query tells our analytics where the embed lives,
-> so we can prioritize improvements for Webflow users. It's optional but
-> appreciated.
+```html
+<div
+  data-globestudio
+  data-look="aurora"
+  data-density="70"
+  data-selection="continent:Europe"
+  data-render-mode="dots"
+  data-auto-spin="true"
+  data-dot-color="#ffffff"
+  data-source="webflow"
+  style="width: 100%; height: 520px;"
+></div>
+<script async src="https://globestudio.app/embed.js"></script>
+```
+
+The script is ~3kb gzipped, scans for any `[data-globestudio]` element on
+the page (now or later — works with Webflow's interactions / CMS-bound
+content), and replaces it with an iframe configured from the data
+attributes. Auto-resizes height to match the canvas aspect when the host
+element has no explicit height.
+
+## Direct iframe — when you need full control
+
+Drop into a Code Embed block. Useful if you want to tweak the embed URL
+inline, route it through a CDN, or apply custom styles to the iframe.
+
+```html
+<iframe
+  src="https://globestudio.app/embed?look=halftone&density=70&autoSpin=1&source=webflow"
+  width="100%"
+  height="500"
+  style="border:0; display:block;"
+  loading="lazy"
+  title="Globestudio dotted globe"
+  allow="autoplay"
+></iframe>
+```
+
+> The `?source=webflow` query (or `data-source="webflow"` on the script
+> embed) tells our analytics where the embed lives, so we can
+> prioritize Webflow-specific improvements. Optional but appreciated.
 
 ## Picking a look
 
@@ -55,7 +87,7 @@ Full preset list with previews: <https://globestudio.app/>
 |---|---|
 | `selection=world` | Default — full world |
 | `selection=country:USA` | One country (use the 3-letter code) |
-| `selection=region:Europe` | Continent |
+| `selection=continent:Europe` | Continent |
 | `selection=subregion:Northern Europe` | Sub-region |
 | `selection=state:CA` | US state (use 2-letter postal code) |
 
