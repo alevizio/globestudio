@@ -4594,6 +4594,10 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .color-picker-hue {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0;
   height: 12px;
   border-radius: 3px;
   background: linear-gradient(
@@ -4606,8 +4610,6 @@ input[type="range"]:active::-moz-range-thumb {
     #ff00ff 83%,
     #ff0000 100%
   );
-  position: relative;
-  overflow: hidden;
 }
 
 .color-picker-hue input[type="range"] {
@@ -4683,20 +4685,22 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-alpha {
   position: relative;
+  display: block;
+  width: 100%;
+  margin: 0;
   height: 12px;
   border-radius: 3px;
   /* Checkerboard tile + color gradient on top so transparency is visible.
      `background-repeat: no-repeat, round` makes the checkerboard tile
      auto-scale so an integer number fits across the bar exactly —
-     prevents the partial-last-tile column that made the alpha bar look
-     like it ended 2–4 px before the hue bar above it. */
+     prevents the partial-last-tile column that used to make the alpha
+     bar look like it ended a few pixels before the hue bar. */
   background-image:
     linear-gradient(to right, rgba(0, 0, 0, 0), var(--alpha-color, #ffffff)),
     conic-gradient(rgba(255, 255, 255, 0.6) 25%, rgba(180, 180, 180, 0.6) 0 50%, rgba(255, 255, 255, 0.6) 0 75%, rgba(180, 180, 180, 0.6) 0);
   background-size: 100% 100%, 8px 8px;
   background-position: 0 0, 0 0;
   background-repeat: no-repeat, round;
-  overflow: hidden;
 }
 
 .color-picker-alpha input[type="range"] {
