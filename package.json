@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "sitemap": "node scripts/generate-sitemap.js",
-    "og:generate": "node scripts/generate-og-images.js"
+    "og:generate": "node scripts/generate-og-images.js",
+    "check:bundle": "node scripts/check-bundle-size.js",
+    "check": "npm run test && npm run build && npm run check:bundle"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",

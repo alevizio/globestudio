@@ -39,12 +39,18 @@ The version on `main` already does all of this:
 
 The "v1 polish" pass before a real launch push.
 
-- **Performance baseline.** Define the floor (60fps desktop, 30fps mobile at
-  the default look) and gate PRs against it.
-- **Example gallery.** 4–6 example repos showing the tool in real product
-  contexts (landing hero, deck, animated launch teaser, country map embed).
-- **Preset API stability.** Lock the `look-presets.js` schema so community
-  submissions are forward-compatible.
+- ~~**Performance baseline.** Define the floor (60fps desktop, 30fps mobile at
+  the default look) and gate PRs against it.~~ → see
+  [docs/performance.md](./docs/performance.md). Bundle-size budgets are
+  enforced by `scripts/check-bundle-size.js`; Lighthouse CI gates LCP,
+  CLS, and the performance score on every PR.
+- ~~**Example gallery.** 4–6 example repos showing the tool in real product
+  contexts (landing hero, deck, animated launch teaser, country map embed).~~
+  → eight examples shipped, all marked Ready in `examples/README.md`.
+- ~~**Preset API stability.** Lock the `look-presets.js` schema so community
+  submissions are forward-compatible.~~ → see
+  [public/schema/look-preset.json](./public/schema/look-preset.json) +
+  `src/data/look-presets.test.js`.
 - **Docs site or `/docs` route.** Right now everything is in the README + tool.
 - **Codebase tidying.** Some components are >150 lines and need splitting per
   the design system rules in CONTRIBUTING.

@@ -23,6 +23,15 @@ All notable changes to Globestudio are tracked here. Format follows
 - `NOTICE.md` — third-party attribution for Pixelarticons (MIT) and the
   geographic atlases the tool depends on. Required by the MIT license
   of those bundled assets
+- `docs/performance.md` — documents the v1 runtime floor (60fps desktop,
+  30fps mobile) and the per-chunk bundle-size budget
+- `scripts/check-bundle-size.js` — enforces per-chunk gzip + raw budgets
+  against the dist build; surfaces unbudgeted chunks so new bloat can't
+  slip in unwatched. Wired up as `npm run check:bundle`
+- `.github/workflows/ci.yml` — runs tests + build + bundle-budget gate
+  on every PR and push to main, plus a Lighthouse CI job that asserts
+  LCP ≤ 2.5s, CLS ≤ 0.1, performance ≥ 0.85, accessibility ≥ 0.95
+- `.lighthouserc.json` — Lighthouse CI config (desktop preset, 3 runs)
 
 ### Changed
 
