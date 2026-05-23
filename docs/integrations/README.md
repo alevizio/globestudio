@@ -28,8 +28,10 @@ gzipped, zero dependencies. Works with later-added elements
 | **Webflow** | Script tag or Code Embed block | [webflow.md](./webflow.md) |
 | **Framer** | Code component (or iframe) | [framer.md](./framer.md) |
 | **Figma** | Plugin — opens the embed in the side panel, inserts as image | [figma.md](./figma.md) |
+| **React (Next.js / Vite / Remix)** | Drop-in `<Globestudio>` component, zero deps | [`examples/react-component/`](../../examples/react-component/) |
 | **Plain HTML** | Script tag or `<iframe>` | [embed.md](./embed.md) |
 | **Notion** | `/embed` slash command | [notion.md](./notion.md) |
+| **AI assistants (Claude, ChatGPT, Codex, Cursor)** | `llms.txt` + JSON Schema | [ai-assistants.md](./ai-assistants.md) |
 | **Anything iframe-friendly** | Same as plain HTML | [embed.md](./embed.md) |
 
 ## Roadmap

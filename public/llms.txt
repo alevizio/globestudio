@@ -1,0 +1,63 @@
+# Globestudio
+
+> Open-source dotted maps and animated 3D globes for designers,
+> animators, and creative developers. 17 shader looks, 5 projections,
+> custom GeoJSON, embed anywhere. React + Three.js. WCAG 2.2 AA. MIT.
+
+Globestudio renders interactive dotted-style world maps and 3D globes
+in the browser. It is **not** a GIS tool — it's a designer-first
+visual generator that an AI assistant can drive programmatically to
+produce: hero-image embeds, country-highlighted brand artwork,
+animated launch teasers, exported PNGs/SVGs/WebMs.
+
+## How to use Globestudio programmatically
+
+The simplest path for an AI assistant: **build an `/embed?…` URL**.
+Drop that URL into an iframe in the user's app, or visit it for a
+screenshot, or download its export endpoints.
+
+```
+https://globestudio.app/embed?look=halftone&density=50&selection=continent:Europe&autoSpin=1
+```
+
+Every embed parameter is documented at
+<https://globestudio.app/docs/integrations/README.md#common-parameters>.
+A JSON Schema for configuration files is at
+<https://globestudio.app/schema/config.json>.
+
+## Docs
+
+- [README](https://github.com/alevizio/globestudio/blob/main/README.md): project overview, features, quickstart
+- [Integrations index](https://github.com/alevizio/globestudio/blob/main/docs/integrations/README.md): every embed surface + parameter table
+- [Embed (plain HTML / Notion)](https://github.com/alevizio/globestudio/blob/main/docs/integrations/embed.md): script-tag loader + iframe paths
+- [Webflow](https://github.com/alevizio/globestudio/blob/main/docs/integrations/webflow.md): Code Embed block setup
+- [Framer](https://github.com/alevizio/globestudio/blob/main/docs/integrations/framer.md): code component contract
+- [Figma](https://github.com/alevizio/globestudio/blob/main/docs/integrations/figma.md): plugin architecture + Insert flow
+- [Notion](https://github.com/alevizio/globestudio/blob/main/docs/integrations/notion.md): slash-command embed
+- [Accessibility](https://github.com/alevizio/globestudio/blob/main/ACCESSIBILITY.md): WCAG 2.2 AA conformance details
+- [Roadmap](https://github.com/alevizio/globestudio/blob/main/ROADMAP.md): planned features
+- [JSON Schema](https://globestudio.app/schema/config.json): IDE-validated config files
+
+## Reference code components
+
+- [React component](https://github.com/alevizio/globestudio/blob/main/examples/react-component/Globestudio.tsx): drop-in `<Globestudio>` for Next.js / Vite / Remix
+- [Framer code component](https://github.com/alevizio/globestudio/blob/main/examples/framer-component/GlobestudioGlobe.tsx): for Framer Code Components
+- [Script-tag loader](https://github.com/alevizio/globestudio/blob/main/public/embed.js): vanilla JS for plain HTML
+
+## Key constraints to remember
+
+- **Selection prefixes** are: `world`, `country:<ISO3>`,
+  `continent:<Name>`, `subregion:<Name>`. Country codes are
+  3-letter ISO 3166-1 alpha-3 (`USA`, `FRA`, `JPN`).
+- **17 preset IDs**: `default`, `halftone`, `risograph`, `newsprint`,
+  `aurora`, `pixel`, `bayer`, `atkinson`, `wireframe`, `crt`,
+  `glitch`, `badtv`, `bloom`, `metal`, `iridescent`, `pencil`,
+  `corrupt`.
+- **Embed route is `/embed`** (canvas only). **`/looks/:id` is the
+  marketing landing page** with the full app chrome — use it for
+  share links, not iframes.
+- **WebGL required**: the embed gracefully falls back when GL isn't
+  available, but functionality is degraded.
+- **Render is client-side**: Globestudio doesn't provide a
+  server-side image render endpoint (yet). For screenshots, point a
+  headless browser at the embed URL.
