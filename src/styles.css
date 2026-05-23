@@ -1224,7 +1224,15 @@ button {
      summaries, and every OptionRow below. */
   margin: 0 -10px;
   padding: 2px 18px;
+  /* overflow-x: auto implicitly forces overflow-y to non-visible (CSS
+     spec rule — `auto` + `visible` is not a valid combination), which
+     was clipping the chip hover shadow that extends ~16px below the
+     chip. `overflow-y: clip` + `overflow-clip-margin` lets the shadow
+     render 24px beyond the bar's vertical bounds while keeping the
+     horizontal scroll behaviour. */
   overflow-x: auto;
+  overflow-y: clip;
+  overflow-clip-margin: 24px;
   scrollbar-width: none;
   -ms-overflow-style: none;
   /* Soft edge fades hint at scrollable content. Mask gets composed from the
