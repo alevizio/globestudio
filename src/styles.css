@@ -825,6 +825,32 @@ button {
   transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
+/* Preset crossfade — when a preset is applied, the underlying state
+   changes are synchronous (shader uniforms, colors, gradients all snap
+   at once). Without this, switching presets reads as a hard cut. The
+   fade dips canvas opacity to 40% in the first 40% of the animation
+   (covering the swap) and rises back to 100% over the remaining 60%,
+   so the user perceives a deliberate transition rather than a jump cut.
+   `appliedLookId` is non-null for ~700ms after applyLook fires; the
+   animation runs once and clears with the class.
+   First-mount /looks/:id applications also fade — a fade-in from 40%
+   on first paint feels considered. */
+.app-shell.is-preset-applying .globe-background canvas {
+  animation: preset-apply-crossfade 460ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes preset-apply-crossfade {
+  0% { opacity: 1; }
+  40% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell.is-preset-applying .globe-background canvas {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .globe-background canvas,
   .globe-background.is-dragging canvas {
@@ -1989,6 +2015,14 @@ button {
     opacity: 0;
     transform: translate(-50%, 4px) scale(0.98);
   }
+}
+
+/* When ambient mode is active, the exit chip lives at bottom: 24px.
+   Bump the keyboard hint up so the two pills don't stack on top of
+   each other (e.g. when the user presses B, the "Ambient mode" hint
+   fires at the same time the exit chip appears). */
+.app-shell.is-ambient .keyboard-hint {
+  bottom: 84px;
 }
 
 @media (prefers-reduced-motion: reduce) {

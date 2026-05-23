@@ -943,6 +943,8 @@ const App = () => {
         currentPresetId ? "has-preset-detail" : ""
       } ${
         ambientMode ? "is-ambient" : ""
+      } ${
+        appliedLookId ? "is-preset-applying" : ""
       }`}
       style={{
         "--preview-bg": isSpaceBackground ? "#03030a" : isTransparentBackground ? "#f4f4f4" : background,
