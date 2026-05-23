@@ -4531,6 +4531,13 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-body {
   display: grid;
+  /* Explicit single-column grid with stretch alignment so every child
+     (SV square, hue bar, alpha bar, mode tabs, value input) gets the
+     exact same horizontal extent. `minmax(0, 1fr)` prevents grid items
+     from overflowing their column when their intrinsic size is larger
+     than the available width. */
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: stretch;
   gap: 14px;
   padding: 10px;
   overflow: hidden auto;
@@ -4541,6 +4548,15 @@ input[type="range"]:active::-moz-range-thumb {
   /* Anchor scroll-y to nearest scroll container so the page doesn't scroll
      when the picker reaches its top/bottom limit. */
   overscroll-behavior: contain;
+  box-sizing: border-box;
+}
+
+/* Every direct child of the picker body is a layout item — explicit
+   width: 100% + box-sizing makes the alignment robust against any
+   parent flex/grid quirks. */
+.color-picker-body > * {
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .color-picker-body::-webkit-scrollbar {
