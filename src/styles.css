@@ -3026,22 +3026,26 @@ button {
 }
 
 .export-modal-body {
-  display: flex;
-  flex-direction: column;
-  /* 28px gap between sections — the 11px uppercase labels are visually
-     subordinate, so the section break needs to come from real vertical
-     space, not from the label's typographic weight. The CTA gets an
-     extra 8px on top of this via its own margin-top so it reads as
-     a distinct action below the section stack. */
-  gap: 28px;
+  /* The body is the scrollable wrapper. The actual vertical layout +
+     gap live on .export-modal-pane below — the body has exactly ONE
+     child (the keyed pane), so a flex+gap here would have nothing to
+     apply between. */
   padding: 24px;
   overflow: auto;
 }
 
-/* Mount-fade on tab content. Keyed re-render per tab swap (see
-   export-modal.jsx <div key={tab}>) means this animation fires on each
-   tab change. Cheap opacity + tiny lift; respects reduced motion. */
+/* Mount-fade on tab content + the real vertical layout for the
+   section stack. Keyed re-render per tab swap (see export-modal.jsx
+   <div key={tab}>) means the animation fires on each tab change.
+   Cheap opacity + tiny lift; respects reduced motion.
+   The 28px gap is what spaces the actual sections (Aspect pills,
+   Quality pills, Dimension inputs, caption, CTA) — putting it here
+   instead of on the body is the difference between "spacing works"
+   and "the gap rule is wasted on a single-child wrapper". */
 .export-modal-body > .export-modal-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
   animation: export-modal-pane-in 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
