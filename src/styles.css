@@ -3156,7 +3156,7 @@ button {
 }
 
 .export-modal-caption {
-  margin: -4px 0 0;
+  margin: 0;
   font-size: 13px;
   color: var(--dim);
   line-height: 1.5;
@@ -3177,12 +3177,12 @@ button {
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  /* Extra 8px above the body's 22px gap so the CTA reads as a distinct
-     action rather than the next item in the section stack. Negative
-     margin trick won't help here — explicit margin-top gives the modal
-     a clear "actions live below" rhythm. Subsequent CTAs (.is-secondary
-     stacked under .is-primary) reset to 0 so they cluster tightly. */
-  margin-top: 8px;
+  /* Extra 16px above the body's 28px gap = 44px above the CTA. The
+     CTA is a distinct action, separated from the section stack by a
+     clear vertical break — not just the next item in the rhythm.
+     Subsequent CTAs (.is-secondary stacked under .is-primary) reset
+     this so they cluster tightly. */
+  margin-top: 16px;
   transition: background 160ms var(--ease), border-color 160ms var(--ease), transform 80ms var(--ease);
 }
 
