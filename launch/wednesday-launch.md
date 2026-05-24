@@ -77,6 +77,14 @@ scrolled past last time now have *two* reasons to look again.
       → check `globestudio`.
 - [ ] **Verify topics + description** look right on the repo header.
       (Already updated via `gh repo edit` in commit 5fa700c.)
+- [ ] **Add Google Search Console verification token.** Visit
+      [search.google.com/search-console](https://search.google.com/search-console),
+      Add property → `https://globestudio.app` → HTML tag method →
+      copy the `content` value → paste into `index.html` where it
+      says `REPLACE_WITH_GSC_TOKEN`. Commit + deploy + click Verify.
+      GSC gives you search query / impression / click data without
+      any tracking script (no GA4 needed). Submit the sitemap at
+      `https://globestudio.app/sitemap.xml` after verification.
 
 ### Pre-write the launch posts
 

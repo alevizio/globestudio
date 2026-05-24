@@ -237,6 +237,16 @@
          late in the critical path. -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 
+    <!-- Google Search Console verification.
+         No analytics script — GSC reads only the search-side data
+         (queries, impressions, clicks). Generate the token at:
+           https://search.google.com/search-console
+         → Add property → URL prefix → https://globestudio.app
+         → Verification method: HTML tag → paste the content value below.
+         Alternative: verify via DNS TXT (Vercel → Domains → DNS Records).
+         No cookies, no third-party script. -->
+    <meta name="google-site-verification" content="REPLACE_WITH_GSC_TOKEN" />
+
     <!-- RSS feed of recent shipped work — auto-discovered by feed
          readers (Feedly, NetNewsWire, Reeder, Inoreader, etc.). -->
     <link
