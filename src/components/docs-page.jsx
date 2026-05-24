@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { lookPresets } from "../data/look-presets.js";
+import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { DottedGlobe, Github } from "./icons.jsx";
 
 // Single-page documentation route. Pulls the most-asked questions
@@ -61,6 +62,7 @@ const SHORTCUTS = [
 ];
 
 export const DocsPage = () => {
+  useBodyScrollable();
   useEffect(() => {
     document.title = "Docs — Globestudio";
     const setMeta = (selector, content) => {

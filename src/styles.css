@@ -172,6 +172,14 @@ body {
   color: var(--text);
 }
 
+/* Static takeover pages (/docs, /brand, /404) need ordinary window
+   scroll — the canvas app's overflow:hidden body would otherwise lock
+   the page in place and hide content below the viewport. The class
+   is toggled by useBodyScrollable on those pages. */
+body.is-body-scrollable {
+  overflow: auto;
+}
+
 button,
 select,
 input,

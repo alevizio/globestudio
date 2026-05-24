@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { DottedGlobe, Github, Twitter } from "./icons.jsx";
 
 // Press kit / brand assets for journalists + bloggers covering the
@@ -29,6 +30,7 @@ const OG_PRESETS = [
 ];
 
 export const BrandPage = () => {
+  useBodyScrollable();
   useEffect(() => {
     document.title = "Brand — Globestudio";
     const setMeta = (selector, content) => {

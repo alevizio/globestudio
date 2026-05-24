@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { DottedGlobe } from "./icons.jsx";
 
 // Catch-all 404 page. The SPA serves index.html for every route
@@ -7,6 +8,7 @@ import { DottedGlobe } from "./icons.jsx";
 // the noindex meta tag, and offers users a path back to known
 // surfaces.
 export const NotFoundPage = () => {
+  useBodyScrollable();
   useEffect(() => {
     document.title = "Not found — Globestudio";
     const head = document.head;
