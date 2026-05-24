@@ -4648,21 +4648,26 @@ input[type="range"]:active::-moz-range-thumb {
   cursor: pointer;
 }
 
-/* Reset all global ::-webkit and ::-moz slider track defaults — the
-   6px tall gradient bar from the main panel sliders would otherwise
-   show through the hue and alpha tracks as a thin horizontal line. */
+/* Reset the global track styling but use FULL height for the
+   runnable-track so the thumb centers on the bar's vertical middle.
+   With height: 0 the browser places the (0-height) track at the
+   bottom of the input area, which dragged the thumb visibly below
+   the bar. Full-height transparent track keeps the visual clean while
+   restoring proper vertical thumb positioning. */
 .color-picker-hue input[type="range"]::-webkit-slider-runnable-track,
 .color-picker-alpha input[type="range"]::-webkit-slider-runnable-track {
-  height: 0;
+  height: 100%;
   background: transparent;
   border-radius: 0;
+  border: 0;
 }
 
 .color-picker-hue input[type="range"]::-moz-range-track,
 .color-picker-alpha input[type="range"]::-moz-range-track {
-  height: 0;
+  height: 100%;
   background: transparent;
   border-radius: 0;
+  border: 0;
 }
 
 .color-picker-hue input[type="range"]::-moz-range-progress,
