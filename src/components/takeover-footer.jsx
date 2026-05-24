@@ -21,6 +21,7 @@ export const TakeoverFooter = () => (
         <Github size={12} />
         <span>GitHub</span>
       </a>
+      <a href="/privacy">Privacy</a>
       <a
         href="https://github.com/alevizio/globestudio/blob/main/LICENSE"
         target="_blank"

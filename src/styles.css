@@ -233,7 +233,8 @@ button {
    they read as siblings. */
 .brand-page,
 .docs-page,
-.changelog-page {
+.changelog-page,
+.privacy-page {
   position: relative;
   min-height: 100svh;
   max-width: 760px;
@@ -245,7 +246,8 @@ button {
 
 .brand-page-header,
 .docs-page-header,
-.changelog-page-header {
+.changelog-page-header,
+.privacy-page-header {
   margin-bottom: 36px;
 }
 
@@ -255,7 +257,8 @@ button {
    route (/, /docs, /brand, /404 also uses the same mark). */
 .brand-page-brand,
 .docs-page-brand,
-.changelog-page-brand {
+.changelog-page-brand,
+.privacy-page-brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -271,14 +274,16 @@ button {
 
 .brand-page-brand:hover,
 .docs-page-brand:hover,
-.changelog-page-brand:hover {
+.changelog-page-brand:hover,
+.privacy-page-brand:hover {
   opacity: 0.7;
   text-decoration: none;
 }
 
 .brand-page-title,
 .docs-page-title,
-.changelog-page-title {
+.changelog-page-title,
+.privacy-page-title {
   margin: 0 0 10px;
   font-size: 32px;
   font-weight: 800;
@@ -287,7 +292,8 @@ button {
 
 .brand-page-lede,
 .docs-page-lede,
-.changelog-page-lede {
+.changelog-page-lede,
+.privacy-page-lede {
   margin: 0;
   color: var(--muted);
   font-size: 16px;
@@ -671,6 +677,90 @@ button {
 
 .changelog-section a:hover {
   text-decoration-color: var(--text);
+}
+
+/* /privacy page. Same vertical-rhythm as the other takeover pages —
+   just adds list + opt-out button styling. */
+.privacy-section {
+  margin-top: 40px;
+}
+
+.privacy-section-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.privacy-section p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  max-width: 64ch;
+}
+
+.privacy-section a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+}
+
+.privacy-section a:hover {
+  text-decoration-color: var(--text);
+}
+
+.privacy-section code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--field);
+  font-family: var(--font-mono-2);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.privacy-list {
+  margin: 0 0 12px;
+  padding: 0 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text);
+}
+
+.privacy-list li {
+  line-height: 1.55;
+}
+
+.privacy-optout {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--field);
+}
+
+.privacy-optout-button {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface-hover);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 140ms var(--ease), border-color 140ms var(--ease);
+}
+
+.privacy-optout-button:hover {
+  background: var(--panel-3);
+  border-color: var(--text);
+}
+
+.privacy-optout-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 /* Shared footer for the static takeover pages. Sits at the bottom of

@@ -23,7 +23,7 @@ const distAssets = resolve(here, "..", "dist", "assets");
 // Budgets are bytes. Raw = uncompressed; gzip = sent over the wire.
 const BUDGETS = [
   // Initial-load chunks (block first paint)
-  { prefix: "index-",            ext: ".js",  raw: 270_000,  gzip:  82_000, lazy: false },
+  { prefix: "index-",            ext: ".js",  raw: 280_000,  gzip:  84_000, lazy: false },
   { prefix: "react-",            ext: ".js",  raw: 210_000,  gzip:  70_000, lazy: false },
   { prefix: "dotted-map-",       ext: ".js",  raw: 430_000,  gzip: 170_000, lazy: false },
   { prefix: "src-",              ext: ".js",  raw:  20_000,  gzip:   8_000, lazy: false },
