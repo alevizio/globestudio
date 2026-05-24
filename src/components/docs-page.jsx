@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { lookPresets } from "../data/look-presets.js";
-import { Github } from "./icons.jsx";
+import { DottedGlobe, Github } from "./icons.jsx";
 
 // Single-page documentation route. Pulls the most-asked questions
 // from the README + the docs/ folder into one place so users don't
@@ -76,8 +76,9 @@ export const DocsPage = () => {
   return (
     <main className="docs-page">
       <header className="docs-page-header">
-        <a className="docs-page-back" href="/">
-          ← Back to Globestudio
+        <a className="docs-page-brand" href="/" aria-label="Globestudio home">
+          <DottedGlobe size={40} />
+          <span>Globestudio</span>
         </a>
         <h1 className="docs-page-title">Docs</h1>
         <p className="docs-page-lede">

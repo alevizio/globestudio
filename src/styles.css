@@ -240,19 +240,29 @@ button {
   margin-bottom: 36px;
 }
 
-.brand-page-back,
-.docs-page-back {
-  display: inline-block;
-  margin-bottom: 18px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 700;
+/* Brand mark + wordmark link in the takeover-page headers. Doubles as
+   the "back to Globestudio" affordance — the entire row is the home
+   link. Keeps the DottedGlobe icon visually anchored at every static
+   route (/, /docs, /brand, /404 also uses the same mark). */
+.brand-page-brand,
+.docs-page-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+  padding: 4px 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   text-decoration: none;
+  transition: opacity 140ms var(--ease);
 }
 
-.brand-page-back:hover,
-.docs-page-back:hover {
-  color: var(--text);
+.brand-page-brand:hover,
+.docs-page-brand:hover {
+  opacity: 0.7;
+  text-decoration: none;
 }
 
 .brand-page-title,
