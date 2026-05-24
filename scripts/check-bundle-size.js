@@ -48,7 +48,7 @@ const BUDGETS = [
 // the canvas appears. Bumped after disabling CSS minification (see
 // vite.config.js#cssMinify) to keep modal backdrop-filter prefixes
 // intact; this is the floor including that ~7 kB CSS cost.
-const INITIAL_GZIP_BUDGET = 320_000;
+const INITIAL_GZIP_BUDGET = 325_000;
 
 const format = (bytes) => {
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;

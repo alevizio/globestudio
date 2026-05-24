@@ -46,6 +46,7 @@ import { AboutOverlay } from "./components/about-overlay.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
 import { CommandPalette } from "./components/command-palette.jsx";
 import { OnboardingHint } from "./components/onboarding-hint.jsx";
+import { Analytics, track } from "./components/analytics.jsx";
 import { BrandPage } from "./components/brand-page.jsx";
 import { DocsPage } from "./components/docs-page.jsx";
 import { ChangelogPage } from "./components/changelog-page.jsx";
@@ -492,6 +493,9 @@ const App = () => {
     // canonical link, BreadcrumbList JSON-LD). Pure DOM side-effect —
     // see src/utils/preset-route.js.
     updatePresetRoute(preset);
+    // Privacy-respecting analytics: no PII, just which preset was
+    // applied. See src/components/analytics.jsx for opt-out logic.
+    track("preset_applied", { preset: preset.id });
   }, [uiTheme]);
 
   // Declared here (not at the top of the component body) so the
@@ -1352,6 +1356,7 @@ const App = () => {
       )}
       <FollowTooltip />
       <OnboardingHint />
+      <Analytics />
       {/* Per-preset long-form copy below the fold. Renders only when a
           preset is applied (i.e. on /looks/:id URLs). Drives SEO Phase 4
           — each preset URL gets 200+ words of unique designer-facing

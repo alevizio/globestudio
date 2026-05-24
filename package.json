@@ -16,6 +16,8 @@
     "check": "npm run test && npm run build && npm run check:bundle"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "d3-geo": "^3.1.1",
     "d3-geo-projection": "^4.0.0",
     "dotted-map": "^3.1.0",
@@ -28,7 +30,6 @@
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
-    "world-countries": "^5.1.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@vitejs/plugin-react": "^6.0.1",
@@ -36,6 +37,7 @@
     "jsdom": "^29.1.1",
     "satori": "^0.26.0",
     "vite": "^8.0.12",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.6",
+    "world-countries": "^5.1.0"
   }
 }
