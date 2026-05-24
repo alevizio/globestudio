@@ -524,32 +524,20 @@ export const ControlPanel = ({
             onChange={setDotRotation}
           />
         </OptionRow>
-        <OptionRow label="Animate rotation">
-          <ToggleControl
-            label="Animate dot rotation"
-            checked={rotateAnimating}
-            onChange={(value) => setRotateAnimating?.(value)}
-          />
-        </OptionRow>
         </>)}
       </PanelSection>
 
       <Collapsible open={viewMode === "globe"}>
         <PanelSection title="Globe">
-          {/* Top-level pivots — affect everything else in the section */}
+          {/* Globe shell aesthetic — the look pivot affects what else
+              renders (routes only matter in borderless). Animations,
+              network, and auto-spin live in their own sections below. */}
           <OptionRow label="Look">
             <SelectControl
               label="Globe look"
               value={globeSettings.look}
               onChange={updateGlobeLook}
               options={globeLookOptions}
-            />
-          </OptionRow>
-          <OptionRow label="Animations">
-            <ToggleControl
-              label="Toggle globe animations"
-              checked={animationsEnabled}
-              onChange={(value) => setAnimationsEnabled?.(value)}
             />
           </OptionRow>
 
@@ -669,7 +657,24 @@ export const ControlPanel = ({
             </>
           )}
 
-          {/* Live network animation */}
+          {/* Global adjustments — sit at the bottom because they're not gated */}
+          <OptionRow label="Dot lift" value={globeSettings.dotLift}>
+            <RangeControl
+              label="Globe dot lift"
+              min={0}
+              max={100}
+              value={globeSettings.dotLift}
+              onChange={(value) => updateGlobeSetting("dotLift", value)}
+            />
+          </OptionRow>
+        </PanelSection>
+      </Collapsible>
+
+      {/* Network section — only relevant in 3D mode where arcs orbit
+          the globe. The master toggle gates the sub-rows so the
+          section stays compact when network is off. */}
+      <Collapsible open={viewMode === "globe"}>
+        <PanelSection title="Network">
           <OptionRow label="Network">
             <ToggleControl
               label="Toggle live network"
@@ -711,39 +716,54 @@ export const ControlPanel = ({
               </OptionRow>
             </>
           )}
-
-          {/* Auto spin */}
-          <OptionRow label="Auto spin">
-            <ToggleControl
-              label="Toggle globe auto spin"
-              checked={globeSettings.autoSpin}
-              onChange={(value) => updateGlobeSetting("autoSpin", value)}
-            />
-          </OptionRow>
-          {globeSettings.autoSpin && (
-            <OptionRow label="Speed" value={shaderSettings.motion}>
-              <RangeControl
-                label="Globe spin speed"
-                min={0}
-                max={100}
-                value={shaderSettings.motion}
-                onChange={(value) => updateShaderSetting("motion", value)}
-              />
-            </OptionRow>
-          )}
-
-          {/* Global adjustments — sit at the bottom because they're not gated */}
-          <OptionRow label="Dot lift" value={globeSettings.dotLift}>
-            <RangeControl
-              label="Globe dot lift"
-              min={0}
-              max={100}
-              value={globeSettings.dotLift}
-              onChange={(value) => updateGlobeSetting("dotLift", value)}
-            />
-          </OptionRow>
         </PanelSection>
       </Collapsible>
+
+      {/* Animations section — motion across the whole canvas.
+          The master toggle gates the others; auto-spin is hidden in
+          flat view since it doesn't apply. Animate dot rotation works
+          in both views. Vary size stays in Surface because it's a
+          static per-instance variation, not motion over time. */}
+      <PanelSection title="Animations">
+        <OptionRow label="Animations">
+          <ToggleControl
+            label="Toggle all animations"
+            checked={animationsEnabled}
+            onChange={(value) => setAnimationsEnabled?.(value)}
+          />
+        </OptionRow>
+        {animationsEnabled && (
+          <>
+            <OptionRow label="Animate rotation">
+              <ToggleControl
+                label="Animate dot rotation"
+                checked={rotateAnimating}
+                onChange={(value) => setRotateAnimating?.(value)}
+              />
+            </OptionRow>
+            <Collapsible open={viewMode === "globe"}>
+              <OptionRow label="Auto spin">
+                <ToggleControl
+                  label="Toggle globe auto spin"
+                  checked={globeSettings.autoSpin}
+                  onChange={(value) => updateGlobeSetting("autoSpin", value)}
+                />
+              </OptionRow>
+              {globeSettings.autoSpin && (
+                <OptionRow label="Speed" value={shaderSettings.motion}>
+                  <RangeControl
+                    label="Globe spin speed"
+                    min={0}
+                    max={100}
+                    value={shaderSettings.motion}
+                    onChange={(value) => updateShaderSetting("motion", value)}
+                  />
+                </OptionRow>
+              )}
+            </Collapsible>
+          </>
+        )}
+      </PanelSection>
 
       <PanelSection title="Shaders">
         <OptionRow label="Pass">
