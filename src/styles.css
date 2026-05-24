@@ -3021,12 +3021,12 @@ button {
 .export-modal-body {
   display: flex;
   flex-direction: column;
-  /* 22px gap so the 11px uppercase section labels (ASPECT, QUALITY,
-     etc.) get enough breathing room above them to read as separate
-     sections rather than one wall of options. The CTA gets an extra
-     8px on top of this via its own margin-top so it feels like a
-     distinct action, not the next item in the stack. */
-  gap: 22px;
+  /* 28px gap between sections — the 11px uppercase labels are visually
+     subordinate, so the section break needs to come from real vertical
+     space, not from the label's typographic weight. The CTA gets an
+     extra 8px on top of this via its own margin-top so it reads as
+     a distinct action below the section stack. */
+  gap: 28px;
   padding: 24px;
   overflow: auto;
 }
@@ -3058,15 +3058,19 @@ button {
 .export-modal-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  /* 12px label → control gap so the label sits as a clear section
+     header above its pills / input, not glued to it. Combined with
+     the body's 28px section gap, the hierarchy reads as
+     "label → control → big break → next label". */
+  gap: 12px;
 }
 
 .export-modal-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--dim);
+  color: var(--muted);
 }
 
 .export-modal-pills {
@@ -3109,7 +3113,9 @@ button {
 .export-modal-dimension {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  /* Matches .export-modal-field gap so the label → input distance is
+     consistent across pill rows and number inputs. */
+  gap: 12px;
 }
 
 .export-modal-input {
