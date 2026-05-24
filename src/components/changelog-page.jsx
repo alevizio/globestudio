@@ -77,8 +77,10 @@ export const ChangelogPage = () => {
         </a>
         <h1 className="changelog-page-title">Changelog</h1>
         <p className="changelog-page-lede">
-          What's shipped recently. The full long-form changelog with every
-          commit category lives in{" "}
+          What's shipped recently.{" "}
+          <a href="/changelog.xml">RSS feed</a>
+          {" "}for your reader of choice. The full long-form changelog with
+          every commit category lives in{" "}
           <a
             href="https://github.com/alevizio/globestudio/blob/main/CHANGELOG.md"
             target="_blank"

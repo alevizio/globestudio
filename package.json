@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "prebuild": "node scripts/generate-sitemap.js",
+    "prebuild": "node scripts/generate-sitemap.js && node scripts/generate-changelog-rss.js",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",

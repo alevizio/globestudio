@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Globestudio changelog</title>
+    <link>https://globestudio.app/changelog</link>
+    <atom:link href="https://globestudio.app/changelog.xml" rel="self" type="application/rss+xml" />
+    <description>Recent shipped work in Globestudio — new presets, polish, infrastructure, and first-visit experience.</description>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 24 May 2026 14:37:38 GMT</lastBuildDate>
+    <item>
+      <title>Wave 2 polish</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#wave-2-polish</guid>
+      <pubDate>Fri, 01 May 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Cmd+K command palette with fuzzy search across every preset + action</li>
+  <li>Two new presets — Toon (cel-shaded) and Threshold (two-tone binary)</li>
+  <li>Looks bar — active-chip sheen sweep, hover lift, branded tooltips</li>
+  <li>Modal frosted-glass treatment scoped to the card</li>
+  <li>Ambient mode — collapse the panel and the whole canvas goes full-bleed</li>
+  <li>Brand-icon ripple acknowledgement when a preset lands</li>
+  <li>Preset crossfade — canvas opacity dips during the swap</li>
+  <li>Globe canvas blur-fade entrance on first paint</li>
+  <li>Color picker thumb alignment + bar height matched to thumb</li>
+  <li>/docs and /brand routes branded with the DottedGlobe mark</li>
+  <li>/404 takeover for unknown routes</li>
+</ul>]]></description>
+    </item>
+    <item>
+      <title>Infrastructure</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#infrastructure</guid>
+      <pubDate>Fri, 01 May 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Public JSON Schema for community preset PRs + CI validation</li>
+  <li>Per-chunk bundle-size budgets enforced on every PR</li>
+  <li>Lighthouse CI gate (LCP, CLS, performance score, a11y)</li>
+  <li>App.jsx refactored — 1545 → 1290 lines, six hooks extracted</li>
+  <li>Smoke test guards against TDZ-style first-render crashes</li>
+  <li>NOTICE.md + correct Pixelarticons MIT attribution</li>
+  <li>Lazy chunk prefetch on first user interaction</li>
+</ul>]]></description>
+    </item>
+    <item>
+      <title>First-visit experience</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#first-visit-experience</guid>
+      <pubDate>Fri, 01 May 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Onboarding hint pill — &quot;Press S to shuffle · [ ] to cycle&quot;</li>
+  <li>Coordinated entrance: globe canvas blooms in, panel slides in 120 ms later</li>
+  <li>First-visit choreography respects prefers-reduced-motion</li>
+</ul>]]></description>
+    </item>
+  </channel>
+</rss>
