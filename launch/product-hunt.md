@@ -37,18 +37,24 @@
 > What's inside:
 > - 12 dot shapes + custom SVG/PNG upload + paste
 > - Linear gradients with per-stop opacity on dots, land, and stroke
-> - **17 stackable shader looks** — Halftone, Risograph, Aurora, Bayer +
->   Atkinson dither, CRT, Glitch, BadTV, Bloom, Metal, Pencil, Iridescent,
->   Wireframe, Pixel, Corrupt, Newsprint, and the default
+> - **21 stackable shader looks** — Halftone, Risograph, Newsprint,
+>   Aurora, Pixel, Bayer dither, Atkinson dither, Wireframe, CRT,
+>   Glitch, BadTV, Bloom, Metal, Pencil, Iridescent, Corrupt, Toon,
+>   Threshold, Vapor (synthwave RGB split), Topographic (contour
+>   cartography), and the default
 > - 5 projections: Mercator, Equal Earth, Winkel Tripel, Robinson, sphere
 > - Custom GeoJSON upload, rivers + cities overlays
 > - **`/embed` route** + Framer code component + Webflow integration docs
 > - Shareable preset URLs at `/looks/:id` with hand-designed OG cards
+> - **Cmd+K command palette** with fuzzy search by name or vibe
+>   ("synthwave" → Vapor, "retro" → CRT/BadTV/Pixel)
 > - Live animations with `prefers-reduced-motion` support
-> - Full keyboard system (`S` shuffle, `[`/`]` cycle presets, `D` export…)
+> - Full keyboard system (`S` shuffle, `[`/`]` cycle, `D` export, `H` hide…)
 > - Exports: PNG (WebGL re-render at any scale), SVG (shaders baked in),
->   WebM video, JSON config
-> - No backend, no accounts, no telemetry — everything in your browser
+>   WebM video, JSON config (with `$schema` for editor autocomplete)
+> - Branded `/docs`, `/changelog` (with RSS), `/brand` press kit, `/privacy`
+> - No backend, no accounts, no cookies, no fingerprinting — cookieless
+>   analytics that respects Do-Not-Track + GPC by default
 >
 > MIT licensed. Built with React + Three.js. WCAG 2.2 AA conformant.
 
@@ -59,10 +65,11 @@
 > Hi PH 👋 — Alejandro here.
 >
 > Globestudio started as a small experiment called *worlddots* — literally
-> just dotted maps. Over the last few months it grew up: 17 shader looks
-> (halftone, risograph, aurora, dither, foil), a 3D globe, an embed route,
-> a Framer reference component, Webflow docs. The name stopped fitting.
-> So I renamed it Globestudio — the proper name for what it actually does.
+> just dotted maps. Over the last few months it grew up: 21 shader looks
+> (halftone, risograph, aurora, dither, foil, synthwave, contour-cartography),
+> a 3D globe, a Cmd+K command palette, an embed route, a Framer reference
+> component, Webflow docs. The name stopped fitting. So I renamed it
+> Globestudio — the proper name for what it actually does.
 >
 > I built it because every time I needed a stylized world map or animated
 > globe for a landing page or deck, I'd either reach for a paid design tool,

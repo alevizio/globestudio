@@ -42,10 +42,11 @@ remembers worlddots.
 >
 > Quick context for anyone who recognizes the v1: this used to be called
 > *worlddots*. The original launch was a single-feature thing — dotted maps.
-> Since then it's grown into 17 shader looks (halftone, risograph, aurora,
-> dither, CRT, glitch, foil), a 3D globe, embed route, Framer reference
-> component, and Webflow docs. "Dots" stopped describing it. Globestudio
-> is the proper name for what it actually is now.
+> Since then it's grown into 21 shader looks (halftone, risograph, aurora,
+> dither, CRT, glitch, foil, vapor, topographic), a 3D globe, a Cmd+K
+> command palette, embed route, Framer reference component, and Webflow
+> docs. "Dots" stopped describing it. Globestudio is the proper name for
+> what it actually is now.
 >
 > The angle: open-source map tooling splits into two camps — engineering
 > libraries (MapLibre, deck.gl, react-simple-maps, Protomaps) built for
@@ -61,18 +62,24 @@ remembers worlddots.
 > - Maps: world, country, region, subregion, US state
 > - 12 dot shapes + custom SVG/PNG upload + paste
 > - Linear gradients with per-stop opacity on dots, land fill, stroke
-> - **17 stackable shader looks**: Halftone, Risograph, Newsprint, Aurora,
+> - **21 stackable shader looks**: Halftone, Risograph, Newsprint, Aurora,
 >   Pixel, Bayer dither, Atkinson dither, Wireframe, CRT, Glitch, BadTV,
->   Bloom, Metal, Pencil, Iridescent, Corrupt, default. All WebGL
->   post-processing — this is the wedge no other map tool ships.
+>   Bloom, Metal, Pencil, Iridescent, Corrupt, Toon, Threshold, Vapor
+>   (synthwave RGB split), Topographic (contour-line cartography), Default.
+>   All WebGL post-processing — this is the wedge no other map tool ships.
 > - 5 projections: Mercator, Equal Earth, Winkel Tripel, Robinson, sphere
 > - Custom GeoJSON upload, rivers + cities overlays, French country search
 > - **`/embed` route** for iframe-ing into Webflow / Framer / Notion / HTML
 > - Framer code component reference + Webflow integration docs
 > - Animated network arcs, twinkle, optional rotation
 > - Exports: PNG (WebGL re-render at any scale), SVG (with shaders baked
->   in), WebM video, JSON config
-> - **No signup, no API key, no telemetry. MIT.**
+>   in), WebM video, JSON config (with `$schema` for editor autocomplete)
+> - **Cmd+K command palette** — fuzzy search across every preset by name
+>   or vibe ("synthwave" → Vapor, "retro" → CRT/BadTV/Pixel) plus
+>   shuffle/reset/export/help actions
+> - **No signup, no API key, no cookies, no fingerprinting.** Cookieless
+>   analytics (Vercel Web Analytics) that respects Do-Not-Track + GPC by
+>   default — see /privacy. MIT.
 >
 > Some implementation notes that might be interesting:
 >
@@ -91,8 +98,12 @@ remembers worlddots.
 >    when FPS climbs back. Keeps the experience usable on weaker GPUs
 >    without a quality dropdown.
 >
-> 4. No backend, no accounts, no telemetry. Everything client-side; presets
->    live in src/data/look-presets.js.
+> 4. No backend, no accounts. Cookieless Vercel Web Analytics that's gated
+>    behind navigator.doNotTrack / globalPrivacyControl by default — see
+>    /privacy for the opt-out (and the analytics code itself). Everything
+>    else is client-side; presets live in src/data/look-presets.js, and
+>    the JSON schema at /schema/config.json defines the public contract
+>    for community preset PRs.
 >
 > MIT. Built with React + Three.js + Vite.
 >

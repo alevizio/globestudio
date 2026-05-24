@@ -22,8 +22,9 @@ Hi {Name},
 
 I'm relaunching the project formerly known as *worlddots* under a new name:
 **Globestudio**. Open-source tool for dotted maps and animated 3D globes
-— it outgrew the old name when I shipped 17 shader looks, a 3D globe,
-and an embed route since v1. Launching next {weekday}.
+— it outgrew the old name when I shipped 21 shader looks, a 3D globe,
+a Cmd+K command palette, and an embed route since v1. Launching next
+{weekday}.
 
 {ONE-SENTENCE PERSONAL HOOK — see hooks library below}
 
@@ -31,12 +32,15 @@ What it does:
 • Maps for any country, region, or US state
 • 12 dot shapes (plus custom SVG/PNG upload)
 • Linear gradients with per-stop opacity
-• Shader effects (bloom, chromatic, CRT, glitch, halftone…)
-• Real exports: PNG (high-res), SVG, WebM video
-• MIT-licensed, runs client-side, no accounts
+• 24 WebGL shader effects across 21 presets (halftone, riso, aurora,
+  CRT, glitch, vapor, topographic, …)
+• Cmd+K command palette with fuzzy search by name or vibe
+• Real exports: PNG (high-res), SVG, WebM video, JSON config
+• MIT-licensed, runs client-side, no accounts, no cookies, no fingerprinting
 
 Live: https://globestudio.app
 GitHub: https://github.com/alevizio/globestudio
+Press kit (logos + OG cards + palette): https://globestudio.app/brand
 Short demo: {link to a 20s screen recording on Vimeo / YouTube / X}
 
 If this feels relevant for {their publication / their audience}, I'd be
@@ -185,13 +189,23 @@ When someone responds:
 
 ---
 
-## Press kit (build this on a /press page or Notion link)
+## Press kit
 
-Have it ready before you send the first email.
+The `/brand` route on globestudio.app already serves the press kit:
 
-- Logo + wordmark (PNG + SVG, on dark and light)
-- 5 hero screenshots at 1920×1080
-- 1 short demo video (20-30s) + 1 long demo (60-90s)
-- One-paragraph description, one-sentence description, one-word category
-- Founder photo + bio (3 sentences)
-- A direct contact email
+- **DottedGlobe logo** (SVG, dark + light card preview, download link)
+- **6 OG card thumbnails** (1200×630, downloadable per preset)
+- **Five-swatch palette** with hex codes tied to the design tokens
+- **Four taglines** at varying lengths
+- **Contact links** (GitHub, X, alevizio.com)
+
+Live: https://globestudio.app/brand
+
+To send to journalists who want assets, just link `/brand`. Anything they
+need that's not there, ping me and I'll add it. Still owe pre-launch:
+
+- [ ] 1 short demo video (20-30s) + 1 long demo (60-90s) — record day-of
+      or T-1 with QuickTime + ffmpeg compression (see product-hunt.md
+      gallery plan for the ffmpeg command)
+- [ ] Founder photo + bio (3 sentences) — maybe add to /brand if it
+      becomes a frequent ask

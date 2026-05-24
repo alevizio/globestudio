@@ -19,7 +19,7 @@ isolation. Attach the visual asset described in `[asset: …]` to that tweet.
 >
 > meet globestudio — open-source dotted maps and animated 3D globes for
 > designers, animators, and creative developers. v1 was just dots. v2 is
-> 17 shader looks, a 3D globe, embed anywhere.
+> 21 shader looks, a 3D globe, a cmd+k palette, embed anywhere.
 >
 > built with three.js + react. MIT.
 >
@@ -65,11 +65,12 @@ isolation. Attach the visual asset described in `[asset: …]` to that tweet.
 
 **5/9** (shaders)
 
-> 9 webgl shader effects baked in: bloom, chromatic split, CRT, halftone,
-> pixel, threshold, edge, glitch, wave
+> 24 webgl shader effects baked in: halftone, riso, newsprint, aurora,
+> pixel, bayer, atkinson, edge, crt, glitch, badtv, bloom, metal, pencil,
+> iridescent, corrupt, toon, threshold, chromatic, wave, stripes, +more
 >
-> stack them with presets. the "Glitch" preset is my favorite — feels like
-> a vhs interface from 1998
+> stack them with 21 presets. my favorites: vapor (synthwave RGB split) and
+> topographic (warped contour cartography). both new this week.
 >
 > *[asset: 6 presets side by side, animated]*
 
@@ -84,6 +85,16 @@ isolation. Attach the visual asset described in `[asset: …]` to that tweet.
 > drops straight into figma, keynote, premiere, your landing page
 >
 > *[asset: export modal screenshot with the SVG tab open]*
+
+**6.5/9** (cmd+k palette — fits well anywhere)
+
+> hit ⌘K. type "synthwave" → vapor. type "retro" → crt, badtv, pixel.
+> type "print" → halftone, risograph, newsprint. natural-language search
+> over all 21 presets + every action (shuffle, export, switch view…)
+>
+> no api key. no LLM. just tags + fuzzy match
+>
+> *[asset: cmd+k palette open, with "synthwave" typed showing Vapor at top]*
 
 **7/9** (motion that respects motion preferences)
 
@@ -157,12 +168,14 @@ What's inside:
 - Maps for any country, region, or US state
 - 12 dot shapes + custom SVG/PNG upload + paste
 - Linear gradients with per-stop opacity
-- 17 WebGL shader looks (halftone, risograph, aurora, CRT, glitch, bloom, iridescent, pencil, …)
-- 17 presets with shareable URLs
+- 21 WebGL shader looks (halftone, risograph, aurora, vapor, topographic, …)
+- 21 presets with shareable URLs at /looks/:id
+- Cmd+K command palette with fuzzy search by name or vibe
 - Exports: PNG (high-res), SVG, WebM video
 - Full keyboard shortcuts + reduced-motion respect
 
-No backend, no accounts, no telemetry. Source on GitHub under MIT.
+No backend, no accounts, no cookies, no fingerprinting. Source on GitHub
+under MIT.
 
 Built with React + Three.js. Honored to share it with this community.
 
@@ -221,13 +234,14 @@ Globestudio is built around that workflow:
 • Maps for world, country, region, or US state
 • 12 dot shapes (plus custom SVG/PNG upload)
 • Linear gradients with per-stop opacity on dots, land, and stroke
-• WebGL shader effects — bloom, chromatic, CRT, halftone, glitch, edge
-• 10+ named presets with shareable URLs (/looks/:id)
+• 24 WebGL shader effects — bloom, chromatic, CRT, halftone, glitch, edge, +18 more
+• 21 named presets with shareable URLs (/looks/:id) and per-preset OG cards
+• Cmd+K command palette with fuzzy search by name or vibe
 • Real exports: PNG (high-res), SVG (with effects baked in), WebM video
-• Full keyboard shortcuts and accessibility (reduced-motion respect)
+• Full keyboard shortcuts and accessibility (reduced-motion respect, WCAG 2.2 AA)
 
 It's MIT-licensed, runs entirely client-side, and is built with React +
-Three.js. No backend, no accounts, no telemetry.
+Three.js. No backend, no accounts, no cookies, no fingerprinting.
 
 If you build landing pages, brand systems, design decks, or motion content
 that touches geography — I'd love your feedback. And if you build something
@@ -255,11 +269,11 @@ for this.
 > Live: https://globestudio.app
 > Source: https://github.com/alevizio/globestudio — MIT
 >
-> It's react + three.js, runs entirely in the browser, and has 17 presets
-> + a keyboard system + per-stop opacity gradients. The thing I'm most
-> curious about: what use cases am I missing? I had hero shots, deck
-> visuals, and country-specific brand assets in mind — what else would you
-> reach for it for?
+> It's react + three.js, runs entirely in the browser, and has 21 presets,
+> a Cmd+K command palette, per-stop opacity gradients, and a full keyboard
+> system. The thing I'm most curious about: what use cases am I missing?
+> I had hero shots, deck visuals, and country-specific brand assets in
+> mind — what else would you reach for it for?
 >
 > Genuine feedback welcome, performance bugs especially.
 
