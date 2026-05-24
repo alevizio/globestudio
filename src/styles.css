@@ -4630,8 +4630,13 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-hue input[type="range"] {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  /* Inset by half the thumb width on each side so the 16 px thumb's
+     edges stay flush with the bar's rounded corners at value extremes
+     — native <input type="range"> centers the thumb on the value
+     position, so at value=min it would overhang ~8 px past the bar's
+     left edge (and ~8 px past the right at value=max) without this. */
+  inset: 0 8px;
+  width: calc(100% - 16px);
   height: 100%;
   margin: 0;
   padding: 0;
@@ -4716,8 +4721,13 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-alpha input[type="range"] {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  /* Inset by half the thumb width on each side so the 16 px thumb's
+     edges stay flush with the bar's rounded corners at value extremes
+     — native <input type="range"> centers the thumb on the value
+     position, so at value=min it would overhang ~8 px past the bar's
+     left edge (and ~8 px past the right at value=max) without this. */
+  inset: 0 8px;
+  width: calc(100% - 16px);
   height: 100%;
   margin: 0;
   padding: 0;
