@@ -4614,7 +4614,9 @@ input[type="range"]:active::-moz-range-thumb {
   display: block;
   width: 100%;
   margin: 0;
-  height: 12px;
+  /* Bar height matches the 16 px thumb so the thumb sits fully inside
+     the track (no vertical poke-out above / below the bar). */
+  height: 16px;
   border-radius: 3px;
   background: linear-gradient(
     to right,
@@ -4674,8 +4676,8 @@ input[type="range"]:active::-moz-range-thumb {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  /* Centers the 16px thumb on the 12px track — (12 - 16) / 2 = -2 */
-  margin-top: -2px;
+  /* Bar is now 16px tall to match the thumb — no offset needed. */
+  margin-top: 0;
   border-radius: 3px;
   background: var(--thumb-fill);
   box-shadow: var(--shadow-thumb);
@@ -4704,7 +4706,8 @@ input[type="range"]:active::-moz-range-thumb {
   display: block;
   width: 100%;
   margin: 0;
-  height: 12px;
+  /* Matches .color-picker-hue height so the 16 px thumb fits flush. */
+  height: 16px;
   border-radius: 3px;
   /* Checkerboard tile + color gradient on top so transparency is visible.
      `background-repeat: no-repeat, round` makes the checkerboard tile
