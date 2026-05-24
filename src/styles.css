@@ -673,6 +673,60 @@ button {
   text-decoration-color: var(--text);
 }
 
+/* Shared footer for the static takeover pages. Sits at the bottom of
+   /docs, /brand, /changelog, /404 so the chrome is consistent and
+   every page has the same back-to-home / GitHub / license set of
+   anchors. */
+.takeover-footer {
+  margin-top: 72px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.takeover-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.takeover-footer-brand:hover {
+  text-decoration: none;
+  opacity: 0.7;
+}
+
+.takeover-footer-links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.takeover-footer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 140ms var(--ease);
+}
+
+.takeover-footer-links a:hover {
+  color: var(--text);
+}
+
 /* 404 takeover. Centered, minimal — no canvas. */
 .not-found-page {
   position: relative;

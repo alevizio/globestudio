@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
+import { TakeoverFooter } from "./takeover-footer.jsx";
 import { DottedGlobe, Github, Twitter } from "./icons.jsx";
 
 // Press kit / brand assets for journalists + bloggers covering the
@@ -174,6 +175,8 @@ export const BrandPage = () => {
           </a>
         </div>
       </section>
+
+      <TakeoverFooter />
     </main>
   );
 };

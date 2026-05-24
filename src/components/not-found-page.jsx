@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
+import { TakeoverFooter } from "./takeover-footer.jsx";
 import { DottedGlobe } from "./icons.jsx";
 
 // Catch-all 404 page. The SPA serves index.html for every route
@@ -56,6 +57,7 @@ export const NotFoundPage = () => {
           Try a preset
         </a>
       </div>
+      <TakeoverFooter />
     </main>
   );
 };

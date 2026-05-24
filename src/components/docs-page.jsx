@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { lookPresets } from "../data/look-presets.js";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
+import { TakeoverFooter } from "./takeover-footer.jsx";
 import { DottedGlobe, Github } from "./icons.jsx";
 
 // Single-page documentation route. Pulls the most-asked questions
@@ -266,6 +267,8 @@ export const DocsPage = () => {
           </a>
         </div>
       </section>
+
+      <TakeoverFooter />
     </main>
   );
 };

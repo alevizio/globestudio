@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
+import { TakeoverFooter } from "./takeover-footer.jsx";
 import { DottedGlobe, Github } from "./icons.jsx";
 
 // Hand-curated changelog surface. The full CHANGELOG.md lives at the
@@ -126,11 +127,13 @@ export const ChangelogPage = () => {
             target="_blank"
             rel="noreferrer noopener"
           >
-            <span aria-hidden="true">→</span>
+<span aria-hidden="true">→</span>
             <span>Commit history</span>
           </a>
         </div>
       </section>
+
+      <TakeoverFooter />
     </main>
   );
 };
