@@ -231,6 +231,41 @@
       }
     </script>
 
+    <!-- Preconnect early so the @font-face fetch (declared below) can
+         skip TLS + DNS handshake latency. Saves ~150-300ms on slow
+         mobile connections where the font CDN is otherwise discovered
+         late in the critical path. -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+
+    <!-- Critical CSS for the LCP element. .map-background-placeholder
+         is the full-viewport <div> rendered inside the Suspense fallback
+         while the lazy GlobeBackground chunk resolves — i.e. the first
+         meaningful paint on mobile (before three.js + dotted-map load).
+         Inlining ~600 bytes here skips the round-trip to fetch the main
+         CSS bundle before LCP fires. See
+         docs/research/2026-05-mobile-lcp-optimization.md. -->
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0b0c;
+        --text: #f6f2ea;
+      }
+      html, body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+      body { overflow: hidden; }
+      .map-background-placeholder {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background:
+          radial-gradient(circle at 60% 50%, rgba(120, 140, 200, 0.04) 0%, transparent 38%),
+          var(--bg);
+      }
+    </style>
+
     <!-- Geist Pixel (Square variant) — Vercel's open-source pixel typeface,
          hosted on GitHub. Five shape variants exist; Square pairs cleanest
          with the pixelarticons icon set. Single weight (no bold), so the

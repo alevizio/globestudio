@@ -69,6 +69,30 @@ export default defineConfig({
     // preserves both. The CSS gzip size is ~3 kB heavier; well worth
     // it for cross-browser blur.
     cssMinify: false,
+    // The default modulePreload behavior emits <link rel="modulepreload">
+    // for every dynamic import target — meaning the lazy `three`,
+    // `dotted-map`, and `globe-background` chunks (which usePrefetchHeavy
+    // Chunks already warms on first user gesture) get preloaded during
+    // the critical-path HTML parse, stealing mobile bandwidth from the
+    // render-blocking CSS + the React entry chunk. That gates the
+    // .map-background-placeholder LCP element on slow networks.
+    //
+    // resolveDependencies returns only entry-essential deps for the
+    // initial bundle. The heavy lazy chunks still load on demand via
+    // their normal dynamic-import flow (and via usePrefetchHeavyChunks
+    // on the first mouse/key event) — they just no longer compete for
+    // the initial network budget.
+    modulePreload: {
+      resolveDependencies: (filename, deps) =>
+        deps.filter((dep) => {
+          if (/[/\\]three[-.]/.test(dep)) return false;
+          if (/[/\\]dotted-map[-.]/.test(dep)) return false;
+          if (/[/\\]globe-background[-.]/.test(dep)) return false;
+          if (/[/\\]countries-50m[-.]/.test(dep)) return false;
+          if (/[/\\]states-10m[-.]/.test(dep)) return false;
+          return true;
+        }),
+    },
     rollupOptions: {
       output: {
         manualChunks: (id) => {
