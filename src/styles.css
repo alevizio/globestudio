@@ -2265,7 +2265,9 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 16px 16px 20px;
+  /* Left edge aligns with body (24px); right is a touch tighter to
+     give the close button breathing room without orphaning it. */
+  padding: 20px 20px 20px 24px;
 }
 
 .export-modal-title {
@@ -2300,7 +2302,9 @@ button {
   position: relative;
   display: flex;
   gap: 4px;
-  padding: 12px 16px 0;
+  /* Sides align with header + body (24px) so the dashed divider runs
+     across the modal's full content column without jogging in/out. */
+  padding: 12px 24px 0;
 }
 
 /* Dashed divider line under the tab strip. */
@@ -3017,8 +3021,13 @@ button {
 .export-modal-body {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 20px;
+  /* 22px gap so the 11px uppercase section labels (ASPECT, QUALITY,
+     etc.) get enough breathing room above them to read as separate
+     sections rather than one wall of options. The CTA gets an extra
+     8px on top of this via its own margin-top so it feels like a
+     distinct action, not the next item in the stack. */
+  gap: 22px;
+  padding: 24px;
   overflow: auto;
 }
 
@@ -3063,7 +3072,7 @@ button {
 .export-modal-pills {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .export-modal-pill {
@@ -3155,7 +3164,17 @@ button {
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  /* Extra 8px above the body's 22px gap so the CTA reads as a distinct
+     action rather than the next item in the section stack. Negative
+     margin trick won't help here — explicit margin-top gives the modal
+     a clear "actions live below" rhythm. Subsequent CTAs (.is-secondary
+     stacked under .is-primary) reset to 0 so they cluster tightly. */
+  margin-top: 8px;
   transition: background 160ms var(--ease), border-color 160ms var(--ease), transform 80ms var(--ease);
+}
+
+.export-modal-cta + .export-modal-cta {
+  margin-top: 4px;
 }
 
 .export-modal-cta:hover:not(:disabled) {
