@@ -33,7 +33,7 @@ const BUDGETS = [
   // / backdrop-filter pairs when minified, breaking modal frosted-glass
   // across browsers (see vite.config.js#cssMinify: false). Budget bumped
   // accordingly; gzip still small enough that this is worth it.
-  { prefix: "index-",            ext: ".css", raw: 130_000,  gzip:  28_000, lazy: false },
+  { prefix: "index-",            ext: ".css", raw: 145_000,  gzip:  30_000, lazy: false },
 
   // Lazy chunks (loaded after first paint)
   { prefix: "globe-background-", ext: ".js",  raw: 120_000,  gzip:  40_000, lazy: true },
