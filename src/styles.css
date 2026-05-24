@@ -224,7 +224,10 @@ button {
   max-width: 720px;
   padding: 64px 32px 96px;
   color: var(--text);
-  font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* Inherit Geist Pixel from body for consistency with the takeover
+     pages and the canvas chrome. */
+  font-size: 15px;
+  line-height: 1.65;
   background: linear-gradient(180deg, transparent 0%, var(--bg) 18%);
 }
 
@@ -241,7 +244,11 @@ button {
   margin: 0 auto;
   padding: 56px 24px 96px;
   color: var(--text);
-  font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* Inherit Geist Pixel from body — keeps the typeface consistent
+     across the canvas app and every takeover page. Line-height is
+     a bit looser than the default to keep long-form copy readable. */
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 .brand-page-header,

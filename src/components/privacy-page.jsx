@@ -54,7 +54,6 @@ export const PrivacyPage = () => {
       <header className="privacy-page-header">
         <a className="privacy-page-brand" href="/" aria-label="Globestudio home">
           <DottedGlobe size={40} />
-          <span>Globestudio</span>
         </a>
         <h1 className="privacy-page-title">Privacy</h1>
         <p className="privacy-page-lede">

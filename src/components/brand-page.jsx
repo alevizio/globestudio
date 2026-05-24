@@ -49,7 +49,6 @@ export const BrandPage = () => {
       <header className="brand-page-header">
         <a className="brand-page-brand" href="/" aria-label="Globestudio home">
           <DottedGlobe size={40} />
-          <span>Globestudio</span>
         </a>
         <h1 className="brand-page-title">Press kit</h1>
         <p className="brand-page-lede">

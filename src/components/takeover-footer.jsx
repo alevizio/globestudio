@@ -7,7 +7,6 @@ export const TakeoverFooter = () => (
   <footer className="takeover-footer">
     <a className="takeover-footer-brand" href="/" aria-label="Globestudio home">
       <DottedGlobe size={20} />
-      <span>Globestudio</span>
     </a>
     <nav className="takeover-footer-links" aria-label="Site links">
       <a href="/docs">Docs</a>

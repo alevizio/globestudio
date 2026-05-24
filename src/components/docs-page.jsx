@@ -81,7 +81,6 @@ export const DocsPage = () => {
       <header className="docs-page-header">
         <a className="docs-page-brand" href="/" aria-label="Globestudio home">
           <DottedGlobe size={40} />
-          <span>Globestudio</span>
         </a>
         <h1 className="docs-page-title">Docs</h1>
         <p className="docs-page-lede">

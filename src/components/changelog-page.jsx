@@ -73,7 +73,6 @@ export const ChangelogPage = () => {
       <header className="changelog-page-header">
         <a className="changelog-page-brand" href="/" aria-label="Globestudio home">
           <DottedGlobe size={40} />
-          <span>Globestudio</span>
         </a>
         <h1 className="changelog-page-title">Changelog</h1>
         <p className="changelog-page-lede">
