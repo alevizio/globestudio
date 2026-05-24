@@ -7,6 +7,7 @@ import {
 } from "./config/globe-settings.js";
 import { areaOptionByValue, areaOptions } from "./data/geography.js";
 import { lookPresets } from "./data/look-presets.js";
+import { presetTags } from "./data/preset-tags.js";
 import { useUsStatesLoader } from "./hooks/use-us-states-loader.js";
 import { useShareConfigImport } from "./hooks/use-share-config-import.js";
 import { useRouteLook } from "./hooks/use-route-look.js";
@@ -912,6 +913,10 @@ const App = () => {
       label: preset.name,
       group: "Look",
       preset,
+      // Searchable adjectives (e.g. "synthwave", "retro", "print") so
+      // typing in Cmd+K finds presets by vibe, not just exact name.
+      // See src/data/preset-tags.js.
+      tags: presetTags[preset.id],
       run: () => applyLook(preset),
     })),
     {

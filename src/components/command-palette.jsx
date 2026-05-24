@@ -71,14 +71,24 @@ export const CommandPalette = ({ open, onClose, actions }) => {
       .map((action) => {
         const labelScore = fuzzyScore(action.label, query);
         const groupScore = action.group ? fuzzyScore(action.group, query) : -1;
-        const score =
-          labelScore === -1 && groupScore === -1
-            ? -1
-            : Math.min(
-                labelScore === -1 ? Number.POSITIVE_INFINITY : labelScore,
-                groupScore === -1 ? Number.POSITIVE_INFINITY : groupScore + 6,
-              );
-        return { action, score };
+        // Tag match: minimum score across any tag, with a small penalty
+        // so an exact label match still wins over a tag match. Lets
+        // users find presets by vibe ("synthwave" → Vapor, "retro" →
+        // CRT/BadTV/Pixel) without typing the preset name.
+        let tagScore = -1;
+        if (Array.isArray(action.tags)) {
+          for (const tag of action.tags) {
+            const s = fuzzyScore(tag, query);
+            if (s !== -1 && (tagScore === -1 || s < tagScore)) tagScore = s;
+          }
+        }
+        const candidates = [
+          labelScore === -1 ? Number.POSITIVE_INFINITY : labelScore,
+          groupScore === -1 ? Number.POSITIVE_INFINITY : groupScore + 6,
+          tagScore === -1 ? Number.POSITIVE_INFINITY : tagScore + 4,
+        ];
+        const score = Math.min(...candidates);
+        return { action, score: score === Number.POSITIVE_INFINITY ? -1 : score };
       })
       .filter(({ score }) => score !== -1)
       .sort((a, b) => a.score - b.score)
@@ -127,7 +137,7 @@ export const CommandPalette = ({ open, onClose, actions }) => {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Type to find a preset or action…"
+            placeholder="Search presets, vibes, actions — try “synthwave”…"
             aria-label="Search commands"
             spellCheck="false"
             autoComplete="off"
