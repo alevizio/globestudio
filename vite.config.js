@@ -69,25 +69,16 @@ export default defineConfig({
     // preserves both. The CSS gzip size is ~3 kB heavier; well worth
     // it for cross-browser blur.
     cssMinify: false,
-    // The default modulePreload behavior emits <link rel="modulepreload">
-    // for every dynamic import target — meaning the lazy `three`,
-    // `dotted-map`, and `globe-background` chunks (which usePrefetchHeavy
-    // Chunks already warms on first user gesture) get preloaded during
-    // the critical-path HTML parse, stealing mobile bandwidth from the
-    // render-blocking CSS + the React entry chunk. That gates the
-    // .map-background-placeholder LCP element on slow networks.
-    //
-    // resolveDependencies returns only entry-essential deps for the
-    // initial bundle. The heavy lazy chunks still load on demand via
-    // their normal dynamic-import flow (and via usePrefetchHeavyChunks
-    // on the first mouse/key event) — they just no longer compete for
-    // the initial network budget.
+    // Only filter the on-demand atlas chunks out of modulepreload —
+    // countries-50m (756 kB raw) and states-10m (114 kB) are only used
+    // when the user enters solid render mode or selects the US, and
+    // shouldn't compete with critical-path resources. `three`,
+    // `dotted-map`, and `globe-background` stay preloaded — they're
+    // needed for the canvas LCP element to paint, so loading them in
+    // parallel with the main bundle is correct.
     modulePreload: {
       resolveDependencies: (filename, deps) =>
         deps.filter((dep) => {
-          if (/[/\\]three[-.]/.test(dep)) return false;
-          if (/[/\\]dotted-map[-.]/.test(dep)) return false;
-          if (/[/\\]globe-background[-.]/.test(dep)) return false;
           if (/[/\\]countries-50m[-.]/.test(dep)) return false;
           if (/[/\\]states-10m[-.]/.test(dep)) return false;
           return true;
