@@ -48,6 +48,7 @@ import { CommandPalette } from "./components/command-palette.jsx";
 import { OnboardingHint } from "./components/onboarding-hint.jsx";
 import { BrandPage } from "./components/brand-page.jsx";
 import { DocsPage } from "./components/docs-page.jsx";
+import { ChangelogPage } from "./components/changelog-page.jsx";
 import { NotFoundPage } from "./components/not-found-page.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
@@ -69,6 +70,7 @@ const App = () => {
     const path = window.location.pathname.replace(/\/$/, "") || "/";
     if (path === "/brand") return <BrandPage />;
     if (path === "/docs") return <DocsPage />;
+    if (path === "/changelog") return <ChangelogPage />;
     const isHome = path === "/";
     const isPresetRoute = /^\/looks\/[\w-]+$/.test(path);
     const isEmbed = path === "/embed";

@@ -62,6 +62,10 @@ export const AboutOverlay = ({ open, onClose }) => {
                 <span aria-hidden="true">→</span>
                 <span>Docs</span>
               </a>
+              <a className="about-link" href="/changelog">
+                <span aria-hidden="true">→</span>
+                <span>Changelog</span>
+              </a>
               <a className="about-link" href="/brand">
                 <span aria-hidden="true">→</span>
                 <span>Press kit</span>

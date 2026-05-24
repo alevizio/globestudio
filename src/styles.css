@@ -228,12 +228,12 @@ button {
   background: linear-gradient(180deg, transparent 0%, var(--bg) 18%);
 }
 
-/* /brand and /docs are static takeover pages — no canvas, no panel,
-   no looks bar. Share the same vertical-rhythm system so they read
-   as siblings. Wrappers are <main className="brand-page"> /
-   <main className="docs-page"> at the App root. */
+/* /brand, /docs, /changelog are static takeover pages — no canvas,
+   no panel, no looks bar. Share the same vertical-rhythm system so
+   they read as siblings. */
 .brand-page,
-.docs-page {
+.docs-page,
+.changelog-page {
   position: relative;
   min-height: 100svh;
   max-width: 760px;
@@ -244,7 +244,8 @@ button {
 }
 
 .brand-page-header,
-.docs-page-header {
+.docs-page-header,
+.changelog-page-header {
   margin-bottom: 36px;
 }
 
@@ -253,7 +254,8 @@ button {
    link. Keeps the DottedGlobe icon visually anchored at every static
    route (/, /docs, /brand, /404 also uses the same mark). */
 .brand-page-brand,
-.docs-page-brand {
+.docs-page-brand,
+.changelog-page-brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -268,13 +270,15 @@ button {
 }
 
 .brand-page-brand:hover,
-.docs-page-brand:hover {
+.docs-page-brand:hover,
+.changelog-page-brand:hover {
   opacity: 0.7;
   text-decoration: none;
 }
 
 .brand-page-title,
-.docs-page-title {
+.docs-page-title,
+.changelog-page-title {
   margin: 0 0 10px;
   font-size: 32px;
   font-weight: 800;
@@ -282,7 +286,8 @@ button {
 }
 
 .brand-page-lede,
-.docs-page-lede {
+.docs-page-lede,
+.changelog-page-lede {
   margin: 0;
   color: var(--muted);
   font-size: 16px;
@@ -608,6 +613,64 @@ button {
 .docs-preset-link span {
   font-size: 12px;
   color: var(--muted);
+}
+
+/* /changelog — vertical list of dated sections. */
+.changelog-section {
+  margin-top: 40px;
+}
+
+.changelog-section-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.changelog-section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.changelog-section-date {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.changelog-list {
+  margin: 0;
+  padding: 0 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text);
+}
+
+.changelog-list li {
+  line-height: 1.55;
+}
+
+.changelog-section p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  max-width: 64ch;
+}
+
+.changelog-section a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+}
+
+.changelog-section a:hover {
+  text-decoration-color: var(--text);
 }
 
 /* 404 takeover. Centered, minimal — no canvas. */
