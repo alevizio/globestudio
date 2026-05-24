@@ -246,6 +246,30 @@ export const presetSeo = {
       "Minimalist annual report dividers",
     ],
   },
+  vapor: {
+    targetKeyword: "synthwave dotted globe generator",
+    metaDescription:
+      "Vapor dotted globe — pastel pink dots with RGB chromatic aberration on a deep purple ground. Synthwave / vaporwave aesthetic, exportable.",
+    longDescription:
+      "Vapor takes the chromatic-aberration RGB split that defines 2020s vaporwave / synthwave design and lays it across the dot field. Pastel pink dots on a deep midnight-purple ground, separated by a few pixels into red and blue channels — the result reads as a still frame from a Miami Vice title card or a 1985 album cover that's been left out in the sun. Use Vapor for projects that want to lean fully into the retrowave aesthetic: synthwave EP covers, late-night brand systems, gaming-adjacent product launches, anything that asks for a neon-on-night-sky mood. Tune split for how aggressive the chromatic separation is; intensity controls how much of the original dot color comes through underneath.",
+    useCases: [
+      "Synthwave / vaporwave EP and album art",
+      "Late-night SaaS or gaming product launches",
+      "Cyberpunk-adjacent editorial spreads and zines",
+    ],
+  },
+  topographic: {
+    targetKeyword: "topographic dotted map generator",
+    metaDescription:
+      "Topographic dotted globe — warped contour-line cartography in sage on a deep teal ground. Hiking-map aesthetic, exportable to PNG and SVG.",
+    longDescription:
+      "Topographic uses the wave-distortion shader to push the dot field into rolling concentric ridges, evoking the contour lines of a USGS hiking map. Sage-green dots on a deep teal-black ground, with the distortion strong enough to read as terrain but soft enough to keep the underlying geographic shapes legible. Use Topographic for outdoor brands, hiking / adventure publications, climate-data storytelling, any project where the globe should feel like a relief map rather than a flat dot field. Tune warp for how dramatic the contours are; motion controls the animation speed if you want the ridges to drift slowly.",
+    useCases: [
+      "Outdoor / hiking / adventure brand systems",
+      "Climate and earth-science data storytelling",
+      "Wilderness photography portfolios and editorial",
+    ],
+  },
 };
 
 export const getPresetSeo = (presetId) => presetSeo[presetId] || null;

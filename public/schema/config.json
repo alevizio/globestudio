@@ -76,7 +76,7 @@
       "properties": {
         "effect": {
           "type": "string",
-          "enum": ["none", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "edge", "threshold", "toon", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt"]
+          "enum": ["none", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "edge", "threshold", "toon", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt", "chromatic", "wave", "stripes", "rgb", "chroma"]
         },
         "intensity": { "type": "number", "minimum": 0, "maximum": 100 },
         "cellSize": { "type": "number", "minimum": 0, "maximum": 30 },
@@ -128,7 +128,7 @@
     "preset": {
       "type": "string",
       "description": "Optional — when set, the importer applies this preset's defaults first, then layers the other fields on top.",
-      "enum": ["default", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "wireframe", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt", "toon", "threshold"]
+      "enum": ["default", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "wireframe", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt", "toon", "threshold", "vapor", "topographic"]
     },
 
     "flatProjection": {
