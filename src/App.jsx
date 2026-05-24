@@ -1159,6 +1159,7 @@ const App = () => {
           <div className="panel-meta">
             <span
               className={`panel-meta-icon ${appliedLookId ? "is-rippling" : ""}`}
+              role="img"
               aria-label={`${selected.label} — ${
                 dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
               }`}

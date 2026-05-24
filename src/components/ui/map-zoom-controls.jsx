@@ -20,7 +20,7 @@ export const MapZoomControls = ({ value, onChange }) => {
       </button>
       <output
         className="map-zoom-display"
-        aria-label="Map zoom value"
+        aria-label={`Map zoom ${Math.round(value * 100)}%, click to reset`}
         title="Press 0 to reset"
         onClick={() => updateZoom(1)}
         role="button"

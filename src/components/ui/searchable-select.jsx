@@ -143,7 +143,7 @@ export const SearchableSelect = ({ value, onChange, options, label, placeholder 
       <button
         type="button"
         className="searchable-select-trigger"
-        aria-label={label}
+        aria-label={`${label}: ${currentLabel}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
