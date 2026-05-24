@@ -4615,12 +4615,7 @@ input[type="range"]:active::-moz-range-thumb {
   width: 100%;
   margin: 0;
   height: 12px;
-  /* Same border-radius as the SV square above so all three elements
-     (SV, hue, alpha) read as a single stacked column rather than
-     mixed corner styles. Anything ≥ height/2 (6 px) reads as a pill;
-     8 px stays a touch squared so the bar still looks like a "track"
-     instead of a fully rounded pill. */
-  border-radius: 8px;
+  border-radius: 3px;
   background: linear-gradient(
     to right,
     #ff0000 0%,
@@ -4672,12 +4667,11 @@ input[type="range"]:active::-moz-range-thumb {
 .color-picker-hue input[type="range"]::-webkit-slider-thumb,
 .color-picker-alpha input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  /* Thumb height now matches the 12px track height exactly — sits
-     fully inside the bar, no vertical poke-out. */
-  margin-top: 0;
-  border-radius: 6px;
+  width: 16px;
+  height: 16px;
+  /* Centers the 16px thumb on the 12px track — (12 - 16) / 2 = -2 */
+  margin-top: -2px;
+  border-radius: 3px;
   background: var(--thumb-fill);
   box-shadow: var(--shadow-thumb);
   cursor: grab;
@@ -4685,10 +4679,10 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-hue input[type="range"]::-moz-range-thumb,
 .color-picker-alpha input[type="range"]::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 3px;
   background: var(--thumb-fill);
   box-shadow: var(--shadow-thumb);
   cursor: grab;
@@ -4706,9 +4700,7 @@ input[type="range"]:active::-moz-range-thumb {
   width: 100%;
   margin: 0;
   height: 12px;
-  /* Matches .color-picker-hue + .color-picker-sv corner radius so the
-     stack reads as one column. */
-  border-radius: 8px;
+  border-radius: 3px;
   /* Checkerboard tile + color gradient on top so transparency is visible.
      `background-repeat: no-repeat, round` makes the checkerboard tile
      auto-scale so an integer number fits across the bar exactly —
