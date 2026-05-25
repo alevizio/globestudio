@@ -677,47 +677,36 @@ export const ControlPanel = ({
           section stays compact when network is off. */}
       <Collapsible open={viewMode === "globe"}>
         <PanelSection title="Network">
-          <OptionRow label="Network">
+          <OptionRow label="Arcs">
             <ToggleControl
-              label="Toggle live network"
-              checked={globeSettings.network ?? true}
-              onChange={(value) => updateGlobeSetting("network", value)}
+              label="Toggle flying route arcs"
+              checked={globeSettings.networkArcs ?? true}
+              onChange={(value) => updateGlobeSetting("networkArcs", value)}
             />
           </OptionRow>
-          {(globeSettings.network ?? true) && (
-            <>
-              <OptionRow label="Arcs">
-                <ToggleControl
-                  label="Toggle flying route arcs"
-                  checked={globeSettings.networkArcs ?? true}
-                  onChange={(value) => updateGlobeSetting("networkArcs", value)}
-                />
-              </OptionRow>
-              <OptionRow label="Pulses">
-                <ToggleControl
-                  label="Toggle city pulse rings"
-                  checked={globeSettings.networkPulses ?? true}
-                  onChange={(value) => updateGlobeSetting("networkPulses", value)}
-                />
-              </OptionRow>
-              <OptionRow label="Mono">
-                <ToggleControl
-                  label="Toggle monochrome network"
-                  checked={globeSettings.networkMono ?? true}
-                  onChange={(value) => updateGlobeSetting("networkMono", value)}
-                />
-              </OptionRow>
-              <OptionRow label="Strength" value={globeSettings.networkStrength ?? 70}>
-                <RangeControl
-                  label="Network strength"
-                  min={0}
-                  max={100}
-                  value={globeSettings.networkStrength ?? 70}
-                  onChange={(value) => updateGlobeSetting("networkStrength", value)}
-                />
-              </OptionRow>
-            </>
-          )}
+          <OptionRow label="Pulses">
+            <ToggleControl
+              label="Toggle city pulse rings"
+              checked={globeSettings.networkPulses ?? true}
+              onChange={(value) => updateGlobeSetting("networkPulses", value)}
+            />
+          </OptionRow>
+          <OptionRow label="Mono">
+            <ToggleControl
+              label="Toggle monochrome network"
+              checked={globeSettings.networkMono ?? true}
+              onChange={(value) => updateGlobeSetting("networkMono", value)}
+            />
+          </OptionRow>
+          <OptionRow label="Strength" value={globeSettings.networkStrength ?? 70}>
+            <RangeControl
+              label="Network strength"
+              min={0}
+              max={100}
+              value={globeSettings.networkStrength ?? 70}
+              onChange={(value) => updateGlobeSetting("networkStrength", value)}
+            />
+          </OptionRow>
         </PanelSection>
       </Collapsible>
 
