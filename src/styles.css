@@ -3374,6 +3374,15 @@ button {
 .collapsible-section-inner {
   min-height: 0;
   overflow: hidden;
+  /* Match the parent .option-content gap so option rows wrapped in a
+     Collapsible (e.g. Auto spin + Speed in the Animations section,
+     Projection in Surface) stack with the same rhythm as un-wrapped
+     siblings. Without this, the children inside the Collapsible were
+     direct grid items with no gap between them, so Speed was flush
+     against Auto spin. */
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 @media (prefers-reduced-motion: reduce) {
