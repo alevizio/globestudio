@@ -1188,9 +1188,12 @@ export const GlobeBackground = ({
     refs.atmosphereMaterial.uniforms.glowColor.value.copy(glowColor);
     refs.atmosphereIntensity = isBorderless ? 0.52 + intensity * 0.3 : 0.32 + intensity * 0.24;
     refs.graticuleOpacity = isBorderless ? 0.035 + intensity * 0.045 : 0.08 + intensity * 0.08;
-    refs.graticule.children.forEach((line) => {
-      line.material.color.copy(isBorderless ? new THREE.Color("#7bdcff") : glowColor.clone().lerp(new THREE.Color("#ffffff"), 0.62));
-    });
+    // Grid color is now user-controlled via globeSettings.gridColor +
+    // gridGradient (see createGraticule). The theme-driven override
+    // that used to live here would stomp the user's color pick on
+    // every dependent change, making the swatch feel broken. If the
+    // user wants the historical cyan tint for borderless mode, the
+    // borderlessPreset seeds gridColor to "#7bdcff".
     applyGlobeShellProgress(refs, morphRef.current.progress, globeSettingsRef.current);
   }, [background, dotColor, globeSettings, renderMode, shaderSettings.intensity, transparent, uiTheme]);
 

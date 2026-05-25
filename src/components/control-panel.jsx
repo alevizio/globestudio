@@ -51,6 +51,7 @@ const borderlessPreset = {
   glow: true,
   glowStrength: 78,
   grid: true,
+  gridColor: "#7bdcff",
   gridLift: 8,
   gridSize: 42,
   // Literal opacity. Bumped to 22 so the borderless preset's grid
@@ -712,7 +713,7 @@ export const ControlPanel = ({
                         vertex colors interpolated by latitude.
                         Alpha is intentionally omitted (the grid
                         opacity slider already controls it). */}
-                    <OptionRow label="Color">
+                    <OptionRow label="Grid color">
                       <ColorSwatch
                         value={globeSettings.gridColor ?? "#ffffff"}
                         onChange={(value) => updateGlobeSetting("gridColor", value)}
