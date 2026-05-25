@@ -41,9 +41,13 @@ export const DEFAULT_GLOBE_SETTINGS = {
   surfaceStrength: 100,
 };
 
+// Internal value identifiers are kept as "classic"/"borderless" for
+// backwards compat with saved configs and shared URLs — only the
+// display labels change to "Border"/"No border", which read more
+// intuitively as a binary toggle.
 export const globeLookOptions = [
-  { value: "classic", label: "Classic" },
-  { value: "borderless", label: "Borderless" },
+  { value: "classic", label: "Border" },
+  { value: "borderless", label: "No border" },
 ];
 
 export const BORDERLESS_ROUTE_PATHS = [

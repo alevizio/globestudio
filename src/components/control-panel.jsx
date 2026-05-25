@@ -541,17 +541,18 @@ export const ControlPanel = ({
 
       <Collapsible open={viewMode === "globe"}>
         <PanelSection title="Globe">
-          {/* Globe shell aesthetic — the look pivot affects what else
-              renders (routes only matter in borderless). Animations,
-              network, and auto-spin live in their own sections below. */}
-          <OptionRow label="Look">
-            <SelectControl
-              label="Globe look"
-              value={globeSettings.look}
-              onChange={updateGlobeLook}
-              options={globeLookOptions}
-            />
-          </OptionRow>
+          {/* Globe shell aesthetic. The look pivot affects what else
+              renders (the borderless variant adds ambient rings and a
+              cyan glow bias; routes only matter in borderless).
+              Animations, network, and auto-spin live in their own
+              sections below. Same Color/Mono toggle idiom used in
+              the Network section — visually binary, no dropdown. */}
+          <SegmentedToggle
+            value={globeSettings.look}
+            onChange={updateGlobeLook}
+            options={globeLookOptions}
+            ariaLabel="Globe look"
+          />
 
           {/* Glow layer */}
           <OptionRow label="Glow">
