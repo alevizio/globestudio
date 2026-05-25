@@ -719,29 +719,30 @@ export const ControlPanel = ({
         </PanelSection>
       </Collapsible>
 
-      {/* Animations section — motion across the whole canvas.
-          The master toggle gates the others; auto-spin is hidden in
-          flat view since it doesn't apply. Animate dot rotation works
-          in both views. Vary size stays in Surface because it's a
-          static per-instance variation, not motion over time. */}
-      <PanelSection title="Animations">
-        <OptionRow label="Animations">
-          <ToggleControl
-            label="Toggle all animations"
-            checked={animationsEnabled}
-            onChange={(value) => setAnimationsEnabled?.(value)}
-          />
-        </OptionRow>
-        {animationsEnabled && (
-          <>
-            <OptionRow label="Animate rotation">
-              <ToggleControl
-                label="Animate dot rotation"
-                checked={rotateAnimating}
-                onChange={(value) => setRotateAnimating?.(value)}
-              />
-            </OptionRow>
-            <Collapsible open={viewMode === "globe"}>
+      {/* Animations section — motion across the canvas. Hidden in
+          flat view for parity with the Globe + Network sections,
+          which all share the same "3D-mode-only" gate. The master
+          Animations toggle is reachable via Cmd+K → "animations" if
+          a power user needs it in flat (rare). Auto spin is hidden
+          in flat regardless since it doesn't apply. */}
+      <Collapsible open={viewMode === "globe"}>
+        <PanelSection title="Animations">
+          <OptionRow label="Animations">
+            <ToggleControl
+              label="Toggle all animations"
+              checked={animationsEnabled}
+              onChange={(value) => setAnimationsEnabled?.(value)}
+            />
+          </OptionRow>
+          {animationsEnabled && (
+            <>
+              <OptionRow label="Animate rotation">
+                <ToggleControl
+                  label="Animate dot rotation"
+                  checked={rotateAnimating}
+                  onChange={(value) => setRotateAnimating?.(value)}
+                />
+              </OptionRow>
               <OptionRow label="Auto spin">
                 <ToggleControl
                   label="Toggle globe auto spin"
@@ -760,10 +761,10 @@ export const ControlPanel = ({
                   />
                 </OptionRow>
               )}
-            </Collapsible>
-          </>
-        )}
-      </PanelSection>
+            </>
+          )}
+        </PanelSection>
+      </Collapsible>
 
       <PanelSection title="Shaders">
         <OptionRow label="Pass">
