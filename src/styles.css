@@ -1496,6 +1496,12 @@ button {
   transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
   transform-origin: 50% 50%;
   will-change: transform;
+  /* Blur slider — multi-layer drop-shadow stack. Three Gaussian
+     halos at progressive radii sum into a single smooth gradient
+     that bleeds outward from the silhouette. Value computed in
+     App.jsx so the radii + opacities can scale together with the
+     slider. "none" when Glow is off → zero filter cost. */
+  filter: var(--globe-canvas-halo, none);
 }
 
 .globe-background.is-dragging canvas {

@@ -1009,14 +1009,38 @@ const App = () => {
         "--shader-glow": `${Math.max(0, shaderSettings.intensity * 0.16)}px`,
         "--shader-glow-wide": `${Math.max(0, shaderSettings.intensity * 0.32)}px`,
         "--globe-bg-glow-opacity": globeGlowOpacity,
-        // glowSpread (panel label: "Blur") — the DOMINANT blur effect
-        // is now a real UnrealBloomPass in the WebGL composer (see
-        // updatePostEffects in three/post-effects.js). That actually
-        // takes the rendered atmosphere pixels and Gaussian-blurs
-        // them. The CSS vars below stay as minor supporting effects
-        // on the gradient backdrop layer.
+        // glowSpread (panel label: "Blur") — three stacked CSS
+        // drop-shadows at progressive radii and opacities. Each
+        // drop-shadow is a single Gaussian halo around the canvas's
+        // alpha (the globe silhouette); the SUM of three Gaussians
+        // at different scales reads as a smooth multi-scale gradient
+        // that fades cleanly from a bright tight core through a
+        // mid-range haze into a faint ambient bleed. UnrealBloomPass
+        // was tried but its multi-mip extraction looks patchy
+        // against a black background; layered Gaussians don't.
+        // All radii and alphas scale linearly with the slider so 0
+        // is literally invisible (zero GPU cost) and 100 is a wide
+        // soft cyan halo.
         "--globe-glow-spread": `${30 + (clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 80}%`,
         "--globe-glow-blur": `${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 56}px`,
+        "--globe-canvas-halo": globeSettings.glow
+          ? (() => {
+              const t = clampNumber(globeSettings.glowSpread, 0, 100) / 100;
+              // Three Gaussian layers, progressively wider + dimmer.
+              // Radii in px; alphas in 0..1. The set is tuned so the
+              // overall falloff curve is smooth end-to-end and the
+              // 0→100 sweep visibly diffuses.
+              const layers = [
+                { r: t * 18, a: t * 0.55 },
+                { r: t * 55, a: t * 0.32 },
+                { r: t * 120, a: t * 0.14 },
+              ];
+              const color = "140, 220, 255";
+              return layers
+                .map((l) => `drop-shadow(0 0 ${l.r}px rgba(${color}, ${l.a}))`)
+                .join(" ");
+            })()
+          : "none",
         "--shader-intensity": shaderSettings.intensity / 100,
         "--shader-split": `${shaderSettings.split}px`,
         "--shader-split-neg": `${-shaderSettings.split}px`,
