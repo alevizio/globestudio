@@ -158,6 +158,17 @@ export const ControlPanel = ({
   const selectedCountryId = selection.startsWith("country:") ? selection.replace("country:", "") : "";
   const showStates = selectedCountryId === US_COUNTRY_ID && usStates.length > 0;
   const shaderEffect = shaderSettings.effect;
+  // Remember the last non-"none" shader effect so the Shaders section
+  // header toggle can restore it when re-enabled. Default to "bloom"
+  // (visually distinctive) so first-time toggling-on lands somewhere
+  // meaningful instead of falling back to "none" again.
+  const lastShaderEffectRef = useRef(shaderEffect && shaderEffect !== "none" ? shaderEffect : "bloom");
+  if (shaderEffect && shaderEffect !== "none") lastShaderEffectRef.current = shaderEffect;
+  // Same idea for the Background section eye button: stash the last
+  // non-transparent style so toggling visible-again returns to "solid"
+  // or "space" depending on what the user had set before hiding.
+  const lastBgStyleRef = useRef(backgroundStyle && backgroundStyle !== "transparent" ? backgroundStyle : "solid");
+  if (backgroundStyle && backgroundStyle !== "transparent") lastBgStyleRef.current = backgroundStyle;
 
   const updateShaderSetting = (key, value) => {
     setShaderSettings((settings) => ({
@@ -235,23 +246,30 @@ export const ControlPanel = ({
         )}
       </div>
 
-      <PanelSection title="Surface">
-        {renderMode === "dots" && (
-          <OptionRow label="Show map">
-            <ToggleControl checked={dotsVisible} onChange={setDotsVisible} label="Show or hide the map" />
-          </OptionRow>
-        )}
-        <OptionRow label="Style">
-          <SegmentedControl
-            label="World style"
-            value={renderMode}
-            onChange={setRenderMode}
-            options={[
-              { value: "dots", label: "Shape" },
-              { value: "solid", label: "Solid" },
-            ]}
-          />
-        </OptionRow>
+      {/* Surface section header carries the dot-visibility toggle.
+          The previous "Show map" sub-row is removed since the header
+          toggle does the same job and is reachable without expanding
+          the section. */}
+      <PanelSection
+        title="Surface"
+        enabled={dotsVisible}
+        onEnabledChange={setDotsVisible}
+        enabledLabel="Show map"
+      >
+        {/* Shape/Solid uses the same prominent SegmentedToggle as the
+            other binary "what kind of layer" choices (Glow/No glow,
+            Solid/Space) instead of the subtler inline SegmentedControl.
+            Reads as a top-of-section visual mode choice rather than
+            another row of settings. */}
+        <SegmentedToggle
+          value={renderMode}
+          onChange={setRenderMode}
+          options={[
+            { value: "dots", label: "Shape" },
+            { value: "solid", label: "Solid" },
+          ]}
+          ariaLabel="World style"
+        />
         {renderMode === "solid" && (
           <>
             <OptionRow label="Land">
@@ -548,7 +566,25 @@ export const ControlPanel = ({
       </PanelSection>
 
       <Collapsible open={viewMode === "globe"}>
-        <PanelSection title="Globe">
+        <PanelSection
+          title="Globe"
+          // "Globe off" should make the whole shell vanish — both the
+          // sphere fill AND the glow/atmosphere. Either-on reads as
+          // "on" in the header so toggling once always disables both.
+          enabled={(globeSettings.surface !== false) || !!globeSettings.glow}
+          onEnabledChange={(next) =>
+            setGlobeSettings((s) => ({
+              ...s,
+              surface: next,
+              glow: next,
+              // If turning on without a known look, default to classic
+              // (no rings) so we don't surprise the user with the
+              // borderless preset's extras.
+              look: next ? (s.look ?? "classic") : s.look,
+            }))
+          }
+          enabledLabel="Toggle globe shell"
+        >
           {/* Globe shell aesthetic. One segmented toggle drives both
               the glow layer AND the historical "look" pivot — "Glow"
               gives the full luminous experience (atmosphere + cyan-
@@ -607,24 +643,19 @@ export const ControlPanel = ({
             </>
           )}
 
-          {/* Surface (sphere fill) — single slider where 0 hides
-              the base sphere and 100 is opaque. The underlying field
-              is actually an opacity, so the label says so. Legacy
-              `surface: false` from older saved configs coerces to
-              opacity 0; the bool is kept in sync onChange so older
-              consumers / shared URLs continue parsing correctly. */}
+          {/* Sphere fill — moved back inside the Globe section since
+              opacity / color / lift conceptually belong with the
+              glow controls above (all are "what does the globe shell
+              look like"). Grid stays separate in its own section. */}
           {(() => {
             const surfaceOpacity = globeSettings.surface === false
               ? 0
               : (globeSettings.surfaceStrength ?? 82);
-            // Show "Off" instead of "0" at the bottom of the range so
-            // the "disappeared" state is obviously a real, intentional
-            // position on the slider rather than just a number.
             return (
               <>
-                <OptionRow label="Surface opacity" value={surfaceOpacity === 0 ? "Off" : surfaceOpacity}>
+                <OptionRow label="Sphere opacity" value={surfaceOpacity === 0 ? "Off" : surfaceOpacity}>
                   <RangeControl
-                    label="Surface opacity"
+                    label="Sphere opacity"
                     min={0}
                     max={100}
                     value={surfaceOpacity}
@@ -637,112 +668,30 @@ export const ControlPanel = ({
                     }
                   />
                 </OptionRow>
-                {/* Surface lift sits adjacent to Surface opacity since
-                    they're the two controls for the same conceptual
-                    layer (sphere fill). Previously it lived at the
-                    bottom of the Globe section as "Dot lift", which
-                    made it hard to find and harder to relate to the
-                    opacity it complements. */}
-                <OptionRow label="Surface lift" value={globeSettings.dotLift}>
+                <OptionRow label="Sphere color">
+                  <ColorSwatch
+                    value={globeSettings.surfaceColor ?? "#18191d"}
+                    onChange={(value) => updateGlobeSetting("surfaceColor", value)}
+                    label="Select sphere color"
+                    gradient={globeSettings.surfaceGradient}
+                    onGradientChange={(value) => updateGlobeSetting("surfaceGradient", value)}
+                  />
+                </OptionRow>
+                <OptionRow label="Sphere lift" value={globeSettings.dotLift}>
                   <RangeControl
-                    label="Surface lift"
+                    label="Sphere lift"
                     min={0}
                     max={100}
                     value={globeSettings.dotLift}
                     onChange={(value) => updateGlobeSetting("dotLift", value)}
                   />
                 </OptionRow>
-                {/* Surface color + optional gradient. Same ColorSwatch
-                    used by dot color and grid color. Gradient applies
-                    as per-vertex colors on the sphere geometry,
-                    interpolated by latitude. Alpha intentionally
-                    omitted — Surface opacity above controls it. */}
-                <OptionRow label="Surface color">
-                  <ColorSwatch
-                    value={globeSettings.surfaceColor ?? "#18191d"}
-                    onChange={(value) => updateGlobeSetting("surfaceColor", value)}
-                    label="Select surface color"
-                    gradient={globeSettings.surfaceGradient}
-                    onGradientChange={(value) => updateGlobeSetting("surfaceGradient", value)}
-                  />
-                </OptionRow>
               </>
             );
           })()}
 
-          {/* Grid — same pattern as Surface opacity: a single 0–100
-              slider, no toggle. 0 hides the grid. Size/Lift only
-              render when there's something to size or lift. Legacy
-              `grid: false` from old configs coerces to opacity 0;
-              the bool is kept in sync onChange for backwards compat. */}
-          {(() => {
-            const gridOpacity = globeSettings.grid === false
-              ? 0
-              : (globeSettings.gridStrength ?? 10);
-            return (
-              <>
-                <OptionRow label="Grid opacity" value={gridOpacity === 0 ? "Off" : gridOpacity}>
-                  <RangeControl
-                    label="Grid opacity"
-                    min={0}
-                    max={100}
-                    value={gridOpacity}
-                    onChange={(value) =>
-                      setGlobeSettings((s) => ({
-                        ...s,
-                        gridStrength: value,
-                        grid: value > 0,
-                      }))
-                    }
-                  />
-                </OptionRow>
-                {gridOpacity > 0 && (
-                  <>
-                    <OptionRow
-                      label="Grid size"
-                      value={globeSettings.gridSize === 0 ? "Off" : `${globeSettings.gridSize}°`}
-                    >
-                      <RangeControl
-                        label="Grid size"
-                        min={0}
-                        max={60}
-                        step={3}
-                        value={globeSettings.gridSize}
-                        onChange={(value) => updateGlobeSetting("gridSize", value)}
-                      />
-                    </OptionRow>
-                    <OptionRow label="Grid lift" value={globeSettings.gridLift}>
-                      <RangeControl
-                        label="Grid lift"
-                        min={0}
-                        max={100}
-                        value={globeSettings.gridLift}
-                        onChange={(value) => updateGlobeSetting("gridLift", value)}
-                      />
-                    </OptionRow>
-                    {/* Grid color + gradient. Same ColorSwatch
-                        component used by the dot color picker —
-                        single tint by default, optional 2-stop
-                        gradient that the renderer applies as per-
-                        vertex colors interpolated by latitude.
-                        Alpha is intentionally omitted (the grid
-                        opacity slider already controls it). */}
-                    <OptionRow label="Grid color">
-                      <ColorSwatch
-                        value={globeSettings.gridColor ?? "#ffffff"}
-                        onChange={(value) => updateGlobeSetting("gridColor", value)}
-                        label="Select grid color"
-                        gradient={globeSettings.gridGradient}
-                        onGradientChange={(value) => updateGlobeSetting("gridGradient", value)}
-                      />
-                    </OptionRow>
-                  </>
-                )}
-              </>
-            );
-          })()}
-
-          {/* Routes — only relevant in the borderless look */}
+          {/* Routes — only relevant in the borderless look. Stays in
+              Globe section since it's a look-specific extra. */}
           {globeSettings.look === "borderless" && (
             <>
               <OptionRow label="Routes">
@@ -769,21 +718,93 @@ export const ControlPanel = ({
         </PanelSection>
       </Collapsible>
 
-      {/* Network section — only relevant in 3D mode where arcs orbit
-          the globe. Mono lives at the top as a segmented Color/Mono
-          switch (visual idiom matches the Flat/Globe canvas toggle);
-          the three sliders below let users dial density on each layer. */}
+      {/* Grid — also pulled out of Globe into its own collapsible.
+          Color above opacity per the established pattern; size + lift
+          gated on opacity > 0 since they only matter when grid is
+          visible. The summary now carries a layer-enable toggle that
+          flips settings.grid without resetting the user's gridStrength
+          slider value, so they can hide the grid and re-show it at
+          the same density. */}
       <Collapsible open={viewMode === "globe"}>
-        <PanelSection title="Network">
-          <SegmentedToggle
-            value={(globeSettings.networkMono ?? true) ? "mono" : "color"}
-            onChange={(next) => updateGlobeSetting("networkMono", next === "mono")}
-            options={[
-              { value: "color", label: "Color" },
-              { value: "mono", label: "Mono" },
-            ]}
-            ariaLabel="Network color mode"
-          />
+        <PanelSection
+          title="Grid"
+          enabled={globeSettings.grid !== false}
+          onEnabledChange={(next) => updateGlobeSetting("grid", next)}
+          enabledLabel="Show grid"
+        >
+          {(() => {
+            const gridOpacity = globeSettings.grid === false
+              ? 0
+              : (globeSettings.gridStrength ?? 10);
+            return (
+              <>
+                <OptionRow label="Color">
+                  <ColorSwatch
+                    value={globeSettings.gridColor ?? "#ffffff"}
+                    onChange={(value) => updateGlobeSetting("gridColor", value)}
+                    label="Select grid color"
+                    gradient={globeSettings.gridGradient}
+                    onGradientChange={(value) => updateGlobeSetting("gridGradient", value)}
+                  />
+                </OptionRow>
+                <OptionRow label="Opacity" value={gridOpacity === 0 ? "Off" : gridOpacity}>
+                  <RangeControl
+                    label="Grid opacity"
+                    min={0}
+                    max={100}
+                    value={gridOpacity}
+                    onChange={(value) =>
+                      setGlobeSettings((s) => ({
+                        ...s,
+                        gridStrength: value,
+                        grid: value > 0,
+                      }))
+                    }
+                  />
+                </OptionRow>
+                {gridOpacity > 0 && (
+                  <>
+                    <OptionRow
+                      label="Size"
+                      value={globeSettings.gridSize === 0 ? "Off" : `${globeSettings.gridSize}°`}
+                    >
+                      <RangeControl
+                        label="Grid size"
+                        min={0}
+                        max={60}
+                        step={3}
+                        value={globeSettings.gridSize}
+                        onChange={(value) => updateGlobeSetting("gridSize", value)}
+                      />
+                    </OptionRow>
+                    <OptionRow label="Lift" value={globeSettings.gridLift}>
+                      <RangeControl
+                        label="Grid lift"
+                        min={0}
+                        max={100}
+                        value={globeSettings.gridLift}
+                        onChange={(value) => updateGlobeSetting("gridLift", value)}
+                      />
+                    </OptionRow>
+                  </>
+                )}
+              </>
+            );
+          })()}
+        </PanelSection>
+      </Collapsible>
+
+      {/* Network section — only relevant in 3D mode where arcs orbit
+          the globe. Color/Mono toggle is gone; users now pick Arc
+          color + Pulse color directly. Either left at null falls
+          back to the hardcoded polychrome per-route/per-hub palette. */}
+      <Collapsible open={viewMode === "globe"}>
+        <PanelSection
+          title="Network"
+          enabled={globeSettings.network !== false}
+          onEnabledChange={(next) => updateGlobeSetting("network", next)}
+          enabledLabel="Show network"
+        >
           <OptionRow label="Arcs" value={networkLevelDisplay(globeSettings.networkArcs, 60)}>
             <RangeControl
               label="Arc density"
@@ -793,6 +814,13 @@ export const ControlPanel = ({
               onChange={(value) => updateGlobeSetting("networkArcs", value)}
             />
           </OptionRow>
+          <OptionRow label="Arc color">
+            <ColorSwatch
+              value={globeSettings.arcColor ?? "#8fdcff"}
+              onChange={(value) => updateGlobeSetting("arcColor", value)}
+              label="Select arc color"
+            />
+          </OptionRow>
           <OptionRow label="Pulses" value={networkLevelDisplay(globeSettings.networkPulses, 50)}>
             <RangeControl
               label="Pulse density"
@@ -800,6 +828,13 @@ export const ControlPanel = ({
               max={100}
               value={networkLevelDisplay(globeSettings.networkPulses, 50)}
               onChange={(value) => updateGlobeSetting("networkPulses", value)}
+            />
+          </OptionRow>
+          <OptionRow label="Pulse color">
+            <ColorSwatch
+              value={globeSettings.pulseColor ?? "#ffffff"}
+              onChange={(value) => updateGlobeSetting("pulseColor", value)}
+              label="Select pulse color"
             />
           </OptionRow>
           <OptionRow label="Strength" value={globeSettings.networkStrength ?? 70}>
@@ -826,7 +861,12 @@ export const ControlPanel = ({
           the Network section above.
           - Shape rotation: applies in both views.
           - Auto spin: only in 3D mode. */}
-      <PanelSection title="Animations">
+      <PanelSection
+        title="Animations"
+        enabled={animationsEnabled}
+        onEnabledChange={setAnimationsEnabled}
+        enabledLabel="Enable animations"
+      >
         <OptionRow label="Shape rotation" value={shapeRotationSpeed}>
           <RangeControl
             label="Shape rotation speed"
@@ -867,7 +907,23 @@ export const ControlPanel = ({
         </Collapsible>
       </PanelSection>
 
-      <PanelSection title="Shaders">
+      <PanelSection
+        title="Shaders"
+        enabled={shaderEffect !== "none"}
+        onEnabledChange={(next) => {
+          if (next) {
+            // Restore the last picked non-"none" effect.
+            setShaderSettings((s) => ({ ...s, effect: lastShaderEffectRef.current }));
+          } else {
+            // Stash current effect so re-enabling restores it; set to "none".
+            if (shaderEffect && shaderEffect !== "none") {
+              lastShaderEffectRef.current = shaderEffect;
+            }
+            setShaderSettings((s) => ({ ...s, effect: "none" }));
+          }
+        }}
+        enabledLabel="Enable shader effect"
+      >
         <OptionRow label="Pass">
           <SelectControl
             label="Shader effect"
@@ -972,24 +1028,48 @@ export const ControlPanel = ({
         )}
       </PanelSection>
 
-      <PanelSection title="Background">
-        <OptionRow label="Style">
-          <SelectControl
-            label="Background style"
-            value={backgroundStyle}
-            onChange={(value) => {
-              setBackgroundStyle(value);
-              // Keep the transparent flag in sync so the legacy toggle still works.
-              if (value === "transparent") setTransparent(true);
-              else if (value === "solid") setTransparent(false);
-            }}
-            options={[
-              { value: "solid", label: "Solid" },
-              { value: "transparent", label: "Transparent" },
-              { value: "space", label: "Space" },
-            ]}
-          />
-        </OptionRow>
+      <PanelSection
+        title="Background"
+        // Background "hidden" maps to backgroundStyle: "transparent"
+        // (which already exists and shows the page bg through). Eye
+        // off → set to transparent. Eye on → restore the last
+        // non-transparent style (solid or space).
+        enabled={backgroundStyle !== "transparent"}
+        onEnabledChange={(next) => {
+          if (next) {
+            const restore = lastBgStyleRef.current ?? "solid";
+            setBackgroundStyle(restore);
+            setTransparent(false);
+          } else {
+            if (backgroundStyle && backgroundStyle !== "transparent") {
+              lastBgStyleRef.current = backgroundStyle;
+            }
+            setBackgroundStyle("transparent");
+            setTransparent(true);
+          }
+        }}
+        enabledLabel="Toggle background"
+      >
+        {/* Solid/Space segmented sits at the top of the section as
+            a binary choice — same idiom as Glow/No glow in the Globe
+            section. The "transparent" 3rd option is gone from the
+            visible control since the header eye now owns it. When
+            the user is in transparent mode (eye closed), the
+            segmented still highlights whichever non-transparent style
+            they'd return to on re-enable, derived from
+            lastBgStyleRef. */}
+        <SegmentedToggle
+          value={backgroundStyle === "transparent" ? (lastBgStyleRef.current ?? "solid") : (backgroundStyle ?? "solid")}
+          onChange={(next) => {
+            setBackgroundStyle(next);
+            setTransparent(false);
+          }}
+          options={[
+            { value: "solid", label: "Solid" },
+            { value: "space", label: "Space" },
+          ]}
+          ariaLabel="Background style"
+        />
         {backgroundStyle === "solid" && (
           <OptionRow label="Color">
             <ColorSwatch value={background} onChange={setBackground} label="Select background color" />

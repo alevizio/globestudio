@@ -304,7 +304,14 @@ const App = () => {
   // Keep the underlying state intact so toggling restores values automatically.
   const effectiveGlobeSettings = useMemo(() => {
     if (!motionFrozen) return globeSettings;
-    return { ...globeSettings, autoSpin: false, autoSpinSpeed: 0, network: false };
+    // Animations off / reduced-motion: stop the continuous rotations
+    // but keep the network VISIBLE. Previous code also forced
+    // `network: false` which hid arcs + pulses entirely — too
+    // aggressive. The animate loop already freezes `ambientTime` to
+    // 0 under reduced-motion, so the city pulse shockwaves and the
+    // traveling arc trail-heads naturally hold their initial frame
+    // (no movement) without removing the network from the scene.
+    return { ...globeSettings, autoSpin: false, autoSpinSpeed: 0 };
   }, [globeSettings, motionFrozen]);
   const effectiveSpaceSettings = useMemo(() => {
     if (!motionFrozen) return spaceSettings;

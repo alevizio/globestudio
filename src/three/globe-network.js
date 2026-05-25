@@ -280,30 +280,42 @@ const setTrailVertices = (trail, points, headIndex, length) => {
   opacityAttr.needsUpdate = true;
 };
 
-// Switches the network between its polychrome default (each city/route uses
-// its own hardcoded tint) and a monochrome ink (every material flat-colored
-// in `monoHex` — usually the theme's foreground color). Called when the
-// `networkMono` setting or the UI theme changes, NOT every frame — the
-// material colors persist until something else flips them.
-export const setNetworkColorMode = (root, mono, monoHex = "#ffffff") => {
+// Applies user-picked colors to the network. Two roles, two pickers:
+//   - Arcs (line / trail / head)  →  arcColor
+//   - Pulses (core / ring)        →  pulseColor
+// Either may be null/undefined, in which case the material falls back
+// to its hardcoded originalColor (the polychrome variety baked at
+// build time). Called on settings or theme change, not per-frame.
+// The old `mono` arg + networkMono setting are gone — instead of a
+// polychrome-vs-mono toggle, users now pick exactly the two tints
+// they want directly.
+export const setNetworkColors = (root, arcColor = null, pulseColor = null) => {
   if (!root) return;
-  const monoColor = mono ? new THREE.Color(monoHex) : null;
-  const apply = (material) => {
+  const arc = arcColor ? new THREE.Color(arcColor) : null;
+  const pulse = pulseColor ? new THREE.Color(pulseColor) : null;
+  const colorForRole = (role) => {
+    if (role === "line" || role === "trail" || role === "head") return arc;
+    if (role === "core" || role === "ring") return pulse;
+    return null;
+  };
+  const apply = (material, role) => {
     if (!material) return;
+    const override = colorForRole(role);
     if (material.uniforms?.color?.value) {
-      // ShaderMaterial (the route trail). The trail's color uniform lives
-      // separately from material.color, so handle it here.
+      // ShaderMaterial (the route trail). Its color uniform is the
+      // tint; copy the user override or restore the original.
       const original = material.userData.originalColor;
-      if (!original) return;
-      material.uniforms.color.value.copy(monoColor ?? original);
+      const target = override ?? original;
+      if (target) material.uniforms.color.value.copy(target);
       return;
     }
+    if (!material.color) return;
     const original = material.userData.originalColor;
-    if (!original || !material.color) return;
-    material.color.copy(monoColor ?? original);
+    const target = override ?? original;
+    if (target) material.color.copy(target);
   };
   root.traverse((node) => {
-    if (node.material) apply(node.material);
+    if (node.material) apply(node.material, node.userData.role);
   });
 };
 

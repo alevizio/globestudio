@@ -47,10 +47,16 @@ export const DEFAULT_GLOBE_SETTINGS = {
   // (true → ~default level, false → 0) by the network renderer.
   networkArcs: 60,
   networkPulses: 50,
-  // Tints all hub + route materials with a single neutral ink instead of
-  // their per-city / per-route colors. Mono by default — reads cleaner
-  // against the rest of the dotted-globe aesthetic; toggle off in the
-  // panel for the Stripe-style polychrome.
+  // Network arc + pulse colors. Both null by default → the renderer
+  // falls back to each route/hub's hardcoded polychrome originalColor
+  // (the Stripe-style varied palette). A non-null value tints ALL
+  // arcs (or pulses) uniformly. Set both to taste in the panel.
+  arcColor: null,
+  pulseColor: null,
+  // Deprecated, kept for backwards compat with saved configs / shared
+  // URLs that used the old Color/Mono toggle. Ignored by the renderer
+  // — users now pick arc and pulse colors directly via arcColor /
+  // pulseColor above.
   networkMono: true,
   routes: true,
   routesStrength: 82,

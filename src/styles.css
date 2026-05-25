@@ -4015,6 +4015,48 @@ button {
   transition: transform 180ms var(--ease), opacity 180ms var(--ease);
 }
 
+/* Layer-visibility eye button inside a PanelSection summary. Sits
+   between the title and the chevron. The button's margin-left: auto
+   pushes it to the right edge; the chevron follows naturally with
+   a small gap (overriding the auto-margin from the .svg:last-child
+   selector above). */
+.option-block summary .option-block-eye {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 160ms var(--ease), background 160ms var(--ease);
+}
+.option-block summary .option-block-eye:hover,
+.option-block summary .option-block-eye:focus-visible {
+  color: var(--text);
+  background: var(--field);
+}
+/* When the layer is hidden, the eye renders closed and dims a step
+   further so the off state reads obviously. */
+.option-block.is-layer-disabled .option-block-eye {
+  color: var(--dim);
+}
+.option-block summary .option-block-eye + svg {
+  margin-left: 4px !important;
+}
+
+/* When a section's layer toggle is off, dim the section header so
+   users can scan the panel and see at a glance which layers are
+   contributing. The body content (when expanded) is unaffected so
+   they can still adjust settings while the layer is hidden. */
+.option-block.is-layer-disabled > summary > span {
+  opacity: 0.55;
+}
+
 .option-block summary:hover svg:last-child {
   opacity: 0.9;
 }

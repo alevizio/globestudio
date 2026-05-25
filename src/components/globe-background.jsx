@@ -24,7 +24,7 @@ import {
   twinkleUniforms,
   updateBorderlessNetworkMotion,
 } from "../three/globe.js";
-import { createGlobeNetwork, setNetworkColorMode, updateGlobeNetwork } from "../three/globe-network.js";
+import { createGlobeNetwork, setNetworkColors, updateGlobeNetwork } from "../three/globe-network.js";
 import { createSpaceBackgroundMesh } from "../three/space-mesh.js";
 import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
@@ -406,15 +406,17 @@ export const GlobeBackground = ({
 
     // Unlit base sphere so there's no directional-light terminator visible
     // through gaps in the dot field. Stripe-style flat shading on the ocean.
-    // depthWrite defaults to true — important: at any non-zero Surface
-    // opacity the sphere writes depth and properly occludes back-hemisphere
-    // grid lines, network arcs, and dots. Without this the back-hemisphere
-    // grid bleeds additively through the front, which reads as a confused
-    // "doubled grid" effect on the globe. At Surface opacity 0 the mesh
-    // sets visible=false (see applyGlobeShellProgress), so back content is
-    // fully revealed — the see-through behavior is a discrete state, not a
-    // continuous fade. Net result: clean front-hemisphere view at any
-    // non-zero opacity, full reveal at exactly 0.
+    // depthWrite defaults to true. With it on, the sphere properly z-occludes
+    // back-hemisphere grid lines, dots, and network arcs at any non-zero
+    // opacity → clean front-hemisphere view as the user rotates. The
+    // alternative (depthWrite: false) lets back content show through but
+    // produces a visual mess: transparent objects sort by bounding-sphere
+    // center distance and the graticule lines + InstancedMesh dot layer
+    // all share the globe origin as their center, so ordering becomes
+    // non-deterministic — front and back lines/dots render in essentially
+    // arbitrary order and overlap. The "see network through" escape hatch
+    // is to drop Surface opacity to 0, which sets globeMesh.visible=false
+    // so back content is fully revealed without ordering ambiguity.
     const baseMaterial = new THREE.MeshBasicMaterial({
       color: new THREE.Color("#18191d"),
       transparent: true,
@@ -1139,16 +1141,16 @@ export const GlobeBackground = ({
 
   // Network color mode — flat ink vs polychrome. Walks the network tree
   // and rewrites each material's color; only re-runs when the toggle or
-  // the UI theme changes, not every frame. Mono ink picks up the theme
-  // (cream-white in dark mode, graphite in light mode) so the network
-  // reads against whatever background the user has.
+  // Apply user-picked arc + pulse colors to the network on settings
+  // change. Either may be null, in which case the renderer falls back
+  // to each route/hub's hardcoded polychrome originalColor. The
+  // previous mono-vs-color toggle is gone — users now pick exactly
+  // the two tints they want directly.
   useEffect(() => {
     const network = threeRef.current?.globeNetwork;
     if (!network) return;
-    const mono = globeSettings?.networkMono ?? DEFAULT_GLOBE_SETTINGS.networkMono;
-    const monoHex = uiTheme === "light" ? "#18171a" : "#f6f2ea";
-    setNetworkColorMode(network, mono, monoHex);
-  }, [globeSettings?.networkMono, uiTheme]);
+    setNetworkColors(network, globeSettings?.arcColor ?? null, globeSettings?.pulseColor ?? null);
+  }, [globeSettings?.arcColor, globeSettings?.pulseColor]);
 
   useEffect(() => {
     const refs = threeRef.current;
