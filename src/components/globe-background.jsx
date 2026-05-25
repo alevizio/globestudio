@@ -405,10 +405,14 @@ export const GlobeBackground = ({
 
     // Unlit base sphere so there's no directional-light terminator visible
     // through gaps in the dot field. Stripe-style flat shading on the ocean.
+    // depthWrite: false so transparent fragments don't z-reject the network
+    // arcs and pulses drawn on the back hemisphere — at low Surface opacity
+    // the user expects to see them through the front of the sphere.
     const baseMaterial = new THREE.MeshBasicMaterial({
       color: new THREE.Color("#18191d"),
       transparent: true,
       opacity: 0.28,
+      depthWrite: false,
     });
     const globeMesh = new THREE.Mesh(new THREE.SphereGeometry(2, 96, 96), baseMaterial);
     globeGroup.add(globeMesh);

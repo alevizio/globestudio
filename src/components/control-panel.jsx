@@ -598,25 +598,34 @@ export const ControlPanel = ({
             </>
           )}
 
-          {/* Surface (sphere fill) layer */}
-          <OptionRow label="Surface">
-            <ToggleControl
-              label="Toggle globe surface"
-              checked={globeSettings.surface}
-              onChange={(value) => updateGlobeSetting("surface", value)}
-            />
-          </OptionRow>
-          {globeSettings.surface && (
-            <OptionRow label="Strength" value={globeSettings.surfaceStrength}>
-              <RangeControl
-                label="Surface strength"
-                min={0}
-                max={100}
-                value={globeSettings.surfaceStrength}
-                onChange={(value) => updateGlobeSetting("surfaceStrength", value)}
-              />
-            </OptionRow>
-          )}
+          {/* Surface (sphere fill) — single slider where 0 hides
+              the base sphere and 100 is opaque. The underlying field
+              is actually an opacity, so the label says so. Legacy
+              `surface: false` from older saved configs coerces to
+              opacity 0; the bool is kept in sync onChange so older
+              consumers / shared URLs continue parsing correctly. */}
+          {(() => {
+            const surfaceOpacity = globeSettings.surface === false
+              ? 0
+              : (globeSettings.surfaceStrength ?? 82);
+            return (
+              <OptionRow label="Surface opacity" value={surfaceOpacity}>
+                <RangeControl
+                  label="Surface opacity"
+                  min={0}
+                  max={100}
+                  value={surfaceOpacity}
+                  onChange={(value) =>
+                    setGlobeSettings((s) => ({
+                      ...s,
+                      surfaceStrength: value,
+                      surface: value > 0,
+                    }))
+                  }
+                />
+              </OptionRow>
+            );
+          })()}
 
           {/* Grid layer */}
           <OptionRow label="Grid">
