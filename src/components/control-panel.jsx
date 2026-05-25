@@ -719,30 +719,28 @@ export const ControlPanel = ({
         </PanelSection>
       </Collapsible>
 
-      {/* Animations section — motion across the canvas. Hidden in
-          flat view for parity with the Globe + Network sections,
-          which all share the same "3D-mode-only" gate. The master
-          Animations toggle is reachable via Cmd+K → "animations" if
-          a power user needs it in flat (rare). Auto spin is hidden
-          in flat regardless since it doesn't apply. */}
-      <Collapsible open={viewMode === "globe"}>
-        <PanelSection title="Animations">
-          <OptionRow label="Animations">
-            <ToggleControl
-              label="Toggle all animations"
-              checked={animationsEnabled}
-              onChange={(value) => setAnimationsEnabled?.(value)}
-            />
-          </OptionRow>
-          {animationsEnabled && (
-            <>
-              <OptionRow label="Animate rotation">
-                <ToggleControl
-                  label="Animate dot rotation"
-                  checked={rotateAnimating}
-                  onChange={(value) => setRotateAnimating?.(value)}
-                />
-              </OptionRow>
+      {/* Animations section — motion across the canvas. Visible in
+          both views because Animate shape rotation (dots spinning
+          in place) works in flat too. Auto spin + Speed are gated
+          to 3D mode via the inner Collapsible. */}
+      <PanelSection title="Animations">
+        <OptionRow label="Animations">
+          <ToggleControl
+            label="Toggle all animations"
+            checked={animationsEnabled}
+            onChange={(value) => setAnimationsEnabled?.(value)}
+          />
+        </OptionRow>
+        {animationsEnabled && (
+          <>
+            <OptionRow label="Animate shape rotation">
+              <ToggleControl
+                label="Animate shape rotation"
+                checked={rotateAnimating}
+                onChange={(value) => setRotateAnimating?.(value)}
+              />
+            </OptionRow>
+            <Collapsible open={viewMode === "globe"}>
               <OptionRow label="Auto spin">
                 <ToggleControl
                   label="Toggle globe auto spin"
@@ -761,10 +759,10 @@ export const ControlPanel = ({
                   />
                 </OptionRow>
               )}
-            </>
-          )}
-        </PanelSection>
-      </Collapsible>
+            </Collapsible>
+          </>
+        )}
+      </PanelSection>
 
       <PanelSection title="Shaders">
         <OptionRow label="Pass">
