@@ -42,12 +42,18 @@ export const DEFAULT_GLOBE_SETTINGS = {
 };
 
 // Internal value identifiers are kept as "classic"/"borderless" for
-// backwards compat with saved configs and shared URLs — only the
-// display labels change to "Border"/"No border", which read more
-// intuitively as a binary toggle.
+// backwards compat with saved configs and shared URLs. Display
+// labels read off the visible result instead: the historical
+// "borderless" mode actually ADDS a luminous cyan halo + ambient
+// equatorial torus rings around the globe, which read as a glowing
+// border. The "classic" mode is the plainer one with no rings.
+//
+// Tldr: in-product names are inverted from the internal value names
+// because the internal names are the wrong way around. The first
+// option in this array is the left segment of the toggle.
 export const globeLookOptions = [
-  { value: "classic", label: "Border" },
-  { value: "borderless", label: "No border" },
+  { value: "classic", label: "No border" },
+  { value: "borderless", label: "Border" },
 ];
 
 export const BORDERLESS_ROUTE_PATHS = [
