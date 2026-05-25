@@ -448,12 +448,20 @@ export const ColorPicker = ({
             </div>
             <label className="color-picker-angle">
               <span>Angle</span>
+              {/* These ranges share the global slider styles which paint
+                  the track via a --fill CSS var (set by RangeControl
+                  elsewhere). When --fill isn't set the track falls back
+                  to a 50/50 gradient, so the filled segment looked
+                  disconnected from the thumb at any non-50% value.
+                  Setting --fill inline = thumb%-of-range fixes it. */}
               <input
+                className="slider"
                 type="range"
                 min={0}
                 max={360}
                 step={1}
                 value={gradient.angle ?? 90}
+                style={{ "--fill": `${((gradient.angle ?? 90) / 360) * 100}%` }}
                 aria-label="Gradient angle"
                 onChange={(event) => updateGradientAngle(event.target.value)}
               />
@@ -462,11 +470,13 @@ export const ColorPicker = ({
             <label className="color-picker-angle">
               <span>Midpoint</span>
               <input
+                className="slider"
                 type="range"
                 min={0}
                 max={100}
                 step={1}
                 value={midpointPct}
+                style={{ "--fill": `${midpointPct}%` }}
                 aria-label="Gradient midpoint"
                 onChange={(event) => updateGradientMidpoint(event.target.value)}
               />
