@@ -581,9 +581,14 @@ export const ControlPanel = ({
                   onChange={(value) => updateGlobeSetting("glowStrength", value)}
                 />
               </OptionRow>
-              <OptionRow label="Spread" value={globeSettings.glowSpread ?? 50}>
+              {/* "Blur" is the user-facing name; the persisted field
+                  stays glowSpread for backwards-compat with saved
+                  configs and shared URLs. The CSS filter:blur() range
+                  was raised in App.jsx so the slider visibly diffuses
+                  the halo end-to-end. */}
+              <OptionRow label="Blur" value={globeSettings.glowSpread ?? 50}>
                 <RangeControl
-                  label="Glow spread"
+                  label="Glow blur"
                   min={0}
                   max={100}
                   value={globeSettings.glowSpread ?? 50}

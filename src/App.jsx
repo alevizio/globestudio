@@ -1009,8 +1009,13 @@ const App = () => {
         "--shader-glow": `${Math.max(0, shaderSettings.intensity * 0.16)}px`,
         "--shader-glow-wide": `${Math.max(0, shaderSettings.intensity * 0.32)}px`,
         "--globe-bg-glow-opacity": globeGlowOpacity,
+        // glowSpread (called "Blur" in the panel) drives BOTH the
+        // radial-gradient halo size AND the CSS filter:blur amount.
+        // The blur ceiling was raised from 18 → 56px so the slider
+        // visibly diffuses the glow over its full range — at 0 the
+        // halo is sharp and concentrated, at 100 it's a soft cloud.
         "--globe-glow-spread": `${30 + (clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 80}%`,
-        "--globe-glow-blur": `${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 18}px`,
+        "--globe-glow-blur": `${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 56}px`,
         "--shader-intensity": shaderSettings.intensity / 100,
         "--shader-split": `${shaderSettings.split}px`,
         "--shader-split-neg": `${-shaderSettings.split}px`,
