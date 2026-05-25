@@ -32,7 +32,20 @@ export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
   });
   group.userData.gridSignature = getGridSettingsSignature({ gridSize, gridLift });
 
-  for (let lat = -90 + gridSize; lat < 90; lat += gridSize) {
+  // Parallels (lines of constant latitude). Walk OUTWARD from the
+  // equator using the slider value as exact spacing, then up to the
+  // last fully-inside multiple before the poles. This guarantees:
+  //   - The equator (lat=0) is ALWAYS drawn — defines the globe's
+  //     primary reference circle.
+  //   - Spacing is exactly the slider value, no rounding mismatch.
+  //   - Symmetric N/S so the visual reads as a proper graticule.
+  // Old code did `for (lat = -90+gridSize; lat<90; lat+=gridSize)`
+  // which silently dropped the equator at gridSize=60, 45, 33, ... —
+  // any value where -90+gridSize wasn't a multiple of gridSize that
+  // also reached 0.
+  const halfCount = Math.max(0, Math.floor((90 - 0.5) / gridSize));
+  for (let k = -halfCount; k <= halfCount; k++) {
+    const lat = k * gridSize;
     const points = [];
     for (let lng = -180; lng <= 180; lng += sampleStep) {
       points.push(latLngToVector3(lat, lng, radius));
@@ -40,7 +53,18 @@ export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
     group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material));
   }
 
-  for (let lng = -180; lng < 180; lng += gridSize) {
+  // Meridians (lines of constant longitude). Must evenly divide 360
+  // to wrap cleanly around the globe — otherwise there's a visible
+  // "seam" at the antimeridian where the last gap doesn't match the
+  // rest. Round to the nearest count and derive the actual step from
+  // it. Tiny divergence from the slider's literal value (e.g. slider
+  // 33° → actual 32.7° at count=11) is invisible.
+  // Old code stepped by `gridSize` directly which produced a lopsided
+  // grid at any non-divisor of 360.
+  const meridianCount = Math.max(2, Math.round(360 / gridSize));
+  const meridianStep = 360 / meridianCount;
+  for (let i = 0; i < meridianCount; i++) {
+    const lng = -180 + i * meridianStep;
     const points = [];
     for (let lat = -82; lat <= 82; lat += sampleStep) {
       points.push(latLngToVector3(lat, lng, radius));
@@ -57,6 +81,20 @@ export const syncGraticule = (refs, settings) => {
   if (refs.graticule?.userData?.gridSignature === signature) return;
 
   const nextGraticule = createGraticule(settings);
+  // Seed the freshly-created material's opacity with the user's CURRENT
+  // slider value. The material constructor sets opacity to its hardcoded
+  // 0.13 baseline; without this, every rebuild (one per slider tick
+  // during continuous drag) would render one frame at 0.13 before
+  // applyGlobeShellProgress on the next frame corrects it — visible as
+  // a flash, especially noticeable when dragging gridSize through its
+  // range. All lines share a single material so writing once is enough.
+  const sharedMaterial = nextGraticule.children[0]?.material;
+  if (sharedMaterial) {
+    const gridStrength = settings.grid === false
+      ? 0
+      : clampNumber(settings.gridStrength ?? DEFAULT_GLOBE_SETTINGS.gridStrength, 0, 100) / 100;
+    sharedMaterial.opacity = gridStrength;
+  }
   if (refs.graticule) {
     refs.globeGroup.remove(refs.graticule);
     disposeThreeObject(refs.graticule);
