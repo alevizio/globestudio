@@ -666,17 +666,20 @@ export const ControlPanel = ({
                 </OptionRow>
                 {gridOpacity > 0 && (
                   <>
-                    <OptionRow label="Grid size" value={`${globeSettings.gridSize}°`}>
+                    <OptionRow
+                      label="Grid size"
+                      value={globeSettings.gridSize === 0 ? "Off" : `${globeSettings.gridSize}°`}
+                    >
                       <RangeControl
                         label="Grid size"
-                        min={12}
+                        min={0}
                         max={60}
                         step={3}
                         value={globeSettings.gridSize}
                         onChange={(value) => updateGlobeSetting("gridSize", value)}
                       />
                     </OptionRow>
-                    <OptionRow label="Lift" value={globeSettings.gridLift}>
+                    <OptionRow label="Grid lift" value={globeSettings.gridLift}>
                       <RangeControl
                         label="Grid lift"
                         min={0}
@@ -716,9 +719,9 @@ export const ControlPanel = ({
           )}
 
           {/* Global adjustments — sit at the bottom because they're not gated */}
-          <OptionRow label="Dot lift" value={globeSettings.dotLift}>
+          <OptionRow label="Surface lift" value={globeSettings.dotLift}>
             <RangeControl
-              label="Globe dot lift"
+              label="Surface lift"
               min={0}
               max={100}
               value={globeSettings.dotLift}

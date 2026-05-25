@@ -18,11 +18,17 @@ const getGridSettingsSignature = (settings = DEFAULT_GLOBE_SETTINGS) => {
 };
 
 export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
-  const gridSize = clampNumber(settings.gridSize ?? DEFAULT_GLOBE_SETTINGS.gridSize, 12, 60);
+  const gridSize = clampNumber(settings.gridSize ?? DEFAULT_GLOBE_SETTINGS.gridSize, 0, 60);
   const gridLift = clampNumber(settings.gridLift ?? DEFAULT_GLOBE_SETTINGS.gridLift, 0, 100);
   const radius = GLOBE_RADIUS + 0.004 + gridLift * 0.0024;
   const sampleStep = Math.max(2, Math.min(6, gridSize / 6));
   const group = new THREE.Group();
+  group.userData.gridSignature = getGridSettingsSignature({ gridSize, gridLift });
+  // gridSize 0 = "Off" — return an empty group. Otherwise the
+  // halfCount / meridianCount formulas would divide by zero and
+  // explode into infinite loops. The shared material only gets
+  // created when there are lines to put on it.
+  if (gridSize <= 0) return group;
   const material = new THREE.LineBasicMaterial({
     color: 0xffffff,
     transparent: true,
@@ -30,7 +36,6 @@ export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
-  group.userData.gridSignature = getGridSettingsSignature({ gridSize, gridLift });
 
   // Parallels (lines of constant latitude). Walk OUTWARD from the
   // equator using the slider value as exact spacing, then up to the
