@@ -138,8 +138,10 @@ const App = () => {
   const [dotsVisible, setDotsVisible] = usePersistedState("dotsVisible", true);
   const [shape, setShape] = usePersistedState("shape", "Circle");
   const [dotRotation, setDotRotation] = usePersistedState("dotRotation", 0);
-  const [rotateAnimating, setRotateAnimating] = usePersistedState("rotateAnimating", false);
-  const [shapeRotationSpeed, setShapeRotationSpeed] = usePersistedState("shapeRotationSpeed", 50);
+  // Shape rotation: a single slider where 0 means "no rotation" and 1–100
+  // ramps from a gentle drift to a brisk spin. Replaces the older
+  // (toggle + speed slider) pair — the toggle is now implied by speed > 0.
+  const [shapeRotationSpeed, setShapeRotationSpeed] = usePersistedState("shapeRotationSpeed", 0);
   const [sizeVary, setSizeVary] = usePersistedState("sizeVary", false);
   const [asciiSymbol, setAsciiSymbol] = usePersistedState("asciiSymbol", "*");
   const [customShape, setCustomShape] = usePersistedState("customShape", null);
@@ -296,7 +298,7 @@ const App = () => {
   // Keep the underlying state intact so toggling restores values automatically.
   const effectiveGlobeSettings = useMemo(() => {
     if (!motionFrozen) return globeSettings;
-    return { ...globeSettings, autoSpin: false, network: false };
+    return { ...globeSettings, autoSpin: false, autoSpinSpeed: 0, network: false };
   }, [globeSettings, motionFrozen]);
   const effectiveSpaceSettings = useMemo(() => {
     if (!motionFrozen) return spaceSettings;
@@ -422,8 +424,7 @@ const App = () => {
     setDotsVisible(true);
     setShape("Circle");
     setDotRotation(0);
-    setRotateAnimating(false);
-    setShapeRotationSpeed(50);
+    setShapeRotationSpeed(0);
     setSizeVary(false);
     setCustomShape(null);
     setDotGradient(null);
@@ -470,7 +471,11 @@ const App = () => {
     if (s.dotsVisible !== undefined) setDotsVisible(s.dotsVisible);
     if (s.shape !== undefined) setShape(s.shape);
     if (s.dotRotation !== undefined) setDotRotation(s.dotRotation);
-    if (s.rotateAnimating !== undefined) setRotateAnimating(s.rotateAnimating);
+    // Legacy: older exports paired a bool toggle with a speed slider. The
+    // combined slider now means 0 = stopped, so a saved `rotateAnimating:
+    // false` becomes speed = 0 and `true` falls through to whatever the
+    // saved (or default) speed was.
+    if (s.rotateAnimating === false) setShapeRotationSpeed(0);
     if (s.shapeRotationSpeed !== undefined) setShapeRotationSpeed(s.shapeRotationSpeed);
     if (s.sizeVary !== undefined) setSizeVary(s.sizeVary);
     if (s.customShape !== undefined) setCustomShape(s.customShape);
@@ -699,7 +704,6 @@ const App = () => {
       dotsVisible,
       shape,
       dotRotation,
-      rotateAnimating,
       shapeRotationSpeed,
       sizeVary,
       asciiSymbol,
@@ -725,7 +729,7 @@ const App = () => {
     [
       selection, stateSelection, background, transparent, backgroundStyle,
       density, dotSize, dotColor, dotColorAlpha, dotGradient, dotsVisible,
-      shape, dotRotation, rotateAnimating, shapeRotationSpeed, sizeVary, asciiSymbol, customShape,
+      shape, dotRotation, shapeRotationSpeed, sizeVary, asciiSymbol, customShape,
       renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible,
       worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible,
       worldStrokeWidth, mapDepth, tiltX, tiltY, shaderSettings, globeSettings,
@@ -778,7 +782,6 @@ const App = () => {
     set("dotsVisible", setDotsVisible);
     set("shape", setShape);
     set("dotRotation", setDotRotation);
-    set("rotateAnimating", setRotateAnimating);
     set("shapeRotationSpeed", setShapeRotationSpeed);
     set("sizeVary", setSizeVary);
     set("customShape", setCustomShape);
@@ -1069,8 +1072,7 @@ const App = () => {
             dotsVisible={dotsVisible}
             shape={shape}
             dotRotation={dotRotation}
-            rotateAnimating={rotateAnimating && !motionFrozen}
-            shapeRotationSpeed={shapeRotationSpeed}
+            shapeRotationSpeed={motionFrozen ? 0 : shapeRotationSpeed}
             sizeVary={sizeVary}
             asciiSymbol={asciiSymbol}
             customShape={customShape}
@@ -1279,8 +1281,6 @@ const App = () => {
             dotRotation={dotRotation}
             setShape={setShape}
             setDotRotation={setDotRotation}
-            rotateAnimating={rotateAnimating}
-            setRotateAnimating={setRotateAnimating}
             shapeRotationSpeed={shapeRotationSpeed}
             setShapeRotationSpeed={setShapeRotationSpeed}
             sizeVary={sizeVary}

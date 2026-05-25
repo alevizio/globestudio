@@ -95,9 +95,7 @@ export const ControlPanel = ({
   setShape,
   dotRotation,
   setDotRotation,
-  rotateAnimating = false,
-  setRotateAnimating,
-  shapeRotationSpeed = 50,
+  shapeRotationSpeed = 0,
   setShapeRotationSpeed,
   sizeVary = false,
   setSizeVary,
@@ -736,46 +734,49 @@ export const ControlPanel = ({
           exposed as a panel row since "all animations" reads as
           redundant when the specific motions each have their own
           switch.
-          - Animate shape rotation: applies in both views.
-          - Auto spin + Speed: only in 3D mode. */}
+          Each animation is now a single 0–100 slider — the toggle is
+          implicit (0 = stopped). Same density-slider pattern used in
+          the Network section above.
+          - Shape rotation: applies in both views.
+          - Auto spin: only in 3D mode. */}
       <PanelSection title="Animations">
-        <OptionRow label="Animate shape rotation">
-          <ToggleControl
-            label="Animate shape rotation"
-            checked={rotateAnimating}
-            onChange={(value) => setRotateAnimating?.(value)}
+        <OptionRow label="Shape rotation" value={shapeRotationSpeed}>
+          <RangeControl
+            label="Shape rotation speed"
+            min={0}
+            max={100}
+            value={shapeRotationSpeed}
+            onChange={setShapeRotationSpeed}
           />
         </OptionRow>
-        {rotateAnimating && (
-          <OptionRow label="Speed" value={shapeRotationSpeed}>
-            <RangeControl
-              label="Shape rotation speed"
-              min={0}
-              max={100}
-              value={shapeRotationSpeed}
-              onChange={setShapeRotationSpeed}
-            />
-          </OptionRow>
-        )}
         <Collapsible open={viewMode === "globe"}>
-          <OptionRow label="Auto spin">
-            <ToggleControl
-              label="Toggle globe auto spin"
-              checked={globeSettings.autoSpin}
-              onChange={(value) => updateGlobeSetting("autoSpin", value)}
-            />
-          </OptionRow>
-          {globeSettings.autoSpin && (
-            <OptionRow label="Speed" value={shaderSettings.motion}>
-              <RangeControl
-                label="Globe spin speed"
-                min={0}
-                max={100}
-                value={shaderSettings.motion}
-                onChange={(value) => updateShaderSetting("motion", value)}
-              />
-            </OptionRow>
-          )}
+          {(() => {
+            // Legacy `autoSpin: false` from older saved configs coerces
+            // to speed = 0 so the slider reflects the prior off state.
+            const autoSpinSpeed = globeSettings.autoSpin === false
+              ? 0
+              : (globeSettings.autoSpinSpeed ?? 35);
+            return (
+              <OptionRow label="Auto spin" value={autoSpinSpeed}>
+                <RangeControl
+                  label="Globe auto spin speed"
+                  min={0}
+                  max={100}
+                  value={autoSpinSpeed}
+                  onChange={(value) => {
+                    updateGlobeSetting("autoSpinSpeed", value);
+                    // Keep the legacy bool in sync so exported configs
+                    // and shared URLs remain readable on older builds.
+                    if (value === 0 && globeSettings.autoSpin !== false) {
+                      updateGlobeSetting("autoSpin", false);
+                    } else if (value > 0 && globeSettings.autoSpin === false) {
+                      updateGlobeSetting("autoSpin", true);
+                    }
+                  }}
+                />
+              </OptionRow>
+            );
+          })()}
         </Collapsible>
       </PanelSection>
 

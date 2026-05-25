@@ -7,7 +7,12 @@ export const GLOBE_MORPH_DURATION = 1700;
 export const GLOBE_DEFAULT_GLOW = "#e9e4d8";
 
 export const DEFAULT_GLOBE_SETTINGS = {
+  // Auto spin is exposed as a single 0–100 slider: 0 = no spin, 100 =
+  // max. The legacy `autoSpin` bool is kept for import compatibility
+  // with older shared URLs / saved configs — if explicitly set to
+  // false on an incoming config the renderer treats it as speed = 0.
   autoSpin: true,
+  autoSpinSpeed: 35,
   dotLift: 15,
   glow: true,
   glowStrength: 58,

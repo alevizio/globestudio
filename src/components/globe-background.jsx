@@ -57,8 +57,11 @@ export const GlobeBackground = ({
   dotSize,
   shape,
   dotRotation = 0,
-  rotateAnimating = false,
-  shapeRotationSpeed = 50,
+  // shapeRotationSpeed is a single 0–100 control: 0 = stopped, 100 =
+  // brisk spin. The old separate rotateAnimating bool prop is gone —
+  // gate is now implicit (speed > 0). App still passes 0 here when
+  // motionFrozen so prefers-reduced-motion stays honored.
+  shapeRotationSpeed = 0,
   sizeVary = false,
   asciiSymbol,
   customShape = null,
@@ -125,7 +128,6 @@ export const GlobeBackground = ({
   const spaceSettingsRef = useRef(spaceSettings);
   const backgroundStyleRef = useRef(backgroundStyle);
   const reducedMotionRef = useRef(reducedMotion);
-  const rotateAnimatingRef = useRef(rotateAnimating);
   const shapeRotationSpeedRef = useRef(shapeRotationSpeed);
   const dotRotationRef = useRef(dotRotation);
   const spinAngleRef = useRef(0);
@@ -138,7 +140,6 @@ export const GlobeBackground = ({
   spaceSettingsRef.current = spaceSettings;
   backgroundStyleRef.current = backgroundStyle;
   reducedMotionRef.current = reducedMotion;
-  rotateAnimatingRef.current = rotateAnimating;
   shapeRotationSpeedRef.current = shapeRotationSpeed;
   dotRotationRef.current = dotRotation;
   sizeVaryRef.current = sizeVary;
@@ -539,14 +540,17 @@ export const GlobeBackground = ({
       const state = stateRef.current;
       const settings = settingsRef.current;
       const currentGlobeSettings = { ...DEFAULT_GLOBE_SETTINGS, ...globeSettingsRef.current };
-      const effectMotion = clampNumber(settings.motion ?? 35, 0, 100);
-      const spin = 0.00008 + effectMotion * 0.0000035;
-
       // Auto-spin honours `prefers-reduced-motion`: long-running continuous
       // rotation is the canonical kind of animation that the OS-level pref
-      // exists to silence. The toggle still reads "on" in the UI; we just
-      // stop advancing the target angle.
-      const autoSpinAllowed = currentGlobeSettings.autoSpin && !reducedMotionRef.current;
+      // exists to silence. Speed is its own 0–100 setting (decoupled from
+      // shader motion); the legacy `autoSpin: false` bool from older
+      // saved configs is mapped to speed = 0 here.
+      const legacyAutoSpinOff = currentGlobeSettings.autoSpin === false;
+      const autoSpinSpeed = legacyAutoSpinOff
+        ? 0
+        : clampNumber(currentGlobeSettings.autoSpinSpeed ?? 35, 0, 100);
+      const autoSpinAllowed = autoSpinSpeed > 0 && !reducedMotionRef.current;
+      const spin = (autoSpinSpeed / 100) * 0.00043;
       const spinProgress = autoSpinAllowed ? smoothStep(0.28, 1, morphRef.current.progress) : 0;
       if (!state.active) {
         state.targetY += spin * delta * spinProgress;
@@ -655,15 +659,18 @@ export const GlobeBackground = ({
           applyDotLayerMorph(dotLayer, morph.progress, false);
         }
       }
-      // Animated dot rotation. Advances spinAngleRef by elapsed time when the
-      // user toggle is on; when the toggle is off we re-bake matrices once so
-      // dots return to the static slider angle, then leave them alone.
+      // Animated dot rotation. Advances spinAngleRef by elapsed time when
+      // the user's speed slider is > 0; at 0 (or under prefers-reduced-
+      // motion) we re-bake matrices once so dots return to the static
+      // slider angle, then leave them alone.
       if (threeRef.current.dotLayer) {
-        const animating = rotateAnimatingRef.current && !reducedMotionRef.current;
+        const rawSpeed = Math.max(0, Math.min(100, shapeRotationSpeedRef.current ?? 0));
+        const animating = rawSpeed > 0 && !reducedMotionRef.current;
         if (animating) {
-          // Map the 0-100 slider value into degrees-per-second so the
-          // user can drag from a gentle drift up to a brisk spin.
-          const speedNormalized = Math.max(0, Math.min(100, shapeRotationSpeedRef.current ?? 50)) / 100;
+          // Map 1–100 onto degrees-per-second so the slider scales from a
+          // gentle drift up to a brisk spin. (0 falls through to the
+          // settle branch below.)
+          const speedNormalized = rawSpeed / 100;
           const degreesPerSecond =
             SPIN_MIN_DEG_PER_SEC + speedNormalized * (SPIN_MAX_DEG_PER_SEC - SPIN_MIN_DEG_PER_SEC);
           spinAngleRef.current = (spinAngleRef.current + (delta / 1000) * degreesPerSecond) % 360;

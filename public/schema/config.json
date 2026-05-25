@@ -51,7 +51,8 @@
     "customShape": { "type": ["string", "object", "null"], "description": "Custom SVG/path source when `shape` is `Custom`." },
     "dotRotation": { "type": "number", "minimum": 0, "maximum": 360 },
     "sizeVary": { "type": "boolean", "description": "Add per-dot size jitter." },
-    "rotateAnimating": { "type": "boolean" },
+    "rotateAnimating": { "type": "boolean", "description": "Legacy field. The current control is `shapeRotationSpeed` (0–100, where 0 = stopped); when this is `false` on import, shapeRotationSpeed is forced to 0." },
+    "shapeRotationSpeed": { "type": "number", "minimum": 0, "maximum": 100, "description": "Shape rotation speed 0–100 (0 stops the animation)." },
 
     "renderMode": { "type": "string", "enum": ["dots", "solid"] },
 
@@ -94,7 +95,8 @@
       "description": "3D globe chrome — auto-spin, glow halo, grid mesh, network arcs, etc.",
       "properties": {
         "look": { "type": "string", "enum": ["classic", "borderless"] },
-        "autoSpin": { "type": "boolean" },
+        "autoSpin": { "type": "boolean", "description": "Legacy field. The current control is `autoSpinSpeed` (0–100, where 0 stops the spin); when this is `false` on import, autoSpinSpeed is forced to 0." },
+        "autoSpinSpeed": { "type": "number", "minimum": 0, "maximum": 100, "description": "Globe auto-rotation speed 0–100 (0 stops the spin)." },
         "glow": { "type": "boolean" },
         "glowStrength": { "type": "number", "minimum": 0, "maximum": 100 },
         "glowSpread": { "type": "number", "minimum": 0, "maximum": 100 },
