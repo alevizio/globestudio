@@ -157,12 +157,14 @@ export const createOuterHaloMaterial = () =>
       uniform vec3 haloColor;
       uniform float intensity;
       uniform float uTime;
+      uniform float rimPower;
       varying vec3 vNormal;
       varying vec3 vObjectPos;
       void main() {
-        // Wide, soft rim that bleeds far from the silhouette. Sharp falloff so
-        // the halo is concentrated near the edge but extends visibly outward.
-        float rim = pow(max(0.0, 0.6 - dot(vNormal, vec3(0.0, 0.0, 1.0))), 4.6);
+        // Rim power drives the falloff curve — high values (≈4.6, the
+        // default) concentrate the halo near the silhouette; low values
+        // (≈1.2 at max Blur) bleed it far outward as a soft cloud.
+        float rim = pow(max(0.0, 0.6 - dot(vNormal, vec3(0.0, 0.0, 1.0))), rimPower);
         // Slow breathing — the deep halo expands/contracts gently.
         float breath = 0.88 + 0.12 * sin(uTime * 0.22);
         gl_FragColor = vec4(haloColor, clamp(rim * intensity * breath, 0.0, 0.10));
@@ -172,6 +174,7 @@ export const createOuterHaloMaterial = () =>
       haloColor: { value: new THREE.Color("#4c8bff") },
       intensity: { value: 0.4 },
       uTime: { value: 0 },
+      rimPower: { value: 4.6 },
     },
     blending: THREE.AdditiveBlending,
     side: THREE.BackSide,
@@ -195,12 +198,15 @@ export const createAtmosphereMaterial = () =>
       uniform vec3 limbColor;
       uniform float intensity;
       uniform float uTime;
+      uniform float rimPower;
       varying vec3 vNormal;
       varying vec3 vObjectPos;
 
       void main() {
-        // Original rim formula — strong at the silhouette, fading inward.
-        float rim = pow(max(0.0, 0.66 - dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.25);
+        // Rim power drives the falloff curve. Default 2.25 is a tight
+        // crisp halo. The "Blur" panel slider tugs it down toward ~0.7
+        // for a wide, very diffuse atmospheric haze.
+        float rim = pow(max(0.0, 0.66 - dot(vNormal, vec3(0.0, 0.0, 1.0))), rimPower);
 
         // Aurora-like undulating bands — two low-frequency sinusoids in object space.
         // Object-space coordinates rotate with the globe so the bands feel anchored
@@ -222,6 +228,7 @@ export const createAtmosphereMaterial = () =>
       limbColor: { value: new THREE.Color("#6cb6ff") },
       intensity: { value: 0.42 },
       uTime: { value: 0 },
+      rimPower: { value: 2.25 },
     },
     blending: THREE.AdditiveBlending,
     side: THREE.BackSide,
@@ -871,8 +878,14 @@ export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEF
 
   refs.baseMaterial.opacity = refs.baseOpacity * shellProgress * surfaceStrength;
   refs.atmosphereMaterial.uniforms.intensity.value = refs.atmosphereIntensity * shellProgress * glowStrength;
+  // "Blur" slider in the panel — drives rim falloff power. 0 keeps the
+  // tight default crisp halo; 100 collapses the exponent so the rim
+  // bleeds far outward as a wide diffuse haze.
+  const blurNorm = clampNumber(settings.glowSpread ?? 50, 0, 100) / 100;
+  refs.atmosphereMaterial.uniforms.rimPower.value = 2.25 + blurNorm * (0.7 - 2.25);
   if (refs.outerHaloMaterial) {
     refs.outerHaloMaterial.uniforms.intensity.value = 0.5 * shellProgress * glowStrength;
+    refs.outerHaloMaterial.uniforms.rimPower.value = 4.6 + blurNorm * (1.2 - 4.6);
   }
   refs.graticule.children.forEach((line) => {
     line.material.opacity = refs.graticuleOpacity * shellProgress * gridStrength;
