@@ -620,21 +620,38 @@ export const ControlPanel = ({
             // the "disappeared" state is obviously a real, intentional
             // position on the slider rather than just a number.
             return (
-              <OptionRow label="Surface opacity" value={surfaceOpacity === 0 ? "Off" : surfaceOpacity}>
-                <RangeControl
-                  label="Surface opacity"
-                  min={0}
-                  max={100}
-                  value={surfaceOpacity}
-                  onChange={(value) =>
-                    setGlobeSettings((s) => ({
-                      ...s,
-                      surfaceStrength: value,
-                      surface: value > 0,
-                    }))
-                  }
-                />
-              </OptionRow>
+              <>
+                <OptionRow label="Surface opacity" value={surfaceOpacity === 0 ? "Off" : surfaceOpacity}>
+                  <RangeControl
+                    label="Surface opacity"
+                    min={0}
+                    max={100}
+                    value={surfaceOpacity}
+                    onChange={(value) =>
+                      setGlobeSettings((s) => ({
+                        ...s,
+                        surfaceStrength: value,
+                        surface: value > 0,
+                      }))
+                    }
+                  />
+                </OptionRow>
+                {/* Surface lift sits adjacent to Surface opacity since
+                    they're the two controls for the same conceptual
+                    layer (sphere fill). Previously it lived at the
+                    bottom of the Globe section as "Dot lift", which
+                    made it hard to find and harder to relate to the
+                    opacity it complements. */}
+                <OptionRow label="Surface lift" value={globeSettings.dotLift}>
+                  <RangeControl
+                    label="Surface lift"
+                    min={0}
+                    max={100}
+                    value={globeSettings.dotLift}
+                    onChange={(value) => updateGlobeSetting("dotLift", value)}
+                  />
+                </OptionRow>
+              </>
             );
           })()}
 
@@ -688,6 +705,22 @@ export const ControlPanel = ({
                         onChange={(value) => updateGlobeSetting("gridLift", value)}
                       />
                     </OptionRow>
+                    {/* Grid color + gradient. Same ColorSwatch
+                        component used by the dot color picker —
+                        single tint by default, optional 2-stop
+                        gradient that the renderer applies as per-
+                        vertex colors interpolated by latitude.
+                        Alpha is intentionally omitted (the grid
+                        opacity slider already controls it). */}
+                    <OptionRow label="Color">
+                      <ColorSwatch
+                        value={globeSettings.gridColor ?? "#ffffff"}
+                        onChange={(value) => updateGlobeSetting("gridColor", value)}
+                        label="Select grid color"
+                        gradient={globeSettings.gridGradient}
+                        onGradientChange={(value) => updateGlobeSetting("gridGradient", value)}
+                      />
+                    </OptionRow>
                   </>
                 )}
               </>
@@ -718,16 +751,6 @@ export const ControlPanel = ({
             </>
           )}
 
-          {/* Global adjustments — sit at the bottom because they're not gated */}
-          <OptionRow label="Surface lift" value={globeSettings.dotLift}>
-            <RangeControl
-              label="Surface lift"
-              min={0}
-              max={100}
-              value={globeSettings.dotLift}
-              onChange={(value) => updateGlobeSetting("dotLift", value)}
-            />
-          </OptionRow>
         </PanelSection>
       </Collapsible>
 

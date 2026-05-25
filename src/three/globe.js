@@ -12,30 +12,73 @@ import { latLngToVector3, pointToFlatVector3 } from "./coordinates.js";
 import { createAsciiCanvasTexture, createGlobeDotGeometry, disposeThreeObject } from "./geometry.js";
 
 const getGridSettingsSignature = (settings = DEFAULT_GLOBE_SETTINGS) => {
-  const gridSize = clampNumber(settings.gridSize ?? DEFAULT_GLOBE_SETTINGS.gridSize, 12, 60);
+  const gridSize = clampNumber(settings.gridSize ?? DEFAULT_GLOBE_SETTINGS.gridSize, 0, 60);
   const gridLift = clampNumber(settings.gridLift ?? DEFAULT_GLOBE_SETTINGS.gridLift, 0, 100);
-  return `${gridSize}:${gridLift}`;
+  const gridColor = settings.gridColor ?? DEFAULT_GLOBE_SETTINGS.gridColor;
+  // Stringify the gradient for cheap equality. null is its own state
+  // (solid color) — any change to from/to forces rebuild.
+  const grad = settings.gridGradient
+    ? `${settings.gridGradient.from ?? ""}|${settings.gridGradient.to ?? ""}`
+    : "";
+  return `${gridSize}:${gridLift}:${gridColor}:${grad}`;
 };
 
 export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
   const gridSize = clampNumber(settings.gridSize ?? DEFAULT_GLOBE_SETTINGS.gridSize, 0, 60);
   const gridLift = clampNumber(settings.gridLift ?? DEFAULT_GLOBE_SETTINGS.gridLift, 0, 100);
+  const gridColor = settings.gridColor ?? DEFAULT_GLOBE_SETTINGS.gridColor ?? "#ffffff";
+  const gridGradient = settings.gridGradient ?? null;
+  const useGradient = !!(gridGradient && gridGradient.from && gridGradient.to);
   const radius = GLOBE_RADIUS + 0.004 + gridLift * 0.0024;
   const sampleStep = Math.max(2, Math.min(6, gridSize / 6));
   const group = new THREE.Group();
-  group.userData.gridSignature = getGridSettingsSignature({ gridSize, gridLift });
+  group.userData.gridSignature = getGridSettingsSignature(settings);
   // gridSize 0 = "Off" — return an empty group. Otherwise the
   // halfCount / meridianCount formulas would divide by zero and
   // explode into infinite loops. The shared material only gets
   // created when there are lines to put on it.
   if (gridSize <= 0) return group;
+  // When a gradient is in play, vertexColors mode lets each line
+  // sample its own color from the gradient based on each point's
+  // latitude. The material's flat color is white so per-vertex
+  // colors aren't multiplied by anything but 1.0. With solid color
+  // mode the material owns the tint directly.
   const material = new THREE.LineBasicMaterial({
-    color: 0xffffff,
+    color: useGradient ? 0xffffff : new THREE.Color(gridColor),
     transparent: true,
     opacity: 0.13,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
+    vertexColors: useGradient,
   });
+  const gradFrom = useGradient ? new THREE.Color(gridGradient.from) : null;
+  const gradTo = useGradient ? new THREE.Color(gridGradient.to) : null;
+  // Linear lerp by normalized latitude. The radius of the sphere
+  // is the GLOBE_RADIUS plus the lift offset, so y/radius gives a
+  // value in [-1, 1] for points on the geodesic surface.
+  const sampleGradient = (latitudeNorm) => {
+    const tmp = gradFrom.clone();
+    return tmp.lerp(gradTo, Math.max(0, Math.min(1, latitudeNorm)));
+  };
+  // Helper that builds a Line geometry from points and optionally
+  // attaches per-vertex colors driven by the gradient.
+  const buildLine = (points) => {
+    const geom = new THREE.BufferGeometry().setFromPoints(points);
+    if (useGradient) {
+      const colors = new Float32Array(points.length * 3);
+      points.forEach((p, i) => {
+        // y/radius is in roughly [-1, 1]; remap to [0, 1] so the
+        // gradient sweeps from south (0) to north (1).
+        const t = (p.y / radius + 1) * 0.5;
+        const c = sampleGradient(t);
+        colors[i * 3] = c.r;
+        colors[i * 3 + 1] = c.g;
+        colors[i * 3 + 2] = c.b;
+      });
+      geom.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    }
+    return new THREE.Line(geom, material);
+  };
 
   // Parallels (lines of constant latitude). Walk OUTWARD from the
   // equator using the slider value as exact spacing, then up to the
@@ -55,7 +98,7 @@ export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
     for (let lng = -180; lng <= 180; lng += sampleStep) {
       points.push(latLngToVector3(lat, lng, radius));
     }
-    group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material));
+    group.add(buildLine(points));
   }
 
   // Meridians (lines of constant longitude). Must evenly divide 360
@@ -74,7 +117,7 @@ export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
     for (let lat = -82; lat <= 82; lat += sampleStep) {
       points.push(latLngToVector3(lat, lng, radius));
     }
-    group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material));
+    group.add(buildLine(points));
   }
 
   return group;

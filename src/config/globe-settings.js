@@ -18,6 +18,15 @@ export const DEFAULT_GLOBE_SETTINGS = {
   glowStrength: 58,
   glowSpread: 50,
   grid: true,
+  // Grid color. Plain hex string. The opacity is the gridStrength
+  // slider below — keeping them separate matches the dot pattern
+  // (color picker + alpha slider).
+  gridColor: "#ffffff",
+  // Grid gradient — null means use solid gridColor. When set with
+  // { from, to }, vertex colors interpolate by latitude (south →
+  // north), so parallels each get a solid tint from the gradient
+  // and meridians sweep through the whole range top-to-bottom.
+  gridGradient: null,
   gridLift: 1,
   gridSize: 30,
   // gridStrength is now LITERAL opacity (0–100 → 0–1 line alpha).

@@ -102,6 +102,15 @@
         "glowSpread": { "type": "number", "minimum": 0, "maximum": 100 },
         "grid": { "type": "boolean" },
         "gridStrength": { "type": "number", "minimum": 0, "maximum": 100 },
+        "gridColor": { "type": "string", "description": "Hex string. Solid tint for all grid lines unless gridGradient is set." },
+        "gridGradient": {
+          "type": ["object", "null"],
+          "description": "Optional 2-stop gradient applied as per-vertex colors interpolated by latitude (south → north).",
+          "properties": {
+            "from": { "type": "string" },
+            "to": { "type": "string" }
+          }
+        },
         "network": { "type": "boolean", "description": "City pulses + great-circle route arcs." },
         "networkStrength": { "type": "number", "minimum": 0, "maximum": 100 },
         "networkArcs": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Arc density 0–100, or legacy bool (true = default density, false = hidden)." },
