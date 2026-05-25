@@ -70,7 +70,13 @@ const App = () => {
   // happens via full reload (anchor href="/path") so no router
   // library needed.
   if (typeof window !== "undefined") {
-    const path = window.location.pathname.replace(/\/$/, "") || "/";
+    // Strip an optional trailing `/index.html` first, then a trailing
+    // slash. This lets static hosts that serve the SPA at the literal
+    // file path (Lighthouse CI's local server, certain S3 setups, file://
+    // previews) resolve to home instead of falling through to NotFound.
+    const path = window.location.pathname
+      .replace(/\/index\.html$/, "")
+      .replace(/\/$/, "") || "/";
     if (path === "/brand") return <BrandPage />;
     if (path === "/docs") return <DocsPage />;
     if (path === "/changelog") return <ChangelogPage />;
