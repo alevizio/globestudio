@@ -21,12 +21,14 @@ export const DEFAULT_GLOBE_SETTINGS = {
   gridLift: 1,
   gridSize: 30,
   // gridStrength is now LITERAL opacity (0–100 → 0–1 line alpha).
-  // Default 10 reproduces the old subtle-grid look (old effective
-  // alpha was graticuleOpacity ~0.12 × 0.82 ≈ 0.1). Push to 100 for
-  // a fully visible grid; drop to 0 to hide. The bool `grid` field
-  // is retained for backwards compat with saved configs — false on
+  // Default 45 puts the grid at a clearly visible (but not loud)
+  // intensity out of the box — the old derived ~0.1 was technically
+  // correct but read as "barely there" because WebGL line width
+  // can't go above 1px on most drivers. Push to 100 for max
+  // visibility; drop to 0 to hide. The bool `grid` field is
+  // retained for backwards compat with saved configs — false on
   // import coerces gridStrength to 0.
-  gridStrength: 10,
+  gridStrength: 45,
   look: "classic",
   network: true,
   networkStrength: 70,

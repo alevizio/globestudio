@@ -53,10 +53,11 @@ const borderlessPreset = {
   grid: true,
   gridLift: 8,
   gridSize: 42,
-  // Literal opacity: old was 46 with graticuleOpacity ≈ 0.055 in
-  // borderless → effective alpha ≈ 0.025. Drop to 3 to preserve
-  // the same subtle-grid look under the new literal semantics.
-  gridStrength: 3,
+  // Literal opacity. Bumped to 22 so the borderless preset's grid
+  // reads as clearly present (matches the bumped global default of
+  // 45, scaled down a touch since borderless already has rings +
+  // glow competing for visual attention).
+  gridStrength: 22,
   look: "borderless",
   routes: true,
   routesStrength: 88,
