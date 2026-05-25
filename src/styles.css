@@ -4768,7 +4768,13 @@ input[type="range"]:active::-moz-range-thumb {
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   box-shadow: var(--shadow-xl);
-  overflow: hidden;
+  /* Horizontal stays hidden so the rounded card edge isn't broken
+     by a scrollbar; vertical switches to auto so picker content
+     can scroll internally when it overflows the viewport height
+     (gradient mode + tall screens of inputs would otherwise clip
+     the bottom rows off). */
+  overflow-x: hidden;
+  overflow-y: auto;
   animation: color-picker-pop 180ms var(--ease);
 }
 
@@ -5314,7 +5320,12 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-angle {
   display: grid;
-  grid-template-columns: 38px 1fr 36px;
+  /* Label column needs to fit the widest label currently in use —
+     "MIDPOINT" at uppercase + 0.08em letter-spacing measures ~62px
+     so a 38px column overflowed it directly onto the slider track.
+     64px gives "MIDPOINT" room and leaves "ANGLE" a little
+     breathing space without making the slider feel crammed. */
+  grid-template-columns: 64px 1fr 36px;
   align-items: center;
   gap: 6px;
 }
