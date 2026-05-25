@@ -878,14 +878,17 @@ export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEF
 
   refs.baseMaterial.opacity = refs.baseOpacity * shellProgress * surfaceStrength;
   refs.atmosphereMaterial.uniforms.intensity.value = refs.atmosphereIntensity * shellProgress * glowStrength;
-  // "Blur" slider in the panel — drives rim falloff power. 0 keeps the
-  // tight default crisp halo; 100 collapses the exponent so the rim
-  // bleeds far outward as a wide diffuse haze.
+  // "Blur" slider in the panel — softens the rim falloff a touch so
+  // the on-sphere atmosphere reads slightly fuzzier as the slider
+  // climbs. The dominant blur effect is the CSS drop-shadow on the
+  // canvas (see App.jsx) which actually bleeds OUTSIDE the sphere
+  // geometry; this shader change just keeps the inner edge from
+  // looking sharper than the outer halo when both are visible.
   const blurNorm = clampNumber(settings.glowSpread ?? 50, 0, 100) / 100;
-  refs.atmosphereMaterial.uniforms.rimPower.value = 2.25 + blurNorm * (0.7 - 2.25);
+  refs.atmosphereMaterial.uniforms.rimPower.value = 2.25 + blurNorm * (1.4 - 2.25);
   if (refs.outerHaloMaterial) {
     refs.outerHaloMaterial.uniforms.intensity.value = 0.5 * shellProgress * glowStrength;
-    refs.outerHaloMaterial.uniforms.rimPower.value = 4.6 + blurNorm * (1.2 - 4.6);
+    refs.outerHaloMaterial.uniforms.rimPower.value = 4.6 + blurNorm * (2.6 - 4.6);
   }
   refs.graticule.children.forEach((line) => {
     line.material.opacity = refs.graticuleOpacity * shellProgress * gridStrength;
