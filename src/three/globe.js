@@ -876,30 +876,15 @@ export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEF
     ? clampNumber(settings.routesStrength, 0, 100) / 100
     : 0;
 
-  refs.baseMaterial.opacity = refs.baseOpacity * shellProgress * surfaceStrength;
-  // Fade the dot layer with the same surface-opacity factor so the
-  // slider actually reads as "fade the globe face." The base sphere
-  // alone is a dark fill on a dark background — going 28% → 0% on its
-  // own is barely perceptible. Multiplying the dots' material opacity
-  // by the surface fraction makes the slider visibly fade the globe
-  // face, revealing the network arcs behind it.
-  // baseOpacity is stashed once at build time so we always multiply
-  // against the original (not the previous frame's already-scaled
-  // value, which would compound).
-  if (refs.dotLayer && !refs.solidActive) {
-    refs.dotLayer.traverse((child) => {
-      const apply = (m) => {
-        if (!m) return;
-        if (m.userData.baseOpacity === undefined) {
-          m.userData.baseOpacity = m.opacity ?? 1;
-        }
-        m.opacity = m.userData.baseOpacity * surfaceStrength;
-        m.transparent = true;
-      };
-      if (Array.isArray(child.material)) child.material.forEach(apply);
-      else if (child.material) apply(child.material);
-    });
-  }
+  // Surface opacity is now LITERAL: slider 0 → material opacity 0,
+  // slider 100 → material opacity 1.0 (fully opaque). The old code
+  // multiplied the slider into a per-mode `baseOpacity` cap (~0.28-
+  // 0.34), so even at slider 100 the sphere was barely 30% opaque
+  // and network arcs on the back hemisphere bled through. That
+  // contradicted the "100% = opaque" mental model. Removing the cap
+  // lets the slider's top end actually hide the network behind the
+  // sphere, while the bottom end (0) reveals it cleanly.
+  refs.baseMaterial.opacity = shellProgress * surfaceStrength;
   refs.atmosphereMaterial.uniforms.intensity.value = refs.atmosphereIntensity * shellProgress * glowStrength;
   // "Blur" slider in the panel — softens the rim falloff a touch so
   // the on-sphere atmosphere reads slightly fuzzier as the slider
@@ -913,8 +898,13 @@ export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEF
     refs.outerHaloMaterial.uniforms.intensity.value = 0.5 * shellProgress * glowStrength;
     refs.outerHaloMaterial.uniforms.rimPower.value = 4.6 + blurNorm * (2.6 - 4.6);
   }
+  // Grid opacity is now LITERAL like Surface opacity above — slider
+  // 0–100 → 0–1 line alpha. The old code multiplied into a per-mode
+  // graticuleOpacity cap (~0.04–0.16), so the slider never reached
+  // actual visibility at its top end. Removing the cap lets the user
+  // get a fully visible grid at 100 and a clean fade to invisible at 0.
   refs.graticule.children.forEach((line) => {
-    line.material.opacity = refs.graticuleOpacity * shellProgress * gridStrength;
+    line.material.opacity = shellProgress * gridStrength;
   });
   // Hard-hide the sphere meshes when we're effectively in flat mode. Even with
   // opacity 0 + transparent: true, three.js still issues draw calls for the

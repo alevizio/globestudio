@@ -20,7 +20,13 @@ export const DEFAULT_GLOBE_SETTINGS = {
   grid: true,
   gridLift: 1,
   gridSize: 30,
-  gridStrength: 82,
+  // gridStrength is now LITERAL opacity (0–100 → 0–1 line alpha).
+  // Default 10 reproduces the old subtle-grid look (old effective
+  // alpha was graticuleOpacity ~0.12 × 0.82 ≈ 0.1). Push to 100 for
+  // a fully visible grid; drop to 0 to hide. The bool `grid` field
+  // is retained for backwards compat with saved configs — false on
+  // import coerces gridStrength to 0.
+  gridStrength: 10,
   look: "classic",
   network: true,
   networkStrength: 70,
@@ -37,8 +43,13 @@ export const DEFAULT_GLOBE_SETTINGS = {
   networkMono: true,
   routes: true,
   routesStrength: 82,
+  // surfaceStrength is now LITERAL opacity (0–100 → 0–1 material
+  // alpha). The default 30 reproduces the old Stripe-style subtle
+  // dark-fill look (old effective opacity was baseOpacity 0.30 × 100).
+  // Crank to 100 for a fully opaque sphere that hides the network
+  // behind; drop to 0 to make the sphere fade out completely.
   surface: true,
-  surfaceStrength: 100,
+  surfaceStrength: 30,
 };
 
 // The historical `look` field on globeSettings retains its values

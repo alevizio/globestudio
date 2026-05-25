@@ -53,12 +53,19 @@ const borderlessPreset = {
   grid: true,
   gridLift: 8,
   gridSize: 42,
-  gridStrength: 46,
+  // Literal opacity: old was 46 with graticuleOpacity ≈ 0.055 in
+  // borderless → effective alpha ≈ 0.025. Drop to 3 to preserve
+  // the same subtle-grid look under the new literal semantics.
+  gridStrength: 3,
   look: "borderless",
   routes: true,
   routesStrength: 88,
   surface: true,
-  surfaceStrength: 82,
+  // Literal opacity: was 82 under the old baseOpacity-multiplied
+  // scaling (effective alpha ≈ 0.34 × 0.82 = 0.28). Drop to 28 so
+  // the preset's visual matches what it used to be under the new
+  // literal semantics.
+  surfaceStrength: 28,
 };
 
 export const ControlPanel = ({
@@ -627,46 +634,58 @@ export const ControlPanel = ({
             );
           })()}
 
-          {/* Grid layer */}
-          <OptionRow label="Grid">
-            <ToggleControl
-              label="Toggle globe grid"
-              checked={globeSettings.grid}
-              onChange={(value) => updateGlobeSetting("grid", value)}
-            />
-          </OptionRow>
-          {globeSettings.grid && (
-            <>
-              <OptionRow label="Strength" value={globeSettings.gridStrength}>
-                <RangeControl
-                  label="Grid strength"
-                  min={0}
-                  max={100}
-                  value={globeSettings.gridStrength}
-                  onChange={(value) => updateGlobeSetting("gridStrength", value)}
-                />
-              </OptionRow>
-              <OptionRow label="Size" value={`${globeSettings.gridSize}°`}>
-                <RangeControl
-                  label="Grid size"
-                  min={12}
-                  max={60}
-                  step={3}
-                  value={globeSettings.gridSize}
-                  onChange={(value) => updateGlobeSetting("gridSize", value)}
-                />
-              </OptionRow>
-              <OptionRow label="Lift" value={globeSettings.gridLift}>
-                <RangeControl
-                  label="Grid lift"
-                  min={0}
-                  max={100}
-                  value={globeSettings.gridLift}
-                  onChange={(value) => updateGlobeSetting("gridLift", value)}
-                />
-              </OptionRow>
-            </>
-          )}
+          {/* Grid — same pattern as Surface opacity: a single 0–100
+              slider, no toggle. 0 hides the grid. Size/Lift only
+              render when there's something to size or lift. Legacy
+              `grid: false` from old configs coerces to opacity 0;
+              the bool is kept in sync onChange for backwards compat. */}
+          {(() => {
+            const gridOpacity = globeSettings.grid === false
+              ? 0
+              : (globeSettings.gridStrength ?? 10);
+            return (
+              <>
+                <OptionRow label="Grid opacity" value={gridOpacity}>
+                  <RangeControl
+                    label="Grid opacity"
+                    min={0}
+                    max={100}
+                    value={gridOpacity}
+                    onChange={(value) =>
+                      setGlobeSettings((s) => ({
+                        ...s,
+                        gridStrength: value,
+                        grid: value > 0,
+                      }))
+                    }
+                  />
+                </OptionRow>
+                {gridOpacity > 0 && (
+                  <>
+                    <OptionRow label="Size" value={`${globeSettings.gridSize}°`}>
+                      <RangeControl
+                        label="Grid size"
+                        min={12}
+                        max={60}
+                        step={3}
+                        value={globeSettings.gridSize}
+                        onChange={(value) => updateGlobeSetting("gridSize", value)}
+                      />
+                    </OptionRow>
+                    <OptionRow label="Lift" value={globeSettings.gridLift}>
+                      <RangeControl
+                        label="Grid lift"
+                        min={0}
+                        max={100}
+                        value={globeSettings.gridLift}
+                        onChange={(value) => updateGlobeSetting("gridLift", value)}
+                      />
+                    </OptionRow>
+                  </>
+                )}
+              </>
+            );
+          })()}
 
           {/* Routes — only relevant in the borderless look */}
           {globeSettings.look === "borderless" && (
