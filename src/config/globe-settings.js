@@ -19,8 +19,12 @@ export const DEFAULT_GLOBE_SETTINGS = {
   look: "classic",
   network: true,
   networkStrength: 70,
-  networkArcs: true,
-  networkPulses: true,
+  // Arcs / Pulses are 0–100 levels: 0 hides that layer entirely, 100
+  // reveals the full curated pool of routes / hub cities. Legacy bool
+  // values from older saved configs are coerced at render time
+  // (true → ~default level, false → 0) by the network renderer.
+  networkArcs: 60,
+  networkPulses: 50,
   // Tints all hub + route materials with a single neutral ink instead of
   // their per-city / per-route colors. Mono by default — reads cleaner
   // against the rest of the dotted-globe aesthetic; toggle off in the

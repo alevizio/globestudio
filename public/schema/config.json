@@ -102,8 +102,8 @@
         "gridStrength": { "type": "number", "minimum": 0, "maximum": 100 },
         "network": { "type": "boolean", "description": "City pulses + great-circle route arcs." },
         "networkStrength": { "type": "number", "minimum": 0, "maximum": 100 },
-        "networkArcs": { "type": "boolean" },
-        "networkPulses": { "type": "boolean" },
+        "networkArcs": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Arc density 0–100, or legacy bool (true = default density, false = hidden)." },
+        "networkPulses": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Pulse density 0–100, or legacy bool (true = default density, false = hidden)." },
         "networkMono": { "type": "boolean", "description": "Render network in a single theme-aware ink instead of polychrome." },
         "surface": { "type": "boolean" },
         "surfaceStrength": { "type": "number", "minimum": 0, "maximum": 100 }

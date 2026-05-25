@@ -31,10 +31,22 @@ import { PanelSection } from "./ui/panel-section.jsx";
 import { RangeControl } from "./ui/range-control.jsx";
 import { SearchableSelect } from "./ui/searchable-select.jsx";
 import { SegmentedControl } from "./ui/segmented-control.jsx";
+import { SegmentedToggle } from "./ui/segmented-toggle.jsx";
 import { SelectControl } from "./ui/select-control.jsx";
 import { ShapeSelect } from "./ui/shape-select.jsx";
 import { TiltControl } from "./ui/tilt-control.jsx";
 import { ToggleControl } from "./ui/toggle-control.jsx";
+
+// Networks formerly used bool toggles for Arcs / Pulses; they're now
+// 0–100 density sliders. Pass the raw setting and a default — legacy
+// bools coerce to (`true` → default, `false` → 0) so old saved
+// configs and shared URLs keep displaying without a migration step.
+const networkLevelDisplay = (raw, fallback) => {
+  if (raw === true) return fallback;
+  if (raw === false) return 0;
+  if (typeof raw === "number") return Math.max(0, Math.min(100, Math.round(raw)));
+  return fallback;
+};
 
 const borderlessPreset = {
   glow: true,
@@ -673,29 +685,36 @@ export const ControlPanel = ({
       </Collapsible>
 
       {/* Network section — only relevant in 3D mode where arcs orbit
-          the globe. The master toggle gates the sub-rows so the
-          section stays compact when network is off. */}
+          the globe. Mono lives at the top as a segmented Color/Mono
+          switch (visual idiom matches the Flat/Globe canvas toggle);
+          the three sliders below let users dial density on each layer. */}
       <Collapsible open={viewMode === "globe"}>
         <PanelSection title="Network">
-          <OptionRow label="Arcs">
-            <ToggleControl
-              label="Toggle flying route arcs"
-              checked={globeSettings.networkArcs ?? true}
+          <SegmentedToggle
+            value={(globeSettings.networkMono ?? true) ? "mono" : "color"}
+            onChange={(next) => updateGlobeSetting("networkMono", next === "mono")}
+            options={[
+              { value: "color", label: "Color" },
+              { value: "mono", label: "Mono" },
+            ]}
+            ariaLabel="Network color mode"
+          />
+          <OptionRow label="Arcs" value={networkLevelDisplay(globeSettings.networkArcs, 60)}>
+            <RangeControl
+              label="Arc density"
+              min={0}
+              max={100}
+              value={networkLevelDisplay(globeSettings.networkArcs, 60)}
               onChange={(value) => updateGlobeSetting("networkArcs", value)}
             />
           </OptionRow>
-          <OptionRow label="Pulses">
-            <ToggleControl
-              label="Toggle city pulse rings"
-              checked={globeSettings.networkPulses ?? true}
+          <OptionRow label="Pulses" value={networkLevelDisplay(globeSettings.networkPulses, 50)}>
+            <RangeControl
+              label="Pulse density"
+              min={0}
+              max={100}
+              value={networkLevelDisplay(globeSettings.networkPulses, 50)}
               onChange={(value) => updateGlobeSetting("networkPulses", value)}
-            />
-          </OptionRow>
-          <OptionRow label="Mono">
-            <ToggleControl
-              label="Toggle monochrome network"
-              checked={globeSettings.networkMono ?? true}
-              onChange={(value) => updateGlobeSetting("networkMono", value)}
             />
           </OptionRow>
           <OptionRow label="Strength" value={globeSettings.networkStrength ?? 70}>

@@ -4,31 +4,76 @@ import { latLngToVector3 } from "./coordinates.js";
 
 // Major hub cities anchored to lat/lng. Picked for global coverage and
 // recognizable silhouettes. Each carries a color that biases the pulse tone.
+// Listed in priority order — the Pulses slider reveals these front-to-back,
+// so the most visually anchoring hubs (SF / NYC / LDN / Tokyo) appear at
+// lower values and the deeper-coverage cities fill in as it climbs.
 const HUB_CITIES = [
   { id: "sf", lat: 37.7749, lng: -122.4194, color: "#7edfff" },
   { id: "nyc", lat: 40.7128, lng: -74.006, color: "#ffffff" },
   { id: "ldn", lat: 51.5074, lng: -0.1278, color: "#bfa3ff" },
-  { id: "ber", lat: 52.52, lng: 13.405, color: "#ffd58a" },
-  { id: "bom", lat: 19.076, lng: 72.8777, color: "#ff9ef3" },
-  { id: "sgp", lat: 1.3521, lng: 103.8198, color: "#6be7ff" },
   { id: "hnd", lat: 35.6762, lng: 139.6503, color: "#b7ffef" },
+  { id: "sgp", lat: 1.3521, lng: 103.8198, color: "#6be7ff" },
   { id: "syd", lat: -33.8688, lng: 151.2093, color: "#9ad7ff" },
   { id: "sao", lat: -23.5505, lng: -46.6333, color: "#ff9ef3" },
+  { id: "ber", lat: 52.52, lng: 13.405, color: "#ffd58a" },
+  { id: "bom", lat: 19.076, lng: 72.8777, color: "#ff9ef3" },
   { id: "mex", lat: 19.4326, lng: -99.1332, color: "#ffd58a" },
+  { id: "dxb", lat: 25.2048, lng: 55.2708, color: "#ffd58a" },
+  { id: "hkg", lat: 22.3193, lng: 114.1694, color: "#7edfff" },
+  { id: "lax", lat: 34.0522, lng: -118.2437, color: "#ff9ef3" },
+  { id: "yyz", lat: 43.6532, lng: -79.3832, color: "#bfa3ff" },
+  { id: "par", lat: 48.8566, lng: 2.3522, color: "#ffffff" },
+  { id: "cpt", lat: -33.9249, lng: 18.4241, color: "#9adfff" },
+  { id: "ist", lat: 41.0082, lng: 28.9784, color: "#ffd58a" },
+  { id: "icn", lat: 37.5665, lng: 126.978, color: "#b7ffef" },
+  { id: "akl", lat: -36.8485, lng: 174.7633, color: "#7edfff" },
+  { id: "nbo", lat: -1.2921, lng: 36.8219, color: "#ff9ef3" },
 ];
 
 // Curated route pairs — designed so arcs cross hemispheres without overlapping
-// too much, giving the globe a natural transactional density.
+// too much, giving the globe a natural transactional density. Ordered so the
+// Arcs slider reveals long, distinctive trans-oceanic routes first, then
+// fills in regional connectors as the value climbs.
 const ROUTE_PAIRS = [
   { from: "sf", to: "ldn", color: "#9adfff", lift: 0.55 },
   { from: "nyc", to: "hnd", color: "#ffd58a", lift: 0.68 },
   { from: "ldn", to: "sgp", color: "#bfa3ff", lift: 0.42 },
-  { from: "ber", to: "bom", color: "#ff9ef3", lift: 0.44 },
   { from: "mex", to: "sao", color: "#9adfff", lift: 0.32 },
   { from: "syd", to: "hnd", color: "#b7ffef", lift: 0.4 },
-  { from: "sgp", to: "ber", color: "#7edfff", lift: 0.48 },
   { from: "sao", to: "ldn", color: "#ffd58a", lift: 0.46 },
+  { from: "ber", to: "bom", color: "#ff9ef3", lift: 0.44 },
+  { from: "sgp", to: "ber", color: "#7edfff", lift: 0.48 },
+  { from: "lax", to: "hnd", color: "#bfa3ff", lift: 0.6 },
+  { from: "dxb", to: "ldn", color: "#9adfff", lift: 0.34 },
+  { from: "hkg", to: "sf", color: "#7edfff", lift: 0.58 },
+  { from: "par", to: "nyc", color: "#ffffff", lift: 0.5 },
+  { from: "yyz", to: "par", color: "#bfa3ff", lift: 0.36 },
+  { from: "cpt", to: "ldn", color: "#9adfff", lift: 0.48 },
+  { from: "ist", to: "bom", color: "#ffd58a", lift: 0.3 },
+  { from: "icn", to: "sf", color: "#b7ffef", lift: 0.62 },
+  { from: "akl", to: "syd", color: "#7edfff", lift: 0.18 },
+  { from: "nbo", to: "dxb", color: "#ff9ef3", lift: 0.26 },
+  { from: "hkg", to: "syd", color: "#b7ffef", lift: 0.36 },
+  { from: "sao", to: "nbo", color: "#ffd58a", lift: 0.38 },
+  { from: "lax", to: "mex", color: "#ff9ef3", lift: 0.16 },
+  { from: "ist", to: "par", color: "#ffd58a", lift: 0.22 },
+  { from: "icn", to: "sgp", color: "#7edfff", lift: 0.28 },
+  { from: "dxb", to: "hkg", color: "#9adfff", lift: 0.32 },
 ];
+
+const MAX_CITIES = HUB_CITIES.length;
+const MAX_ROUTES = ROUTE_PAIRS.length;
+
+// Map a 0-100 slider value (or legacy bool) to a visible-count from a pool
+// of `max` items. The renderer pre-builds the full pool once; the slider
+// only flips per-child visibility, which avoids any GC churn on drag.
+const levelToCount = (level, max) => {
+  if (level === true) return max;
+  if (level === false) return 0;
+  const numeric = typeof level === "number" ? level : 70;
+  const clamped = Math.max(0, Math.min(100, numeric));
+  return Math.round((clamped / 100) * max);
+};
 
 const ARC_SEGMENTS = 96;
 
@@ -269,15 +314,33 @@ export const updateGlobeNetwork = (root, nowSeconds) => {
   if (!visible) return;
 
   const opacity = root.userData.opacity;
-  const showArcs = root.userData.arcs !== false;
-  const showPulses = root.userData.pulses !== false;
+  const pulseCount = levelToCount(root.userData.pulses, MAX_CITIES);
+  const arcCount = levelToCount(root.userData.arcs, MAX_ROUTES);
+  const showArcs = arcCount > 0;
+  const showPulses = pulseCount > 0;
 
-  // Toggle sub-group visibility based on the individual flags.
+  // Toggle sub-group visibility based on the individual levels.
   if (root.userData.cityGroup) root.userData.cityGroup.visible = showPulses;
   if (root.userData.routeGroup) root.userData.routeGroup.visible = showArcs;
 
+  // Per-child visibility: reveal the first N from each pool. Since the
+  // pools are pre-built and ordered by visual priority, the slider scales
+  // smoothly from "headline hubs only" to "full mesh" without rebuilding
+  // geometry.
+  if (root.userData.cityGroup) {
+    root.userData.cityGroup.children.forEach((child, i) => {
+      child.visible = i < pulseCount;
+    });
+  }
+  if (root.userData.routeGroup) {
+    root.userData.routeGroup.children.forEach((child, i) => {
+      child.visible = i < arcCount;
+    });
+  }
+
   // City pulse nodes — animate shockwave rings (skip math if hidden).
   if (showPulses) root.userData.cityGroup?.children.forEach((cityGroup) => {
+    if (!cityGroup.visible) return;
     cityGroup.children.forEach((child) => {
       if (child.userData.role === "core") {
         const base = child.userData.basePulse;
@@ -297,6 +360,7 @@ export const updateGlobeNetwork = (root, nowSeconds) => {
 
   // Routes — sliding trail along great-circle, traveling head, faint baseline.
   if (showArcs) root.userData.routeGroup?.children.forEach((routeGroup) => {
+    if (!routeGroup.visible) return;
     const points = routeGroup.userData.routePoints;
     if (!points) return;
     const speed = routeGroup.userData.travelSpeed;
