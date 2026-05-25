@@ -1154,10 +1154,19 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
-export const updatePostEffects = (handle, shaderSettings, time, uiTheme = "dark") => {
+export const updatePostEffects = (handle, shaderSettings, time, uiTheme = "dark", globeSettings = null) => {
   if (!handle) return;
   const effect = shaderSettings.effect || "none";
   const intensity = clamp01((shaderSettings.intensity ?? 45) / 100);
+  // Globe Glow + Blur drive a REAL Gaussian bloom of the rendered
+  // glow when the user picks no other shader effect. UnrealBloomPass
+  // extracts bright pixels (the atmosphere rim), Gaussian-blurs them,
+  // and additively composites back — actual blur of the existing
+  // glow, not a faked colored halo.
+  const glowEnabled = !!globeSettings?.glow;
+  const glowBlurNorm = glowEnabled
+    ? clamp01((globeSettings.glowSpread ?? 50) / 100)
+    : 0;
 
   if (effect === "bloom") {
     handle.bloomPass.enabled = true;
@@ -1167,6 +1176,16 @@ export const updatePostEffects = (handle, shaderSettings, time, uiTheme = "dark"
     handle.bloomPass.radius = 0.45 + intensity * 0.4;
     handle.bloomPass.threshold = Math.max(0.05, 0.55 - intensity * 0.35);
     handle.customPass.uniforms.uEffect.value = EFFECT_INDEX.bloomEnhance;
+  } else if (glowBlurNorm > 0) {
+    // Glow-driven bloom path. Threshold dips to 0.32 so the atmosphere
+    // rim (low-luminance cyan) actually qualifies as a bright pixel.
+    // Strength + radius ramp with the slider so dragging it visibly
+    // spreads the glow further outward with each step.
+    handle.bloomPass.enabled = true;
+    handle.bloomPass.strength = 0.15 + glowBlurNorm * 1.1;
+    handle.bloomPass.radius = 0.35 + glowBlurNorm * 0.85;
+    handle.bloomPass.threshold = 0.32;
+    handle.customPass.uniforms.uEffect.value = EFFECT_INDEX[effect] ?? 0;
   } else {
     handle.bloomPass.enabled = false;
     handle.customPass.uniforms.uEffect.value = EFFECT_INDEX[effect] ?? 0;

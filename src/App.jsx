@@ -1009,25 +1009,14 @@ const App = () => {
         "--shader-glow": `${Math.max(0, shaderSettings.intensity * 0.16)}px`,
         "--shader-glow-wide": `${Math.max(0, shaderSettings.intensity * 0.32)}px`,
         "--globe-bg-glow-opacity": globeGlowOpacity,
-        // glowSpread (panel label: "Blur") drives three layers in
-        // concert so the slider actually reads as "blur the glow":
-        //   1. Radial-gradient halo size (CSS backdrop) — minor
-        //   2. CSS filter:blur on the backdrop layer — minor
-        //   3. drop-shadow on the canvas itself — DOMINANT. Drop-
-        //      shadow follows the canvas's alpha (the globe shape),
-        //      so it casts a real Gaussian-blurred halo outward
-        //      from the silhouette. This is the visible "blur" the
-        //      user wanted; the WebGL shader rim alone can only
-        //      affect what's drawn on the sphere geometry and can't
-        //      extend outward beyond it.
-        // Drop-shadow is gated on globe.glow + non-zero blur so a
-        // sharp default render (slider 0) costs nothing.
+        // glowSpread (panel label: "Blur") — the DOMINANT blur effect
+        // is now a real UnrealBloomPass in the WebGL composer (see
+        // updatePostEffects in three/post-effects.js). That actually
+        // takes the rendered atmosphere pixels and Gaussian-blurs
+        // them. The CSS vars below stay as minor supporting effects
+        // on the gradient backdrop layer.
         "--globe-glow-spread": `${30 + (clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 80}%`,
         "--globe-glow-blur": `${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 56}px`,
-        "--globe-canvas-glow-blur": `${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 80}px`,
-        "--globe-canvas-glow-color": globeSettings.glow
-          ? `rgba(140, 220, 255, ${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 0.85})`
-          : "transparent",
         "--shader-intensity": shaderSettings.intensity / 100,
         "--shader-split": `${shaderSettings.split}px`,
         "--shader-split-neg": `${-shaderSettings.split}px`,

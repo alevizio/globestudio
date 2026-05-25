@@ -731,7 +731,13 @@ export const GlobeBackground = ({
 
       // Uniform writes are cheap and keep the composer chain ready for an
       // instant switch when the user picks a non-default effect.
-      updatePostEffects(threeRef.current?.postHandle, settingsRef.current, now / 1000, uiThemeRef.current);
+      updatePostEffects(
+        threeRef.current?.postHandle,
+        settingsRef.current,
+        now / 1000,
+        uiThemeRef.current,
+        globeSettingsRef.current,
+      );
       // Manual reset — accumulates draw call totals across the full
       // render path (composer or direct) for the dev HUD. See
       // `renderer.info.autoReset = false` at renderer init for context.
@@ -745,9 +751,16 @@ export const GlobeBackground = ({
       // defensive: composer.render may leave the target pointing at one
       // of its internal buffers depending on three.js version.
       const activeEffect = settingsRef.current?.effect || "none";
+      // Composer is also needed when Glow + Blur are driving the bloom
+      // pass — that's the real Gaussian blur of the rendered glow.
+      // Without this gate the post-handle is built but never invoked
+      // and the slider does nothing.
+      const glowBlurActive =
+        !!globeSettingsRef.current?.glow &&
+        (globeSettingsRef.current?.glowSpread ?? 0) > 0;
       const refsNow = threeRef.current;
       if (refsNow) {
-        if (activeEffect !== "none") {
+        if (activeEffect !== "none" || glowBlurActive) {
           refsNow.postHandle?.composer.render();
         } else {
           refsNow.renderer.setRenderTarget(null);
