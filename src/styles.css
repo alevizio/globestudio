@@ -3374,14 +3374,16 @@ button {
 .collapsible-section-inner {
   min-height: 0;
   overflow: hidden;
-  /* Match the parent .option-content gap so option rows wrapped in a
-     Collapsible (e.g. Auto spin + Speed in the Animations section,
-     Projection in Surface) stack with the same rhythm as un-wrapped
-     siblings. Without this, the children inside the Collapsible were
-     direct grid items with no gap between them, so Speed was flush
-     against Auto spin. */
-  display: flex;
-  flex-direction: column;
+  /* Grid (not flex) so children — including <details> .option-block
+     wrappers for full PanelSections like Globe + Network — always
+     stretch to the cross-axis. Under flex column they were sizing to
+     intrinsic content width (~150-220 px) instead of the panel's
+     full ~376 px. Grid items default to align-self: stretch.
+     Gap matches the parent .option-content rhythm so option rows
+     wrapped here (Auto spin + Speed, Projection) get the same 14 px
+     break as un-wrapped siblings. */
+  display: grid;
+  grid-auto-rows: max-content;
   gap: 14px;
 }
 
