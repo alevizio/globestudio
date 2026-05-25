@@ -1026,18 +1026,31 @@ const App = () => {
         "--globe-canvas-halo": globeSettings.glow
           ? (() => {
               const t = clampNumber(globeSettings.glowSpread, 0, 100) / 100;
-              // Three Gaussian layers, progressively wider + dimmer.
-              // Radii in px; alphas in 0..1. The set is tuned so the
-              // overall falloff curve is smooth end-to-end and the
-              // 0→100 sweep visibly diffuses.
+              // SIX Gaussian halo layers in geometric ~1.8× radius
+              // progression — sum-of-Gaussians at this density is
+              // mathematically much closer to a smooth radial
+              // gradient than 3 layers were. Each chained
+              // drop-shadow also operates on the output of the
+              // previous, which adds a second-order softening of
+              // the inner layers as the outer ones blur the
+              // composite. Net result: continuous falloff from
+              // bright core → ambient bleed at ~220px.
+              // Alphas chosen so the per-layer sum stays close to
+              // perceptual unity at slider 100 (Σα ≈ 1.25).
               const layers = [
-                { r: t * 18, a: t * 0.55 },
-                { r: t * 55, a: t * 0.32 },
-                { r: t * 120, a: t * 0.14 },
+                { r: 10, a: 0.45 },
+                { r: 24, a: 0.32 },
+                { r: 48, a: 0.22 },
+                { r: 90, a: 0.14 },
+                { r: 150, a: 0.08 },
+                { r: 220, a: 0.04 },
               ];
               const color = "140, 220, 255";
               return layers
-                .map((l) => `drop-shadow(0 0 ${l.r}px rgba(${color}, ${l.a}))`)
+                .map(
+                  (l) =>
+                    `drop-shadow(0 0 ${l.r * t}px rgba(${color}, ${l.a * t}))`,
+                )
                 .join(" ");
             })()
           : "none",
