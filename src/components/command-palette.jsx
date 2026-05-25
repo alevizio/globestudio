@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
-import { LookPreview } from "./look-preview.jsx";
 import { X } from "./icons.jsx";
 
 // Cmd+K command palette. A flat list of every meaningful action in the
@@ -160,24 +159,17 @@ export const CommandPalette = ({ open, onClose, actions }) => {
                 key={action.id}
                 role="option"
                 aria-selected={index === selectedIndex}
-                className={`command-palette-row ${action.preset ? "has-preview" : ""} ${index === selectedIndex ? "is-selected" : ""}`}
+                className={`command-palette-row ${index === selectedIndex ? "is-selected" : ""}`}
                 onMouseEnter={() => setSelectedIndex(index)}
                 onClick={() => {
                   action.run();
                   onClose();
                 }}
               >
-                {action.preset ? (
-                  <LookPreview preset={action.preset} />
-                ) : (
-                  action.group && (
-                    <span className="command-palette-group">{action.group}</span>
-                  )
-                )}
-                <span className="command-palette-label">{action.label}</span>
-                {action.preset && action.group && (
+                {action.group && (
                   <span className="command-palette-group">{action.group}</span>
                 )}
+                <span className="command-palette-label">{action.label}</span>
                 {action.kbd && (
                   <kbd className="command-palette-kbd">{action.kbd}</kbd>
                 )}
