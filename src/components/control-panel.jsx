@@ -616,8 +616,11 @@ export const ControlPanel = ({
             const surfaceOpacity = globeSettings.surface === false
               ? 0
               : (globeSettings.surfaceStrength ?? 82);
+            // Show "Off" instead of "0" at the bottom of the range so
+            // the "disappeared" state is obviously a real, intentional
+            // position on the slider rather than just a number.
             return (
-              <OptionRow label="Surface opacity" value={surfaceOpacity}>
+              <OptionRow label="Surface opacity" value={surfaceOpacity === 0 ? "Off" : surfaceOpacity}>
                 <RangeControl
                   label="Surface opacity"
                   min={0}
@@ -646,7 +649,7 @@ export const ControlPanel = ({
               : (globeSettings.gridStrength ?? 10);
             return (
               <>
-                <OptionRow label="Grid opacity" value={gridOpacity}>
+                <OptionRow label="Grid opacity" value={gridOpacity === 0 ? "Off" : gridOpacity}>
                   <RangeControl
                     label="Grid opacity"
                     min={0}
@@ -663,7 +666,7 @@ export const ControlPanel = ({
                 </OptionRow>
                 {gridOpacity > 0 && (
                   <>
-                    <OptionRow label="Size" value={`${globeSettings.gridSize}°`}>
+                    <OptionRow label="Grid size" value={`${globeSettings.gridSize}°`}>
                       <RangeControl
                         label="Grid size"
                         min={12}
