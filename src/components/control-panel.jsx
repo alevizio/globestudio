@@ -719,54 +719,43 @@ export const ControlPanel = ({
         </PanelSection>
       </Collapsible>
 
-      {/* Animations section.
-          - Flat view: a single toggle for Animate shape rotation —
-            the only motion control that applies in 2D. The master
-            Animations toggle (which gates shader motion + auto-spin)
-            is hidden because those don't apply in flat.
-          - Globe view: full hierarchy — master toggle → Animate
-            shape rotation → Auto spin + Speed. */}
+      {/* Animations section. No abstract "all animations" master
+          toggle — each motion is its own concrete control. The
+          internal animationsEnabled state still exists (gated by
+          prefers-reduced-motion and reachable via Cmd+K) but isn't
+          exposed as a panel row since "all animations" reads as
+          redundant when the specific motions each have their own
+          switch.
+          - Animate shape rotation: applies in both views.
+          - Auto spin + Speed: only in 3D mode. */}
       <PanelSection title="Animations">
-        {viewMode === "globe" && (
-          <OptionRow label="Animations">
+        <OptionRow label="Animate shape rotation">
+          <ToggleControl
+            label="Animate shape rotation"
+            checked={rotateAnimating}
+            onChange={(value) => setRotateAnimating?.(value)}
+          />
+        </OptionRow>
+        <Collapsible open={viewMode === "globe"}>
+          <OptionRow label="Auto spin">
             <ToggleControl
-              label="Toggle all animations"
-              checked={animationsEnabled}
-              onChange={(value) => setAnimationsEnabled?.(value)}
+              label="Toggle globe auto spin"
+              checked={globeSettings.autoSpin}
+              onChange={(value) => updateGlobeSetting("autoSpin", value)}
             />
           </OptionRow>
-        )}
-        {(viewMode === "flat" || animationsEnabled) && (
-          <OptionRow label="Animate shape rotation">
-            <ToggleControl
-              label="Animate shape rotation"
-              checked={rotateAnimating}
-              onChange={(value) => setRotateAnimating?.(value)}
-            />
-          </OptionRow>
-        )}
-        {viewMode === "globe" && animationsEnabled && (
-          <>
-            <OptionRow label="Auto spin">
-              <ToggleControl
-                label="Toggle globe auto spin"
-                checked={globeSettings.autoSpin}
-                onChange={(value) => updateGlobeSetting("autoSpin", value)}
+          {globeSettings.autoSpin && (
+            <OptionRow label="Speed" value={shaderSettings.motion}>
+              <RangeControl
+                label="Globe spin speed"
+                min={0}
+                max={100}
+                value={shaderSettings.motion}
+                onChange={(value) => updateShaderSetting("motion", value)}
               />
             </OptionRow>
-            {globeSettings.autoSpin && (
-              <OptionRow label="Speed" value={shaderSettings.motion}>
-                <RangeControl
-                  label="Globe spin speed"
-                  min={0}
-                  max={100}
-                  value={shaderSettings.motion}
-                  onChange={(value) => updateShaderSetting("motion", value)}
-                />
-              </OptionRow>
-            )}
-          </>
-        )}
+          )}
+        </Collapsible>
       </PanelSection>
 
       <PanelSection title="Shaders">
