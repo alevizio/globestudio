@@ -139,6 +139,7 @@ const App = () => {
   const [shape, setShape] = usePersistedState("shape", "Circle");
   const [dotRotation, setDotRotation] = usePersistedState("dotRotation", 0);
   const [rotateAnimating, setRotateAnimating] = usePersistedState("rotateAnimating", false);
+  const [shapeRotationSpeed, setShapeRotationSpeed] = usePersistedState("shapeRotationSpeed", 50);
   const [sizeVary, setSizeVary] = usePersistedState("sizeVary", false);
   const [asciiSymbol, setAsciiSymbol] = usePersistedState("asciiSymbol", "*");
   const [customShape, setCustomShape] = usePersistedState("customShape", null);
@@ -422,6 +423,7 @@ const App = () => {
     setShape("Circle");
     setDotRotation(0);
     setRotateAnimating(false);
+    setShapeRotationSpeed(50);
     setSizeVary(false);
     setCustomShape(null);
     setDotGradient(null);
@@ -469,6 +471,7 @@ const App = () => {
     if (s.shape !== undefined) setShape(s.shape);
     if (s.dotRotation !== undefined) setDotRotation(s.dotRotation);
     if (s.rotateAnimating !== undefined) setRotateAnimating(s.rotateAnimating);
+    if (s.shapeRotationSpeed !== undefined) setShapeRotationSpeed(s.shapeRotationSpeed);
     if (s.sizeVary !== undefined) setSizeVary(s.sizeVary);
     if (s.customShape !== undefined) setCustomShape(s.customShape);
     if (s.asciiSymbol !== undefined) setAsciiSymbol(s.asciiSymbol);
@@ -697,6 +700,7 @@ const App = () => {
       shape,
       dotRotation,
       rotateAnimating,
+      shapeRotationSpeed,
       sizeVary,
       asciiSymbol,
       customShape,
@@ -721,7 +725,7 @@ const App = () => {
     [
       selection, stateSelection, background, transparent, backgroundStyle,
       density, dotSize, dotColor, dotColorAlpha, dotGradient, dotsVisible,
-      shape, dotRotation, rotateAnimating, sizeVary, asciiSymbol, customShape,
+      shape, dotRotation, rotateAnimating, shapeRotationSpeed, sizeVary, asciiSymbol, customShape,
       renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible,
       worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible,
       worldStrokeWidth, mapDepth, tiltX, tiltY, shaderSettings, globeSettings,
@@ -775,6 +779,7 @@ const App = () => {
     set("shape", setShape);
     set("dotRotation", setDotRotation);
     set("rotateAnimating", setRotateAnimating);
+    set("shapeRotationSpeed", setShapeRotationSpeed);
     set("sizeVary", setSizeVary);
     set("customShape", setCustomShape);
     set("asciiSymbol", setAsciiSymbol);
@@ -1065,6 +1070,7 @@ const App = () => {
             shape={shape}
             dotRotation={dotRotation}
             rotateAnimating={rotateAnimating && !motionFrozen}
+            shapeRotationSpeed={shapeRotationSpeed}
             sizeVary={sizeVary}
             asciiSymbol={asciiSymbol}
             customShape={customShape}
@@ -1275,6 +1281,8 @@ const App = () => {
             setDotRotation={setDotRotation}
             rotateAnimating={rotateAnimating}
             setRotateAnimating={setRotateAnimating}
+            shapeRotationSpeed={shapeRotationSpeed}
+            setShapeRotationSpeed={setShapeRotationSpeed}
             sizeVary={sizeVary}
             setSizeVary={setSizeVary}
             asciiSymbol={asciiSymbol}

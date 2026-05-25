@@ -33,9 +33,13 @@ import { getCachedWorldCities, loadWorldCities } from "../data/world-cities-topo
 import { cca3ToCcn3 } from "../data/geography.js";
 import { PerfMonitor } from "./perf-monitor.jsx";
 
-// Speed of the optional dot spin animation. One full rotation takes ~12s —
-// fast enough to read as motion, slow enough to stay calm on a static map.
-const SPIN_DEGREES_PER_SECOND = 30;
+// Per-instance dot spin animation speed range. The user-facing
+// shapeRotationSpeed slider maps 0-100 onto this range (linearly):
+// 0 → 6 deg/s (~60s per turn, gentle drift),
+// 50 → 30 deg/s (~12s per turn, the previous hardcoded default),
+// 100 → 120 deg/s (~3s per turn, brisk spin).
+const SPIN_MIN_DEG_PER_SEC = 6;
+const SPIN_MAX_DEG_PER_SEC = 120;
 
 const getClientPoint = (event) => {
   const touch = event.touches?.[0] || event.changedTouches?.[0];
@@ -54,6 +58,7 @@ export const GlobeBackground = ({
   shape,
   dotRotation = 0,
   rotateAnimating = false,
+  shapeRotationSpeed = 50,
   sizeVary = false,
   asciiSymbol,
   customShape = null,
@@ -121,6 +126,7 @@ export const GlobeBackground = ({
   const backgroundStyleRef = useRef(backgroundStyle);
   const reducedMotionRef = useRef(reducedMotion);
   const rotateAnimatingRef = useRef(rotateAnimating);
+  const shapeRotationSpeedRef = useRef(shapeRotationSpeed);
   const dotRotationRef = useRef(dotRotation);
   const spinAngleRef = useRef(0);
   const sizeVaryRef = useRef(sizeVary);
@@ -133,6 +139,7 @@ export const GlobeBackground = ({
   backgroundStyleRef.current = backgroundStyle;
   reducedMotionRef.current = reducedMotion;
   rotateAnimatingRef.current = rotateAnimating;
+  shapeRotationSpeedRef.current = shapeRotationSpeed;
   dotRotationRef.current = dotRotation;
   sizeVaryRef.current = sizeVary;
   const stateRef = useRef({
@@ -654,7 +661,12 @@ export const GlobeBackground = ({
       if (threeRef.current.dotLayer) {
         const animating = rotateAnimatingRef.current && !reducedMotionRef.current;
         if (animating) {
-          spinAngleRef.current = (spinAngleRef.current + (delta / 1000) * SPIN_DEGREES_PER_SECOND) % 360;
+          // Map the 0-100 slider value into degrees-per-second so the
+          // user can drag from a gentle drift up to a brisk spin.
+          const speedNormalized = Math.max(0, Math.min(100, shapeRotationSpeedRef.current ?? 50)) / 100;
+          const degreesPerSecond =
+            SPIN_MIN_DEG_PER_SEC + speedNormalized * (SPIN_MAX_DEG_PER_SEC - SPIN_MIN_DEG_PER_SEC);
+          spinAngleRef.current = (spinAngleRef.current + (delta / 1000) * degreesPerSecond) % 360;
           // Chunked while spinning — same logic as morph. Continuous rotation
           // tolerates 1-2 frame lag per dot just fine.
           applyDotLayerSpin(

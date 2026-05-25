@@ -736,6 +736,17 @@ export const ControlPanel = ({
             onChange={(value) => setRotateAnimating?.(value)}
           />
         </OptionRow>
+        {rotateAnimating && (
+          <OptionRow label="Speed" value={shapeRotationSpeed}>
+            <RangeControl
+              label="Shape rotation speed"
+              min={0}
+              max={100}
+              value={shapeRotationSpeed}
+              onChange={setShapeRotationSpeed}
+            />
+          </OptionRow>
+        )}
         <Collapsible open={viewMode === "globe"}>
           <OptionRow label="Auto spin">
             <ToggleControl
