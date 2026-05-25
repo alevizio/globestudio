@@ -85,6 +85,8 @@ export const ControlPanel = ({
   setDotRotation,
   rotateAnimating = false,
   setRotateAnimating,
+  shapeRotationSpeed = 50,
+  setShapeRotationSpeed,
   sizeVary = false,
   setSizeVary,
   customShape = null,
