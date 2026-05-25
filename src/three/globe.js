@@ -877,6 +877,29 @@ export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEF
     : 0;
 
   refs.baseMaterial.opacity = refs.baseOpacity * shellProgress * surfaceStrength;
+  // Fade the dot layer with the same surface-opacity factor so the
+  // slider actually reads as "fade the globe face." The base sphere
+  // alone is a dark fill on a dark background — going 28% → 0% on its
+  // own is barely perceptible. Multiplying the dots' material opacity
+  // by the surface fraction makes the slider visibly fade the globe
+  // face, revealing the network arcs behind it.
+  // baseOpacity is stashed once at build time so we always multiply
+  // against the original (not the previous frame's already-scaled
+  // value, which would compound).
+  if (refs.dotLayer && !refs.solidActive) {
+    refs.dotLayer.traverse((child) => {
+      const apply = (m) => {
+        if (!m) return;
+        if (m.userData.baseOpacity === undefined) {
+          m.userData.baseOpacity = m.opacity ?? 1;
+        }
+        m.opacity = m.userData.baseOpacity * surfaceStrength;
+        m.transparent = true;
+      };
+      if (Array.isArray(child.material)) child.material.forEach(apply);
+      else if (child.material) apply(child.material);
+    });
+  }
   refs.atmosphereMaterial.uniforms.intensity.value = refs.atmosphereIntensity * shellProgress * glowStrength;
   // "Blur" slider in the panel — softens the rim falloff a touch so
   // the on-sphere atmosphere reads slightly fuzzier as the slider
