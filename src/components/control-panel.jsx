@@ -652,6 +652,20 @@ export const ControlPanel = ({
                     onChange={(value) => updateGlobeSetting("dotLift", value)}
                   />
                 </OptionRow>
+                {/* Surface color + optional gradient. Same ColorSwatch
+                    used by dot color and grid color. Gradient applies
+                    as per-vertex colors on the sphere geometry,
+                    interpolated by latitude. Alpha intentionally
+                    omitted — Surface opacity above controls it. */}
+                <OptionRow label="Surface color">
+                  <ColorSwatch
+                    value={globeSettings.surfaceColor ?? "#18191d"}
+                    onChange={(value) => updateGlobeSetting("surfaceColor", value)}
+                    label="Select surface color"
+                    gradient={globeSettings.surfaceGradient}
+                    onGradientChange={(value) => updateGlobeSetting("surfaceGradient", value)}
+                  />
+                </OptionRow>
               </>
             );
           })()}

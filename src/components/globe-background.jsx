@@ -7,6 +7,7 @@ import {
   GLOBE_FLAT_FIT_ASPECT,
   GLOBE_INITIAL_ROTATION,
   GLOBE_MORPH_DURATION,
+  GLOBE_RADIUS,
   GLOBE_ROUND_FIT_ASPECT,
 } from "../config/globe-settings.js";
 import { clampNumber, easeInOutQuart, smoothStep } from "../utils/math.js";
@@ -1172,16 +1173,64 @@ export const GlobeBackground = ({
     // contrast with the sphere underneath them.
     const solidSphereColor = isLight ? "#18171a" : "#ffffff";
     const bgColor = new THREE.Color(transparent ? transparentFallback : background);
-    const surfaceColor = isBorderless
-      ? new THREE.Color(borderlessLerpTarget).lerp(bgColor, transparent ? 0.12 : 0.22)
-      : bgColor.clone().lerp(new THREE.Color(surfaceLerpTarget), transparent ? 0.52 : 0.36);
     const glowColor = isBorderless
       ? new THREE.Color(borderlessGlowFrom).lerp(new THREE.Color(borderlessGlowTo), 0.28)
       : new THREE.Color(dotColor === "#ffffff" ? defaultGlow : dotColor);
     const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
 
     const solidActive = refs.solidActive;
-    refs.baseMaterial.color.copy(solidActive ? new THREE.Color(solidSphereColor) : surfaceColor);
+    // Surface color is now user-controlled via globeSettings.surfaceColor
+    // + surfaceGradient (parallel to grid). The previous theme-derived
+    // surfaceColor that lerped against the background is gone — it
+    // would have stomped the user's picks the same way the grid color
+    // override did. Solid render mode still uses a separate hardcoded
+    // sphere color since the textured map needs guaranteed contrast.
+    const userSurfaceColor = globeSettings?.surfaceColor ?? "#18191d";
+    const userSurfaceGradient = globeSettings?.surfaceGradient ?? null;
+    const useSurfaceGradient = !!(
+      !solidActive &&
+      userSurfaceGradient &&
+      userSurfaceGradient.from &&
+      userSurfaceGradient.to
+    );
+    if (useSurfaceGradient) {
+      // Vertex-colors mode: paint each sphere vertex with a sample
+      // from the 2-stop gradient, interpolated by latitude (south →
+      // north). The material color is forced white so per-vertex
+      // colors are multiplied by 1.0 (not tinted).
+      refs.baseMaterial.color.set(0xffffff);
+      if (!refs.baseMaterial.vertexColors) {
+        refs.baseMaterial.vertexColors = true;
+        refs.baseMaterial.needsUpdate = true;
+      }
+      const geom = refs.globeMesh?.geometry;
+      const posAttr = geom?.attributes.position;
+      if (posAttr) {
+        let colorAttr = geom.getAttribute("color");
+        if (!colorAttr || colorAttr.count !== posAttr.count) {
+          colorAttr = new THREE.BufferAttribute(new Float32Array(posAttr.count * 3), 3);
+          geom.setAttribute("color", colorAttr);
+        }
+        const from = new THREE.Color(userSurfaceGradient.from);
+        const to = new THREE.Color(userSurfaceGradient.to);
+        const tmp = new THREE.Color();
+        for (let i = 0; i < posAttr.count; i++) {
+          const y = posAttr.getY(i);
+          const t = (y / GLOBE_RADIUS + 1) * 0.5;
+          tmp.copy(from).lerp(to, Math.max(0, Math.min(1, t)));
+          colorAttr.setXYZ(i, tmp.r, tmp.g, tmp.b);
+        }
+        colorAttr.needsUpdate = true;
+      }
+    } else {
+      refs.baseMaterial.color.copy(
+        solidActive ? new THREE.Color(solidSphereColor) : new THREE.Color(userSurfaceColor),
+      );
+      if (refs.baseMaterial.vertexColors) {
+        refs.baseMaterial.vertexColors = false;
+        refs.baseMaterial.needsUpdate = true;
+      }
+    }
     refs.baseMaterial.metalness = solidActive ? 0 : isBorderless ? 0.22 : 0.12;
     refs.baseMaterial.roughness = solidActive ? 0.92 : isBorderless ? 0.46 : 0.78;
     refs.baseOpacity = solidActive ? 1 : isBorderless ? (transparent ? 0.18 : 0.34) : (transparent ? 0.2 : 0.3);

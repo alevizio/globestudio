@@ -43,11 +43,17 @@ export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
   // latitude. The material's flat color is white so per-vertex
   // colors aren't multiplied by anything but 1.0. With solid color
   // mode the material owns the tint directly.
+  // NormalBlending so the picked color renders WYSIWYG. Earlier
+  // versions used AdditiveBlending which made the rendered color
+  // depend on whatever was behind — at low Grid lift the line
+  // sat directly over the sphere fill and the result looked like
+  // "color + dark sphere" instead of the picked color. Normal
+  // blending = ink-on-surface; what you pick is what you see.
   const material = new THREE.LineBasicMaterial({
     color: useGradient ? 0xffffff : new THREE.Color(gridColor),
     transparent: true,
     opacity: 0.13,
-    blending: THREE.AdditiveBlending,
+    blending: THREE.NormalBlending,
     depthWrite: false,
     vertexColors: useGradient,
   });

@@ -117,7 +117,16 @@
         "networkPulses": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Pulse density 0–100, or legacy bool (true = default density, false = hidden)." },
         "networkMono": { "type": "boolean", "description": "Render network in a single theme-aware ink instead of polychrome." },
         "surface": { "type": "boolean" },
-        "surfaceStrength": { "type": "number", "minimum": 0, "maximum": 100 }
+        "surfaceStrength": { "type": "number", "minimum": 0, "maximum": 100 },
+        "surfaceColor": { "type": "string", "description": "Hex string. Solid tint for the sphere fill unless surfaceGradient is set." },
+        "surfaceGradient": {
+          "type": ["object", "null"],
+          "description": "Optional 2-stop gradient applied as per-vertex colors on the sphere geometry, interpolated by latitude (south → north).",
+          "properties": {
+            "from": { "type": "string" },
+            "to": { "type": "string" }
+          }
+        }
       },
       "additionalProperties": true
     },

@@ -61,6 +61,12 @@ export const DEFAULT_GLOBE_SETTINGS = {
   // behind; drop to 0 to make the sphere fade out completely.
   surface: true,
   surfaceStrength: 30,
+  // Surface (base sphere) color. The old hardcoded #18191d is kept
+  // as the default so existing visuals don't shift. Optional 2-stop
+  // gradient applies as per-vertex colors interpolated by latitude
+  // (south → north), same idiom used by the grid.
+  surfaceColor: "#18191d",
+  surfaceGradient: null,
 };
 
 // The historical `look` field on globeSettings retains its values
