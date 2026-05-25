@@ -20,7 +20,6 @@ import {
   presetForEffect,
   shaderEffectOptions,
 } from "../config/shader-effects.js";
-import { globeLookOptions } from "../config/globe-settings.js";
 import { areaOptions } from "../data/geography.js";
 import { FLAT_PROJECTION_OPTIONS } from "../three/world-texture.js";
 import { formatSvgNumber } from "../utils/math.js";
@@ -541,27 +540,36 @@ export const ControlPanel = ({
 
       <Collapsible open={viewMode === "globe"}>
         <PanelSection title="Globe">
-          {/* Globe shell aesthetic. The look pivot affects what else
-              renders (the borderless variant adds ambient rings and a
-              cyan glow bias; routes only matter in borderless).
-              Animations, network, and auto-spin live in their own
-              sections below. Same Color/Mono toggle idiom used in
-              the Network section — visually binary, no dropdown. */}
+          {/* Globe shell aesthetic. One segmented toggle drives both
+              the glow layer AND the historical "look" pivot — "Glow"
+              gives the full luminous experience (atmosphere + cyan-
+              tinted halo + ambient equatorial rings); "No glow"
+              is the plain dotted-globe (no atmosphere, no rings).
+              The strength/spread sliders below stay gated on the
+              same `glow` field. Same toggle idiom used in
+              Network > Color/Mono. */}
           <SegmentedToggle
-            value={globeSettings.look}
-            onChange={updateGlobeLook}
-            options={globeLookOptions}
-            ariaLabel="Globe look"
+            value={globeSettings.glow ? "on" : "off"}
+            onChange={(next) => {
+              if (next === "on") {
+                // "Glow" = the full luminous experience. Apply the
+                // borderlessPreset which sets look=borderless +
+                // turns on the atmosphere/glow at sensible defaults.
+                updateGlobeLook("borderless");
+              } else {
+                setGlobeSettings((s) => ({
+                  ...s,
+                  glow: false,
+                  look: "classic",
+                }));
+              }
+            }}
+            options={[
+              { value: "off", label: "No glow" },
+              { value: "on", label: "Glow" },
+            ]}
+            ariaLabel="Globe glow"
           />
-
-          {/* Glow layer */}
-          <OptionRow label="Glow">
-            <ToggleControl
-              label="Toggle globe glow"
-              checked={globeSettings.glow}
-              onChange={(value) => updateGlobeSetting("glow", value)}
-            />
-          </OptionRow>
           {globeSettings.glow && (
             <>
               <OptionRow label="Strength" value={globeSettings.glowStrength}>

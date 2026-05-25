@@ -41,20 +41,12 @@ export const DEFAULT_GLOBE_SETTINGS = {
   surfaceStrength: 100,
 };
 
-// Internal value identifiers are kept as "classic"/"borderless" for
-// backwards compat with saved configs and shared URLs. Display
-// labels read off the visible result instead: the historical
-// "borderless" mode actually ADDS a luminous cyan halo + ambient
-// equatorial torus rings around the globe, which read as a glowing
-// border. The "classic" mode is the plainer one with no rings.
-//
-// Tldr: in-product names are inverted from the internal value names
-// because the internal names are the wrong way around. The first
-// option in this array is the left segment of the toggle.
-export const globeLookOptions = [
-  { value: "classic", label: "No border" },
-  { value: "borderless", label: "Border" },
-];
+// The historical `look` field on globeSettings retains its values
+// ("classic" / "borderless") for backwards-compat with saved configs
+// and shared URLs. The user-facing control collapsed into the Glow
+// segmented toggle in control-panel.jsx — "Glow" applies the
+// borderlessPreset (look=borderless + rings + cyan halo); "No glow"
+// reverts to look=classic with glow disabled.
 
 export const BORDERLESS_ROUTE_PATHS = [
   { from: [37.7749, -122.4194], to: [51.5074, -0.1278], color: "#8fdcff", lift: 0.42, opacity: 0.68 },
