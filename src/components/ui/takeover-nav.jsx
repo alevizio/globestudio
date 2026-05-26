@@ -1,52 +1,15 @@
 import { useEffect, useState } from "react";
-import { DottedGlobe, Github, Sun, Moon } from "../icons.jsx";
+import {
+  Clipboard,
+  DottedGlobe,
+  Download,
+  EyeOff,
+  Github,
+  Info,
+  Moon,
+  Sun,
+} from "../icons.jsx";
 import { usePersistedState } from "../../hooks/use-persisted-state.js";
-import { invertGradient, invertHex } from "../../utils/color.js";
-
-// Storage keys whose values are colors that need to invert when the
-// user flips the theme. Mirrors the canvas-app's toggleTheme inversion
-// list so toggling theme from a takeover page leaves the canvas in a
-// consistent state when the user navigates back.
-const COLOR_KEYS = [
-  "globestudio:dotColor",
-  "globestudio:worldFill",
-  "globestudio:worldStroke",
-  "globestudio:background",
-];
-const GRADIENT_KEYS = [
-  "globestudio:dotGradient",
-  "globestudio:worldFillGradient",
-  "globestudio:worldStrokeGradient",
-];
-
-const invertPersistedColors = () => {
-  if (typeof window === "undefined") return;
-  for (const key of COLOR_KEYS) {
-    try {
-      const raw = window.localStorage.getItem(key);
-      if (!raw) continue;
-      const value = JSON.parse(raw);
-      if (typeof value === "string") {
-        window.localStorage.setItem(key, JSON.stringify(invertHex(value)));
-      }
-    } catch {
-      // ignore — malformed values stay as-is
-    }
-  }
-  for (const key of GRADIENT_KEYS) {
-    try {
-      const raw = window.localStorage.getItem(key);
-      if (!raw) continue;
-      const value = JSON.parse(raw);
-      const inverted = invertGradient(value);
-      if (inverted) {
-        window.localStorage.setItem(key, JSON.stringify(inverted));
-      }
-    } catch {
-      // ignore
-    }
-  }
-};
 
 // Persistent top nav for all takeover pages (/docs, /brand, /changelog,
 // /privacy, /404). Mirrors the takeover-footer links but at the top of
@@ -55,11 +18,14 @@ const invertPersistedColors = () => {
 // routing replaces the page entirely so we don't need to subscribe to
 // history changes here — a fresh mount picks up the new pathname.
 
+// Pixelarticons (MIT) — pixel icons paired with each nav label so the
+// nav reads as part of the rest of the app's pixel-art vocabulary
+// instead of a plain text row.
 const LINKS = [
-  { href: "/docs", label: "Docs" },
-  { href: "/changelog", label: "Changelog" },
-  { href: "/brand", label: "Press kit" },
-  { href: "/privacy", label: "Privacy" },
+  { href: "/docs", label: "Docs", Icon: Info },
+  { href: "/changelog", label: "Changelog", Icon: Clipboard },
+  { href: "/brand", label: "Press kit", Icon: Download },
+  { href: "/privacy", label: "Privacy", Icon: EyeOff },
 ];
 
 export const TakeoverNav = () => {
@@ -115,6 +81,7 @@ export const TakeoverNav = () => {
           {LINKS.map((link) => {
             const isActive =
               active === link.href || active.startsWith(`${link.href}/`);
+            const Icon = link.Icon;
             return (
               <a
                 key={link.href}
@@ -122,7 +89,8 @@ export const TakeoverNav = () => {
                 className={`takeover-nav-link${isActive ? " is-active" : ""}`}
                 aria-current={isActive ? "page" : undefined}
               >
-                {link.label}
+                <Icon size={12} aria-hidden="true" />
+                <span>{link.label}</span>
               </a>
             );
           })}
@@ -138,17 +106,9 @@ export const TakeoverNav = () => {
           <button
             type="button"
             className="takeover-nav-theme"
-            onClick={() => {
-              // Match the canvas-app's toggleTheme behaviour: flip the
-              // theme AND invert the persisted canvas colors so when
-              // the user navigates back to the canvas, the bg / dot /
-              // stroke / fill colors are already adapted to the new
-              // theme. Without this, a light-theme toggle from /docs
-              // would leave the canvas painting its old dark colors
-              // on the cream bg.
-              invertPersistedColors();
-              setUiTheme((c) => (c === "dark" ? "light" : "dark"));
-            }}
+            onClick={() =>
+              setUiTheme((c) => (c === "dark" ? "light" : "dark"))
+            }
             aria-label={`Switch to ${uiTheme === "dark" ? "light" : "dark"} mode`}
             title={`Switch to ${uiTheme === "dark" ? "light" : "dark"} mode`}
           >

@@ -191,8 +191,14 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  ctx.fillStyle = ocean;
-  ctx.fillRect(0, 0, width, height);
+  // Skip the ocean fill entirely when no color was supplied (or the
+   // caller passed transparent) so the texture's water area stays
+   // transparent — lets the user's chosen Background show through
+   // instead of being hidden under the texture's own ocean color.
+  if (ocean && ocean !== "transparent") {
+    ctx.fillStyle = ocean;
+    ctx.fillRect(0, 0, width, height);
+  }
 
   // Match dotted-map's projection / framing when a region is supplied.
   // Mercator + fitExtent to the region's bounding box reproduces exactly

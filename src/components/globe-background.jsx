@@ -1150,6 +1150,10 @@ export const GlobeBackground = ({
         };
       }
       const textureOptions = {
+        // Transparent ocean — show only the land in solid mode, no
+        // hardcoded water bg. The user's chosen Background (solid or
+        // space) shows through where water used to paint.
+        ocean: "transparent",
         fill: worldFill,
         fillAlpha: worldFillAlpha,
         fillGradient: worldFillGradient,

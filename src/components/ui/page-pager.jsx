@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+import {
+  Clipboard,
+  DottedGlobe,
+  Download,
+  EyeOff,
+  Info,
+} from "../icons.jsx";
 
 // Bottom-of-page prev/next navigation across the takeover pages.
 // Order mirrors the top nav: Docs → Changelog → Press kit → Privacy.
@@ -10,14 +17,17 @@ import { useEffect, useState } from "react";
 // where we are; SPA route changes remount the page so the new
 // pathname is picked up automatically.
 
+// Each entry pairs the destination with a pixel icon — same vocabulary
+// as the TakeoverNav at the top, so prev/next cards read as part of
+// the same nav family.
 const PAGES = [
-  { href: "/docs", label: "Docs" },
-  { href: "/changelog", label: "Changelog" },
-  { href: "/brand", label: "Press kit" },
-  { href: "/privacy", label: "Privacy" },
+  { href: "/docs", label: "Docs", Icon: Info },
+  { href: "/changelog", label: "Changelog", Icon: Clipboard },
+  { href: "/brand", label: "Press kit", Icon: Download },
+  { href: "/privacy", label: "Privacy", Icon: EyeOff },
 ];
 
-const HOME = { href: "/", label: "Back to the canvas" };
+const HOME = { href: "/", label: "Back to the canvas", Icon: DottedGlobe };
 
 export const PagePager = () => {
   const [pathname, setPathname] = useState("");
@@ -38,14 +48,20 @@ export const PagePager = () => {
       {prev ? (
         <a className="page-pager-link page-pager-prev" href={prev.href}>
           <span className="page-pager-direction">← Previous</span>
-          <span className="page-pager-label">{prev.label}</span>
+          <span className="page-pager-label">
+            <prev.Icon size={14} aria-hidden="true" />
+            <span>{prev.label}</span>
+          </span>
         </a>
       ) : (
         <span aria-hidden="true" />
       )}
       <a className="page-pager-link page-pager-next" href={next.href}>
         <span className="page-pager-direction">Next →</span>
-        <span className="page-pager-label">{next.label}</span>
+        <span className="page-pager-label">
+          <next.Icon size={14} aria-hidden="true" />
+          <span>{next.label}</span>
+        </span>
       </a>
     </nav>
   );

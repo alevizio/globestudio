@@ -243,14 +243,13 @@ const App = () => {
         document.documentElement.classList.remove("is-theme-transitioning");
       }, 360);
     }
+    // Theme toggle now ONLY flips the UI theme tokens (panel chrome).
+    // Canvas content (bg / dot / fill / stroke colors and gradients) is
+    // controlled by the user via the panel — same hands-off behavior
+    // as shapes / projection / shaders / etc. Previously the toggle
+    // auto-inverted those values, but that was surprising when users
+    // had deliberately picked a color and didn't want it flipped.
     setUiTheme((current) => (current === "dark" ? "light" : "dark"));
-    setDotColor((c) => invertHex(c));
-    setWorldFill((c) => invertHex(c));
-    setWorldStroke((c) => invertHex(c));
-    setBackground((c) => invertHex(c));
-    setDotGradient((g) => invertGradient(g));
-    setWorldFillGradient((g) => invertGradient(g));
-    setWorldStrokeGradient((g) => invertGradient(g));
   }, [
     setUiTheme,
     setDotColor,
