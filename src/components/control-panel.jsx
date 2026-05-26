@@ -81,6 +81,8 @@ export const ControlPanel = ({
   setTransparent,
   backgroundStyle,
   setBackgroundStyle,
+  shadeBackground,
+  setShadeBackground,
   spaceSettings,
   setSpaceSettings,
   mapDepth,
@@ -255,6 +257,7 @@ export const ControlPanel = ({
         enabled={dotsVisible}
         onEnabledChange={setDotsVisible}
         enabledLabel="Show map"
+        enabledTooltip={dotsVisible ? "Hide the dotted world map" : "Show the dotted world map"}
       >
         {/* Shape/Solid uses the same prominent SegmentedToggle as the
             other binary "what kind of layer" choices (Glow/No glow,
@@ -584,6 +587,11 @@ export const ControlPanel = ({
             }))
           }
           enabledLabel="Toggle globe shell"
+          enabledTooltip={
+            (globeSettings.surface !== false) || !!globeSettings.glow
+              ? "Hide sphere fill + glow"
+              : "Show sphere fill + glow"
+          }
         >
           {/* Globe shell aesthetic. One segmented toggle drives both
               the glow layer AND the historical "look" pivot — "Glow"
@@ -731,6 +739,11 @@ export const ControlPanel = ({
           enabled={globeSettings.grid !== false}
           onEnabledChange={(next) => updateGlobeSetting("grid", next)}
           enabledLabel="Show grid"
+          enabledTooltip={
+            globeSettings.grid !== false
+              ? "Hide graticule (meridians + parallels)"
+              : "Show graticule (meridians + parallels)"
+          }
         >
           {(() => {
             const gridOpacity = globeSettings.grid === false
@@ -804,6 +817,11 @@ export const ControlPanel = ({
           enabled={globeSettings.network !== false}
           onEnabledChange={(next) => updateGlobeSetting("network", next)}
           enabledLabel="Show network"
+          enabledTooltip={
+            globeSettings.network !== false
+              ? "Hide arcs + city pulses"
+              : "Show arcs + city pulses"
+          }
         >
           <OptionRow label="Arcs" value={networkLevelDisplay(globeSettings.networkArcs, 60)}>
             <RangeControl
@@ -866,6 +884,7 @@ export const ControlPanel = ({
         enabled={animationsEnabled}
         onEnabledChange={setAnimationsEnabled}
         enabledLabel="Enable animations"
+        enabledTooltip={animationsEnabled ? "Freeze all motion" : "Resume motion"}
       >
         <OptionRow label="Shape rotation" value={shapeRotationSpeed}>
           <RangeControl
@@ -907,22 +926,27 @@ export const ControlPanel = ({
         </Collapsible>
       </PanelSection>
 
+      {/* Shaders eye is always clickable. Click off → stash current
+          effect in a ref and set effect to "none". Click on → restore
+          from the ref (defaults to "bloom" on first toggle so a fresh
+          user lands on a visually distinctive effect rather than the
+          inert "none"). User can still pick a different effect from
+          the Pass dropdown at any time. */}
       <PanelSection
         title="Shaders"
         enabled={shaderEffect !== "none"}
         onEnabledChange={(next) => {
           if (next) {
-            // Restore the last picked non-"none" effect.
             setShaderSettings((s) => ({ ...s, effect: lastShaderEffectRef.current }));
           } else {
-            // Stash current effect so re-enabling restores it; set to "none".
             if (shaderEffect && shaderEffect !== "none") {
               lastShaderEffectRef.current = shaderEffect;
             }
             setShaderSettings((s) => ({ ...s, effect: "none" }));
           }
         }}
-        enabledLabel="Enable shader effect"
+        enabledLabel="Toggle shader effect"
+        enabledTooltip={shaderEffect !== "none" ? "Hide shader effect" : "Restore shader effect"}
       >
         <OptionRow label="Pass">
           <SelectControl
@@ -1049,6 +1073,11 @@ export const ControlPanel = ({
           }
         }}
         enabledLabel="Toggle background"
+        enabledTooltip={
+          backgroundStyle !== "transparent"
+            ? "Make background transparent"
+            : "Restore background"
+        }
       >
         {/* Solid/Space segmented sits at the top of the section as
             a binary choice — same idiom as Glow/No glow in the Globe
@@ -1120,6 +1149,22 @@ export const ControlPanel = ({
                 max={50}
                 value={spaceSettings.hue}
                 onChange={(value) => setSpaceSettings((s) => ({ ...s, hue: value }))}
+              />
+            </OptionRow>
+            {/* When a pattern post-effect (halftone, newsprint, bayer…) is
+                active, the shader paints over the stars too — turning the
+                whole canvas into a uniform dot grid. The toggle below
+                lets the user opt the bg OUT of the shader so the dots
+                only mark the globe and the starfield stays clean. */}
+            <OptionRow label="Shader on bg">
+              <SegmentedToggle
+                value={shadeBackground ? "apply" : "skip"}
+                onChange={(next) => setShadeBackground(next === "apply")}
+                options={[
+                  { value: "apply", label: "Apply" },
+                  { value: "skip", label: "Skip" },
+                ]}
+                ariaLabel="Apply or skip the active shader for the background"
               />
             </OptionRow>
           </>

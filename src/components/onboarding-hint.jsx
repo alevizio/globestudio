@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { usePersistedState } from "../hooks/use-persisted-state.js";
+import { KbdKey } from "./ui/kbd-key.jsx";
 
 // One-shot hint for first-time visitors — surfaces the two highest-
 // leverage shortcuts so people discover the keyboard interface
@@ -45,11 +46,11 @@ export const OnboardingHint = () => {
   return (
     <div className="onboarding-hint" role="status" aria-live="polite">
       <span>Press</span>
-      <kbd>S</kbd>
+      <KbdKey>S</KbdKey>
       <span>to shuffle</span>
       <span className="onboarding-hint-sep" aria-hidden="true">·</span>
-      <kbd>[</kbd>
-      <kbd>]</kbd>
+      <KbdKey>[</KbdKey>
+      <KbdKey>]</KbdKey>
       <span>to cycle</span>
     </div>
   );

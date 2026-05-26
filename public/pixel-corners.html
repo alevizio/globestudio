@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Pixel Corners Playground · Globestudio</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b0b0c;
+    --panel: rgba(18, 18, 20, 0.78);
+    --field: rgba(9, 9, 11, 0.82);
+    --border: rgba(255, 255, 255, 0.13);
+    --text: #f6f2ea;
+    --muted: #a8a39b;
+    --dim: #8d887e;
+    --accent: #f6f2ea;
+    --on-accent: #0b0b0c;
+    --shadow-lg: 0 24px 80px rgba(0, 0, 0, 0.44);
+    font-family: "Geist Pixel", ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: var(--bg);
+    color: var(--text);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 32px;
+    display: grid;
+    grid-template-columns: minmax(280px, 320px) 1fr;
+    gap: 32px;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(127, 228, 255, 0.08), transparent 50%),
+      radial-gradient(circle at 70% 80%, rgba(172, 140, 255, 0.06), transparent 50%),
+      #0b0b0c;
+  }
+  h1 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  p.lede {
+    margin: 0 0 24px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .label-row output {
+    color: var(--muted);
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  input[type="range"] {
+    width: 100%;
+    height: 22px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    background: linear-gradient(
+      to right,
+      var(--text) 0%,
+      var(--text) var(--fill, 50%),
+      rgba(255, 255, 255, 0.13) var(--fill, 50%),
+      rgba(255, 255, 255, 0.13) 100%
+    );
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    margin-top: -5px;
+    width: 16px;
+    height: 16px;
+    background: var(--text);
+    cursor: grab;
+  }
+  .controls .button-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  button {
+    border: 0;
+    cursor: pointer;
+    background: var(--text);
+    color: var(--on-accent);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 14px;
+    letter-spacing: 0.02em;
+  }
+  button.secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+  }
+  .preview-area {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+  }
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+  .preview-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .preview-cell .label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .preview-card {
+    background: var(--panel);
+    backdrop-filter: blur(18px);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .preview-card.card-large {
+    width: 100%;
+    aspect-ratio: 5 / 3;
+  }
+  .preview-card.card-button {
+    height: 40px;
+    padding: 0 18px;
+  }
+  .preview-card.card-toggle {
+    height: 28px;
+    padding: 0 12px;
+    font-size: 11px;
+  }
+  .preview-card.card-eye {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  .preview-card.card-thumb {
+    width: 24px;
+    height: 24px;
+  }
+  .preview-card.is-accent {
+    background: var(--text);
+    color: var(--on-accent);
+  }
+  .preview-card.is-field {
+    background: var(--field);
+  }
+  pre.code {
+    margin: 0;
+    padding: 18px 20px;
+    background: rgba(0, 0, 0, 0.35);
+    color: #c8ddc7;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    overflow: auto;
+    max-height: 360px;
+    white-space: pre;
+    user-select: text;
+  }
+  .info {
+    color: var(--dim);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  @media (max-width: 720px) {
+    body { grid-template-columns: 1fr; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+  <aside class="controls">
+    <div>
+      <h1>Pixel corners playground</h1>
+      <p class="lede">
+        Lukeb-style stair-stepped corner generator. Drag the sliders to see
+        how the polygon resolves at each element size. The generated
+        <code>clip-path</code> CSS is below — copy it straight into your
+        stylesheet.
+      </p>
+    </div>
+
+    <label>
+      <div class="label-row">
+        <span>Radius</span>
+        <output id="radius-out">4</output>
+      </div>
+      <input id="radius" type="range" min="0" max="12" step="1" value="4" />
+    </label>
+
+    <label>
+      <div class="label-row">
+        <span>Pixel size</span>
+        <output id="pixel-out">4</output>
+      </div>
+      <input id="pixel" type="range" min="1" max="8" step="1" value="4" />
+    </label>
+
+    <div class="info" id="footprint">
+      Corner footprint: <span id="footprint-px">16</span>px
+    </div>
+
+    <div class="button-row">
+      <button id="copy">Copy CSS</button>
+      <button class="secondary" id="apply">Apply to page</button>
+    </div>
+  </aside>
+
+  <main class="preview-area">
+    <div class="preview-grid">
+      <div class="preview-cell">
+        <div class="label">Large card (400×240)</div>
+        <div class="preview-card card-large preview-target">Card</div>
+      </div>
+      <div class="preview-cell">
+        <div class="label">Button (auto×40)</div>
+        <div class="preview-card card-button is-accent preview-target">Click me</div>
+      </div>
+      <div class="preview-cell">
+        <div class="label">Toggle pill (auto×28)</div>
+        <div class="preview-card card-toggle preview-target">Glow / Mono</div>
+      </div>
+      <div class="preview-cell">
+        <div class="label">Icon button (32×32)</div>
+        <div class="preview-card card-eye is-field preview-target">👁</div>
+      </div>
+      <div class="preview-cell">
+        <div class="label">Swatch (24×24)</div>
+        <div class="preview-card card-thumb is-accent preview-target"></div>
+      </div>
+    </div>
+
+    <pre class="code" id="output"></pre>
+  </main>
+
+<script>
+const radiusEl = document.getElementById("radius");
+const pixelEl = document.getElementById("pixel");
+const radiusOut = document.getElementById("radius-out");
+const pixelOut = document.getElementById("pixel-out");
+const footprintPx = document.getElementById("footprint-px");
+const output = document.getElementById("output");
+const previews = document.querySelectorAll(".preview-target");
+const copyBtn = document.getElementById("copy");
+const applyBtn = document.getElementById("apply");
+
+// Lukeb's quarter-circle pixel-corner algorithm. Samples 270°-225°,
+// rounds to integer pixel grid, multiplies by pixel size, then mirrors
+// across the diagonal to form the full top-left corner. The mirror+
+// reverse construction in `mirror()` builds the closed polygon for
+// all four corners.
+function generatePolygon(radius, pixelSize) {
+  if (radius <= 0) return null;
+  const points = [];
+  let last = { x: -1, y: -1 };
+  for (let i = 270; i > 225; i--) {
+    const x = parseInt(radius * Math.sin((2 * Math.PI * i) / 360) + radius + 0.5) * pixelSize;
+    const y = parseInt(radius * Math.cos((2 * Math.PI * i) / 360) + radius + 0.5) * pixelSize;
+    if (x !== last.x || y !== last.y) { last = { x, y }; points.push({ x, y }); }
+  }
+  // Drop redundant collinear midpoints.
+  const merge = (c) => {
+    const o = [];
+    for (let j = 0; j < c.length; j++) {
+      const prev = o[o.length - 1], cur = c[j], next = c[j + 1];
+      if (!prev || !next) { o.push(cur); continue; }
+      const sameDir = (cur.x === prev.x && cur.x === next.x) || (cur.y === prev.y && cur.y === next.y);
+      if (!sameDir) o.push(cur);
+    }
+    return o;
+  };
+  // Insert right-angle corner points between diagonal jumps.
+  const addCorners = (c) => {
+    const o = [];
+    for (let j = 0; j < c.length; j++) {
+      o.push(c[j]);
+      const n = c[j + 1];
+      if (n && c[j].x !== n.x && c[j].y !== n.y) o.push({ x: c[j].x, y: n.y });
+    }
+    return o;
+  };
+  const merged = merge(points);
+  const cornered = addCorners(merged);
+  // Mirror across y=x to complete the quarter-arc top edge.
+  const flipped = [
+    ...cornered,
+    ...cornered.map((p) => ({ x: p.y, y: p.x })).reverse(),
+  ].filter((p, i, a) => !i || a[i - 1].x !== p.x || a[i - 1].y !== p.y);
+  // Build all 4 corners (TL/TR/BR/BL).
+  const mirror = (c) => [
+    ...c.map((p) => ({ x: p.x, y: p.y })),
+    ...c.map((p) => ({ x: `calc(100% - ${p.x}px)`, y: p.y })).reverse(),
+    ...c.map((p) => ({ x: `calc(100% - ${p.x}px)`, y: `calc(100% - ${p.y}px)` })),
+    ...c.map((p) => ({ x: p.x, y: `calc(100% - ${p.y}px)` })).reverse(),
+  ];
+  const dedup = mirror(flipped).filter(
+    (p, i, a) => !i || JSON.stringify(a[i - 1]) !== JSON.stringify(p),
+  );
+  return dedup;
+}
+
+function pointToCss(p) {
+  const X = typeof p.x === "number" ? `${p.x}px` : p.x;
+  const Y = typeof p.y === "number" ? `${p.y}px` : p.y;
+  return `${X} ${Y}`;
+}
+
+function render() {
+  const radius = Number(radiusEl.value);
+  const pixel = Number(pixelEl.value);
+  radiusOut.textContent = radius;
+  pixelOut.textContent = pixel;
+  radiusEl.style.setProperty("--fill", `${(radius / 12) * 100}%`);
+  pixelEl.style.setProperty("--fill", `${(pixel / 8) * 100}%`);
+  footprintPx.textContent = radius * pixel;
+
+  const points = generatePolygon(radius, pixel);
+  if (!points || points.length === 0) {
+    output.textContent = ".pixel-corners {\n  clip-path: none;\n}";
+    previews.forEach((el) => (el.style.clipPath = "none"));
+    return;
+  }
+  const css =
+    ".pixel-corners {\n  clip-path: polygon(\n" +
+    points.map((p) => `    ${pointToCss(p)}`).join(",\n") +
+    "\n  );\n}";
+  output.textContent = css;
+  const live = `polygon(${points.map(pointToCss).join(", ")})`;
+  previews.forEach((el) => (el.style.clipPath = live));
+}
+
+radiusEl.addEventListener("input", render);
+pixelEl.addEventListener("input", render);
+copyBtn.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(output.textContent);
+    copyBtn.textContent = "Copied";
+    setTimeout(() => (copyBtn.textContent = "Copy CSS"), 1200);
+  } catch (e) {
+    copyBtn.textContent = "Press ⌘C in the box";
+  }
+});
+applyBtn.addEventListener("click", () => {
+  document.body.style.background = document.body.style.background ? "" : "var(--bg)";
+});
+
+render();
+</script>
+</body>
+</html>

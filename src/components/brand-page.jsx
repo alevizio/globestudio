@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
-import { TakeoverFooter } from "./takeover-footer.jsx";
+import { PagePager } from "./ui/page-pager.jsx";
 import { DottedGlobe, Github, Twitter } from "./icons.jsx";
+import { TakeoverNav } from "./ui/takeover-nav.jsx";
+import { SectionHeading } from "./ui/section-heading.jsx";
 
 // Press kit / brand assets for journalists + bloggers covering the
 // launch. Static page, no canvas — separate from the main app shell
@@ -45,10 +47,12 @@ export const BrandPage = () => {
   }, []);
 
   return (
-    <main className="brand-page">
-      <header className="brand-page-header">
-        <a className="brand-page-brand" href="/" aria-label="Globestudio home">
-          <DottedGlobe size={40} />
+    <>
+      <TakeoverNav />
+      <main className="brand-page">
+        <header className="brand-page-header">
+        <a className="brand-page-brand takeover-page-brand" href="/" aria-label="Globestudio home">
+          <DottedGlobe size={56} />
         </a>
         <h1 className="brand-page-title">Press kit</h1>
         <p className="brand-page-lede">
@@ -61,8 +65,10 @@ export const BrandPage = () => {
         </p>
       </header>
 
-      <section className="brand-section">
-        <h2 className="brand-section-title">Logo</h2>
+      <section className="brand-section" >
+        <SectionHeading id="logo" className="brand-section-title">
+          Logo
+        </SectionHeading>
         <div className="brand-logo-row">
           <div className="brand-logo-card">
             <DottedGlobe size={112} />
@@ -82,8 +88,10 @@ export const BrandPage = () => {
         </p>
       </section>
 
-      <section className="brand-section">
-        <h2 className="brand-section-title">Open Graph cards</h2>
+      <section className="brand-section" >
+        <SectionHeading id="og-cards" className="brand-section-title">
+          Open Graph cards
+        </SectionHeading>
         <p className="brand-caption">
           Pre-baked 1200×630 share cards for every preset. Use these directly
           in articles, social posts, or thumbnail grids.
@@ -114,8 +122,10 @@ export const BrandPage = () => {
         </p>
       </section>
 
-      <section className="brand-section">
-        <h2 className="brand-section-title">Palette</h2>
+      <section className="brand-section" >
+        <SectionHeading id="palette" className="brand-section-title">
+          Palette
+        </SectionHeading>
         <div className="brand-palette-grid">
           {PALETTE.map((swatch) => (
             <div key={swatch.value} className="brand-palette-tile">
@@ -134,8 +144,10 @@ export const BrandPage = () => {
         </div>
       </section>
 
-      <section className="brand-section">
-        <h2 className="brand-section-title">Taglines</h2>
+      <section className="brand-section" >
+        <SectionHeading id="taglines" className="brand-section-title">
+          Taglines
+        </SectionHeading>
         <ul className="brand-taglines">
           <li>"Designer-first dotted maps and animated 3D globes."</li>
           <li>"19 shader looks. 5 projections. One free web tool."</li>
@@ -147,8 +159,10 @@ export const BrandPage = () => {
         </ul>
       </section>
 
-      <section className="brand-section">
-        <h2 className="brand-section-title">Contact</h2>
+      <section className="brand-section" >
+        <SectionHeading id="contact" className="brand-section-title">
+          Contact
+        </SectionHeading>
         <div className="brand-section-links">
           <a
             className="brand-link"
@@ -175,7 +189,8 @@ export const BrandPage = () => {
         </div>
       </section>
 
-      <TakeoverFooter />
-    </main>
+        <PagePager />
+      </main>
+    </>
   );
 };

@@ -242,7 +242,9 @@ button {
   min-height: 100svh;
   max-width: 760px;
   margin: 0 auto;
-  padding: 56px 24px 96px;
+  /* Reduced top padding since the sticky .takeover-nav now sits above
+     the page and already provides visual top spacing. */
+  padding: 32px 24px 96px;
   color: var(--text);
   /* Inherit Geist Pixel from body — keeps the typeface consistent
      across the canvas app and every takeover page. Line-height is
@@ -307,6 +309,411 @@ button {
   max-width: 60ch;
 }
 
+/* Full-width sticky header that pins to the viewport top once the page
+   scrolls past it. Rendered as a sibling of <main> (not inside) so its
+   100% width is the viewport width, not the 760px reading column. The
+   inner wrapper re-centers the content to match the column width
+   underneath. Translucent panel + backdrop-filter keeps the content
+   beneath legible as it scrolls under. */
+.takeover-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(11, 11, 12, 0.85);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.takeover-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 10px 24px;
+}
+
+.takeover-nav-brand {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  color: var(--text);
+  text-decoration: none;
+  /* Hidden by default; the TakeoverNav toggles `.has-brand` on the
+     parent <nav> once the page-header brand mark scrolls out of view
+     (via IntersectionObserver). Faded in/out + scale to avoid a hard
+     pop. Pointer-events disabled while invisible so it can't catch
+     stray clicks. */
+  opacity: 0;
+  transform: translateY(-2px) scale(0.92);
+  pointer-events: none;
+  transition:
+    opacity 220ms var(--ease),
+    transform 220ms var(--ease);
+}
+
+.takeover-nav.has-brand .takeover-nav-brand {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.takeover-nav-brand:hover {
+  opacity: 0.7;
+}
+
+.takeover-nav-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.takeover-nav-links::-webkit-scrollbar {
+  display: none;
+}
+
+.takeover-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition:
+    color 140ms var(--ease),
+    background 140ms var(--ease);
+}
+
+.takeover-nav-link:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Active link gets the cyan accent that other takeover-page links use,
+   so the "you are here" indicator stays consistent with the product's
+   inline-link hue. */
+.takeover-nav-link.is-active {
+  color: #8ddfff;
+  background: rgba(141, 223, 255, 0.1);
+}
+
+/* Theme toggle button — same `takeover-nav-link` visual weight but
+   without the underline/active state, since it's a control not a link. */
+.takeover-nav-theme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 28px;
+  margin-left: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 140ms var(--ease),
+    background 140ms var(--ease);
+}
+
+.takeover-nav-theme:hover,
+.takeover-nav-theme:focus-visible {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  outline: none;
+}
+
+/* Section heading with a hover-revealed deep-link anchor.
+   The anchor is visually hidden until the heading is hovered so it
+   doesn't compete with the title text on first read. */
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  scroll-margin-top: 16px;
+}
+
+.section-heading-text {
+  flex: 0 1 auto;
+}
+
+.section-heading .section-heading-anchor {
+  flex: 0 0 auto;
+  opacity: 0;
+  color: var(--dim);
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 140ms var(--ease), color 140ms var(--ease);
+}
+
+.section-heading:hover .section-heading-anchor,
+.section-heading:focus-within .section-heading-anchor {
+  opacity: 1;
+}
+
+.section-heading .section-heading-anchor:hover {
+  color: #8ddfff;
+}
+
+/* Framed code block — pixel-cornered border, header bar with a
+   language label on the left + copy button on the right, then the
+   code in its own scrollable area. Replaces the prior bare <pre>. */
+.code-block {
+  position: relative;
+  margin: 0 0 16px;
+  background:
+    linear-gradient(var(--panel-3), var(--panel-3)),
+    var(--bg);
+  /* Pixel-stepped corners matching the rest of the app's elevated
+     surfaces (.kbd-shadow, .takeover-nav variants). 6px notch matches
+     the 12px-radius scale used elsewhere on bigger cards. */
+  clip-path: polygon(
+    0 6px,
+    6px 6px,
+    6px 0,
+    calc(100% - 6px) 0,
+    calc(100% - 6px) 6px,
+    100% 6px,
+    100% calc(100% - 6px),
+    calc(100% - 6px) calc(100% - 6px),
+    calc(100% - 6px) 100%,
+    6px 100%,
+    6px calc(100% - 6px),
+    0 calc(100% - 6px)
+  );
+}
+
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  /* Slight padding-top so the header doesn't touch the pixel-corner
+     cut at the top — keeps the language label/copy button optically
+     centered inside the visible bar. */
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.code-block-language {
+  color: var(--dim);
+  font-family: var(--font-mono-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.code-block-copy {
+  padding: 4px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 140ms var(--ease);
+}
+
+.code-block-copy:hover,
+.code-block-copy:focus-visible {
+  color: #8ddfff;
+  outline: none;
+}
+
+.code-block-pre {
+  margin: 0;
+  padding: 14px 16px 16px;
+  font-family: var(--font-mono-2);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  overflow-x: auto;
+  /* Tabs render as 2 spaces — long lines stay readable in the
+     constrained 760px reading column. */
+  tab-size: 2;
+}
+
+.code-block .code-block-pre code {
+  /* Reset .docs-section code chip styling that would otherwise wrap
+     each visible line of the <code> with a pill background (because
+     inline elements paint their bg behind every line box). Specificity
+     bumped so we win against the later `.docs-section code` rule. */
+  display: block;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  font-size: inherit;
+  color: inherit;
+  white-space: pre;
+}
+
+/* Slim scrollbar styling for the horizontal overflow when a snippet
+   exceeds the column width. Keeps the chrome quiet so long lines feel
+   intentional, not broken. */
+.code-block-pre::-webkit-scrollbar {
+  height: 6px;
+}
+
+.code-block-pre::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+}
+
+.code-block-pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Right-rail TOC on /docs. Position-fixed so it floats next to the
+   centered 760px reading column without widening it — keeps every
+   takeover page the same content width. `top` accounts for the sticky
+   header (54px nav + 24px breathing room). Collapses to display:none
+   below 1080px so tablet/mobile gets a single column. */
+.on-this-page {
+  position: fixed;
+  top: 78px;
+  right: 24px;
+  z-index: 10;
+  width: 200px;
+  padding: 14px 14px 14px 20px;
+  border-left: 1px solid var(--border);
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.on-this-page-title {
+  margin: 0 0 10px;
+  color: var(--dim);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.on-this-page-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.on-this-page-link {
+  display: block;
+  padding: 4px 0;
+  color: var(--muted) !important;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none !important;
+  transition: color 140ms var(--ease);
+}
+
+.on-this-page-link:hover {
+  color: var(--text) !important;
+}
+
+.on-this-page-link.is-active {
+  color: #8ddfff !important;
+}
+
+/* Hide the floating TOC below the threshold where it would overlap
+   the 760px reading column (760 + ~240 for the rail + breathing room). */
+@media (max-width: 1079px) {
+  .on-this-page {
+    display: none;
+  }
+}
+
+/* Bottom-of-page prev/next pager. Replaces the old multi-link footer
+   with a single forward-momentum nudge to the next surface (and an
+   optional "go back" affordance on the left). Grid keeps prev pinned
+   left and next pinned right even when only one is present. */
+.page-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.page-pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(var(--panel-3), var(--panel-3)),
+    var(--bg);
+  color: var(--text) !important;
+  text-decoration: none !important;
+  transition:
+    border-color 140ms var(--ease),
+    transform 220ms var(--ease);
+  clip-path: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  );
+}
+
+.page-pager-link:hover,
+.page-pager-link:focus-visible {
+  border-color: var(--border-strong);
+  outline: none;
+}
+
+.page-pager-next {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.page-pager-direction {
+  color: var(--dim);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.page-pager-label {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* On the cyan-link-using takeover pages, override the underline rule
+   so the pager card doesn't inherit a stray underline from
+   `.docs-section a` etc. The card chrome IS the affordance. */
+.docs-section .page-pager-link,
+.brand-section .page-pager-link,
+.changelog-section .page-pager-link,
+.privacy-section .page-pager-link {
+  text-decoration: none !important;
+}
+
 .brand-section,
 .docs-section {
   margin-top: 40px;
@@ -327,17 +734,32 @@ button {
   max-width: 64ch;
 }
 
+/* Inline links inside takeover-page paragraphs read as a distinct
+   cyan accent against the warm-white body copy — same hue the
+   atmosphere glow uses, so the takeover pages quietly carry the
+   product's color identity. Underline stays so users can identify
+   links by shape too, not just hue. */
 .brand-section a,
-.docs-section a {
-  color: var(--text);
+.docs-section a,
+.changelog-section a,
+.privacy-section a {
+  color: #8ddfff;
   text-decoration: underline;
-  text-decoration-color: var(--border-strong);
+  text-decoration-color: rgba(141, 223, 255, 0.36);
   text-underline-offset: 3px;
+  transition: color 140ms var(--ease), text-decoration-color 140ms var(--ease);
 }
 
 .brand-section a:hover,
-.docs-section a:hover {
-  text-decoration-color: var(--text);
+.docs-section a:hover,
+.changelog-section a:hover,
+.privacy-section a:hover,
+.brand-section a:focus-visible,
+.docs-section a:focus-visible,
+.changelog-section a:focus-visible,
+.privacy-section a:focus-visible {
+  color: #c8ecff;
+  text-decoration-color: #c8ecff;
 }
 
 .brand-section code,
@@ -391,23 +813,34 @@ button {
 .docs-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  gap: 10px;
+  min-height: 36px;
+  padding: 8px 12px;
   background: var(--field);
   color: var(--text);
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
-  transition: background 140ms var(--ease), border-color 140ms var(--ease);
+  transition: background 140ms var(--ease), color 140ms var(--ease);
 }
 
 .brand-link:hover,
-.docs-link:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-strong);
+.docs-link:hover,
+.docs-link:focus-visible {
+  background: rgba(255, 255, 255, 0.09);
   text-decoration: none;
+}
+
+.brand-link svg,
+.docs-link svg {
+  flex: 0 0 auto;
+  opacity: 0.7;
+  transition: opacity 140ms var(--ease);
+}
+
+.brand-link:hover svg,
+.docs-link:hover svg {
+  opacity: 1;
 }
 
 .brand-caption {
@@ -514,11 +947,21 @@ button {
   color: var(--text);
 }
 
+/* 2-column grid like the about modal so links line up evenly
+   instead of wrapping at arbitrary points. Falls back to single
+   column on narrow viewports. */
 .brand-section-links,
 .docs-section-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+@media (max-width: 540px) {
+  .brand-section-links,
+  .docs-section-links {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* /docs styling. */
@@ -572,23 +1015,103 @@ button {
   gap: 4px;
 }
 
+/* Pixel-cornered physical-key system.
+   The HTML structure is <span class="kbd-frame"><kbd>...</kbd></span>
+   (see KbdKey component). Why two elements:
+     - The inner <kbd> has clip-path for pixel-stepped corners.
+     - Clip-path crops any external shadow painted below the element,
+       which is why we couldn't have pixel corners AND a 3D drop-shadow
+       on a single element.
+     - The outer .kbd-frame has NO clip-path. Its filter: drop-shadow
+       generates the shadow from the kbd's alpha (which is already
+       clipped to the pixel-cornered shape) and renders it freely.
+   Result: real pixel corners + a real 3D drop-shadow that follows the
+   stair-stepped silhouette. */
+.kbd-frame {
+  position: relative;
+  /* New stacking context so .kbd-shadow's z-index: -1 stays scoped
+     to this frame instead of going behind the page background. */
+  isolation: isolate;
+  display: inline-block;
+  vertical-align: middle;
+  /* Reserve space for the 4px offset drop so the frame's vertical
+     bounding box includes the shadow region. Otherwise the shadow's
+     bottom 4px can collide with the next text line. */
+  margin-bottom: 4px;
+}
+
+/* Same pixel-cornered shape as the kbd, painted a few pixels below.
+   `inset: 0` sizes it identically to the .kbd-frame (which wraps the
+   kbd tightly), `transform: translateY(4px)` slides it down 4px, and
+   `z-index: -1` puts it behind the kbd. Only the bottom 4px of the
+   duplicate is visible, reading as the key's pixel-stepped drop. */
+.kbd-shadow {
+  position: absolute;
+  inset: 0;
+  transform: translateY(4px);
+  /* Theme-aware shadow color. Dark theme: lighter band against the
+     near-black bg reads as the key's "thickness". Light theme: darker
+     band against the cream bg gives a proper drop-shadow. Overridden
+     in the [data-theme="light"] block below. */
+  background: rgba(255, 255, 255, 0.14);
+  clip-path: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
 .docs-shortcut-row kbd,
 .docs-shortcuts kbd,
 .docs-section kbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 22px;
-  height: 20px;
-  padding: 0 6px;
-  border: 1px solid var(--border-strong);
-  border-bottom-width: 2px;
-  border-radius: 6px;
-  background: var(--surface-hover);
+  min-width: 26px;
+  height: 24px;
+  padding: 0 8px;
+  /* Opaque so the offset .kbd-shadow (z-index: -1, positioned behind)
+     can't bleed through the translucent surface — bleed-through made
+     the kbd body brighter than its top 4px (where the offset shadow
+     didn't reach), creating a dark-top stripe. Stacking the same
+     translucent token over an opaque page bg keeps the theme-aware
+     color while making the kbd fully opaque. */
+  background:
+    linear-gradient(var(--panel-3), var(--panel-3)),
+    var(--bg);
   color: var(--text);
   font-family: var(--font-mono-2);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
+  transform: translateY(-1px);
+  clip-path: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  );
+  /* Inset top gloss survives clip-path (it paints inside the
+     polygon, gets clipped at the corners to the pixel shape). */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .docs-preset-grid {
@@ -603,18 +1126,16 @@ button {
 .docs-preset-link {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  gap: 3px;
+  padding: 12px 14px;
   background: var(--field);
   text-decoration: none;
-  transition: background 140ms var(--ease), border-color 140ms var(--ease);
+  transition: background 140ms var(--ease);
 }
 
-.docs-preset-link:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-strong);
+.docs-preset-link:hover,
+.docs-preset-link:focus-visible {
+  background: rgba(255, 255, 255, 0.09);
   text-decoration: none;
 }
 
@@ -658,15 +1179,33 @@ button {
 
 .changelog-list {
   margin: 0;
-  padding: 0 0 0 18px;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   color: var(--text);
 }
 
+/* Each row: pixel-stepped plus icon + the change. align-items:flex-start
+   keeps the icon aligned to the FIRST line of a multi-line item. The
+   icon's `margin-top` aligns its visual center with the first line of
+   text — eyeballed to ~6px for the 12px icon at 1.55 line-height. */
 .changelog-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   line-height: 1.55;
+}
+
+.changelog-list li > svg {
+  flex: 0 0 auto;
+  margin-top: 6px;
+  color: #8ddfff;
+}
+
+.changelog-list li > span {
+  flex: 1 1 auto;
 }
 
 .changelog-section p {
@@ -675,16 +1214,10 @@ button {
   max-width: 64ch;
 }
 
-.changelog-section a {
-  color: var(--text);
-  text-decoration: underline;
-  text-decoration-color: var(--border-strong);
-  text-underline-offset: 3px;
-}
-
-.changelog-section a:hover {
-  text-decoration-color: var(--text);
-}
+/* Inline-link styling for .changelog-section is now defined in the
+   shared takeover-page block above (cyan accent + underline). The
+   old rule that lived here was duplicate and overridden by the
+   newer combined rule. */
 
 /* /privacy page. Same vertical-rhythm as the other takeover pages —
    just adds list + opt-out button styling. */
@@ -727,15 +1260,32 @@ button {
 
 .privacy-list {
   margin: 0 0 12px;
-  padding: 0 0 0 18px;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   color: var(--text);
 }
 
+/* Pixel-stepped plus icon + body, matching the changelog list. The icon
+   is pinned to the FIRST line of multi-line items via flex-start so the
+   bullet keeps its visual position when text wraps. */
 .privacy-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   line-height: 1.55;
+}
+
+.privacy-list li > svg {
+  flex: 0 0 auto;
+  margin-top: 6px;
+  color: #8ddfff;
+}
+
+.privacy-list li > span {
+  flex: 1 1 auto;
 }
 
 .privacy-optout {
@@ -1211,6 +1761,7 @@ button {
   top: 12px;
   right: 12px;
   display: grid;
+  grid-template-columns: auto auto;
   grid-template-columns: auto auto;
   gap: 2px 8px;
   padding: 0;
@@ -2248,18 +2799,15 @@ button {
   max-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
-  background: rgba(18, 18, 20, 0.62);
+  /* Same translucent panel tint the control rail / color picker /
+     dropdown use, so the modal reads as part of the same surface
+     family instead of a noticeably lighter card. */
+  background: var(--panel);
   backdrop-filter: blur(36px) saturate(160%);
   -webkit-backdrop-filter: blur(36px) saturate(160%);
-  border: 1px solid var(--border);
-  border-radius: 14px;
   box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: export-modal-rise-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-[data-theme="light"] .export-modal {
-  background: rgba(252, 251, 248, 0.62);
 }
 
 @keyframes export-modal-fade-in {
@@ -2378,18 +2926,14 @@ button {
   width: min(380px, 100%);
   display: flex;
   flex-direction: column;
-  background: rgba(18, 18, 20, 0.62);
+  /* Matches the rest of the surface card family — same translucent
+     panel tint in dark + light themes. */
+  background: var(--panel);
   backdrop-filter: blur(36px) saturate(160%);
   -webkit-backdrop-filter: blur(36px) saturate(160%);
-  border: 1px solid var(--border);
-  border-radius: 14px;
   box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: export-modal-rise-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-[data-theme="light"] .shortcuts-overlay {
-  background: rgba(252, 251, 248, 0.62);
 }
 
 .shortcuts-overlay-header {
@@ -2452,9 +2996,8 @@ button {
   color: var(--text);
 }
 
-/* Physical-keyboard-key look — soft top highlight, taller bottom border
-   acting as the cap's edge, multi-layer drop shadow for depth, slight
-   inner gloss. Reads as a key you could press instead of a flat chip. */
+/* Physical-keyboard-key look — same recipe as every other kbd in
+   the app. See .docs-shortcut-row kbd block for full reasoning. */
 .shortcuts-overlay-key {
   flex: 0 0 auto;
   min-width: 28px;
@@ -2463,19 +3006,29 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border-strong);
-  border-bottom-width: 3px;
-  border-radius: 8px;
-  background: var(--panel-3);
+  background:
+    linear-gradient(var(--panel-3), var(--panel-3)),
+    var(--bg);
   color: var(--text);
   font-family: var(--font-mono-2);
   font-size: 12px;
   font-weight: 700;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 2px 0 rgba(0, 0, 0, 0.35),
-    0 3px 6px rgba(0, 0, 0, 0.4);
   transform: translateY(-1px);
+  clip-path: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .shortcuts-overlay-label {
@@ -2501,18 +3054,14 @@ button {
   width: min(420px, 100%);
   display: flex;
   flex-direction: column;
-  background: rgba(18, 18, 20, 0.62);
+  /* Matches the panel / picker / palette / export modal — one
+     surface family across every overlay card. */
+  background: var(--panel);
   backdrop-filter: blur(36px) saturate(160%);
   -webkit-backdrop-filter: blur(36px) saturate(160%);
-  border: 1px solid var(--border);
-  border-radius: 14px;
   box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: export-modal-rise-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-[data-theme="light"] .about-overlay {
-  background: rgba(252, 251, 248, 0.62);
 }
 
 .about-overlay-header {
@@ -2634,35 +3183,69 @@ button {
   color: var(--muted);
 }
 
+/* About modal link list — 2-column grid so links line up evenly
+   instead of wrapping at arbitrary points. Each link sits as its
+   own row-half with consistent height + padding so the modal reads
+   as an organized index rather than a chip cloud. */
 .about-section-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 2px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 8px;
 }
 
 .about-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  min-height: 32px;
   padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent;
+  background: var(--field);
   color: var(--text);
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
-  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease);
+  transition:
+    background 180ms var(--ease),
+    color 180ms var(--ease);
 }
 
-.about-link:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-strong);
+.about-link:hover,
+.about-link:focus-visible {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text);
 }
 
 .about-link svg {
   flex: 0 0 auto;
+  opacity: 0.75;
+}
+
+.about-link:hover svg,
+.about-link:focus-visible svg {
+  opacity: 1;
+}
+
+/* Arrow glyph styling for the internal-link spans — kept as a
+   simple character so the external-link icons (Github / Twitter
+   SVGs) and internal-link arrows visually rhyme at the same size. */
+.about-link > span[aria-hidden="true"] {
+  display: inline-flex;
+  width: 14px;
+  justify-content: center;
+  color: var(--dim);
+  font-weight: 700;
+}
+
+.about-link:hover > span[aria-hidden="true"],
+.about-link:focus-visible > span[aria-hidden="true"] {
+  color: var(--text);
+}
+
+@media (max-width: 460px) {
+  .about-section-links {
+    grid-template-columns: 1fr;
+  }
 }
 
 .follow-tooltip {
@@ -2724,13 +3307,29 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border-strong);
-  border-bottom-width: 2px;
-  border-radius: 8px;
-  background: var(--surface-hover);
+  background:
+    linear-gradient(var(--panel-3), var(--panel-3)),
+    var(--bg);
+  color: var(--text);
   font-family: var(--font-mono-2);
   font-size: 12px;
   font-weight: 700;
+  transform: translateY(-1px);
+  clip-path: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 @keyframes keyboard-hint-pop {
@@ -2790,17 +3389,32 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 18px;
-  padding: 0 5px;
-  border: 1px solid var(--border-strong);
-  border-bottom-width: 2px;
-  border-radius: 5px;
-  background: var(--surface-hover);
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px;
+  background:
+    linear-gradient(var(--panel-3), var(--panel-3)),
+    var(--bg);
   color: var(--text);
   font-family: var(--font-mono-2);
   font-size: 11px;
   font-weight: 700;
+  transform: translateY(-1px);
+  clip-path: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .onboarding-hint-sep {
@@ -2845,18 +3459,14 @@ button {
   max-height: calc(100vh - 28vh);
   display: flex;
   flex-direction: column;
-  background: rgba(18, 18, 20, 0.62);
+  /* Matches .control-rail / .color-picker / .export-modal so every
+     surface-card reads as one design family. */
+  background: var(--panel);
   backdrop-filter: blur(36px) saturate(160%);
   -webkit-backdrop-filter: blur(36px) saturate(160%);
-  border: 1px solid var(--border);
-  border-radius: 14px;
   box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: export-modal-rise-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-[data-theme="light"] .command-palette {
-  background: rgba(252, 251, 248, 0.62);
 }
 
 .command-palette-header {
@@ -2956,17 +3566,32 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 22px;
-  height: 20px;
-  padding: 0 6px;
-  border: 1px solid var(--border-strong);
-  border-bottom-width: 2px;
-  border-radius: 6px;
-  background: var(--surface-hover);
+  min-width: 26px;
+  height: 24px;
+  padding: 0 8px;
+  background:
+    linear-gradient(var(--panel-3), var(--panel-3)),
+    var(--bg);
   font-family: var(--font-mono-2);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text);
+  transform: translateY(-1px);
+  clip-path: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .command-palette-empty {
@@ -3377,6 +4002,17 @@ button {
   opacity: 1;
 }
 
+/* Closed Collapsibles still occupied a grid row in the parent and
+   each contributed a 6px gap on either side — between Surface and
+   Animations in flat mode that meant ~24px of dead space from three
+   collapsed Globe-mode sections. display:none removes them from the
+   grid layout entirely. Trade-off: the opening expansion doesn't
+   animate from 0fr → 1fr anymore (display can't be transitioned),
+   but the view-mode switch already has its own visual feedback. */
+.collapsible-section:not(.is-open) {
+  display: none;
+}
+
 .collapsible-section-inner {
   min-height: 0;
   overflow: hidden;
@@ -3410,15 +4046,45 @@ button {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--panel);
-  box-shadow: var(--shadow);
+  /* Replaced box-shadow with filter:drop-shadow so the shadow follows
+     the pixel-corner clip-path silhouette instead of being sliced off
+     at the polygon edges (clip-path clips box-shadow but NOT
+     filter:drop-shadow, which is applied AFTER clipping per spec). */
+  filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.32));
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   color: var(--muted);
   cursor: pointer;
   animation: panel-toggle-in 280ms var(--ease);
   transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
+  /* Same 9px 2-step staircase as the rest of the canvas-app chrome —
+     applied locally instead of via the global selector list because
+     the global rule strips borders, and this button needs its 1px
+     border for visual definition against the dark canvas. */
+  clip-path: polygon(
+    0px 9px,
+    0px 3px,
+    3px 3px,
+    3px 0px,
+    9px 0px,
+    calc(100% - 9px) 0px,
+    calc(100% - 3px) 0px,
+    calc(100% - 3px) 3px,
+    calc(100% - 0px) 3px,
+    calc(100% - 0px) 9px,
+    calc(100% - 0px) calc(100% - 9px),
+    calc(100% - 0px) calc(100% - 3px),
+    calc(100% - 3px) calc(100% - 3px),
+    calc(100% - 3px) calc(100% - 0px),
+    calc(100% - 9px) calc(100% - 0px),
+    9px calc(100% - 0px),
+    3px calc(100% - 0px),
+    3px calc(100% - 3px),
+    0px calc(100% - 3px),
+    0px calc(100% - 9px)
+  );
 }
 
 @keyframes panel-toggle-in {
@@ -3573,6 +4239,13 @@ button {
   pointer-events: none;
   transition: opacity 260ms cubic-bezier(0.4, 0, 0.2, 1),
     transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Perf HUD is visible in normal (paneled) mode for dev introspection,
+   but hidden in the fullscreen / panel-collapsed ambient view so it
+   doesn't intrude on the canvas-only artwork. */
+.app-shell.is-panel-collapsed .perf-monitor {
+  display: none !important;
 }
 
 .app-shell.is-panel-collapsed .map-zoom-controls,
@@ -3919,8 +4592,15 @@ button {
   gap: 4px;
   padding: 4px;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--panel-soft, var(--panel));
+  border-radius: 0;
+  /* Transparent outer — the active slot's accent indicator is the only
+     visible chrome. Removing the darker outer panel bg makes the toggle
+     read as a pair of options rather than a chunky pill, and avoids the
+     "extra rectangle" the user flagged on Surface > Solid. The pixel-
+     corner clip-path from the global list still applies (clipping the
+     inner buttons), so the active indicator still gets the stair-step
+     corners via its own clip-path. */
+  background: transparent;
   margin: 4px 0 10px;
 }
 
@@ -3930,7 +4610,8 @@ button {
   bottom: 4px;
   left: 4px;
   width: calc((100% - 12px) / 2);
-  border-radius: 9px;
+  border-radius: 0;
+  /* clip-path applied via shared selector list below. */
   border: 1px solid var(--accent);
   background: var(--accent);
   /* translateX(100%) is the indicator's own width, +4px is the gap;
@@ -3956,7 +4637,7 @@ button {
   justify-content: center;
   white-space: nowrap;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: 0;
   background: transparent;
   color: var(--muted);
   font-size: 12px;
@@ -4045,8 +4726,26 @@ button {
 .option-block.is-layer-disabled .option-block-eye {
   color: var(--dim);
 }
+/* "Nothing to toggle yet" state — eye visible but non-interactive
+   (e.g. Shaders section when no effect is picked). Dimmer than the
+   normal off state and cursor reverts to default so it doesn't
+   advertise itself as a control. The native title attribute still
+   surfaces a tooltip on hover explaining why. */
+.option-block summary .option-block-eye.is-disabled {
+  color: var(--dim);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.option-block summary .option-block-eye.is-disabled:hover,
+.option-block summary .option-block-eye.is-disabled:focus-visible {
+  background: transparent;
+  color: var(--dim);
+}
 .option-block summary .option-block-eye + svg {
-  margin-left: 4px !important;
+  /* Bumped from 4px → 10px so the eye's hover background (22×22
+     square) has breathing room before the chevron — at 4px the
+     two read as visually mashed together when the eye lights up. */
+  margin-left: 10px !important;
 }
 
 /* When a section's layer toggle is off, dim the section header so
@@ -4274,22 +4973,29 @@ select:hover {
 }
 
 .shape-select-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 10;
+  /* Position is set inline by the component (portaled to body via
+     position: fixed, calculated from the trigger's bounding rect).
+     z-index needs to be above the canvas (z 2) and any panel chrome. */
+  z-index: 100;
   margin: 0;
   padding: 4px;
   list-style: none;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--panel);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  /* More transparent bg + stronger blur than var(--panel) gave on its
+     own — the dark var(--panel) at 0.78 alpha was opaque enough to
+     hide most of the backdrop blur. Drop the alpha so the frosted
+     effect actually reads. */
+  background: rgba(18, 18, 20, 0.55);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
   box-shadow: var(--shadow-md);
   max-height: 240px;
   overflow-y: auto;
+}
+
+[data-theme="light"] .shape-select-menu {
+  background: rgba(252, 251, 248, 0.6);
 }
 
 .shape-select-option {
@@ -4382,7 +5088,13 @@ select:hover {
   flex-direction: column;
   border: 1px solid var(--border);
   border-radius: 14px;
+  /* Backdrop-blur + saturate so the dropdown reads as a frosted-
+     glass card (same idiom as the color-picker card). The panel
+     background var already carries the alpha — backdrop-filter
+     pulls in what's behind it. */
   background: var(--panel);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
   box-shadow: var(--shadow-md);
   overflow: hidden;
 }
@@ -4670,7 +5382,7 @@ input[type="range"] {
 .slider::-webkit-slider-runnable-track,
 input[type="range"]::-webkit-slider-runnable-track {
   height: 6px;
-  border-radius: 3px;
+  border-radius: 0;
   background: linear-gradient(
     to right,
     var(--stroke-fill) 0%,
@@ -4686,7 +5398,25 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: -5px;
   width: 16px;
   height: 16px;
-  border-radius: 3px;
+  border-radius: 0;
+  /* 2px pixel-corner notches — small enough to keep the 16px thumb
+     reading as a clear square, large enough that the stair-step is
+     visible at normal viewing distance. 3px (kbd-scale) was too
+     aggressive for the smaller thumb. */
+  clip-path: polygon(
+    0 2px,
+    2px 2px,
+    2px 0,
+    calc(100% - 2px) 0,
+    calc(100% - 2px) 2px,
+    100% 2px,
+    100% calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 2px),
+    calc(100% - 2px) 100%,
+    2px 100%,
+    2px calc(100% - 2px),
+    0 calc(100% - 2px)
+  );
   background: var(--thumb-fill);
   border: 0;
   box-shadow: var(--shadow-thumb);
@@ -4711,14 +5441,14 @@ input[type="range"]:active::-webkit-slider-thumb {
 .slider::-moz-range-track,
 input[type="range"]::-moz-range-track {
   height: 6px;
-  border-radius: 3px;
+  border-radius: 0;
   background: var(--stroke-empty);
 }
 
 .slider::-moz-range-progress,
 input[type="range"]::-moz-range-progress {
   height: 6px;
-  border-radius: 3px;
+  border-radius: 0;
   background: var(--stroke-fill);
 }
 
@@ -4726,7 +5456,21 @@ input[type="range"]::-moz-range-progress {
 input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
-  border-radius: 3px;
+  border-radius: 0;
+  clip-path: polygon(
+    0 2px,
+    2px 2px,
+    2px 0,
+    calc(100% - 2px) 0,
+    calc(100% - 2px) 2px,
+    100% 2px,
+    100% calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 2px),
+    calc(100% - 2px) 100%,
+    2px 100%,
+    2px calc(100% - 2px),
+    0 calc(100% - 2px)
+  );
   background: var(--thumb-fill);
   border: 0;
   box-shadow: var(--shadow-thumb);
@@ -4770,7 +5514,11 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .color-swatch {
-  width: 32px;
+  /* 22×22 square — same height as the on/off toggle track so every
+     control in the panel's right column sits on the same horizontal
+     line. Also matches the 22×22 gradient-stop swatches inside the
+     color picker. */
+  width: 22px;
   height: 22px;
   display: inline-flex;
   align-items: center;
@@ -4805,11 +5553,14 @@ input[type="range"]:active::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--panel);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   box-shadow: var(--shadow-xl);
+  /* clip-path applied via the shared canvas-app pixel-corner selector
+     list below so the popover card uses the same 9px 2-step polygon
+     as every other panel control. */
   /* Horizontal stays hidden so the rounded card edge isn't broken
      by a scrollbar; vertical switches to auto so picker content
      can scroll internally when it overflows the viewport height
@@ -4833,6 +5584,11 @@ input[type="range"]:active::-moz-range-thumb {
 
 .color-picker-header {
   display: flex;
+  /* Reverse so the close X sits on the LEFT and the drag-grip on the
+     right. DOM order stays the same for accessibility (close button
+     remains keyboard-focusable after the grip); only the visual order
+     flips. */
+  flex-direction: row-reverse;
   align-items: center;
   gap: 10px;
   padding: 4px 10px 6px;
@@ -5131,15 +5887,16 @@ input[type="range"]:active::-moz-range-thumb {
   gap: 3px;
   padding: 3px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--field);
+  /* clip-path applied via shared canvas-app pixel-corner list below. */
 }
 
 .color-picker-mode {
   min-height: 28px;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 0;
   background: transparent;
   color: var(--muted);
   font-size: 12px;
@@ -5230,8 +5987,9 @@ input[type="range"]:active::-moz-range-thumb {
   gap: 5px;
   padding: 5px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--field);
+  /* clip-path applied via shared canvas-app pixel-corner list below. */
 }
 
 .color-picker-fill-indicator {
@@ -5240,7 +5998,8 @@ input[type="range"]:active::-moz-range-thumb {
   bottom: 5px;
   left: 5px;
   width: calc((100% - 15px) / 2);
-  border-radius: 10px;
+  border-radius: 0;
+  /* clip-path applied via shared canvas-app pixel-corner list below. */
   border: 1px solid var(--accent);
   background: var(--accent);
   transform: translateX(0);
@@ -5459,6 +6218,27 @@ input[type="range"]:active::-moz-range-thumb {
 [data-theme="light"] {
   --toggle-track-off: rgba(0, 0, 0, 0.16);
   --toggle-track-border: rgba(0, 0, 0, 0.08);
+}
+
+/* Light-theme kbd shadow — DARKER than the cream surface so it reads
+   as a proper drop-shadow, since the white-rgba shadow that works on
+   the dark bg would be invisible against the cream paper. */
+[data-theme="light"] .kbd-shadow {
+  background: rgba(0, 0, 0, 0.14);
+}
+
+/* Light-theme sticky nav — dark-tinted backdrop won't work over the
+   cream bg, so flip to a cream tint. */
+[data-theme="light"] .takeover-nav {
+  background: rgba(244, 241, 234, 0.85);
+}
+
+/* Hover bg in the light theme nav links — flip to a black tint for
+   contrast since white-on-cream is invisible. */
+[data-theme="light"] .takeover-nav-link:hover,
+[data-theme="light"] .takeover-nav-theme:hover,
+[data-theme="light"] .takeover-nav-theme:focus-visible {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .toggle-knob {
@@ -5765,4 +6545,349 @@ input[type="range"]:active::-moz-range-thumb {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* =====================================================================
+   PIXEL CORNERS (lukeb tool, radius=4 × multiplier=4)
+   Smaller corner: quarter-circle approximated as 2 stair-stepped
+   rows over a 16px footprint
+   — pixelcorners.lukeb.co.uk/?radius=4&multiplier=4. Subtler than
+   the previous radius=8 version. Border is zeroed on the clipped
+   elements so the 1px stroke doesn't trace the staircase polygon
+   edge — that's what made it "look weird"; with the border gone
+   the clipped fill is the only edge.
+   ===================================================================== */
+.control-rail,
+.color-picker,
+.command-palette,
+.export-modal,
+.about-overlay,
+.shortcuts-overlay,
+.searchable-select-popover {
+  border-radius: 0 !important;
+  border: 0 !important;
+  /* Polygon picked from the pixel-corners playground at
+     /pixel-corners.html (radius=3, pixelSize=3, 9px footprint).
+     One stair step per corner — subtle but visibly pixel-shaped.
+     Same polygon used on every tier below so the whole UI shares
+     one rounding language. */
+  clip-path: polygon(
+    0px 9px,
+    0px 3px,
+    3px 3px,
+    3px 0px,
+    9px 0px,
+    calc(100% - 9px) 0px,
+    calc(100% - 3px) 0px,
+    calc(100% - 3px) 3px,
+    calc(100% - 0px) 3px,
+    calc(100% - 0px) 9px,
+    calc(100% - 0px) calc(100% - 9px),
+    calc(100% - 0px) calc(100% - 3px),
+    calc(100% - 3px) calc(100% - 3px),
+    calc(100% - 3px) calc(100% - 0px),
+    calc(100% - 9px) calc(100% - 0px),
+    9px calc(100% - 0px),
+    3px calc(100% - 0px),
+    3px calc(100% - 3px),
+    0px calc(100% - 3px),
+    0px calc(100% - 9px)
+  );
+}
+
+/* =====================================================================
+   PIXEL CORNERS — buttons / toggles / inputs / dropdown / modal
+   (lukeb tool, radius=2 × multiplier=4) — 8px corner footprint.
+   Applied to medium-sized "card-or-button" surfaces. Smaller controls
+   (segmented toggles, switches, slider thumbs, swatches, eye button,
+   inputs) get plain sharp 90° corners — the 8px corner would consume
+   too much of their height. All listed elements lose their stroke
+   so the clipped fill is the only visible edge (the 1px border was
+   tracing the staircase polygon, which read as "weird" jagged trim).
+   ===================================================================== */
+.preset-card,
+.look-card,
+.look-tile,
+.look-thumb,
+.looks-chip,
+.view-mode-button,
+.panel-icon-button,
+.top-button,
+.ghost-button,
+.action-button,
+.button,
+.button-ghost,
+.export-modal-cta,
+.export-modal-button,
+.export-modal-pill,
+.export-modal-tab,
+.command-palette-row,
+.color-picker-stop,
+.color-picker-fill-tab,
+.color-picker-header,
+.color-picker-sv,
+.about-card,
+.toast,
+.snackbar,
+.map-zoom-button,
+.privacy-optout-button,
+.custom-shape-thumb,
+.brand-logo-card,
+.brand-og-tile,
+.brand-palette-tile,
+.social-link,
+.bug-link,
+.skip-link,
+.map-zoom-controls,
+.map-zoom-input,
+.about-link,
+.brand-link,
+.docs-link,
+.docs-preset-link,
+.not-found-link,
+.follow-tooltip,
+.copy-fallback,
+.preset-status,
+.update-banner,
+.about-avatar,
+.looks-chip-preview-image,
+.no-webgl-image,
+.docs-preset-link,
+/* Same 8px pixel-corner polygon for every "shaped" UI element —
+   buttons, toggles, dropdown rows, inputs, panel sections. The
+   previous attempt split these into pixel-corner vs sharp-corner
+   tiers, which read as visually incoherent ("the buttons look weird
+   with different corner in each"). Uniform polygon = single design
+   language across cards (16px footprint above) + every control (8px
+   footprint here). */
+.option-block,
+.option-block-eye,
+.segmented-toggle,
+.segmented-toggle-button,
+.segmented-toggle-indicator,
+.segmented-control,
+.segmented-control-button,
+.segmented-control-indicator,
+.view-mode-switch,
+.view-mode-indicator,
+.toggle-track,
+.toggle-thumb,
+.toggle-control,
+.color-swatch,
+.color-control,
+.color-control-fallback,
+.color-picker-stop-swatch,
+.transparent-toggle,
+.searchable-select-trigger,
+.searchable-select-search,
+.searchable-select-option,
+.command-palette-input,
+.command-palette-kbd,
+.command-palette-group,
+.ascii-symbol-input,
+.custom-topology-input,
+.export-modal-input,
+/* Color-picker chrome added here so the Solid/Gradient toggle, the
+   HEX/RGB/HSB/HSL mode picker, and their active indicators share the
+   same 9px 2-step staircase as every other panel control. The
+   `.color-picker` popover card itself stays OUT — it has a real
+   box-shadow that clip-path would slice off. */
+.color-picker-fill,
+.color-picker-fill-indicator,
+.color-picker-modes,
+.color-picker-mode,
+input,
+select,
+textarea {
+  border-radius: 0 !important;
+  border: 0 !important;
+  /* Same 9px / 1-stair-step polygon as the cards above. */
+  clip-path: polygon(
+    0px 9px,
+    0px 3px,
+    3px 3px,
+    3px 0px,
+    9px 0px,
+    calc(100% - 9px) 0px,
+    calc(100% - 3px) 0px,
+    calc(100% - 3px) 3px,
+    calc(100% - 0px) 3px,
+    calc(100% - 0px) 9px,
+    calc(100% - 0px) calc(100% - 9px),
+    calc(100% - 0px) calc(100% - 3px),
+    calc(100% - 3px) calc(100% - 3px),
+    calc(100% - 3px) calc(100% - 0px),
+    calc(100% - 9px) calc(100% - 0px),
+    9px calc(100% - 0px),
+    3px calc(100% - 0px),
+    3px calc(100% - 3px),
+    0px calc(100% - 3px),
+    0px calc(100% - 9px)
+  );
+}
+
+/* Slider tracks (6px tall) and thumbs (16px square) get a TIGHTER
+   2px-notch polygon — the 9px polygon used everywhere else would
+   self-intersect on these tiny elements (corner cuts at 9px overlap
+   in the middle of a 16px thumb). 2px notch is the smallest valid
+   pixel-step at this scale and still reads as part of the same
+   stair-stepped family. */
+input[type="range"]::-webkit-slider-runnable-track,
+input[type="range"]::-webkit-slider-thumb,
+input[type="range"]::-moz-range-track,
+input[type="range"]::-moz-range-progress,
+input[type="range"]::-moz-range-thumb,
+.color-picker-hue input[type="range"]::-webkit-slider-runnable-track,
+.color-picker-alpha input[type="range"]::-webkit-slider-runnable-track,
+.color-picker-hue input[type="range"]::-webkit-slider-thumb,
+.color-picker-alpha input[type="range"]::-webkit-slider-thumb,
+.color-picker-hue input[type="range"]::-moz-range-track,
+.color-picker-alpha input[type="range"]::-moz-range-track {
+  border-radius: 0 !important;
+  border: 0 !important;
+  clip-path: polygon(
+    0px 2px,
+    2px 2px,
+    2px 0px,
+    calc(100% - 2px) 0px,
+    calc(100% - 2px) 2px,
+    calc(100% - 0px) 2px,
+    calc(100% - 0px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 0px),
+    2px calc(100% - 0px),
+    2px calc(100% - 2px),
+    0px calc(100% - 2px)
+  ) !important;
+}
+
+/* On/off toggle's sliding KNOB — the user-facing "square inside" the
+   pill. Bigger 3px notch + own !important to fight the 9px global rule
+   that the parent .toggle-track gets. 18x16 footprint fits 3+3=6 < 16
+   vertically, so the corners read clearly without self-intersection. */
+.toggle-knob {
+  border-radius: 0 !important;
+  border: 0 !important;
+  clip-path: polygon(
+    0 3px,
+    3px 3px,
+    3px 0,
+    calc(100% - 3px) 0,
+    calc(100% - 3px) 3px,
+    100% 3px,
+    100% calc(100% - 3px),
+    calc(100% - 3px) calc(100% - 3px),
+    calc(100% - 3px) 100%,
+    3px 100%,
+    3px calc(100% - 3px),
+    0 calc(100% - 3px)
+  ) !important;
+}
+
+/* =====================================================================
+   NUCLEAR FALLBACK — flatten rounded corners + strip borders on every
+   non-card UI surface. The hand-picked selector list above was missing
+   real class names (.looks-chip, .button, .export-modal-pill, etc.) so
+   the targeted block didn't visually land. Universal `*` selector
+   guarantees coverage; the 5 big cards above still keep their stepped
+   pixel corners because clip-path is unaffected by border-radius: 0.
+   ===================================================================== */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+/* Border-stripping on common interactive class-name patterns. Substring
+   matching catches the real names without us having to enumerate every
+   class (the targeted list above missed too many). Inputs / form
+   controls keep their structural borders where they're load-bearing
+   for the layout — strip only on "shaped" elements. */
+button,
+[role="button"],
+[role="switch"],
+[role="tab"],
+[role="radio"],
+[role="option"],
+[class*="-button"],
+[class*="-chip"],
+[class*="-card"],
+[class*="-tile"],
+[class*="-thumb"],
+[class*="-pill"],
+[class*="-tab"],
+[class*="-trigger"],
+[class*="-toggle"],
+[class*="-swatch"],
+[class*="-track"],
+[class*="-row"],
+[class*="-stop"],
+[class*="-cta"],
+[class*="-segmented"],
+[class*="-select"],
+[class*="-fill"],
+[class*="-indicator"],
+[class*="-handle"],
+[class*="-bar"]:not(.looks-bar),
+.option-block,
+.option-block-eye,
+.toggle-control,
+.color-picker,
+.command-palette,
+.control-rail,
+.export-modal,
+.searchable-select-popover {
+  border: 0 !important;
+}
+
+/* =====================================================================
+   SMALL PIXEL CORNERS — single 4px corner notch.
+   Override for compact controls (eye buttons, swatches, segmented
+   buttons, icon buttons, kbd hints) where the 8px polygon above
+   was too aggressive relative to the element's height — 8px on a
+   22px eye button is 36% of the size. The 4px notch is a single
+   pixel step per corner, still reads as pixel-art but lets the
+   element keep most of its visual area.
+   ===================================================================== */
+.option-block-eye,
+.color-swatch,
+.color-picker-stop-swatch,
+.color-picker-fill-tab,
+.color-picker-close,
+.about-overlay-close,
+.command-palette-close,
+.command-palette-kbd,
+.export-modal-close,
+.segmented-toggle-button,
+.segmented-control-button,
+.toggle-track,
+.toggle-thumb,
+.looks-chip,
+.panel-icon-button,
+.map-zoom-button,
+.custom-shape-thumb,
+.brand-palette-swatch {
+  /* Same 9px / 1-stair-step polygon — uniform across every element. */
+  clip-path: polygon(
+    0px 9px,
+    0px 3px,
+    3px 3px,
+    3px 0px,
+    9px 0px,
+    calc(100% - 9px) 0px,
+    calc(100% - 3px) 0px,
+    calc(100% - 3px) 3px,
+    calc(100% - 0px) 3px,
+    calc(100% - 0px) 9px,
+    calc(100% - 0px) calc(100% - 9px),
+    calc(100% - 0px) calc(100% - 3px),
+    calc(100% - 3px) calc(100% - 3px),
+    calc(100% - 3px) calc(100% - 0px),
+    calc(100% - 9px) calc(100% - 0px),
+    9px calc(100% - 0px),
+    3px calc(100% - 0px),
+    3px calc(100% - 3px),
+    0px calc(100% - 3px),
+    0px calc(100% - 9px)
+  ) !important;
 }

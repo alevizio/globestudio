@@ -55,6 +55,12 @@ const FRAGMENT_SHADER = /* glsl */ `
   uniform float uWarp;
   uniform float uMotion;
   uniform vec3 uInk;
+  uniform float uPreserveBg;
+  // Bg-only texture sampled at the same uv as tDiffuse. Composited
+  // behind the effect output via the mix at the end of main(). Lets
+  // pattern shaders (halftone etc.) mark only the globe while the
+  // starfield bg shows cleanly in the gaps.
+  uniform sampler2D uBgTexture;
 
   varying vec2 vUv;
 
@@ -695,9 +701,13 @@ const FRAGMENT_SHADER = /* glsl */ `
     if (along < -2.0 || along > len + 2.0) return 0.0;
     vec2 perpDir = vec2(-dir.y, dir.x);
     float perp = dot(d, perpDir);
-    // Subtle hand-tremor across the stroke length.
-    float wobble = (valueNoise2(vec2(along * 0.06, origin.x * 0.01)) - 0.5) * 2.0;
-    perp += wobble;
+    // Bigger tremor across the stroke length so individual strokes
+    // bend visibly like a real hand drawing on paper rather than
+    // straight-line math.
+    float wobble = (valueNoise2(vec2(along * 0.06, origin.x * 0.01)) - 0.5) * 3.5;
+    // Lower-frequency drift adds a slow curve on top of the tremor.
+    float drift = (valueNoise2(vec2(along * 0.02, origin.y * 0.013)) - 0.5) * 2.5;
+    perp += wobble + drift;
     // Tapered pressure profile — fades in over first 15% of length,
     // peaks in the middle, fades out over last 15%. Matches how a real
     // pencil starts light, presses heavier mid-stroke, lifts off.
@@ -706,7 +716,13 @@ const FRAGMENT_SHADER = /* glsl */ `
     float taper = tIn * tOut;
     float w = halfWidth * pressure * (0.7 + 0.3 * taper);
     float edge = 1.0 - smoothstep(w * 0.55, w * 1.15, abs(perp));
-    return edge * taper;
+    // Along-stroke tooth — graphite catches paper unevenly. Sample a
+    // noise band tracking the stroke length and dim the stroke where
+    // the paper grain "skips" the graphite. This is the signature
+    // broken/dashed quality of real pencil on textured paper.
+    float pathTooth = valueNoise2(origin * 0.03 + vec2(along * 0.18, 0.0));
+    float skip = smoothstep(0.18, 0.62, pathTooth);
+    return edge * taper * skip;
   }
 
   // A region of pencil strokes — divides screen into cells (~22px each),
@@ -732,9 +748,11 @@ const FRAGMENT_SHADER = /* glsl */ `
         // the band angle, which is the cue that breaks "machine grid".
         float ang = baseAngle + (rand(c * 11.31) - 0.5) * angleJitter;
         vec2 dir = vec2(cos(ang), sin(ang));
-        // Varying stroke length (1.4× to 2.6× cell size) and pressure.
-        float len = cellSize * (1.4 + rand(c * 13.79) * 1.2);
-        float pressure = 0.55 + 0.45 * rand(c * 23.11);
+        // Wider variation in stroke length (1.0× to 2.8× cell size) and
+        // pressure (0.4–1.0) so adjacent strokes don't read as
+        // mechanically uniform.
+        float len = cellSize * (1.0 + rand(c * 13.79) * 1.8);
+        float pressure = 0.4 + 0.6 * rand(c * 23.11);
         ink += pencilStroke(pixelPos, origin, dir, len, strokeWidth, pressure);
       }
     }
@@ -773,7 +791,10 @@ const FRAGMENT_SHADER = /* glsl */ `
     float densitySignal = clamp(signal * pressure * (0.85 + uIntensity * 0.4), 0.0, 1.0);
 
     float strokeWidth = 1.6 + uIntensity * 0.8;
-    float cellSize = 22.0;
+    // Smaller cells = more strokes per area. A real sketch has many
+    // short overlapping marks rather than a few long ones; 18px gets
+    // closer to that density.
+    float cellSize = 18.0;
 
     // 4 layers of discrete strokes at different angles. Each cell hosts
     // ONE stroke (finite, tapered, slightly off-axis) rather than the
@@ -783,7 +804,10 @@ const FRAGMENT_SHADER = /* glsl */ `
     // - Layer 2 (mid tones): adds counter-angle cross
     // - Layer 3 (dark tones): adds steep diagonal
     // - Layer 4 (deep darks): adds horizontal accent
-    float angleJitter = 0.35;
+    // Stronger angle jitter so individual strokes within a layer don't
+    // share the exact same axis — that uniformity was the biggest
+    // "this is a shader" tell.
+    float angleJitter = 0.6;
     float hatch1 = pencilHatch(pixelPos, radians(20.0), angleJitter, densitySignal, cellSize, strokeWidth);
     float hatch2 = pencilHatch(pixelPos, radians(-32.0), angleJitter, densitySignal * 0.85, cellSize * 1.05, strokeWidth);
     float hatch3 = pencilHatch(pixelPos, radians(70.0), angleJitter, densitySignal * 0.7, cellSize * 0.95, strokeWidth * 0.9);
@@ -1095,11 +1119,21 @@ const FRAGMENT_SHADER = /* glsl */ `
       color.rgb += n * uGrain * uIntensity * 0.28;
     }
 
-    gl_FragColor = vec4(clamp(color.rgb, 0.0, 1.0), clamp(color.a, 0.0, 1.0));
+    // Composite the bg-only texture (stars / solid color / transparent)
+    // behind the effect output. color.a is the effect's coverage —
+    // halftone returns alpha=mask so dots are opaque and gaps are
+    // transparent; CRT/chromatic/etc. return alpha=1 so they fully cover
+    // the bg. When the bg target is transparent (solid-bg case), the
+    // resulting canvas pixel stays transparent so the page-bg CSS color
+    // shows through (matches the user's chosen solid color).
+    vec4 bg = texture2D(uBgTexture, vUv);
+    vec3 finalRgb = mix(bg.rgb, clamp(color.rgb, 0.0, 1.0), clamp(color.a, 0.0, 1.0));
+    float finalAlpha = max(bg.a, clamp(color.a, 0.0, 1.0));
+    gl_FragColor = vec4(finalRgb, finalAlpha);
   }
 `;
 
-export const createPostComposer = ({ renderer, scene, camera, width, height, pixelRatio }) => {
+export const createPostComposer = ({ renderer, scene, camera, width, height, pixelRatio, bgTexture }) => {
   const composer = new EffectComposer(renderer);
   composer.setPixelRatio(pixelRatio);
   composer.setSize(width, height);
@@ -1130,6 +1164,14 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
       // pixel cells, dither thresholds). White in dark mode → dark in
       // light mode so the marks stay visible against the inverted bg.
       uInk: { value: new THREE.Vector3(1, 1, 1) },
+      // Unused — kept for backwards compat. The bg composite happens via
+      // uBgTexture now, not via per-shader mask logic.
+      uPreserveBg: { value: 0 },
+      // Bg-only render target sampled here, composited behind the effect
+      // output. Allows pattern shaders (halftone etc.) to mark only the
+      // globe while the bg (stars + nebula) shows cleanly behind in the
+      // gaps. Set by the render loop; the bgTarget is updated each frame.
+      uBgTexture: { value: bgTexture ?? null },
     },
     vertexShader: VERTEX_SHADER,
     fragmentShader: FRAGMENT_SHADER,

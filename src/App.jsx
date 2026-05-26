@@ -56,6 +56,7 @@ import { NotFoundPage } from "./components/not-found-page.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
 import { IconButton } from "./components/ui/icon-button.jsx";
+import { KbdKey } from "./components/ui/kbd-key.jsx";
 import { MapZoomControls } from "./components/ui/map-zoom-controls.jsx";
 import { ViewModeSwitch } from "./components/ui/view-mode-switch.jsx";
 
@@ -106,6 +107,15 @@ const App = () => {
   const [background, setBackground] = usePersistedState("background", "#0a0a0a");
   const [transparent, setTransparent] = usePersistedState("transparent", false);
   const [backgroundStyle, setBackgroundStyle] = usePersistedState("backgroundStyle", "solid");
+  // Whether the active post-effect shader processes the background too
+  // (`true`, original/default — halftone, newsprint, etc. paint over the
+  // entire scene including stars) or skips it (`false` — bg renders
+  // cleanly behind the shader output so the globe halftone reads on top
+  // of a real starfield).
+  const [shadeBackground, setShadeBackground] = usePersistedState(
+    "shadeBackground",
+    true,
+  );
   const DEFAULT_SPACE_SETTINGS = {
     density: 65,
     motion: 35,
@@ -932,7 +942,10 @@ const App = () => {
     ...lookPresets.map((preset) => ({
       id: `apply:${preset.id}`,
       label: preset.name,
-      group: "Look",
+      // Look badge dropped — the preset name alone is recognizable
+      // and the badge added visual clutter. Other action types still
+      // carry their group badges since "View" / "Help" / etc. genuinely
+      // disambiguate.
       preset,
       // Searchable adjectives (e.g. "synthwave", "retro", "print") so
       // typing in Cmd+K finds presets by vibe, not just exact name.
@@ -1170,6 +1183,7 @@ const App = () => {
             globeSettings={effectiveGlobeSettings}
             spaceSettings={effectiveSpaceSettings}
             backgroundStyle={backgroundStyle}
+            shadeBackground={shadeBackground}
             reducedMotion={motionFrozen}
             canvasHandleRef={globeCanvasRef}
             panelCollapsed={panelCollapsed}
@@ -1313,6 +1327,8 @@ const App = () => {
             setTransparent={setTransparent}
             backgroundStyle={backgroundStyle}
             setBackgroundStyle={setBackgroundStyle}
+            shadeBackground={shadeBackground}
+            setShadeBackground={setShadeBackground}
             spaceSettings={spaceSettings}
             setSpaceSettings={setSpaceSettings}
             mapDepth={mapDepth}
@@ -1421,7 +1437,7 @@ const App = () => {
 
       {keyboardHint && (
         <div className="keyboard-hint" role="status" aria-live="polite">
-          <kbd className="keyboard-hint-key">{keyboardHint.key}</kbd>
+          <KbdKey className="keyboard-hint-key">{keyboardHint.key}</KbdKey>
           <span className="keyboard-hint-label">{keyboardHint.label}</span>
         </div>
       )}

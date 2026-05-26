@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
 import { X } from "./icons.jsx";
+import { KbdKey } from "./ui/kbd-key.jsx";
 
 // Cmd+K command palette. A flat list of every meaningful action in the
 // app — apply a preset, shuffle, reset, toggle ambient/view/panel,
@@ -171,7 +172,7 @@ export const CommandPalette = ({ open, onClose, actions }) => {
                 )}
                 <span className="command-palette-label">{action.label}</span>
                 {action.kbd && (
-                  <kbd className="command-palette-kbd">{action.kbd}</kbd>
+                  <KbdKey className="command-palette-kbd">{action.kbd}</KbdKey>
                 )}
               </li>
             ))
@@ -179,13 +180,13 @@ export const CommandPalette = ({ open, onClose, actions }) => {
         </ul>
         <div className="command-palette-footer">
           <span>
-            <kbd>↑↓</kbd> navigate
+            <KbdKey>↑↓</KbdKey> navigate
           </span>
           <span>
-            <kbd>↵</kbd> run
+            <KbdKey>↵</KbdKey> run
           </span>
           <span>
-            <kbd>esc</kbd> close
+            <KbdKey>esc</KbdKey> close
           </span>
         </div>
       </div>

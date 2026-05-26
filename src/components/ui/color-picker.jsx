@@ -340,9 +340,6 @@ export const ColorPicker = ({
         <span className="color-picker-grip" aria-hidden="true">
           <span /><span /><span /><span /><span /><span />
         </span>
-        <h2 className="color-picker-title">
-          {supportsGradient && fillMode === "gradient" ? "Gradient" : "Color"}
-        </h2>
         <button
           type="button"
           className="color-picker-close"

@@ -119,6 +119,7 @@ export const GlobeBackground = ({
   globeSettings,
   spaceSettings,
   backgroundStyle,
+  shadeBackground = true,
   uiTheme = "dark",
   reducedMotion = false,
   label,
@@ -128,6 +129,7 @@ export const GlobeBackground = ({
   const mountRef = useRef(null);
   const spaceSettingsRef = useRef(spaceSettings);
   const backgroundStyleRef = useRef(backgroundStyle);
+  const shadeBackgroundRef = useRef(shadeBackground);
   const reducedMotionRef = useRef(reducedMotion);
   const shapeRotationSpeedRef = useRef(shapeRotationSpeed);
   const dotRotationRef = useRef(dotRotation);
@@ -140,6 +142,7 @@ export const GlobeBackground = ({
   const perfMetricsRef = useRef({ fps: 60, calls: 0, geometries: 0, dots: 0 });
   spaceSettingsRef.current = spaceSettings;
   backgroundStyleRef.current = backgroundStyle;
+  shadeBackgroundRef.current = shadeBackground;
   reducedMotionRef.current = reducedMotion;
   shapeRotationSpeedRef.current = shapeRotationSpeed;
   dotRotationRef.current = dotRotation;
@@ -343,10 +346,28 @@ export const GlobeBackground = ({
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
     camera.position.set(0, 0, GLOBE_CAMERA_DISTANCE);
 
-    // Space background lives in the scene (not globeGroup) so it stays fixed
-    // when the globe rotates, and is processed by the post-effect chain.
+    // Space background lives in its OWN scene (bgScene), rendered to a
+    // separate target each frame. The customPass receives that target as a
+    // texture and composites it behind the effect output. Why split:
+    // pattern post-effects (halftone, newsprint, bayer, threshold,
+    // risograph, atkinson) replace the sampled scene with their own
+    // mark wherever they see bright signal. With the space bg in the main
+    // scene, stars would trigger those marks across the whole screen,
+    // burying the globe pattern. With the bg outside the main scene, the
+    // pattern shader only sees the globe and can fire dots cleanly on it,
+    // while the bg is laid in behind via the composite step.
+    const bgScene = new THREE.Scene();
     const spaceBackground = createSpaceBackgroundMesh();
-    scene.add(spaceBackground);
+    // Initial parent: when shadeBackground is true (default), space mesh
+    // lives in the main scene so the active post-effect processes it
+    // alongside the globe. When false, it lives in bgScene and is
+    // composited behind the effect output by the customPass — keeps the
+    // globe halftone readable on top of a clean starfield.
+    if (shadeBackgroundRef.current) {
+      scene.add(spaceBackground);
+    } else {
+      bgScene.add(spaceBackground);
+    }
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -478,6 +499,17 @@ export const GlobeBackground = ({
     const initialRect = mount.getBoundingClientRect();
     const initialWidth = Math.max(1, Math.floor(initialRect.width));
     const initialHeight = Math.max(1, Math.floor(initialRect.height));
+    // Off-screen target for the bg-only render. Each frame we render
+    // bgScene (just the space mesh, or nothing for solid bg) here, then
+    // pass the texture to the customPass for composite-behind-effect.
+    const bgTarget = new THREE.WebGLRenderTarget(
+      Math.round(initialWidth * pixelRatio),
+      Math.round(initialHeight * pixelRatio),
+      {
+        depthBuffer: false,
+        stencilBuffer: false,
+      },
+    );
     const postHandle = createPostComposer({
       renderer,
       scene,
@@ -485,6 +517,7 @@ export const GlobeBackground = ({
       width: initialWidth,
       height: initialHeight,
       pixelRatio,
+      bgTexture: bgTarget.texture,
     });
 
     threeRef.current = {
@@ -493,6 +526,8 @@ export const GlobeBackground = ({
       outerHaloMaterial,
       outerHalo,
       spaceBackground,
+      bgScene,
+      bgTarget,
       atmosphereIntensity: 0.42,
       baseDistance: GLOBE_CAMERA_DISTANCE,
       baseMaterial,
@@ -538,6 +573,14 @@ export const GlobeBackground = ({
       threeRef.current.canvasHeight = rect.height;
       renderer.setSize(width, height, false);
       postHandle.setSize(width, height);
+      // Bg-only target uses the device-pixel size so it samples 1:1
+      // with the composer's read buffer. Without this resize, the bg
+      // composite would stretch or look blurry after window resize.
+      const dpr = renderer.getPixelRatio();
+      bgTarget.setSize(
+        Math.max(1, Math.round(width * dpr)),
+        Math.max(1, Math.round(height * dpr)),
+      );
     };
 
     const observer = new ResizeObserver(resize);
@@ -724,6 +767,17 @@ export const GlobeBackground = ({
       if (sbg) {
         const wantsSpace = backgroundStyleRef.current === "space";
         sbg.visible = wantsSpace;
+        // Re-parent the space mesh on toggle change. Compared against
+        // sbg.parent rather than a separate state ref so we react to
+        // any external mutation (e.g., disposal logic) too.
+        const wantShade = shadeBackgroundRef.current;
+        const desiredParent = wantShade
+          ? threeRef.current.scene
+          : threeRef.current.bgScene;
+        if (sbg.parent !== desiredParent && desiredParent) {
+          sbg.parent?.remove(sbg);
+          desiredParent.add(sbg);
+        }
         if (wantsSpace) {
           const settings = spaceSettingsRef.current || {};
           // Reuse the cached dimensions captured by `resize()` rather than
@@ -738,6 +792,24 @@ export const GlobeBackground = ({
           u.uNebula.value = (settings.nebula ?? 55) / 100;
           u.uHue.value = (settings.hue ?? 0) / 50;
           u.uBrightness.value = (settings.brightness ?? 100) / 100;
+        }
+        // Render the bg scene (just the space mesh, or empty for solid bg)
+        // to its own target. The customPass samples this and composites it
+        // behind the effect output so pattern shaders only mark the globe
+        // and the bg shows through cleanly in the gaps. For solid bg we
+        // still render the (empty / hidden mesh) scene to the target — the
+        // clear color produced becomes the bg the customPass composites,
+        // which gives the solid-bg case the same visual as before.
+        const bgScene = threeRef.current?.bgScene;
+        const bgTarget = threeRef.current?.bgTarget;
+        if (bgScene && bgTarget) {
+          const prevTarget = renderer.getRenderTarget();
+          const prevAutoClear = renderer.autoClear;
+          renderer.autoClear = true;
+          renderer.setRenderTarget(bgTarget);
+          renderer.render(bgScene, threeRef.current.camera);
+          renderer.setRenderTarget(prevTarget);
+          renderer.autoClear = prevAutoClear;
         }
       }
 
@@ -756,15 +828,17 @@ export const GlobeBackground = ({
       // per frame on an iGPU at 1080p. The setRenderTarget(null) call is
       // defensive: composer.render may leave the target pointing at one
       // of its internal buffers depending on three.js version.
-      const activeEffect = settingsRef.current?.effect || "none";
+      // Always go through the composer now — the customPass's final step
+      // composites the bg-only target behind the effect output, which is
+      // how pattern shaders (halftone, newsprint, bayer, …) end up with
+      // the starfield visible in the gaps. The old "no effect = bypass
+      // composer" fast path would skip that composite, so the bg would
+      // disappear when no effect is selected. The composer's chain in
+      // the no-effect case still costs ~1ms, which is the price for
+      // architectural simplicity here.
       const refsNow = threeRef.current;
       if (refsNow) {
-        if (activeEffect !== "none") {
-          refsNow.postHandle?.composer.render();
-        } else {
-          refsNow.renderer.setRenderTarget(null);
-          refsNow.renderer.render(refsNow.scene, refsNow.camera);
-        }
+        refsNow.postHandle?.composer.render();
       }
 
       // Dev-only perf HUD feed. Cheap: a few field writes per frame, no

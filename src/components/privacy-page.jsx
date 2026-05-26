@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
-import { TakeoverFooter } from "./takeover-footer.jsx";
-import { DottedGlobe, Github } from "./icons.jsx";
+import { PagePager } from "./ui/page-pager.jsx";
+import { DottedGlobe, Github, Plus } from "./icons.jsx";
+import { TakeoverNav } from "./ui/takeover-nav.jsx";
+import { SectionHeading } from "./ui/section-heading.jsx";
 
 // Privacy policy page. Single takeover page documenting the analytics
 // stack (Vercel Web Analytics + Speed Insights), what data is +
@@ -50,10 +52,12 @@ export const PrivacyPage = () => {
   const optedOut = getOptOut();
 
   return (
-    <main className="privacy-page">
-      <header className="privacy-page-header">
-        <a className="privacy-page-brand" href="/" aria-label="Globestudio home">
-          <DottedGlobe size={40} />
+    <>
+      <TakeoverNav />
+      <main className="privacy-page">
+        <header className="privacy-page-header">
+        <a className="privacy-page-brand takeover-page-brand" href="/" aria-label="Globestudio home">
+          <DottedGlobe size={56} />
         </a>
         <h1 className="privacy-page-title">Privacy</h1>
         <p className="privacy-page-lede">
@@ -62,8 +66,10 @@ export const PrivacyPage = () => {
         </p>
       </header>
 
-      <section className="privacy-section">
-        <h2 className="privacy-section-title">What we collect</h2>
+      <section className="privacy-section" >
+        <SectionHeading id="what-we-collect" className="privacy-section-title">
+          What we collect
+        </SectionHeading>
         <p>
           We use{" "}
           <a
@@ -76,9 +82,9 @@ export const PrivacyPage = () => {
           to count anonymous page views and a few product events:
         </p>
         <ul className="privacy-list">
-          <li><code>preset_applied</code> — which preset was selected</li>
-          <li><code>export_started</code> / <code>export_completed</code> — what format you exported (PNG, SVG, WebM)</li>
-          <li><code>share_clicked</code> — that a share happened (not where)</li>
+          <li><Plus size={12} aria-hidden="true" /><span><code>preset_applied</code> — which preset was selected</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span><code>export_started</code> / <code>export_completed</code> — what format you exported (PNG, SVG, WebM)</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span><code>share_clicked</code> — that a share happened (not where)</span></li>
         </ul>
         <p>
           And{" "}
@@ -94,39 +100,55 @@ export const PrivacyPage = () => {
         </p>
       </section>
 
-      <section className="privacy-section">
-        <h2 className="privacy-section-title">What we don't collect</h2>
+      <section className="privacy-section" >
+        <SectionHeading
+          id="what-we-dont-collect"
+          className="privacy-section-title"
+        >
+          What we don't collect
+        </SectionHeading>
         <ul className="privacy-list">
-          <li>No cookies</li>
-          <li>No fingerprinting</li>
-          <li>No personal data — your IP is hashed and discarded at Vercel's edge</li>
-          <li>No third-party advertisers</li>
-          <li>No session replay</li>
-          <li>No cross-site tracking</li>
+          <li><Plus size={12} aria-hidden="true" /><span>No cookies</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span>No fingerprinting</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span>No personal data — your IP is hashed and discarded at Vercel's edge</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span>No third-party advertisers</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span>No session replay</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span>No cross-site tracking</span></li>
         </ul>
       </section>
 
-      <section className="privacy-section">
-        <h2 className="privacy-section-title">How to opt out</h2>
+      <section className="privacy-section" >
+        <SectionHeading id="opt-out" className="privacy-section-title">
+          How to opt out
+        </SectionHeading>
         <p>
           Three ways, each independently sufficient:
         </p>
         <ul className="privacy-list">
           <li>
-            <strong>Browser-level (already respected)</strong> — enable
-            Do-Not-Track or Global Privacy Control in your browser. We
-            check both on every page load and don't load analytics if
-            either is on.
+            <Plus size={12} aria-hidden="true" />
+            <span>
+              <strong>Browser-level (already respected)</strong> — enable
+              Do-Not-Track or Global Privacy Control in your browser. We
+              check both on every page load and don't load analytics if
+              either is on.
+            </span>
           </li>
           <li>
-            <strong>localStorage toggle</strong> — click the button
-            below, or paste{" "}
-            <code>localStorage.setItem('gs_optout', 'true')</code> into
-            DevTools.
+            <Plus size={12} aria-hidden="true" />
+            <span>
+              <strong>localStorage toggle</strong> — click the button
+              below, or paste{" "}
+              <code>localStorage.setItem('gs_optout', 'true')</code> into
+              DevTools.
+            </span>
           </li>
           <li>
-            <strong>Network blocker</strong> — block requests to{" "}
-            <code>/_vercel/insights/</code> in your adblocker.
+            <Plus size={12} aria-hidden="true" />
+            <span>
+              <strong>Network blocker</strong> — block requests to{" "}
+              <code>/_vercel/insights/</code> in your adblocker.
+            </span>
           </li>
         </ul>
         <div className="privacy-optout">
@@ -145,8 +167,10 @@ export const PrivacyPage = () => {
         </div>
       </section>
 
-      <section className="privacy-section">
-        <h2 className="privacy-section-title">Source</h2>
+      <section className="privacy-section" >
+        <SectionHeading id="source" className="privacy-section-title">
+          Source
+        </SectionHeading>
         <p>
           Globestudio is{" "}
           <a
@@ -180,7 +204,8 @@ export const PrivacyPage = () => {
         </div>
       </section>
 
-      <TakeoverFooter />
-    </main>
+        <PagePager />
+      </main>
+    </>
   );
 };

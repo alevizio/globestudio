@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
 import { X } from "./icons.jsx";
+import { KbdKey } from "./ui/kbd-key.jsx";
 
 const shortcuts = [
   { key: "S", label: "Shuffle to a random look" },
@@ -58,7 +59,7 @@ export const ShortcutsOverlay = ({ open, onClose }) => {
         <ul className="shortcuts-overlay-list">
           {shortcuts.map((row) => (
             <li key={row.key} className="shortcuts-overlay-row">
-              <kbd className="shortcuts-overlay-key">{row.key}</kbd>
+              <KbdKey className="shortcuts-overlay-key">{row.key}</KbdKey>
               <span className="shortcuts-overlay-label">{row.label}</span>
             </li>
           ))}

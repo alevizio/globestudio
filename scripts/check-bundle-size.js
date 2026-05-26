@@ -33,7 +33,7 @@ const BUDGETS = [
   // / backdrop-filter pairs when minified, breaking modal frosted-glass
   // across browsers (see vite.config.js#cssMinify: false). Budget bumped
   // accordingly; gzip still small enough that this is worth it.
-  { prefix: "index-",            ext: ".css", raw: 145_000,  gzip:  30_500, lazy: false },
+  { prefix: "index-",            ext: ".css", raw: 156_000,  gzip:  37_000, lazy: false },
 
   // Lazy chunks (loaded after first paint)
   { prefix: "globe-background-", ext: ".js",  raw: 120_000,  gzip:  40_000, lazy: true },
@@ -48,7 +48,7 @@ const BUDGETS = [
 // the canvas appears. Bumped after disabling CSS minification (see
 // vite.config.js#cssMinify) to keep modal backdrop-filter prefixes
 // intact; this is the floor including that ~7 kB CSS cost.
-const INITIAL_GZIP_BUDGET = 325_000;
+const INITIAL_GZIP_BUDGET = 328_000;
 
 const format = (bytes) => {
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;

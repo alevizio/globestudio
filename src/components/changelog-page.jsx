@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
-import { TakeoverFooter } from "./takeover-footer.jsx";
-import { DottedGlobe, Github } from "./icons.jsx";
+import { PagePager } from "./ui/page-pager.jsx";
+import { DottedGlobe, Github, Plus } from "./icons.jsx";
+import { TakeoverNav } from "./ui/takeover-nav.jsx";
+import { SectionHeading } from "./ui/section-heading.jsx";
 
 // Hand-curated changelog surface. The full CHANGELOG.md lives at the
 // repo root and is the authoritative record; this page is a
@@ -69,10 +71,12 @@ export const ChangelogPage = () => {
   }, []);
 
   return (
-    <main className="changelog-page">
-      <header className="changelog-page-header">
-        <a className="changelog-page-brand" href="/" aria-label="Globestudio home">
-          <DottedGlobe size={40} />
+    <>
+      <TakeoverNav />
+      <main className="changelog-page">
+        <header className="changelog-page-header">
+        <a className="changelog-page-brand takeover-page-brand" href="/" aria-label="Globestudio home">
+          <DottedGlobe size={56} />
         </a>
         <h1 className="changelog-page-title">Changelog</h1>
         <p className="changelog-page-lede">
@@ -91,23 +95,33 @@ export const ChangelogPage = () => {
         </p>
       </header>
 
-      {ENTRIES.map((entry) => (
-        <section key={entry.label} className="changelog-section">
-          <div className="changelog-section-meta">
-            <h2 className="changelog-section-title">{entry.label}</h2>
-            <span className="changelog-section-date">{entry.date}</span>
-          </div>
-          <ul className="changelog-list">
-            {entry.items.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      {ENTRIES.map((entry) => {
+        const slug = entry.label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        return (
+          <section key={entry.label} className="changelog-section">
+            <div className="changelog-section-meta">
+              <SectionHeading id={slug} className="changelog-section-title">
+                {entry.label}
+              </SectionHeading>
+              <span className="changelog-section-date">{entry.date}</span>
+            </div>
+            <ul className="changelog-list">
+              {entry.items.map((line) => (
+                <li key={line}>
+                  <Plus size={12} aria-hidden="true" />
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
 
-      <section className="changelog-section">
+      <section className="changelog-section" >
         <div className="changelog-section-meta">
-          <h2 className="changelog-section-title">Source</h2>
+          <SectionHeading id="source" className="changelog-section-title">
+            Source
+          </SectionHeading>
         </div>
         <p>
           The full version-controlled record lives on GitHub.
@@ -134,7 +148,8 @@ export const ChangelogPage = () => {
         </div>
       </section>
 
-      <TakeoverFooter />
-    </main>
+        <PagePager />
+      </main>
+    </>
   );
 };

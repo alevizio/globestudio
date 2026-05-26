@@ -108,7 +108,7 @@ export const lookPresets = [
       backgroundStyle: "space",
       density: 70,
       dotSize: 12,
-      shape: "Circle",
+      shape: "Particle Grid",
       spaceSettings: { density: 55, motion: 25, nebula: 70, hue: 160, brightness: 80 },
       shaderSettings: {
         ...effectPresets.aurora,
@@ -182,7 +182,7 @@ export const lookPresets = [
       transparent: true,
       density: 90,
       dotSize: 16,
-      shape: "Hexagon",
+      shape: "Triangle",
       shaderSettings: { ...effectPresets.edge, effect: "edge", intensity: 65, threshold: 16 },
       globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, gridStrength: 64 },
     }),
@@ -195,6 +195,10 @@ export const lookPresets = [
       background: "#020a10",
       density: 70,
       dotSize: 14,
+      // ASCII block characters give the CRT terminal a real text feel
+      // — every "dot" renders as a tinted phosphor character.
+      shape: "ASCII",
+      asciiSymbol: "█",
       shaderSettings: { ...effectPresets.crt, effect: "crt", intensity: 65, scanlines: 78, cellSize: 9 },
       globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: true, glowStrength: 65 },
     }),
@@ -240,6 +244,10 @@ export const lookPresets = [
       backgroundStyle: "space",
       density: 80,
       dotSize: 12,
+      // Solid render mode puts the bloom shader over a textured world
+      // map rather than a dot field — reads as a photographic planet
+      // wrapped in nebula glow.
+      renderMode: "solid",
       spaceSettings: { density: 70, motion: 30, nebula: 45, hue: 220, brightness: 95 },
       shaderSettings: { ...effectPresets.bloom, effect: "bloom", intensity: 78 },
       globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: true, glowStrength: 85 },
@@ -253,7 +261,7 @@ export const lookPresets = [
       background: "#08080e",
       density: 70,
       dotSize: 13,
-      shape: "Hexagon",
+      shape: "Voxel",
       shaderSettings: { ...effectPresets.metal, effect: "metal", intensity: 78, motion: 30 },
       globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
     }),
@@ -266,7 +274,7 @@ export const lookPresets = [
       background: "#000000",
       density: 70,
       dotSize: 13,
-      shape: "Circle",
+      shape: "Star",
       shaderSettings: {
         ...effectPresets.iridescent,
         effect: "iridescent",
@@ -286,7 +294,10 @@ export const lookPresets = [
       background: "#14100a",
       density: 60,
       dotSize: 14,
-      shape: "Circle",
+      // ASCII "x" characters render the dot field as crosshatched
+      // pencil strokes — fits the sketch theme directly.
+      shape: "ASCII",
+      asciiSymbol: "x",
       shaderSettings: { ...effectPresets.pencil, effect: "pencil", intensity: 65 },
       globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false, grid: false },
     }),
@@ -357,7 +368,7 @@ export const lookPresets = [
       density: 60,
       dotSize: 12,
       dotColor: "#ff9ec5",
-      shape: "Circle",
+      shape: "Diamond",
       shaderSettings: {
         ...effectPresets.chromatic,
         effect: "chromatic",
@@ -378,7 +389,7 @@ export const lookPresets = [
       density: 70,
       dotSize: 11,
       dotColor: "#c8ddc7",
-      shape: "Circle",
+      shape: "Ring",
       shaderSettings: {
         ...effectPresets.wave,
         effect: "wave",
