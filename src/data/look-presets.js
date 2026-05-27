@@ -36,13 +36,13 @@ export const lookPresets = [
   {
     id: "default",
     name: "Default",
-    blurb: "Clean dotted globe",
+    blurb: "Clean cartography",
     settings: merge(),
   },
   {
     id: "halftone",
     name: "Halftone",
-    blurb: "Halftone shader print",
+    blurb: "Newspaper print, browser-rendered",
     previewImage: "/looks/halftone.png",
     settings: merge({
       background: "#0a0a0c",
@@ -63,7 +63,7 @@ export const lookPresets = [
   {
     id: "risograph",
     name: "Risograph",
-    blurb: "Pink + cyan ink print",
+    blurb: "Pink + cyan ink, misregistered on purpose",
     settings: merge({
       background: "#1a1410",
       density: 55,
@@ -83,7 +83,7 @@ export const lookPresets = [
   {
     id: "newsprint",
     name: "Newsprint",
-    blurb: "CMYK halftone newspaper print",
+    blurb: "CMYK, four plates, rotated like the pros",
     settings: merge({
       background: "#15110c",
       density: 60,
@@ -102,7 +102,7 @@ export const lookPresets = [
   {
     id: "aurora",
     name: "Aurora",
-    blurb: "Northern lights bands",
+    blurb: "Northern-lights bands across the planet",
     settings: merge({
       background: "#020610",
       backgroundStyle: "space",
@@ -123,7 +123,7 @@ export const lookPresets = [
   {
     id: "pixel",
     name: "Pixel",
-    blurb: "8-bit pixelation",
+    blurb: "An 8-bit world atlas",
     settings: merge({
       background: "#0a0814",
       density: 75,
@@ -141,7 +141,7 @@ export const lookPresets = [
   {
     id: "bayer",
     name: "Bayer",
-    blurb: "Classic-Mac ordered dither",
+    blurb: "Classic-Mac threshold dither",
     settings: merge({
       background: "#171719",
       density: 70,
@@ -159,7 +159,7 @@ export const lookPresets = [
   {
     id: "atkinson",
     name: "Atkinson",
-    blurb: "Blue-noise Atkinson dither",
+    blurb: "Atkinson dither, sparser than Bayer",
     settings: merge({
       background: "#171719",
       density: 65,
@@ -177,7 +177,7 @@ export const lookPresets = [
   {
     id: "wireframe",
     name: "Wireframe",
-    blurb: "Edge-traced lithograph",
+    blurb: "Edge-traced, like a hand pulled print",
     settings: merge({
       transparent: true,
       density: 90,
@@ -190,7 +190,7 @@ export const lookPresets = [
   {
     id: "crt",
     name: "CRT",
-    blurb: "Cathode-ray phosphor",
+    blurb: "Cathode-ray phosphor glow",
     settings: merge({
       background: "#020a10",
       density: 70,
@@ -206,7 +206,7 @@ export const lookPresets = [
   {
     id: "glitch",
     name: "Glitch",
-    blurb: "Broken signal",
+    blurb: "Signal break, RGB split",
     settings: merge({
       background: "#08020c",
       density: 75,
@@ -219,7 +219,7 @@ export const lookPresets = [
   {
     id: "badtv",
     name: "Bad TV",
-    blurb: "VHS analog distortion",
+    blurb: "Analog tape decay",
     settings: merge({
       background: "#060608",
       density: 70,
@@ -238,7 +238,7 @@ export const lookPresets = [
   {
     id: "bloom",
     name: "Bloom",
-    blurb: "Glowing aurora",
+    blurb: "Atmosphere on fire",
     settings: merge({
       background: "#01010a",
       backgroundStyle: "space",
@@ -256,7 +256,7 @@ export const lookPresets = [
   {
     id: "metal",
     name: "Metal",
-    blurb: "Polished chrome",
+    blurb: "Liquid chrome, soft refl",
     settings: merge({
       background: "#08080e",
       density: 70,
@@ -289,7 +289,7 @@ export const lookPresets = [
   {
     id: "pencil",
     name: "Pencil",
-    blurb: "Cross-hatched sketch",
+    blurb: "Pencil-traced continents",
     settings: merge({
       background: "#14100a",
       density: 60,
@@ -305,7 +305,7 @@ export const lookPresets = [
   {
     id: "corrupt",
     name: "Corrupt",
-    blurb: "Channel-corrupted datamosh",
+    blurb: "Datamosh corruption, on purpose",
     settings: merge({
       background: "#100008",
       density: 80,
@@ -324,7 +324,7 @@ export const lookPresets = [
   {
     id: "toon",
     name: "Toon",
-    blurb: "Cel-shaded pop-art outline",
+    blurb: "Cel-shaded pop-art world",
     settings: merge({
       background: "#0b1a2c",
       density: 60,
@@ -342,7 +342,7 @@ export const lookPresets = [
   {
     id: "threshold",
     name: "Threshold",
-    blurb: "Two-tone binary print",
+    blurb: "Pure two-tone binary",
     settings: merge({
       background: "#0a0a0a",
       density: 65,
@@ -362,7 +362,7 @@ export const lookPresets = [
   {
     id: "vapor",
     name: "Vapor",
-    blurb: "Pastel synthwave RGB split",
+    blurb: "Synthwave horizon, pastel split",
     settings: merge({
       background: "#1c0a2a",
       density: 60,
@@ -383,7 +383,7 @@ export const lookPresets = [
   {
     id: "topographic",
     name: "Topographic",
-    blurb: "Warped contour-line cartography",
+    blurb: "Contour rings, only rings",
     settings: merge({
       background: "#0f1419",
       density: 70,

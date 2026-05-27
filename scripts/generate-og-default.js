@@ -111,33 +111,323 @@ const computeDots = () => {
 };
 const dots = computeDots();
 
-// ----- Per-preset palette (dot color, accent color for "Designer-first"
-// line) — pulled from the prior generate-og-images.js so cards stay on
-// brand. Falls back to neutral cream/cyan if a preset isn't listed. -----
+// ----- Per-preset style: drives both the dot rendering and the
+// accent color. `style` picks one of the rendering modes below;
+// `dot` / `accent` are the primary colors. Modes implemented:
+//   circle        small dots, depth-scaled (default look)
+//   big-circle    fatter halftone-style dots
+//   square        pixelated squares
+//   square-bw     binary B/W squares (threshold)
+//   ring          hollow circle outlines (topographic)
+//   gradient      circles filled with the preset's accent gradient
+//   dual-ink      two color layers slightly offset (risograph)
+//   cmyk          three CMY offset layers (newsprint)
+//   rgb-shift     three RGB color channels at offsets (glitch)
+//   bloom         soft-glow halos under each dot (bloom)
+//   bayer         small squares laid out in an ordered dither pattern
+//   pencil        rough sketched short strokes per point
+//   bands         horizontal aurora bands modulate dot opacity
+//   crt           dots + horizontal scanline overlay
+//   badtv         dots + chromatic-aberration jitter
+//   corrupt       dots + random pixel-corruption blocks
+//   metal         dots with bright-to-dark vertical gradient fill
+//   toon          two-tone stepped color based on dot Y position
+//   vapor         vertical gradient pink-to-cyan
 const PRESET_PALETTES = {
-  default: { dot: "#f6f2ea", accent: "#8ddfff" },
-  halftone: { dot: "#f6f2ea", accent: "#a8a39b" },
-  newsprint: { dot: "#3ec5e8", accent: "#e83e9a" },
-  risograph: { dot: "#ff5c9a", accent: "#406bf5" },
-  aurora: { dot: "#2ef098", accent: "#52d8ff" },
-  pixel: { dot: "#f6f2ea", accent: "#a8a39b" },
-  bayer: { dot: "#ffffff", accent: "#a8a39b" },
-  atkinson: { dot: "#ffffff", accent: "#a8a39b" },
-  wireframe: { dot: "#a8e5f5", accent: "#6cb6ff" },
-  crt: { dot: "#7fffd4", accent: "#3ec5e8" },
-  glitch: { dot: "#ff3c94", accent: "#40e0ff" },
-  badtv: { dot: "#cda47c", accent: "#8ddfff" },
-  bloom: { dot: "#fff2a3", accent: "#ff9a3c" },
-  metal: { dot: "#cfd6e0", accent: "#7a8290" },
-  pencil: { dot: "#d9d3c0", accent: "#7a7368" },
-  iridescent: { dot: "#c8b8ff", accent: "#7ce8e0" },
-  corrupt: { dot: "#ff007f", accent: "#00ff7f" },
-  toon: { dot: "#3df4ff", accent: "#ffd84a" },
-  threshold: { dot: "#ffffff", accent: "#8ddfff" },
-  topographic: { dot: "#a8e5f5", accent: "#6cb6ff" },
-  vapor: { dot: "#ff5cb3", accent: "#52d8ff" },
+  default: { dot: "#f6f2ea", accent: "#8ddfff", style: "circle" },
+  halftone: { dot: "#f6f2ea", accent: "#a8a39b", style: "big-circle" },
+  newsprint: { dot: "#3ec5e8", accent: "#e83e9a", style: "cmyk" },
+  risograph: { dot: "#ff5c9a", accent: "#406bf5", style: "dual-ink", dot2: "#406bf5" },
+  aurora: { dot: "#2ef098", accent: "#52d8ff", style: "bands", dot2: "#52d8ff" },
+  pixel: { dot: "#f6f2ea", accent: "#a8a39b", style: "square" },
+  bayer: { dot: "#ffffff", accent: "#a8a39b", style: "bayer" },
+  atkinson: { dot: "#ffffff", accent: "#a8a39b", style: "bayer" },
+  wireframe: { dot: "#a8e5f5", accent: "#6cb6ff", style: "ring" },
+  crt: { dot: "#7fffd4", accent: "#3ec5e8", style: "crt" },
+  glitch: { dot: "#ff3c94", accent: "#40e0ff", style: "rgb-shift" },
+  badtv: { dot: "#cda47c", accent: "#8ddfff", style: "badtv" },
+  bloom: { dot: "#fff2a3", accent: "#ff9a3c", style: "bloom" },
+  metal: { dot: "#cfd6e0", accent: "#7a8290", style: "metal" },
+  pencil: { dot: "#d9d3c0", accent: "#7a7368", style: "pencil" },
+  iridescent: { dot: "#c8b8ff", accent: "#7ce8e0", style: "gradient" },
+  corrupt: { dot: "#ff007f", accent: "#00ff7f", style: "corrupt", dot2: "#00ff7f" },
+  toon: { dot: "#3df4ff", accent: "#ffd84a", style: "toon", dot2: "#ffd84a" },
+  threshold: { dot: "#ffffff", accent: "#8ddfff", style: "square-bw" },
+  topographic: { dot: "#a8e5f5", accent: "#6cb6ff", style: "ring" },
+  vapor: { dot: "#ff5cb3", accent: "#52d8ff", style: "vapor", dot2: "#52d8ff" },
 };
 const paletteFor = (id) => PRESET_PALETTES[id] ?? PRESET_PALETTES.default;
+
+// Stable PRNG for any preset that needs jitter (corrupt, pencil…).
+const rng32 = (seed) => () => {
+  let t = (seed += 0x6d2b79f5);
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
+// Build the SVG markup that paints the globe's dots for a given style.
+// Each style consumes the precomputed `dots` array and emits a string
+// of SVG primitives (<circle>, <rect>, paths, etc.). Where a style
+// also needs a defs entry (gradient, filter), it returns it via the
+// `defs` field; the outer renderCard pulls those in. Optional
+// `overlay` markup is laid OVER the dots (scanlines, noise blocks).
+const buildGlobePaint = ({ id, style, dot, dot2, accent }) => {
+  const defs = [];
+  let body = "";
+  let overlay = "";
+
+  const eachDot = (fn) => dots.map(fn).join("");
+
+  switch (style) {
+    case "circle":
+      body = eachDot(
+        (d) => `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${dot}" opacity="${d.op}"/>`,
+      );
+      break;
+
+    case "big-circle":
+      // Halftone — bigger dots, density-driven would need real luma;
+      // we just bump radius and opacity for the look.
+      body = eachDot(
+        (d) => `<circle cx="${d.x}" cy="${d.y}" r="${(d.r * 1.45).toFixed(2)}" fill="${dot}" opacity="${Math.min(1, d.op + 0.1).toFixed(2)}"/>`,
+      );
+      break;
+
+    case "square":
+      // Pixel — squares scaled to similar visual weight as the
+      // default circles. Square sides == 2 * radius * 1.2.
+      body = eachDot((d) => {
+        const s = +(d.r * 2.2).toFixed(2);
+        const x = (d.x - s / 2).toFixed(2);
+        const y = (d.y - s / 2).toFixed(2);
+        return `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${dot}" opacity="${d.op}"/>`;
+      });
+      break;
+
+    case "square-bw":
+      // Threshold — fully opaque B/W squares, no depth fade.
+      body = eachDot((d) => {
+        const s = +(d.r * 2.4).toFixed(2);
+        const x = (d.x - s / 2).toFixed(2);
+        const y = (d.y - s / 2).toFixed(2);
+        return `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${dot}"/>`;
+      });
+      break;
+
+    case "bayer":
+      // Bayer/Atkinson dither — small squares, alternating rows
+      // dropped to simulate the ordered-dither sparseness.
+      body = eachDot((d, i) => {
+        if (i % 3 === 0) return ""; // skip every third for the sparse look
+        const s = 2.4;
+        const x = (d.x - s / 2).toFixed(2);
+        const y = (d.y - s / 2).toFixed(2);
+        return `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${dot}" opacity="${(0.6 + d.op * 0.4).toFixed(2)}"/>`;
+      });
+      break;
+
+    case "ring":
+      // Topographic / wireframe — hollow circle outlines.
+      body = eachDot(
+        (d) => `<circle cx="${d.x}" cy="${d.y}" r="${(d.r * 1.4).toFixed(2)}" fill="none" stroke="${dot}" stroke-width="1.2" opacity="${(d.op * 0.85).toFixed(2)}"/>`,
+      );
+      break;
+
+    case "gradient": {
+      // Iridescent — rainbow gradient running across the globe disc.
+      defs.push(`<linearGradient id="og-rainbow-${id}" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#ff5cb3"/>
+        <stop offset="33%" stop-color="${accent}"/>
+        <stop offset="66%" stop-color="${dot}"/>
+        <stop offset="100%" stop-color="#ffd84a"/>
+      </linearGradient>`);
+      body = eachDot(
+        (d) => `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="url(#og-rainbow-${id})" opacity="${d.op}"/>`,
+      );
+      break;
+    }
+
+    case "dual-ink":
+      // Risograph — two color layers slightly offset for the
+      // misregistered-ink look.
+      body =
+        eachDot(
+          (d) => `<circle cx="${(d.x - 3).toFixed(1)}" cy="${d.y}" r="${d.r}" fill="${dot}" opacity="${(d.op * 0.85).toFixed(2)}"/>`,
+        ) +
+        eachDot(
+          (d) => `<circle cx="${(d.x + 3).toFixed(1)}" cy="${(d.y + 2).toFixed(1)}" r="${d.r}" fill="${dot2 ?? accent}" opacity="${(d.op * 0.85).toFixed(2)}"/>`,
+        );
+      break;
+
+    case "cmyk":
+      // Newsprint — three CMY plates rotated/offset slightly.
+      body =
+        eachDot(
+          (d) => `<circle cx="${(d.x - 2).toFixed(1)}" cy="${(d.y - 2).toFixed(1)}" r="${(d.r * 0.95).toFixed(2)}" fill="#3ec5e8" opacity="${(d.op * 0.7).toFixed(2)}"/>`,
+        ) +
+        eachDot(
+          (d) => `<circle cx="${(d.x + 2).toFixed(1)}" cy="${(d.y - 1).toFixed(1)}" r="${(d.r * 0.95).toFixed(2)}" fill="#e83e9a" opacity="${(d.op * 0.7).toFixed(2)}"/>`,
+        ) +
+        eachDot(
+          (d) => `<circle cx="${d.x}" cy="${(d.y + 2.5).toFixed(1)}" r="${(d.r * 0.95).toFixed(2)}" fill="#ffd84a" opacity="${(d.op * 0.7).toFixed(2)}"/>`,
+        );
+      break;
+
+    case "rgb-shift":
+      // Glitch — R / G / B channels offset horizontally.
+      body =
+        eachDot(
+          (d) => `<circle cx="${(d.x - 4).toFixed(1)}" cy="${d.y}" r="${d.r}" fill="#ff3c94" opacity="${(d.op * 0.75).toFixed(2)}"/>`,
+        ) +
+        eachDot(
+          (d) => `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="#40ff80" opacity="${(d.op * 0.55).toFixed(2)}"/>`,
+        ) +
+        eachDot(
+          (d) => `<circle cx="${(d.x + 4).toFixed(1)}" cy="${d.y}" r="${d.r}" fill="#40e0ff" opacity="${(d.op * 0.75).toFixed(2)}"/>`,
+        );
+      break;
+
+    case "bloom":
+      // Bloom — soft halo behind each dot.
+      defs.push(`<filter id="og-bloom-${id}" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3"/>
+      </filter>`);
+      body =
+        `<g filter="url(#og-bloom-${id})">` +
+        eachDot(
+          (d) => `<circle cx="${d.x}" cy="${d.y}" r="${(d.r * 1.8).toFixed(2)}" fill="${dot}" opacity="${(d.op * 0.55).toFixed(2)}"/>`,
+        ) +
+        `</g>` +
+        eachDot(
+          (d) => `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${dot}" opacity="${d.op}"/>`,
+        );
+      break;
+
+    case "metal": {
+      // Metal — vertical bright-to-dark gradient fill on every dot.
+      defs.push(`<linearGradient id="og-metal-${id}" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="55%" stop-color="${dot}"/>
+        <stop offset="100%" stop-color="${accent}"/>
+      </linearGradient>`);
+      body = eachDot(
+        (d) => `<circle cx="${d.x}" cy="${d.y}" r="${(d.r * 1.1).toFixed(2)}" fill="url(#og-metal-${id})" opacity="${d.op}"/>`,
+      );
+      break;
+    }
+
+    case "pencil": {
+      // Pencil — short tilted strokes instead of round dots.
+      const rand = rng32(0xdeadbeef);
+      body = eachDot((d) => {
+        const len = d.r * 2.6;
+        const angle = (rand() - 0.5) * 0.8;
+        const dx = Math.cos(angle) * len;
+        const dy = Math.sin(angle) * len;
+        return `<line x1="${(d.x - dx / 2).toFixed(2)}" y1="${(d.y - dy / 2).toFixed(2)}" x2="${(d.x + dx / 2).toFixed(2)}" y2="${(d.y + dy / 2).toFixed(2)}" stroke="${dot}" stroke-width="1.1" opacity="${(d.op * 0.85).toFixed(2)}"/>`;
+      });
+      break;
+    }
+
+    case "bands":
+      // Aurora — vertical bands of dots in alternating colors.
+      body = eachDot((d) => {
+        // 0-1 along x within the globe area; modulate between dot and dot2.
+        const t = ((d.x - (GLOBE_CX - GLOBE_R)) / (GLOBE_R * 2)) % 1;
+        const band = Math.sin(t * Math.PI * 4) * 0.5 + 0.5;
+        const color = band > 0.5 ? dot : dot2 ?? accent;
+        return `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${color}" opacity="${d.op}"/>`;
+      });
+      break;
+
+    case "crt": {
+      body = eachDot(
+        (d) => `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${dot}" opacity="${d.op}"/>`,
+      );
+      // Horizontal scanlines across the globe area.
+      defs.push(`<pattern id="og-scanlines-${id}" patternUnits="userSpaceOnUse" width="6" height="6">
+        <rect x="0" y="0" width="6" height="3" fill="rgba(0,0,0,0.55)"/>
+      </pattern>`);
+      overlay = `<circle cx="${GLOBE_CX}" cy="${GLOBE_CY}" r="${GLOBE_R}" fill="url(#og-scanlines-${id})" opacity="0.4"/>`;
+      break;
+    }
+
+    case "badtv": {
+      // Bad TV — slight chromatic split + horizontal jitter bands.
+      body =
+        eachDot(
+          (d) => `<circle cx="${(d.x - 1.5).toFixed(1)}" cy="${d.y}" r="${d.r}" fill="#ff8c4a" opacity="${(d.op * 0.5).toFixed(2)}"/>`,
+        ) +
+        eachDot(
+          (d) => `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${dot}" opacity="${d.op}"/>`,
+        ) +
+        eachDot(
+          (d) => `<circle cx="${(d.x + 1.5).toFixed(1)}" cy="${d.y}" r="${d.r}" fill="#5cc8ff" opacity="${(d.op * 0.5).toFixed(2)}"/>`,
+        );
+      // A few static-noise horizontal bands.
+      const rand = rng32(0xbadbad11);
+      let bands = "";
+      for (let i = 0; i < 4; i++) {
+        const by = GLOBE_CY - GLOBE_R + rand() * GLOBE_R * 2;
+        const bh = 2 + rand() * 6;
+        bands += `<rect x="${GLOBE_CX - GLOBE_R}" y="${by.toFixed(1)}" width="${GLOBE_R * 2}" height="${bh.toFixed(1)}" fill="#ffffff" opacity="0.08"/>`;
+      }
+      overlay = bands;
+      break;
+    }
+
+    case "corrupt": {
+      // Corrupt — base dots + random color-block bursts.
+      body = eachDot(
+        (d) => `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${dot}" opacity="${d.op}"/>`,
+      );
+      const rand = rng32(0xc0debeef);
+      const palette = [dot, dot2 ?? accent, "#ffffff"];
+      let blocks = "";
+      for (let i = 0; i < 22; i++) {
+        const bx = GLOBE_CX - GLOBE_R + rand() * GLOBE_R * 2;
+        const by = GLOBE_CY - GLOBE_R + rand() * GLOBE_R * 2;
+        const bw = 4 + rand() * 24;
+        const bh = 2 + rand() * 6;
+        const c = palette[Math.floor(rand() * palette.length)];
+        blocks += `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" fill="${c}" opacity="${(0.5 + rand() * 0.4).toFixed(2)}"/>`;
+      }
+      overlay = blocks;
+      break;
+    }
+
+    case "toon":
+      // Toon — two-color stepped fill based on dot Y position
+      // (cheap cel-shaded look).
+      body = eachDot((d) => {
+        const t = (d.y - (GLOBE_CY - GLOBE_R)) / (GLOBE_R * 2);
+        const color = t < 0.5 ? dot : dot2 ?? accent;
+        return `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${color}" opacity="${d.op}"/>`;
+      });
+      break;
+
+    case "vapor": {
+      // Vapor — vertical pink-to-cyan gradient fill on the globe.
+      defs.push(`<linearGradient id="og-vapor-${id}" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ff5cb3"/>
+        <stop offset="50%" stop-color="${dot2 ?? accent}"/>
+        <stop offset="100%" stop-color="${accent}"/>
+      </linearGradient>`);
+      body = eachDot(
+        (d) => `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="url(#og-vapor-${id})" opacity="${d.op}"/>`,
+      );
+      break;
+    }
+
+    default:
+      body = eachDot(
+        (d) => `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${dot}" opacity="${d.op}"/>`,
+      );
+  }
+
+  return { defs: defs.join(""), body, overlay };
+};
 
 // ----- Logo path (DottedGlobe horizontal-banded mark, source 915×523) -----
 const WORDMARK_PATH =
@@ -149,19 +439,26 @@ const KEYBOARD_ICON = `<g fill="currentColor"><path d="M2 4h20v2H2zM2 6h2v12H2zM
 
 // Headline copy. The default card uses the product positioning;
 // per-preset cards use the preset's own name + blurb.
+// Headline copy is the single most-shared surface of the product —
+// every Twitter / Slack / Discord preview lands on this card. So it
+// has to feel like the product, not describe it. The old "dotted
+// maps. animated globes. designer-first." literally names the medium
+// twice; designers respond to a confident verb + the aesthetic
+// references they actually use in conversation.
 const DEFAULT_HEADLINES = [
-  { text: "Dotted maps.", color: "#f6f2ea" },
-  { text: "Animated globes.", color: "#f6f2ea" },
-  { text: "Designer-first.", color: "#8ddfff" },
+  { text: "Render the world.", color: "#f6f2ea" },
+  { text: "Halftone. Risograph.", color: "#f6f2ea" },
+  { text: "Cartography, restyled.", color: "#8ddfff" },
 ];
 
-const renderCard = ({ headlines, palette, url, dotColor }) => {
-  const dotsMarkup = dots
-    .map(
-      (d) =>
-        `<circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${dotColor}" opacity="${d.op}"/>`,
-    )
-    .join("");
+const renderCard = ({ headlines, palette, url, presetId = "default" }) => {
+  const { defs: paintDefs, body: dotsMarkup, overlay } = buildGlobePaint({
+    id: presetId,
+    style: palette.style ?? "circle",
+    dot: palette.dot,
+    dot2: palette.dot2,
+    accent: palette.accent,
+  });
 
   const headlinesMarkup = headlines
     .map((line, i) => {
@@ -194,6 +491,13 @@ const renderCard = ({ headlines, palette, url, dotColor }) => {
       <stop offset="94%" stop-color="${palette.accent}" stop-opacity="0.32"/>
       <stop offset="100%" stop-color="${palette.accent}" stop-opacity="0"/>
     </radialGradient>
+    <!-- Per-style defs (preset-specific gradients, filters, patterns) -->
+    ${paintDefs}
+    <!-- Clip the per-style overlay (scanlines / glitch bands) to the
+         globe disc so it doesn't bleed onto the wordmark column. -->
+    <clipPath id="og-globe-clip">
+      <circle cx="${GLOBE_CX}" cy="${GLOBE_CY}" r="${GLOBE_R}"/>
+    </clipPath>
   </defs>
 
   <rect width="${W}" height="${H}" fill="url(#bg)"/>
@@ -221,7 +525,7 @@ const renderCard = ({ headlines, palette, url, dotColor }) => {
   <circle cx="${GLOBE_CX}" cy="${GLOBE_CY}" r="${GLOBE_R + 36}" fill="url(#atm)"/>
   <circle cx="${GLOBE_CX}" cy="${GLOBE_CY}" r="${GLOBE_R}" fill="#0a0a14"/>
 
-  <g>${dotsMarkup}</g>
+  <g clip-path="url(#og-globe-clip)">${dotsMarkup}${overlay}</g>
 
   <g transform="translate(72 60) scale(0.22)" fill="#f6f2ea">
     <path d="${WORDMARK_PATH}"/>
@@ -260,7 +564,7 @@ const splitBlurb = (text, maxLen = 22) => {
     headlines: DEFAULT_HEADLINES,
     palette: PRESET_PALETTES.default,
     url: "globestudio.app",
-    dotColor: PRESET_PALETTES.default.dot,
+    presetId: "default",
   });
   writeFileSync(resolve(projectRoot, "public/og.svg"), svg);
   const png = new Resvg(svg, {
@@ -275,6 +579,11 @@ const splitBlurb = (text, maxLen = 22) => {
 
 // ----- Render every per-preset card -----
 for (const preset of lookPresets) {
+  // Skip "default" — its filename clashes with the homepage headline
+  // card (index.html's og:image points at /og/default.png, and that
+  // should stay the product-positioning card, not a generic "Default"
+  // preset card).
+  if (preset.id === "default") continue;
   const palette = paletteFor(preset.id);
   // Headline: preset name on top (cream), then 1-2 lines of blurb in
   // accent color. The pixel font is wide, so we soft-wrap long blurbs.
@@ -287,7 +596,7 @@ for (const preset of lookPresets) {
     headlines,
     palette,
     url: `globestudio.app/looks/${preset.id}`,
-    dotColor: palette.dot,
+    presetId: preset.id,
   });
   const png = new Resvg(svg, {
     fitTo: { mode: "width", value: W },

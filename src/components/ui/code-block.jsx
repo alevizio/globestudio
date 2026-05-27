@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Check, Clipboard } from "../icons.jsx";
 
 // Reusable <pre> wrapper with a click-to-copy button. Used in /docs for
 // the iframe / React / script-tag snippets. The button shows a check
@@ -51,7 +52,12 @@ export const CodeBlock = ({ children, language, className = "" }) => {
           onClick={onCopy}
           aria-label={copied ? "Copied" : "Copy code to clipboard"}
         >
-          {copied ? "✓ Copied" : "Copy"}
+          {copied ? (
+            <Check size={12} aria-hidden="true" />
+          ) : (
+            <Clipboard size={12} aria-hidden="true" />
+          )}
+          <span>{copied ? "Copied" : "Copy"}</span>
         </button>
       </div>
       <pre className="code-block-pre">

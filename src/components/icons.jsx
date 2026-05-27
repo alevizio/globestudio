@@ -636,3 +636,26 @@ export const Twitter = ({ size = 24, ...props }) => (
     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
   </svg>
 );
+
+// Instagram — pixel-art camera glyph (Pixelarticons-style). A simple
+// 24x24 grid of rects: rounded body, lens disc, top viewfinder dot.
+export const Instagram = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    {/* body */}
+    <path d="M6 3h12v2h2v2h2v12h-2v2h-2v2H6v-2H4v-2H2V7h2V5h2z" />
+    {/* hollow interior */}
+    <path fill="#000" d="M6 5h12v14H6z" />
+    {/* lens ring */}
+    <path d="M8 10h2v4H8zm6 0h2v4h-2zm-4-2h4v2h-4zm0 6h4v2h-4z" />
+    {/* viewfinder dot */}
+    <path d="M16 7h2v1h-2z" />
+  </svg>
+);

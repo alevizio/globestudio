@@ -51,6 +51,7 @@ import { Analytics, track } from "./components/analytics.jsx";
 import { BrandPage } from "./components/brand-page.jsx";
 import { DocsPage } from "./components/docs-page.jsx";
 import { ChangelogPage } from "./components/changelog-page.jsx";
+import { IntegrationsPage } from "./components/integrations-page.jsx";
 import { PrivacyPage } from "./components/privacy-page.jsx";
 import { NotFoundPage } from "./components/not-found-page.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
@@ -81,6 +82,7 @@ const App = () => {
     if (path === "/brand") return <BrandPage />;
     if (path === "/docs") return <DocsPage />;
     if (path === "/changelog") return <ChangelogPage />;
+    if (path === "/integrations") return <IntegrationsPage />;
     if (path === "/privacy") return <PrivacyPage />;
     const isHome = path === "/";
     const isPresetRoute = /^\/looks\/[\w-]+$/.test(path);

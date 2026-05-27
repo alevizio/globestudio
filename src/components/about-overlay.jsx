@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
-import { DottedGlobe, Github, Twitter, X } from "./icons.jsx";
+import { DottedGlobe, Github, Instagram, Twitter, X } from "./icons.jsx";
 
 // About modal — opens from the panel header's info icon. Two short
 // sections: the project, then the maker. Tight copy by design — the
@@ -61,6 +61,10 @@ export const AboutOverlay = ({ open, onClose }) => {
               <a className="about-link" href="/docs">
                 <span aria-hidden="true">→</span>
                 <span>Docs</span>
+              </a>
+              <a className="about-link" href="/integrations">
+                <span aria-hidden="true">→</span>
+                <span>Integrations</span>
               </a>
               <a className="about-link" href="/changelog">
                 <span aria-hidden="true">→</span>
@@ -136,6 +140,15 @@ export const AboutOverlay = ({ open, onClose }) => {
                 rel="noreferrer noopener"
               >
                 <Twitter size={14} />
+                <span>@alevizio</span>
+              </a>
+              <a
+                className="about-link"
+                href="https://instagram.com/alevizio"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <Instagram size={14} />
                 <span>@alevizio</span>
               </a>
             </div>

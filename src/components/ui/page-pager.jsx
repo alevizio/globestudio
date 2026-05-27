@@ -5,6 +5,7 @@ import {
   Download,
   EyeOff,
   Info,
+  Share2,
 } from "../icons.jsx";
 
 // Bottom-of-page prev/next navigation across the takeover pages.
@@ -22,6 +23,7 @@ import {
 // the same nav family.
 const PAGES = [
   { href: "/docs", label: "Docs", Icon: Info },
+  { href: "/integrations", label: "Integrations", Icon: Share2 },
   { href: "/changelog", label: "Changelog", Icon: Clipboard },
   { href: "/brand", label: "Press kit", Icon: Download },
   { href: "/privacy", label: "Privacy", Icon: EyeOff },

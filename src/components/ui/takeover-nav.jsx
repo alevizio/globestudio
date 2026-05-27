@@ -7,6 +7,7 @@ import {
   Github,
   Info,
   Moon,
+  Share2,
   Sun,
 } from "../icons.jsx";
 import { usePersistedState } from "../../hooks/use-persisted-state.js";
@@ -23,6 +24,7 @@ import { usePersistedState } from "../../hooks/use-persisted-state.js";
 // instead of a plain text row.
 const LINKS = [
   { href: "/docs", label: "Docs", Icon: Info },
+  { href: "/integrations", label: "Integrations", Icon: Share2 },
   { href: "/changelog", label: "Changelog", Icon: Clipboard },
   { href: "/brand", label: "Press kit", Icon: Download },
   { href: "/privacy", label: "Privacy", Icon: EyeOff },

@@ -29,6 +29,11 @@ const buildSitemap = () => {
       priority: "0.7",
     },
     {
+      loc: `${SITE_URL}/integrations`,
+      changefreq: "monthly",
+      priority: "0.7",
+    },
+    {
       loc: `${SITE_URL}/brand`,
       changefreq: "monthly",
       priority: "0.5",

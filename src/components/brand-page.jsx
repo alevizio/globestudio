@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { PagePager } from "./ui/page-pager.jsx";
-import { DottedGlobe, Github, Twitter } from "./icons.jsx";
+import { DottedGlobe, Github, Instagram, Twitter } from "./icons.jsx";
 import { TakeoverNav } from "./ui/takeover-nav.jsx";
 import { SectionHeading } from "./ui/section-heading.jsx";
 
@@ -23,13 +23,32 @@ const PALETTE = [
   { name: "Halftone print", value: "#0a0a0c", role: "Halftone background" },
 ];
 
+// Every preset gets its own pre-baked OG card now — the press kit
+// shows the whole set so editors can grab the one that matches their
+// story angle. Order mirrors look-presets.js so it reads as the
+// product's "preset gallery" view.
 const OG_PRESETS = [
   "default",
   "halftone",
   "risograph",
+  "newsprint",
   "aurora",
+  "pixel",
+  "bayer",
+  "atkinson",
+  "wireframe",
+  "crt",
+  "glitch",
+  "badtv",
   "bloom",
+  "metal",
   "iridescent",
+  "pencil",
+  "corrupt",
+  "toon",
+  "threshold",
+  "vapor",
+  "topographic",
 ];
 
 export const BrandPage = () => {
@@ -116,7 +135,7 @@ export const BrandPage = () => {
           ))}
         </div>
         <p className="brand-caption">
-          All 19 preset cards live under{" "}
+          All {OG_PRESETS.length} preset cards live under{" "}
           <code>https://globestudio.app/og/{`{preset-id}.png`}</code> — request
           any one directly.
         </p>
@@ -180,6 +199,15 @@ export const BrandPage = () => {
             rel="noreferrer noopener"
           >
             <Twitter size={14} />
+            <span>@alevizio</span>
+          </a>
+          <a
+            className="brand-link"
+            href="https://instagram.com/alevizio"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            <Instagram size={14} />
             <span>@alevizio</span>
           </a>
           <a className="brand-link" href="https://alevizio.com" target="_blank" rel="noreferrer noopener">
