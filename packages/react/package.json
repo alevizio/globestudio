@@ -1,0 +1,56 @@
+{
+  "name": "@globestudio/react",
+  "version": "0.1.0",
+  "description": "Drop-in React component for embedding Globestudio dotted globes — pick a preset, drop the component, done. Works in React, Next.js, Remix, Astro, anywhere JSX renders.",
+  "license": "MIT",
+  "author": "Alejandro Vizio <viziomas@gmail.com> (https://alevizio.com)",
+  "homepage": "https://globestudio.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alevizio/globestudio.git",
+    "directory": "packages/react"
+  },
+  "keywords": [
+    "react",
+    "nextjs",
+    "globestudio",
+    "globe",
+    "map",
+    "dotted-globe",
+    "data-viz",
+    "embed",
+    "iframe"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=17.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "react": "^19.0.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "sideEffects": false
+}
