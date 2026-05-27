@@ -7,7 +7,7 @@
   "homepage": "https://globestudio.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alevizio/globestudio.git",
+    "url": "git+https://github.com/alevizio/globestudio.git",
     "directory": "packages/mcp"
   },
   "keywords": [
@@ -22,7 +22,7 @@
   ],
   "type": "module",
   "bin": {
-    "globestudio-mcp": "./dist/index.js"
+    "globestudio-mcp": "dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

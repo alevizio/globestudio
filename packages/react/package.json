@@ -7,7 +7,7 @@
   "homepage": "https://globestudio.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alevizio/globestudio.git",
+    "url": "git+https://github.com/alevizio/globestudio.git",
     "directory": "packages/react"
   },
   "keywords": [
