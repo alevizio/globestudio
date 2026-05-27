@@ -18,12 +18,19 @@
 <body>
   <iframe
     id="embed"
-    src="https://globestudio.app/embed?plugin=figma&autoSpin=true"
     title="Globestudio embed"
     allow="cross-origin-isolated"
     referrerpolicy="no-referrer-when-downgrade"
   ></iframe>
   <script>
+    // Load the embed with a per-open cache-buster. The Figma desktop app's
+    // embedded browser otherwise caches the /embed response (headers and all)
+    // on disk across restarts, which once pinned a stale Content-Security-
+    // Policy. A unique query param guarantees a fresh fetch each open; the
+    // server sends no-store, so this never bloats the cache.
+    document.getElementById("embed").src =
+      "https://globestudio.app/embed?plugin=figma&autoSpin=true&cb=" + Date.now();
+
     // Bridge between the embed iframe (globestudio.app) and the Figma
     // plugin sandbox (code.js).
     //
