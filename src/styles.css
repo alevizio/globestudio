@@ -2876,7 +2876,7 @@ button {
 
 .looks-bar {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   list-style: none;
   /* Negative horizontal margins extend the scroll container all the way
      to the card's inner edges (cancelling the .control-panel's 10px
