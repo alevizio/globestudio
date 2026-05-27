@@ -5,6 +5,7 @@ import {
   Download,
   EyeOff,
   Info,
+  LayoutGrid,
   Share2,
 } from "../icons.jsx";
 
@@ -24,6 +25,7 @@ import {
 const PAGES = [
   { href: "/docs", label: "Docs", Icon: Info },
   { href: "/integrations", label: "Integrations", Icon: Share2 },
+  { href: "/examples", label: "Examples", Icon: LayoutGrid },
   { href: "/changelog", label: "Changelog", Icon: Clipboard },
   { href: "/brand", label: "Press kit", Icon: Download },
   { href: "/privacy", label: "Privacy", Icon: EyeOff },

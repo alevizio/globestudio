@@ -1294,6 +1294,223 @@ button {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
+/* /examples page — live previews of common embed layouts.
+   Each .example-preview is a mini design composition: hero, card,
+   stat tile, split, or footer band. Pixel-corner 9px polygon ties
+   them visually to the rest of the docs surfaces. The iframes
+   inside are live globes; the surrounding chrome is hand-styled
+   so the preview matches what the copy-paste HTML produces. */
+.example-preview {
+  position: relative;
+  margin: 16px 0;
+  background: #0b0b0c;
+  color: #f6f2ea;
+  overflow: hidden;
+  clip-path: polygon(
+    0 9px, 9px 9px, 9px 0,
+    calc(100% - 9px) 0, calc(100% - 9px) 9px, 100% 9px,
+    100% calc(100% - 9px), calc(100% - 9px) calc(100% - 9px), calc(100% - 9px) 100%,
+    9px 100%, 9px calc(100% - 9px), 0 calc(100% - 9px)
+  );
+}
+
+.example-preview iframe {
+  border: 0;
+  display: block;
+}
+
+/* Hero — globe fills the entire frame, content sits on top with a
+   left-side dark-vignette overlay to keep the headline legible. */
+.example-preview--hero {
+  height: 360px;
+}
+
+.example-preview--hero .example-preview-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.example-preview--hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(11, 11, 12, 0.85) 0%,
+    rgba(11, 11, 12, 0.6) 35%,
+    rgba(11, 11, 12, 0.05) 70%,
+    rgba(11, 11, 12, 0) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.example-preview-content {
+  position: relative;
+  z-index: 2;
+  max-width: 60%;
+  padding: 48px;
+}
+
+.example-preview-content h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.example-preview-content p {
+  margin: 0 0 16px;
+  color: #cdc8be;
+  font-size: 15px;
+}
+
+.example-preview-cta {
+  display: inline-block;
+  padding: 10px 18px;
+  background: #3df4ff;
+  color: #0b0b0c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Card — globe on top, body underneath. Two-row grid. */
+.example-preview--card {
+  display: grid;
+  grid-template-rows: 200px auto;
+  max-width: 340px;
+  background: #131316;
+  border: 1px solid #2a2a2c;
+}
+
+.example-preview--card iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.example-preview-card-body {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.example-preview-card-body strong {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.example-preview-card-body span {
+  color: #a8a39b;
+  font-size: 14px;
+}
+
+/* Stat tile — globe to the left of a big number + label. */
+.example-preview--stat {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  background: #f6f2ea;
+  color: #1a1a1c;
+}
+
+.example-preview--stat iframe {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+  background: #0b0b0c;
+}
+
+.example-preview-stat-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.example-preview-stat-meta strong {
+  font-size: 42px;
+  font-weight: 800;
+  color: #0b0b0c;
+  line-height: 1;
+}
+
+.example-preview-stat-meta span {
+  margin-top: 4px;
+  color: #555;
+  font-size: 14px;
+}
+
+/* Split — two equal columns. Stacks on narrow screens. */
+.example-preview--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+  padding: 32px;
+}
+
+.example-preview-split-copy h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+}
+
+.example-preview-split-copy p {
+  margin: 0 0 12px;
+  color: #cdc8be;
+  font-size: 14px;
+}
+
+.example-preview-split-copy ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #cdc8be;
+  font-size: 14px;
+}
+
+.example-preview-split-copy ul li {
+  margin-bottom: 4px;
+}
+
+.example-preview-split-globe {
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+@media (max-width: 640px) {
+  .example-preview--split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Footer — wide ambient band, globe at reduced opacity. */
+.example-preview--footer {
+  height: 200px;
+}
+
+.example-preview--footer iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.55;
+}
+
+.example-preview-footer-content {
+  position: relative;
+  z-index: 1;
+  padding: 80px 32px;
+  text-align: center;
+}
+
+.example-preview-footer-content p {
+  margin: 0;
+  color: #f6f2ea;
+  font-size: 14px;
+}
+
 .docs-preset-grid {
   margin: 0;
   padding: 0;
@@ -1305,9 +1522,9 @@ button {
 
 .docs-preset-link {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 12px 14px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
   background: var(--field);
   text-decoration: none;
   transition: background 140ms var(--ease);
@@ -1319,12 +1536,55 @@ button {
   text-decoration: none;
 }
 
+/* Real-canvas thumbnail captured by scripts/capture-thumbnails.js.
+   Same pixel-corner notch as the kbd/chip vocabulary so the preset
+   card reads as part of the design system. */
+.docs-preset-thumb {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--bg);
+  clip-path: polygon(
+    0 4px, 4px 4px, 4px 0,
+    calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)
+  );
+  overflow: hidden;
+}
+
+.docs-preset-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.docs-preset-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .docs-preset-link strong {
   font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .docs-preset-link span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.docs-preset-text span {
   font-size: 12px;
   color: var(--muted);
 }
@@ -3736,6 +3996,41 @@ button {
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+}
+
+/* Real-shader thumbnail rendered to the left of preset-apply rows.
+   Uses the same pixel-corner notch vocabulary as kbd / chip surfaces;
+   sized to read as a glance preview without crowding the row text. */
+.command-palette-thumb {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--bg);
+  clip-path: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  );
+  overflow: hidden;
+}
+
+.command-palette-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
 }
 
 .command-palette-label {

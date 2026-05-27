@@ -1253,9 +1253,14 @@ export const GlobeBackground = ({
     // contrast with the sphere underneath them.
     const solidSphereColor = isLight ? "#18171a" : "#ffffff";
     const bgColor = new THREE.Color(transparent ? transparentFallback : background);
-    const glowColor = isBorderless
-      ? new THREE.Color(borderlessGlowFrom).lerp(new THREE.Color(borderlessGlowTo), 0.28)
-      : new THREE.Color(dotColor === "#ffffff" ? defaultGlow : dotColor);
+    // User override always wins; null falls back to the auto-derived
+    // tint (cyan/violet for borderless, dot-color for classic).
+    const userGlowColor = globeSettings?.glowColor ?? null;
+    const glowColor = userGlowColor
+      ? new THREE.Color(userGlowColor)
+      : isBorderless
+        ? new THREE.Color(borderlessGlowFrom).lerp(new THREE.Color(borderlessGlowTo), 0.28)
+        : new THREE.Color(dotColor === "#ffffff" ? defaultGlow : dotColor);
     const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
 
     const solidActive = refs.solidActive;

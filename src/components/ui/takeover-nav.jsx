@@ -6,6 +6,7 @@ import {
   EyeOff,
   Github,
   Info,
+  LayoutGrid,
   Moon,
   Share2,
   Sun,
@@ -25,6 +26,7 @@ import { usePersistedState } from "../../hooks/use-persisted-state.js";
 const LINKS = [
   { href: "/docs", label: "Docs", Icon: Info },
   { href: "/integrations", label: "Integrations", Icon: Share2 },
+  { href: "/examples", label: "Examples", Icon: LayoutGrid },
   { href: "/changelog", label: "Changelog", Icon: Clipboard },
   { href: "/brand", label: "Press kit", Icon: Download },
   { href: "/privacy", label: "Privacy", Icon: EyeOff },

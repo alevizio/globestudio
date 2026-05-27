@@ -787,26 +787,26 @@ const LookPreviewInner = ({ preset }) => {
   const reactId = useId();
   const clipId = `globeClip-${reactId.replace(/:/g, "")}`;
 
-  // If the preset carries a `previewImage` path, render that bitmap
-  // instead of the SVG approximation — pixel-perfect representation of
-  // an actual canvas screenshot. Falls back to the SVG render below if
-  // the field is missing or the image fails to load.
-  if (preset.previewImage) {
+  // Every preset gets a real-canvas thumbnail at /looks/{id}.png
+  // (captured by scripts/capture-thumbnails.js). Defaults to that path
+  // unless the preset explicitly overrides `previewImage`. If the file
+  // is missing the <img> hides itself and the chip falls back to a
+  // solid backdrop — the SVG render path is kept for presets that opt
+  // out by setting `previewImage: null`.
+  const previewSrc =
+    preset.previewImage === undefined
+      ? `/looks/${preset.id}.png`
+      : preset.previewImage;
+  if (previewSrc) {
     return (
       <span className="looks-chip-preview" aria-hidden="true">
         <img
           className="looks-chip-preview-image"
-          src={preset.previewImage}
+          src={previewSrc}
           alt=""
           loading="lazy"
           draggable="false"
-          // If a file is missing the image stays invisible (alt="" means
-          // no broken-image text) — the chip falls back to just its
-          // black backdrop. Replace the path or remove the field in
-          // look-presets.js to switch back to the SVG render.
           onError={(event) => {
-            // Hide the broken-image icon so the chip doesn't show a
-            // grey placeholder when the file isn't found.
             event.currentTarget.style.display = "none";
           }}
         />

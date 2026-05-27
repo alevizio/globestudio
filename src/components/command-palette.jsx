@@ -155,27 +155,53 @@ export const CommandPalette = ({ open, onClose, actions }) => {
           {filtered.length === 0 ? (
             <li className="command-palette-empty">No matches</li>
           ) : (
-            filtered.map((action, index) => (
-              <li
-                key={action.id}
-                role="option"
-                aria-selected={index === selectedIndex}
-                className={`command-palette-row ${index === selectedIndex ? "is-selected" : ""}`}
-                onMouseEnter={() => setSelectedIndex(index)}
-                onClick={() => {
-                  action.run();
-                  onClose();
-                }}
-              >
-                {action.group && (
-                  <span className="command-palette-group">{action.group}</span>
-                )}
-                <span className="command-palette-label">{action.label}</span>
-                {action.kbd && (
-                  <KbdKey className="command-palette-kbd">{action.kbd}</KbdKey>
-                )}
-              </li>
-            ))
+            filtered.map((action, index) => {
+              // Preset-apply rows carry the full preset object so we can
+              // render the real-canvas thumbnail captured by
+              // scripts/capture-thumbnails.js. Defaults to /looks/{id}.png
+              // unless the preset overrides previewImage. Same convention
+              // as look-preview.jsx.
+              const preset = action.preset;
+              const thumbSrc = preset
+                ? preset.previewImage === undefined
+                  ? `/looks/${preset.id}.png`
+                  : preset.previewImage
+                : null;
+              return (
+                <li
+                  key={action.id}
+                  role="option"
+                  aria-selected={index === selectedIndex}
+                  className={`command-palette-row ${index === selectedIndex ? "is-selected" : ""}`}
+                  onMouseEnter={() => setSelectedIndex(index)}
+                  onClick={() => {
+                    action.run();
+                    onClose();
+                  }}
+                >
+                  {thumbSrc && (
+                    <span className="command-palette-thumb" aria-hidden="true">
+                      <img
+                        src={thumbSrc}
+                        alt=""
+                        loading="lazy"
+                        draggable="false"
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </span>
+                  )}
+                  {action.group && (
+                    <span className="command-palette-group">{action.group}</span>
+                  )}
+                  <span className="command-palette-label">{action.label}</span>
+                  {action.kbd && (
+                    <KbdKey className="command-palette-kbd">{action.kbd}</KbdKey>
+                  )}
+                </li>
+              );
+            })
           )}
         </ul>
         <div className="command-palette-footer">

@@ -211,8 +211,24 @@ export const DocsPage = () => {
             {lookPresets.map((preset) => (
               <li key={preset.id}>
                 <a className="docs-preset-link" href={`/looks/${preset.id}`}>
-                  <strong>{preset.name}</strong>
-                  <span>{preset.blurb}</span>
+                  <span
+                    className="docs-preset-thumb"
+                    aria-hidden="true"
+                  >
+                    <img
+                      src={`/looks/${preset.id}.png`}
+                      alt=""
+                      loading="lazy"
+                      draggable="false"
+                      onError={(event) => {
+                        event.currentTarget.style.display = "none";
+                      }}
+                    />
+                  </span>
+                  <span className="docs-preset-text">
+                    <strong>{preset.name}</strong>
+                    <span>{preset.blurb}</span>
+                  </span>
                 </a>
               </li>
             ))}

@@ -34,6 +34,11 @@ const buildSitemap = () => {
       priority: "0.7",
     },
     {
+      loc: `${SITE_URL}/examples`,
+      changefreq: "monthly",
+      priority: "0.7",
+    },
+    {
       loc: `${SITE_URL}/brand`,
       changefreq: "monthly",
       priority: "0.5",

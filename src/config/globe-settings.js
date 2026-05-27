@@ -17,6 +17,11 @@ export const DEFAULT_GLOBE_SETTINGS = {
   glow: true,
   glowStrength: 58,
   glowSpread: 50,
+  // Glow color override. `null` means use the theme-derived cyan/violet
+  // halo (look=borderless) or the dot color (look=classic) — the
+  // original auto-behavior. Setting an explicit hex tints BOTH the
+  // shader atmosphere AND the CSS canvas drop-shadow halo to match.
+  glowColor: null,
   grid: true,
   // Grid color. Plain hex string. The opacity is the gridStrength
   // slider below — keeping them separate matches the dot pattern

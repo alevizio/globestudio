@@ -625,6 +625,18 @@ export const ControlPanel = ({
           />
           {globeSettings.glow && (
             <>
+              <OptionRow label="Color">
+                {/* Glow tint. The default cyan halo is what auto-mode
+                    yields (null → theme-driven cyan/violet for the
+                    borderless preset). Picking a color tints both the
+                    shader atmosphere AND the CSS canvas drop-shadow
+                    halo so they stay in sync. */}
+                <ColorSwatch
+                  value={globeSettings.glowColor ?? "#8cdcff"}
+                  onChange={(value) => updateGlobeSetting("glowColor", value)}
+                  label="Select glow color"
+                />
+              </OptionRow>
               <OptionRow label="Strength" value={globeSettings.glowStrength}>
                 <RangeControl
                   label="Glow strength"

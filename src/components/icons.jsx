@@ -259,6 +259,26 @@ export const MapIcon = ({ size = 22, ...props }) => (
   </svg>
 );
 
+// Pixel 2×2 grid — used to label the /examples page in the takeover
+// nav and page-pager. Four squares with a 1-px gutter, sized on the
+// same 24×24 viewBox as the rest of the Pixelarticons-style set.
+export const LayoutGrid = ({ size = 22, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...props}
+  >
+    <rect x="3" y="3" width="8" height="8"/>
+    <rect x="13" y="3" width="8" height="8"/>
+    <rect x="3" y="13" width="8" height="8"/>
+    <rect x="13" y="13" width="8" height="8"/>
+  </svg>
+);
+
 export const Minus = ({ size = 22, ...props }) => (
   <svg
     width={size}

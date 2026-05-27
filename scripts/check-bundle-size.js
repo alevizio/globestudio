@@ -40,7 +40,7 @@ const BUDGETS = [
   // controls, modal, mobile sheet, and accessibility fallback styles in
   // one critical stylesheet so first paint does not wait on route-level
   // CSS. Revisit once the app has route-level CSS splitting.
-  { prefix: "index-",            ext: ".css", raw: 180_000,  gzip:  42_000, lazy: false },
+  { prefix: "index-",            ext: ".css", raw: 192_000,  gzip:  44_000, lazy: false },
 
   // Lazy chunks (loaded after first paint)
   { prefix: "globe-background-", ext: ".js",  raw: 120_000,  gzip:  40_000, lazy: true },

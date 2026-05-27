@@ -16,7 +16,7 @@ import { useTrackpadZoom } from "./hooks/use-trackpad-zoom.js";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts.js";
 import { usePrefetchHeavyChunks } from "./hooks/use-prefetch-heavy-chunks.js";
 import { clampNumber } from "./utils/math.js";
-import { invertGradient, invertHex } from "./utils/color.js";
+import { hexToRgb, invertGradient, invertHex } from "./utils/color.js";
 import { buildShareUrl, normalizeConfig } from "./utils/share-config.js";
 import {
   createCountryMapData,
@@ -52,6 +52,7 @@ import { BrandPage } from "./components/brand-page.jsx";
 import { DocsPage } from "./components/docs-page.jsx";
 import { ChangelogPage } from "./components/changelog-page.jsx";
 import { IntegrationsPage } from "./components/integrations-page.jsx";
+import { ExamplesPage } from "./components/examples-page.jsx";
 import { PrivacyPage } from "./components/privacy-page.jsx";
 import { NotFoundPage } from "./components/not-found-page.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
@@ -83,6 +84,7 @@ const App = () => {
     if (path === "/docs") return <DocsPage />;
     if (path === "/changelog") return <ChangelogPage />;
     if (path === "/integrations") return <IntegrationsPage />;
+    if (path === "/examples") return <ExamplesPage />;
     if (path === "/privacy") return <PrivacyPage />;
     const isHome = path === "/";
     const isPresetRoute = /^\/looks\/[\w-]+$/.test(path);
@@ -1081,7 +1083,12 @@ const App = () => {
                 { r: 150, a: 0.08 },
                 { r: 220, a: 0.04 },
               ];
-              const color = "140, 220, 255";
+              // User-picked glow color drives the halo so the shader
+              // atmosphere and the CSS bloom stay perceptually matched.
+              // Default cyan keeps the old "borderless" feel.
+              const userGlow = globeSettings.glowColor;
+              const rgb = userGlow ? hexToRgb(userGlow) : null;
+              const color = rgb ? `${rgb.r}, ${rgb.g}, ${rgb.b}` : "140, 220, 255";
               return layers
                 .map(
                   (l) =>
