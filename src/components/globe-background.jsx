@@ -209,6 +209,15 @@ export const GlobeBackground = ({
     stateRef.current.startY = point.y;
     setIsDraggingGlobe(true);
     if (event.pointerId !== undefined) {
+      // Defensive release of any stale capture before claiming a new one.
+      // Without this, a previous drag that ended via tab-focus-loss / JS
+      // throw / etc. leaves the pointerId still owned by the canvas,
+      // which then silently swallows every subsequent click anywhere
+      // on the page — symptom: panel buttons stop responding (no hover
+      // cursor, no click) until the page is reloaded.
+      try {
+        event.currentTarget.releasePointerCapture?.(event.pointerId);
+      } catch {}
       event.currentTarget.setPointerCapture?.(event.pointerId);
     }
   }, []);
@@ -250,8 +259,41 @@ export const GlobeBackground = ({
     stateRef.current.active = false;
     setIsDraggingGlobe(false);
     if (event.pointerId !== undefined) {
-      event.currentTarget.releasePointerCapture?.(event.pointerId);
+      try {
+        event.currentTarget.releasePointerCapture?.(event.pointerId);
+      } catch {}
     }
+  }, []);
+
+  // Window-level escape hatch: if a drag's pointer capture ever gets
+  // stuck on the canvas (browser bug, tab focus change mid-drag, JS
+  // error in dragGlobe), every subsequent click on the page routes to
+  // the canvas and the panel goes dead. Releasing on any global
+  // pointerup guarantees recovery on the very next mouse-up the browser
+  // sees, anywhere on the page.
+  useEffect(() => {
+    const onWindowPointerUp = (event) => {
+      const mount = mountRef.current;
+      if (!mount) return;
+      if (event.pointerId === undefined) return;
+      if (mount.hasPointerCapture?.(event.pointerId)) {
+        try {
+          mount.releasePointerCapture(event.pointerId);
+        } catch {}
+      }
+      // Also clear our own drag-active flag so a re-entry doesn't think
+      // we're still dragging from a previous interaction.
+      if (stateRef.current.active) {
+        stateRef.current.active = false;
+        setIsDraggingGlobe(false);
+      }
+    };
+    window.addEventListener("pointerup", onWindowPointerUp);
+    window.addEventListener("pointercancel", onWindowPointerUp);
+    return () => {
+      window.removeEventListener("pointerup", onWindowPointerUp);
+      window.removeEventListener("pointercancel", onWindowPointerUp);
+    };
   }, []);
 
   const handleGlobeKey = useCallback((event) => {
