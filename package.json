@@ -10,6 +10,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "sitemap": "node scripts/generate-sitemap.js",
     "og:generate": "node scripts/generate-og-default.js",
     "check:bundle": "node scripts/check-bundle-size.js",
@@ -29,6 +30,7 @@
     "world-atlas": "^2.0.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@resvg/resvg-js": "^2.6.2",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

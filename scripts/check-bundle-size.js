@@ -23,7 +23,11 @@ const distAssets = resolve(here, "..", "dist", "assets");
 // Budgets are bytes. Raw = uncompressed; gzip = sent over the wire.
 const BUDGETS = [
   // Initial-load chunks (block first paint)
-  { prefix: "index-",            ext: ".js",  raw: 280_000,  gzip:  84_000, lazy: false },
+  // Main app shell includes schema-aligned share/config import
+  // validation. Keeping that guard in the initial chunk ensures
+  // malformed ?c= payloads are rejected before they can mutate render
+  // state.
+  { prefix: "index-",            ext: ".js",  raw: 310_000,  gzip:  92_000, lazy: false },
   { prefix: "react-",            ext: ".js",  raw: 210_000,  gzip:  70_000, lazy: false },
   { prefix: "dotted-map-",       ext: ".js",  raw: 430_000,  gzip: 170_000, lazy: false },
   { prefix: "src-",              ext: ".js",  raw:  20_000,  gzip:   8_000, lazy: false },
@@ -32,8 +36,11 @@ const BUDGETS = [
   // CSS is unminified — the build pipeline drops -webkit-backdrop-filter
   // / backdrop-filter pairs when minified, breaking modal frosted-glass
   // across browsers (see vite.config.js#cssMinify: false). Budget bumped
-  // accordingly; gzip still small enough that this is worth it.
-  { prefix: "index-",            ext: ".css", raw: 156_000,  gzip:  37_000, lazy: false },
+  // accordingly. The v1 launch surface intentionally keeps docs,
+  // controls, modal, mobile sheet, and accessibility fallback styles in
+  // one critical stylesheet so first paint does not wait on route-level
+  // CSS. Revisit once the app has route-level CSS splitting.
+  { prefix: "index-",            ext: ".css", raw: 180_000,  gzip:  42_000, lazy: false },
 
   // Lazy chunks (loaded after first paint)
   { prefix: "globe-background-", ext: ".js",  raw: 120_000,  gzip:  40_000, lazy: true },
@@ -47,8 +54,9 @@ const BUDGETS = [
 // First-paint floor: this is what a cold user actually downloads before
 // the canvas appears. Bumped after disabling CSS minification (see
 // vite.config.js#cssMinify) to keep modal backdrop-filter prefixes
-// intact; this is the floor including that ~7 kB CSS cost.
-const INITIAL_GZIP_BUDGET = 328_000;
+// intact; this is the floor including that CSS cost and the launch docs
+// surface that ships in the app shell.
+const INITIAL_GZIP_BUDGET = 360_000;
 
 const format = (bytes) => {
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;

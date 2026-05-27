@@ -44,7 +44,8 @@ Useful scripts:
 | Command | What it does |
 |---|---|
 | `npm run dev` | Vite dev server with HMR |
-| `npm test -- --run` | Run the full Vitest suite (119 tests across 18 files) |
+| `npm test -- --run` | Run the full Vitest suite (152 tests across 24 files) |
+| `npm run test:e2e` | Run Playwright smoke + accessibility checks |
 | `npm run test:watch` | Vitest watch mode |
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Serve the production build locally |

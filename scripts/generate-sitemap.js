@@ -65,15 +65,19 @@ const buildSitemap = () => {
     )
     .join("\n");
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
+  return {
+    count: entries.length,
+    xml: `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urlBlocks}
 </urlset>
-`;
+`,
+  };
 };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(__dirname, "..", "public", "sitemap.xml");
-writeFileSync(outputPath, buildSitemap(), "utf8");
+const sitemap = buildSitemap();
+writeFileSync(outputPath, sitemap.xml, "utf8");
 
-console.log(`✓ Generated sitemap with ${lookPresets.length + 1} URLs → ${outputPath}`);
+console.log(`✓ Generated sitemap with ${sitemap.count} URLs → ${outputPath}`);

@@ -17,7 +17,7 @@ import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts.js";
 import { usePrefetchHeavyChunks } from "./hooks/use-prefetch-heavy-chunks.js";
 import { clampNumber } from "./utils/math.js";
 import { invertGradient, invertHex } from "./utils/color.js";
-import { buildShareUrl } from "./utils/share-config.js";
+import { buildShareUrl, normalizeConfig } from "./utils/share-config.js";
 import {
   createCountryMapData,
   createStateMapData,
@@ -789,9 +789,13 @@ const App = () => {
   );
 
   const importConfig = (config) => {
-    if (!config || typeof config !== "object") return;
+    const safeConfig = normalizeConfig(config);
+    if (!safeConfig) {
+      setStatusMessage("Configuration could not be imported");
+      return;
+    }
     const set = (key, setter) => {
-      if (config[key] !== undefined) setter(config[key]);
+      if (safeConfig[key] !== undefined) setter(safeConfig[key]);
     };
     set("selection", setSelection);
     set("stateSelection", setStateSelection);
@@ -824,9 +828,9 @@ const App = () => {
     set("tiltX", setTiltX);
     set("tiltY", setTiltY);
     set("animationsEnabled", setAnimationsEnabled);
-    if (config.shaderSettings) setShaderSettings((current) => ({ ...current, ...config.shaderSettings }));
-    if (config.globeSettings) setGlobeSettings((current) => ({ ...current, ...config.globeSettings }));
-    if (config.spaceSettings) setSpaceSettings((current) => ({ ...current, ...config.spaceSettings }));
+    if (safeConfig.shaderSettings) setShaderSettings((current) => ({ ...current, ...safeConfig.shaderSettings }));
+    if (safeConfig.globeSettings) setGlobeSettings((current) => ({ ...current, ...safeConfig.globeSettings }));
+    if (safeConfig.spaceSettings) setSpaceSettings((current) => ({ ...current, ...safeConfig.spaceSettings }));
     setStatusMessage("Configuration imported");
   };
 
@@ -854,6 +858,14 @@ const App = () => {
     window.setTimeout(() => setPngStatus("idle"), 1800);
   };
 
+  const withExportTimeout = (promise, message, timeoutMs = 4000) =>
+    Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        window.setTimeout(() => reject(new Error(message)), timeoutMs);
+      }),
+    ]);
+
   const exportPng = async (options = {}) => {
     const activeGlobeCanvas = globeCanvasRef.current;
     if (activeGlobeCanvas?.width && activeGlobeCanvas?.height) {
@@ -864,7 +876,10 @@ const App = () => {
       // is rendered fresh at N× resolution so dots and stars stay crisp.
       if (typeof activeGlobeCanvas.captureAtScale === "function") {
         try {
-          const blob = await activeGlobeCanvas.captureAtScale(scale);
+          const blob = await withExportTimeout(
+            activeGlobeCanvas.captureAtScale(scale),
+            "High-res capture timed out",
+          );
           if (blob) {
             downloadBlob(blob, filename);
             flashPngSaved();

@@ -222,7 +222,7 @@ const createDotMarkup = (point, radius, shape, color, selectedDots, asciiSymbol 
 
   if (shape === "Custom" && customShape?.dataUrl) {
     const size = radius * 2.6;
-    return `<image ${plainData} href="${customShape.dataUrl}" x="${formatSvgNumber(point.x - size / 2)}" y="${formatSvgNumber(point.y - size / 2)}" width="${formatSvgNumber(size)}" height="${formatSvgNumber(size)}" preserveAspectRatio="xMidYMid meet" />`;
+    return `<image ${plainData} href="${escapeXml(customShape.dataUrl)}" x="${formatSvgNumber(point.x - size / 2)}" y="${formatSvgNumber(point.y - size / 2)}" width="${formatSvgNumber(size)}" height="${formatSvgNumber(size)}" preserveAspectRatio="xMidYMid meet" />`;
   }
 
   if (shape === "ASCII") {

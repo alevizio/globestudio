@@ -11,7 +11,7 @@ const ALLOWED_MIME = new Set([
 // before storing it. The data URL is later embedded into <image href> in the
 // exported SVG, which already blocks script execution — but a sanitized source
 // is the responsible thing to keep around.
-const sanitizeSvgSource = (source) => {
+export const sanitizeSvgSource = (source) => {
   return source
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, "")

@@ -161,6 +161,7 @@ const DimensionInputs = ({ width, height, onWidth, onHeight }) => (
       <input
         type="number"
         className="export-modal-input"
+        aria-label="Export width"
         value={width}
         min={64}
         max={8192}
@@ -172,6 +173,7 @@ const DimensionInputs = ({ width, height, onWidth, onHeight }) => (
       <input
         type="number"
         className="export-modal-input"
+        aria-label="Export height"
         value={height}
         min={64}
         max={8192}

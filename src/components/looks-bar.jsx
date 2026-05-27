@@ -42,30 +42,29 @@ export const LooksBar = ({ onPick, appliedId = null, currentId = null }) => {
   }, [appliedId]);
 
   return (
-    <div
+    <ul
       ref={ref}
       className="looks-bar"
-      role="list"
       aria-label="Looks"
       data-at-start={edges.atStart ? "true" : "false"}
       data-at-end={edges.atEnd ? "true" : "false"}
     >
       {lookPresets.map((preset) => (
-        <button
-          key={preset.id}
-          ref={(node) => {
-            if (node) chipRefs.current.set(preset.id, node);
-            else chipRefs.current.delete(preset.id);
-          }}
-          type="button"
-          role="listitem"
-          className={`looks-chip ${appliedId === preset.id ? "is-applied" : ""} ${currentId === preset.id ? "is-current" : ""}`}
-          data-tooltip={preset.blurb}
-          onClick={() => onPick(preset)}
-        >
-          <span>{preset.name}</span>
-        </button>
+        <li key={preset.id} className="looks-item">
+          <button
+            ref={(node) => {
+              if (node) chipRefs.current.set(preset.id, node);
+              else chipRefs.current.delete(preset.id);
+            }}
+            type="button"
+            className={`looks-chip ${appliedId === preset.id ? "is-applied" : ""} ${currentId === preset.id ? "is-current" : ""}`}
+            data-tooltip={preset.blurb}
+            onClick={() => onPick(preset)}
+          >
+            <span>{preset.name}</span>
+          </button>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 };

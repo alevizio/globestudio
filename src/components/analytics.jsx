@@ -18,6 +18,7 @@ const OPT_OUT_KEY = "gs_optout";
 
 const isOptedOut = () => {
   if (typeof window === "undefined") return true;
+  if (["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)) return true;
   if (window.navigator.doNotTrack === "1") return true;
   // GPC is the W3C-standard signal modern privacy-conscious browsers use.
   if (window.navigator.globalPrivacyControl === true) return true;

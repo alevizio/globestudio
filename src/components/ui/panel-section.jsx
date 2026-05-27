@@ -22,6 +22,7 @@ export const PanelSection = ({
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const hasEnableToggle = typeof onEnabledChange === "function";
+  const contentId = `panel-section-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const EyeIcon = enabled ? Eye : EyeOff;
   const defaultTooltip = enabledDisabled
     ? `${title} has nothing to toggle yet`
@@ -31,14 +32,21 @@ export const PanelSection = ({
   const eyeTooltip = enabledTooltip ?? defaultTooltip;
 
   return (
-    <details
+    <section
       className={`option-block ${hasEnableToggle && !enabled ? "is-layer-disabled" : ""}`}
-      open={isOpen}
-      onToggle={(event) => setIsOpen(event.currentTarget.open)}
+      data-open={isOpen ? "true" : "false"}
     >
-      <summary>
-        {icon}
-        <span>{title}</span>
+      <div className="option-block-header">
+        <button
+          type="button"
+          className="option-block-disclosure"
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          onClick={() => setIsOpen((value) => !value)}
+        >
+          {icon}
+          <span>{title}</span>
+        </button>
         {hasEnableToggle && (
           <button
             type="button"
@@ -47,10 +55,7 @@ export const PanelSection = ({
             aria-disabled={enabledDisabled || undefined}
             aria-label={enabledLabel ?? `Toggle ${title}`}
             title={eyeTooltip}
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
+            onClick={() => {
               if (enabledDisabled) return;
               onEnabledChange(!enabled);
             }}
@@ -58,9 +63,11 @@ export const PanelSection = ({
             <EyeIcon size={16} />
           </button>
         )}
-        <ChevronDown size={17} />
-      </summary>
-      <div className="option-content">{children}</div>
-    </details>
+        <ChevronDown className="option-block-chevron" size={17} aria-hidden="true" />
+      </div>
+      <div id={contentId} className="option-content" hidden={!isOpen}>
+        {children}
+      </div>
+    </section>
   );
 };

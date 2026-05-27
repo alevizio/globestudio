@@ -63,6 +63,7 @@ const items = entries
     </item>`;
   })
   .join("\n");
+const lastBuildDate = entries[0]?.date ? isoDate(entries[0].date) : new Date(0).toUTCString();
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
@@ -72,7 +73,7 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
     <atom:link href="${SITE}/changelog.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped work in Globestudio — new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
-    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <lastBuildDate>${lastBuildDate}</lastBuildDate>
 ${items}
   </channel>
 </rss>

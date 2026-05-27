@@ -8,7 +8,7 @@ Pick a country or the whole world, customize dots and shapes, apply shader effec
 
 [**globestudio.app**](https://globestudio.app/) · [Live demos](https://globestudio.app/) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/alevizio/globestudio/discussions)
 
-[![Deploy status](https://github.com/alevizio/globestudio/actions/workflows/deploy.yml/badge.svg)](https://github.com/alevizio/globestudio/actions/workflows/deploy.yml)
+[![CI status](https://github.com/alevizio/globestudio/actions/workflows/ci.yml/badge.svg)](https://github.com/alevizio/globestudio/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-f6f2ea.svg)](LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-9adfff.svg)](CONTRIBUTING.md)
 
@@ -79,7 +79,8 @@ Open `http://127.0.0.1:5173/`.
 ```bash
 npm run build      # → dist/
 npm run preview    # serve dist/ locally
-npm test -- --run  # 119 tests across 18 files
+npm test -- --run  # 152 tests across 24 files
+npm run test:e2e   # browser smoke + accessibility checks
 ```
 
 ## Embed it anywhere
@@ -215,7 +216,9 @@ Built with:
 - **[Pixelarticons](https://pixelarticons.com)** by Gerrit Halfmann for the in-app icon set — 24×24 pixel-grid icons with `currentColor` fill so they theme cleanly
 - **[Vitest](https://vitest.dev)** + **[Testing Library](https://testing-library.com)** + **[axe-core](https://github.com/dequelabs/axe-core)** for tests and the WCAG 2.2 AA accessibility guard
 
-No backend, no accounts, no telemetry. Everything renders in your browser.
+No backend and no accounts. Privacy-respecting Vercel Analytics and Speed
+Insights honor Do Not Track, Global Privacy Control, and the local opt-out in
+`/privacy`; everything else renders in your browser.
 
 ## Contributing
 

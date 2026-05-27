@@ -1,6 +1,9 @@
 node_modules
 dist
 artifacts
+.lighthouseci
+playwright-report
+test-results
 .DS_Store
 .claude/
 .vercel

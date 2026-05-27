@@ -53,7 +53,7 @@ const slimCountriesPlugin = () => {
 };
 
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS ? "/globestudio/" : "/",
+  base: "/",
   plugins: [react(), slimCountriesPlugin()],
   test: {
     environment: "jsdom",

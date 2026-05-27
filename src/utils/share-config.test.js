@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   buildShareUrl,
   clearShareConfigFromUrl,
+  normalizeConfig,
   parseShareConfig,
 } from "./share-config.js";
 
@@ -47,6 +48,53 @@ describe("share-config", () => {
     expect(parseShareConfig("?c=not-valid-base64-json")).toBe(null);
     expect(parseShareConfig(null)).toBe(null);
     expect(parseShareConfig(undefined)).toBe(null);
+  });
+
+  it("clamps imported numeric settings to supported ranges", () => {
+    const normalized = normalizeConfig({
+      density: 999,
+      dotSize: -5,
+      dotColorAlpha: 10,
+      shaderSettings: { effect: "halftone", intensity: 180, cellSize: 99 },
+      globeSettings: { glowStrength: -20, gridSize: 999 },
+    });
+
+    expect(normalized.density).toBe(100);
+    expect(normalized.dotSize).toBe(0.1);
+    expect(normalized.dotColorAlpha).toBe(1);
+    expect(normalized.shaderSettings.intensity).toBe(100);
+    expect(normalized.shaderSettings.cellSize).toBe(30);
+    expect(normalized.globeSettings.glowStrength).toBe(0);
+    expect(normalized.globeSettings.gridSize).toBe(90);
+  });
+
+  it("rejects unknown fields and invalid custom-shape payloads", () => {
+    const normalized = normalizeConfig({
+      density: 50,
+      unknown: "ignored",
+      shape: "Custom",
+      customShape: {
+        type: "text/html",
+        dataUrl: "data:text/html,<script>alert(1)</script>",
+      },
+    });
+
+    expect(normalized).toEqual({ density: 50, shape: "Custom" });
+  });
+
+  it("sanitizes imported SVG custom shapes", () => {
+    const normalized = normalizeConfig({
+      customShape: {
+        name: "Logo",
+        type: "image/svg+xml",
+        svgSource: `<svg onload="bad()"><script>bad()</script><path d="M0 0" /></svg>`,
+        dataUrl: "data:image/svg+xml,%3Csvg%3E%3C/svg%3E",
+      },
+    });
+
+    expect(normalized.customShape.type).toBe("image/svg+xml");
+    expect(normalized.customShape.svgSource).not.toContain("<script>");
+    expect(normalized.customShape.svgSource).not.toContain("onload");
   });
 
   it("lands at / by default — not the caller's current path", () => {

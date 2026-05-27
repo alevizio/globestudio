@@ -19,7 +19,7 @@ describe("PanelSection", () => {
         <div>contents</div>
       </PanelSection>,
     );
-    expect(container.querySelector("details").open).toBe(false);
+    expect(container.querySelector(".option-content").hidden).toBe(true);
   });
 
   it("opens when defaultOpen is true", () => {
@@ -28,18 +28,19 @@ describe("PanelSection", () => {
         <div>contents</div>
       </PanelSection>,
     );
-    expect(container.querySelector("details").open).toBe(true);
+    expect(container.querySelector(".option-content").hidden).toBe(false);
   });
 
-  it("syncs React state on toggle event", () => {
+  it("toggles when the disclosure button is clicked", () => {
     const { container } = render(
       <PanelSection title="Map">
         <div>contents</div>
       </PanelSection>,
     );
-    const details = container.querySelector("details");
-    details.open = false;
-    fireEvent(details, new Event("toggle", { bubbles: false }));
-    expect(details.open).toBe(false);
+    const content = container.querySelector(".option-content");
+    fireEvent.click(screen.getByRole("button", { name: "Map" }));
+    expect(content.hidden).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Map" }));
+    expect(content.hidden).toBe(true);
   });
 });

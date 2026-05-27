@@ -982,11 +982,11 @@ button {
 
 .brand-card-caption {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-soft);
 }
 
 .brand-logo-card--light .brand-card-caption {
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.72);
 }
 
 .brand-link,
@@ -2617,6 +2617,7 @@ button {
 .looks-bar {
   display: flex;
   gap: 4px;
+  list-style: none;
   /* Negative horizontal margins extend the scroll container all the way
      to the card's inner edges (cancelling the .control-panel's 10px
      padding), so chips fade in and out at the card edges instead of 10px
@@ -2644,6 +2645,11 @@ button {
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
 }
 
+.looks-item {
+  flex: 0 0 auto;
+  display: contents;
+}
+
 .looks-bar[data-at-start="true"] {
   mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%);
   -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%);
@@ -2664,7 +2670,6 @@ button {
 }
 
 .looks-chip {
-  flex: 0 0 auto;
   min-height: 36px;
   padding: 0 14px;
   display: inline-flex;
@@ -4843,43 +4848,50 @@ button {
   padding: 4px 8px 8px;
 }
 
-.option-block summary {
+.option-block-header {
   min-height: 28px;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 0 8px;
+}
+
+.option-block-disclosure {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--dim);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  list-style: none;
   user-select: none;
   transition: color 180ms var(--ease);
 }
 
-.option-block summary:hover {
+.option-block-disclosure:hover,
+.option-block-disclosure:focus-visible {
   color: var(--muted);
 }
 
-.option-block summary::-webkit-details-marker {
-  display: none;
-}
-
-.option-block summary svg:last-child {
-  margin-left: auto;
+.option-block-chevron {
+  flex: 0 0 auto;
   opacity: 0.55;
   transition: transform 180ms var(--ease), opacity 180ms var(--ease);
 }
 
-/* Layer-visibility eye button inside a PanelSection summary. Sits
+/* Layer-visibility eye button inside a PanelSection header. Sits
    between the title and the chevron. The button's margin-left: auto
    pushes it to the right edge; the chevron follows naturally with
    a small gap (overriding the auto-margin from the .svg:last-child
    selector above). */
-.option-block summary .option-block-eye {
+.option-block-header .option-block-eye {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
@@ -4894,8 +4906,8 @@ button {
   cursor: pointer;
   transition: color 160ms var(--ease), background 160ms var(--ease);
 }
-.option-block summary .option-block-eye:hover,
-.option-block summary .option-block-eye:focus-visible {
+.option-block-header .option-block-eye:hover,
+.option-block-header .option-block-eye:focus-visible {
   color: var(--text);
   background: var(--field);
 }
@@ -4909,17 +4921,17 @@ button {
    normal off state and cursor reverts to default so it doesn't
    advertise itself as a control. The native title attribute still
    surfaces a tooltip on hover explaining why. */
-.option-block summary .option-block-eye.is-disabled {
+.option-block-header .option-block-eye.is-disabled {
   color: var(--dim);
   opacity: 0.45;
   cursor: not-allowed;
 }
-.option-block summary .option-block-eye.is-disabled:hover,
-.option-block summary .option-block-eye.is-disabled:focus-visible {
+.option-block-header .option-block-eye.is-disabled:hover,
+.option-block-header .option-block-eye.is-disabled:focus-visible {
   background: transparent;
   color: var(--dim);
 }
-.option-block summary .option-block-eye + svg {
+.option-block-header .option-block-eye + svg {
   /* Bumped from 4px → 10px so the eye's hover background (22×22
      square) has breathing room before the chevron — at 4px the
      two read as visually mashed together when the eye lights up. */
@@ -4930,15 +4942,15 @@ button {
    users can scan the panel and see at a glance which layers are
    contributing. The body content (when expanded) is unaffected so
    they can still adjust settings while the layer is hidden. */
-.option-block.is-layer-disabled > summary > span {
+.option-block.is-layer-disabled .option-block-disclosure > span {
   opacity: 0.55;
 }
 
-.option-block summary:hover svg:last-child {
+.option-block-header:hover .option-block-chevron {
   opacity: 0.9;
 }
 
-.option-block[open] > summary svg:last-child {
+.option-block[data-open="true"] .option-block-chevron {
   transform: rotate(180deg);
 }
 
@@ -5523,7 +5535,7 @@ input[type="range"]:focus-visible,
 .step-button:focus-visible,
 .export-menu-item:focus-visible,
 .export-scale-option:focus-visible,
-.option-block summary:focus-visible,
+.option-block-disclosure:focus-visible,
 .copy-fallback:focus-visible,
 .view-mode-button:focus-visible,
 .panel-toggle:focus-visible,
