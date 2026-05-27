@@ -5181,6 +5181,9 @@ button {
   align-items: center;
   gap: 8px;
   padding: 0 8px;
+  /* Whole row is clickable (matches old <summary> behavior) so the
+     pointer cue should be a hand anywhere across the header. */
+  cursor: pointer;
 }
 
 .option-block-disclosure {

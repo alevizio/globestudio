@@ -36,13 +36,28 @@ export const PanelSection = ({
       className={`option-block ${hasEnableToggle && !enabled ? "is-layer-disabled" : ""}`}
       data-open={isOpen ? "true" : "false"}
     >
-      <div className="option-block-header">
+      <div
+        className="option-block-header"
+        onClick={(event) => {
+          // Whole-row click toggles the section. Matches the native
+          // <details>/<summary> behavior we used to rely on, so clicks
+          // on the chevron, the empty space between the title and the
+          // eye, or the right-end gutter all still expand/collapse.
+          // Nested button clicks (disclosure, eye) call stopPropagation
+          // so this row-level handler doesn't fire twice for them.
+          if (event.defaultPrevented) return;
+          setIsOpen((value) => !value);
+        }}
+      >
         <button
           type="button"
           className="option-block-disclosure"
           aria-expanded={isOpen}
           aria-controls={contentId}
-          onClick={() => setIsOpen((value) => !value)}
+          onClick={(event) => {
+            event.stopPropagation();
+            setIsOpen((value) => !value);
+          }}
         >
           {icon}
           <span>{title}</span>
@@ -55,7 +70,8 @@ export const PanelSection = ({
             aria-disabled={enabledDisabled || undefined}
             aria-label={enabledLabel ?? `Toggle ${title}`}
             title={eyeTooltip}
-            onClick={() => {
+            onClick={(event) => {
+              event.stopPropagation();
               if (enabledDisabled) return;
               onEnabledChange(!enabled);
             }}
