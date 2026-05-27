@@ -860,7 +860,14 @@ const App = () => {
     window.setTimeout(() => setPngStatus("idle"), 1800);
   };
 
-  const withExportTimeout = (promise, message, timeoutMs = 4000) =>
+  // CI runs on Chromium with SwiftShader (software WebGL). The high-res
+  // composer re-render that captureAtScale triggers can take ~5-10 s on
+  // a software rasterizer where it's ~80 ms on real GPU. 4 s was too
+  // tight for CI; the timeout fired before the blob was ready, the
+  // Canvas2D fallback then did its own slow GPU readback, and the e2e
+  // test would time out at 15 s. 12 s leaves clear headroom on CI while
+  // still bailing on real hangs.
+  const withExportTimeout = (promise, message, timeoutMs = 12000) =>
     Promise.race([
       promise,
       new Promise((_, reject) => {

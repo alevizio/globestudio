@@ -114,8 +114,11 @@ test("PNG export creates a blob download link", async ({ page }) => {
   await page.keyboard.press("d");
   await page.getByRole("button", { name: /export png/i }).click();
 
+  // App's captureAtScale → SwiftShader render → toBlob can take 8-10 s
+  // on CI; the in-app withExportTimeout is 12 s. Poll for 25 s so a slow
+  // CI render still fits before the test bails.
   await expect
-    .poll(() => page.evaluate(() => window.__globestudioDownloads ?? []), { timeout: 15_000 })
+    .poll(() => page.evaluate(() => window.__globestudioDownloads ?? []), { timeout: 25_000 })
     .toContainEqual(expect.objectContaining({
       href: expect.stringMatching(/^blob:/),
       size: expect.any(Number),
