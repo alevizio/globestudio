@@ -4799,6 +4799,15 @@ button {
   padding: 14px 8px 2px;
 }
 
+/* Author `display: grid` above outweighs the UA stylesheet's
+   `[hidden] { display: none }` (1 class beats 1 attribute), so the
+   PanelSection's `hidden={!isOpen}` attribute was being ignored and
+   every section stayed expanded. Re-assert hidden with matching
+   specificity so collapse actually collapses. */
+.option-content[hidden] {
+  display: none;
+}
+
 
 .option-row {
   min-width: 0;
