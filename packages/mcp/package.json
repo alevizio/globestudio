@@ -1,0 +1,50 @@
+{
+  "name": "@globestudio/mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for Globestudio — let any MCP-compatible AI assistant (Claude Desktop, Claude Code, Cursor, etc.) generate dotted globes, build share URLs, and grab embed snippets.",
+  "license": "MIT",
+  "author": "Alejandro Vizio <viziomas@gmail.com> (https://alevizio.com)",
+  "homepage": "https://globestudio.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alevizio/globestudio.git",
+    "directory": "packages/mcp"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "globestudio",
+    "globe",
+    "map",
+    "claude",
+    "ai-tool",
+    "dotted-map"
+  ],
+  "type": "module",
+  "bin": {
+    "globestudio-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
