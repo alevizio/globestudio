@@ -2907,7 +2907,7 @@ button {
 
 .looks-item {
   flex: 0 0 auto;
-  display: contents;
+  display: inline-flex;
 }
 
 .looks-bar[data-at-start="true"] {
