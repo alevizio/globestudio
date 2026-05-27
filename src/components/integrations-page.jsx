@@ -139,6 +139,25 @@ const ReactLogo = ({ size = 28 }) => (
   </svg>
 );
 
+// Stylized MCP "ribbon" — three nested rings suggesting protocol layers.
+// Renders inside the dark integrations-section-logo chip with white stroke.
+const McpLogo = ({ size = 28 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 18 L9 12 L3 6" />
+    <path d="M21 18 L15 12 L21 6" />
+    <line x1="11" y1="18" x2="13" y2="6" />
+  </svg>
+);
+
 // Each card is now self-sufficient: brand logo, one-line blurb, the
 // exact snippet to paste with a copy button. The "Full recipe → GitHub"
 // link used to live here as a fallback when the page was just a stub,
@@ -148,6 +167,17 @@ const ReactLogo = ({ size = 28 }) => (
 // line, a wordpress.org plugin slug), add it via `cta: { href, label }`
 // per entry; otherwise the card is complete.
 const INTEGRATIONS = [
+  {
+    id: "mcp",
+    name: "Claude / MCP",
+    Logo: McpLogo,
+    bg: "#1e1e22",
+    fg: "#ffffff",
+    blurb:
+      "Add Globestudio as a Model Context Protocol tool in Claude Code, Claude Desktop, Cursor, Cody — any MCP client. Then ask in chat: \"make me a halftone globe of Japan with cyan dots\" and Claude builds the share URL for you.",
+    snippet: `claude mcp add globestudio -- npx -y @globestudio/mcp`,
+    cta: { href: "https://www.npmjs.com/package/@globestudio/mcp", label: "View on npm" },
+  },
   {
     id: "webflow",
     name: "Webflow",
@@ -229,17 +259,14 @@ const INTEGRATIONS = [
     bg: "#20232A",
     fg: "#61DAFB",
     blurb:
-      "Paste the component. No npm install, no SSR caveats — just an iframe inside a React tree.",
-    snippet: `export const Globe = ({ look = "halftone", width = 640, height = 480 }) => (
-  <iframe
-    src={\`https://globestudio.app/embed?look=\${look}\`}
-    width={width}
-    height={height}
-    style={{ border: 0 }}
-    loading="lazy"
-    title="Globestudio dotted globe"
-  />
-);`,
+      "One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box — works in React, Next.js, Remix, Astro.",
+    snippet: `npm install @globestudio/react
+
+// Then:
+import { Globe } from "@globestudio/react";
+
+<Globe look="halftone" width={640} height={480} />`,
+    cta: { href: "https://www.npmjs.com/package/@globestudio/react", label: "View on npm" },
   },
 ];
 
@@ -273,7 +300,8 @@ export const IntegrationsPage = () => {
           <p className="integrations-page-lede">
             Every Globestudio embed is a single URL — paste it into any
             tool that takes an iframe. Below are the copy-paste snippets
-            for the seven we hear about most.
+            for the eight surfaces we hear about most, plus the MCP
+            server so AI assistants can build globes for you in chat.
           </p>
         </header>
 
