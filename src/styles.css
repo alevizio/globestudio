@@ -1294,6 +1294,378 @@ button {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
+/* ===========================================================
+   /examples page — REDESIGNED as full-screen company showcase.
+   Six per-company hero sections styled in each brand's actual
+   palette + typography vibe, then a cards gallery, stats
+   gallery, and code reference. See examples-page.jsx.
+   =========================================================== */
+
+.examples-page--showcase {
+  /* Override the takeover-page narrow max-width — showcases need
+     full viewport to feel like landing pages. */
+  max-width: none;
+  padding: 0;
+}
+
+.examples-page--showcase .examples-hero {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 80px 24px 48px;
+  text-align: center;
+}
+
+.examples-hero-brand {
+  display: inline-block;
+  margin-bottom: 32px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.examples-hero-title {
+  font-size: 56px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+  color: var(--text);
+}
+
+.examples-hero-lede {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0 auto;
+  max-width: 620px;
+}
+
+/* Sticky chip nav — six company names that highlight as you
+   scroll through the showcase stack. Sits just below the global
+   TakeoverNav (which is also sticky at z-index 5). */
+.showcase-chip-nav {
+  position: sticky;
+  top: 56px;
+  z-index: 4;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 16px;
+  background: rgba(11, 11, 12, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.showcase-chip-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.showcase-chip {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 140ms var(--ease), background 140ms var(--ease);
+}
+.showcase-chip:hover {
+  color: var(--text);
+  background: var(--field);
+}
+.showcase-chip.is-active {
+  color: var(--text);
+  background: var(--field);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.showcase-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Each .showcase fills (at least) the full viewport so it reads
+   as a landing-page hero — visitors scroll one company at a time.
+   Per-section background/color is set inline from the component;
+   layout chrome lives here. */
+.showcase {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 32px;
+  position: relative;
+}
+
+.showcase-inner {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.showcase-inner--split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 64px;
+  align-items: center;
+  text-align: left;
+}
+.showcase-inner--split .showcase-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+}
+.showcase-inner--split .showcase-eyebrow,
+.showcase-inner--split .showcase-headline,
+.showcase-inner--split .showcase-subhead,
+.showcase-inner--split .showcase-ctas {
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.showcase-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.showcase-headline {
+  font-size: clamp(40px, 6vw, 78px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.showcase-subhead {
+  font-size: clamp(16px, 1.4vw, 20px);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 660px;
+}
+
+.showcase-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.showcase-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: transform 120ms var(--ease), opacity 120ms var(--ease);
+}
+.showcase-cta:hover {
+  transform: translateY(-1px);
+}
+.showcase-cta--primary { border-color: transparent; }
+.showcase-cta--ghost  { background: transparent; }
+
+.showcase-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 32px;
+  width: 100%;
+  max-width: 920px;
+}
+.showcase-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  text-align: center;
+}
+.showcase-stat strong {
+  font-size: clamp(40px, 4.5vw, 64px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.showcase-stat span {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+/* Per-company small adjustments. The Earthscale section uses the
+   globe as a full-bleed background, so its inner gets a tighter
+   width for the floating copy. */
+.showcase--earthscale .showcase-inner { max-width: 720px; }
+
+.showcase-globe-backdrop iframe {
+  filter: saturate(0.9);
+}
+
+/* --- Cards + Stats + Code Reference (regular scroll below showcases) --- */
+
+.examples-block {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.examples-block-title {
+  font-size: 36px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  color: var(--text);
+}
+
+.examples-block-lede {
+  font-size: 16px;
+  color: var(--muted);
+  margin: 0 0 40px;
+  max-width: 620px;
+}
+
+.examples-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.examples-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.3);
+  transition: transform 180ms var(--ease);
+}
+.examples-card:hover {
+  transform: translateY(-2px);
+}
+
+.examples-card-globe {
+  display: block;
+}
+
+.examples-card-body {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.examples-card-body strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.examples-card-body span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.examples-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.examples-stat-tile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.examples-stat-globe { display: block; }
+
+.examples-stat-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.examples-stat-meta strong {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.examples-stat-meta span {
+  font-size: 13px;
+}
+
+.examples-code-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.examples-code-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--field);
+  overflow: hidden;
+}
+
+.examples-code-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  list-style: none;
+}
+.examples-code-summary::-webkit-details-marker { display: none; }
+.examples-code-summary-hint {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.examples-code-body {
+  padding: 0 12px 12px;
+}
+
+@media (max-width: 720px) {
+  .showcase { padding: 64px 20px; }
+  .showcase-inner--split {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .showcase-inner--split .showcase-copy,
+  .showcase-inner--split .showcase-eyebrow,
+  .showcase-inner--split .showcase-headline,
+  .showcase-inner--split .showcase-subhead,
+  .showcase-inner--split .showcase-ctas {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+  }
+  .examples-hero-title { font-size: 40px; }
+  .showcase-chip-nav { top: 48px; padding: 8px 12px; }
+}
+
+/* ===========================================================
+   Legacy /examples preview styles (kept for backwards-compat
+   in case anything still references them, e.g. old shared
+   URLs that linked deep into the old IDs). Safe to delete
+   once we're sure nothing external uses them.
+   =========================================================== */
+
 /* /examples page — live previews of common embed layouts.
    Each .example-preview is a mini design composition: hero, card,
    stat tile, split, or footer band. Pixel-corner 9px polygon ties

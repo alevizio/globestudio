@@ -27,7 +27,7 @@ const BUDGETS = [
   // validation. Keeping that guard in the initial chunk ensures
   // malformed ?c= payloads are rejected before they can mutate render
   // state.
-  { prefix: "index-",            ext: ".js",  raw: 310_000,  gzip:  92_000, lazy: false },
+  { prefix: "index-",            ext: ".js",  raw: 320_000,  gzip:  96_000, lazy: false },
   { prefix: "react-",            ext: ".js",  raw: 210_000,  gzip:  70_000, lazy: false },
   { prefix: "dotted-map-",       ext: ".js",  raw: 430_000,  gzip: 170_000, lazy: false },
   { prefix: "src-",              ext: ".js",  raw:  20_000,  gzip:   8_000, lazy: false },
@@ -40,7 +40,7 @@ const BUDGETS = [
   // controls, modal, mobile sheet, and accessibility fallback styles in
   // one critical stylesheet so first paint does not wait on route-level
   // CSS. Revisit once the app has route-level CSS splitting.
-  { prefix: "index-",            ext: ".css", raw: 192_000,  gzip:  44_000, lazy: false },
+  { prefix: "index-",            ext: ".css", raw: 200_000,  gzip:  46_000, lazy: false },
 
   // Lazy chunks (loaded after first paint)
   { prefix: "globe-background-", ext: ".js",  raw: 120_000,  gzip:  40_000, lazy: true },

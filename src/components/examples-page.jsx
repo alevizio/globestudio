@@ -1,136 +1,702 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { PagePager } from "./ui/page-pager.jsx";
 import { DottedGlobe } from "./icons.jsx";
 import { TakeoverNav } from "./ui/takeover-nav.jsx";
 import { CodeBlock } from "./ui/code-block.jsx";
-import { SectionHeading } from "./ui/section-heading.jsx";
-import { OnThisPage } from "./ui/on-this-page.jsx";
 
-// Showcase page demonstrating real-world layouts built on top of the
-// /embed iframe. Each example renders a live preview using the same
-// embed URL pattern the user would paste into their own site, then
-// shows the HTML snippet underneath so they can copy it as-is.
+// /examples — full-screen showcase of how 6 real products could use
+// Globestudio in their own marketing. Each section is styled in the
+// company's actual palette + typography vibe and uses a live
+// /embed iframe with a preset matched to their aesthetic.
 //
-// Why this exists: docs/integrations/* explains *how* to drop the
-// embed into different tools — but designers asking "what could I
-// actually build with this?" want concrete patterns, not platform
-// instructions. This page is the answer.
+// Order: Pachama (cream) → Vercel (black) → Profound (off-white) →
+// Linear (near-black) → Stripe (off-white) → Earthscale (warm dark).
+// Alternation creates visual rhythm as you scroll.
+//
+// Companies + briefs based on 2026 research of each landing page
+// (palettes, headlines, voice). Copy is remixed — not scraped verbatim
+// — to read as a natural Globestudio integration. Stats use real
+// publicly-reported figures each company highlights on their own site.
 
-const HERO_SNIPPET = `<section class="hero">
-  <iframe
-    class="hero-bg"
-    src="https://globestudio.app/embed?look=aurora"
-    title="Aurora globe"
-    loading="lazy"
-  ></iframe>
-  <div class="hero-content">
-    <h1>Reach every market</h1>
-    <p>Designer-first dotted maps and animated 3D globes.</p>
-    <a class="hero-cta" href="/signup">Start free →</a>
-  </div>
-</section>
+const EMBED_BASE = "https://globestudio.app/embed";
+const SITE = "https://globestudio.app";
 
-<style>
-  .hero { position: relative; height: 520px; overflow: hidden; border-radius: 16px; background: #0b0b0c; }
-  .hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-  .hero-content { position: relative; z-index: 1; padding: 64px; color: #f6f2ea; max-width: 520px; }
-  .hero-cta { display: inline-block; margin-top: 16px; padding: 12px 20px; background: #3df4ff; color: #0b0b0c; text-decoration: none; border-radius: 6px; font-weight: 600; }
-</style>`;
-
-const CARD_SNIPPET = `<article class="globe-card">
-  <iframe
-    src="https://globestudio.app/embed?look=halftone"
-    title="Halftone globe"
-    loading="lazy"
-  ></iframe>
-  <div class="globe-card-body">
-    <h3>Worldwide coverage</h3>
-    <p>180+ countries, 24/7 monitoring.</p>
-  </div>
-</article>
-
-<style>
-  .globe-card { display: grid; grid-template-rows: 200px auto; border: 1px solid #2a2a2c; border-radius: 12px; overflow: hidden; background: #131316; color: #f6f2ea; }
-  .globe-card iframe { width: 100%; height: 100%; border: 0; display: block; }
-  .globe-card-body { padding: 20px; }
-  .globe-card h3 { margin: 0 0 6px; font-size: 18px; }
-  .globe-card p { margin: 0; color: #a8a39b; }
-</style>`;
-
-const STAT_SNIPPET = `<div class="stat-tile">
-  <iframe
-    src="https://globestudio.app/embed?look=newsprint"
-    title="Newsprint globe"
-    loading="lazy"
-  ></iframe>
-  <div class="stat-meta">
-    <strong>4.2M</strong>
-    <span>data points worldwide</span>
-  </div>
-</div>
-
-<style>
-  .stat-tile { display: flex; align-items: center; gap: 24px; padding: 24px; background: #f6f2ea; border-radius: 12px; }
-  .stat-tile iframe { width: 140px; height: 140px; border: 0; flex-shrink: 0; }
-  .stat-meta strong { display: block; font-size: 42px; font-weight: 700; color: #0b0b0c; }
-  .stat-meta span { color: #555; }
-</style>`;
-
-const SPLIT_SNIPPET = `<section class="split">
-  <div class="split-copy">
-    <h2>Built for global teams</h2>
-    <p>Time zones, languages, currencies — all handled.</p>
-    <ul>
-      <li>180+ countries</li>
-      <li>40 currencies</li>
-      <li>24/7 support</li>
-    </ul>
-  </div>
-  <iframe
-    class="split-globe"
-    src="https://globestudio.app/embed?look=risograph"
-    title="Risograph globe"
-    loading="lazy"
-  ></iframe>
-</section>
-
-<style>
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; padding: 64px; }
-  .split-copy h2 { font-size: 36px; margin: 0 0 16px; }
-  .split-globe { width: 100%; aspect-ratio: 1; border: 0; border-radius: 16px; }
-  @media (max-width: 720px) { .split { grid-template-columns: 1fr; } }
-</style>`;
-
-const FOOTER_SNIPPET = `<footer class="ambient-footer">
-  <iframe
-    src="https://globestudio.app/embed?look=topographic"
-    title="Topographic globe"
-    loading="lazy"
-  ></iframe>
-  <div class="ambient-footer-content">
-    <p>© 2026 Acme Inc. — operating in 64 countries.</p>
-  </div>
-</footer>
-
-<style>
-  .ambient-footer { position: relative; height: 220px; overflow: hidden; background: #0b0b0c; }
-  .ambient-footer iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; opacity: 0.55; }
-  .ambient-footer-content { position: relative; z-index: 1; padding: 80px 48px; color: #f6f2ea; text-align: center; }
-</style>`;
-
-const TOC = [
-  { id: "hero", label: "Hero section" },
-  { id: "card", label: "Card component" },
-  { id: "stat", label: "Stat tile" },
-  { id: "split", label: "Split layout" },
-  { id: "footer", label: "Ambient footer" },
+const SHOWCASES = [
+  { id: "pachama", name: "Pachama" },
+  { id: "vercel", name: "Vercel" },
+  { id: "profound", name: "Profound" },
+  { id: "linear", name: "Linear" },
+  { id: "stripe", name: "Stripe" },
+  { id: "earthscale", name: "Earthscale" },
 ];
 
-// Single source of truth for the live previews — keeps the iframe
-// renderings consistent with the snippets above. If a snippet changes,
-// update the matching preview look so they stay in sync.
-const EMBED = (look) => `https://globestudio.app/embed?look=${look}`;
+// Tracks which showcase section is most visible so the chip nav can
+// highlight it. Updates on scroll via IntersectionObserver.
+const useActiveShowcase = (ids) => {
+  const [active, setActive] = useState(ids[0]);
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]) setActive(visible[0].target.id);
+      },
+      { threshold: [0, 0.25, 0.5, 0.75, 1], rootMargin: "-15% 0px -35% 0px" },
+    );
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, [ids]);
+  return active;
+};
+
+const ShowcaseChipNav = ({ activeId }) => (
+  <nav className="showcase-chip-nav" aria-label="Showcase examples">
+    {SHOWCASES.map((s) => (
+      <a
+        key={s.id}
+        href={`#${s.id}`}
+        className={`showcase-chip ${activeId === s.id ? "is-active" : ""}`}
+        aria-current={activeId === s.id ? "true" : undefined}
+      >
+        {s.name}
+      </a>
+    ))}
+  </nav>
+);
+
+// Lazy-mount each embed iframe only when it's within 1.5 viewports of
+// being visible. 6 simultaneous WebGL contexts on slow devices is
+// painful; this keeps memory + GPU work bounded.
+const LazyGlobe = ({ src, className, title, style }) => {
+  const ref = useRef(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+  useEffect(() => {
+    if (shouldLoad) return undefined;
+    const el = ref.current;
+    if (!el) return undefined;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "150% 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [shouldLoad]);
+  return (
+    <div ref={ref} className={className} style={style}>
+      {shouldLoad ? (
+        <iframe
+          src={src}
+          title={title}
+          loading="lazy"
+          style={{ border: 0, width: "100%", height: "100%", display: "block" }}
+        />
+      ) : null}
+    </div>
+  );
+};
+
+// --- Per-company showcase sections -----------------------------------------
+
+const PachamaShowcase = () => (
+  <section
+    id="pachama"
+    className="showcase showcase--pachama"
+    style={{
+      background: "#F4F1EA",
+      color: "#0E3B2E",
+      fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
+    }}
+  >
+    <div className="showcase-inner showcase-inner--centered">
+      <span className="showcase-eyebrow" style={{ color: "#0E3B2E", opacity: 0.6 }}>
+        CARBON REMOVAL · NATURE
+      </span>
+      <h2 className="showcase-headline" style={{ color: "#0E3B2E" }}>
+        Restore nature, <em style={{ color: "#F25C3B", fontStyle: "italic" }}>at scale.</em>
+      </h2>
+      <p className="showcase-subhead" style={{ color: "#0E3B2E", opacity: 0.75 }}>
+        AI and satellite data monitoring 30 million+ tonnes of CO₂ across global forest projects — verified, transparent, real.
+      </p>
+      <div className="showcase-ctas">
+        <span className="showcase-cta showcase-cta--primary" style={{ background: "#0E3B2E", color: "#F4F1EA" }}>
+          Explore projects
+        </span>
+        <span className="showcase-cta showcase-cta--ghost" style={{ color: "#0E3B2E", borderColor: "#0E3B2E" }}>
+          Get in touch
+        </span>
+      </div>
+      <LazyGlobe
+        src={`${EMBED_BASE}?look=topographic&source=examples-pachama`}
+        title="Pachama-flavored globe"
+        className="showcase-globe"
+        style={{
+          background: "#0E3B2E",
+          aspectRatio: "16 / 9",
+          maxWidth: 920,
+          width: "100%",
+          marginTop: 40,
+          borderRadius: 12,
+          overflow: "hidden",
+          boxShadow: "0 30px 80px -30px rgba(14, 59, 46, 0.4)",
+        }}
+      />
+      <div className="showcase-stats" style={{ marginTop: 56 }}>
+        {[
+          { v: "100M ha", l: "to restore by 2030" },
+          { v: "30M+", l: "tonnes CO₂ managed" },
+          { v: "70+", l: "scientists on staff" },
+        ].map((s) => (
+          <div key={s.l} className="showcase-stat">
+            <strong style={{ color: "#0E3B2E" }}>{s.v}</strong>
+            <span style={{ color: "#0E3B2E", opacity: 0.6 }}>{s.l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const VercelShowcase = () => (
+  <section
+    id="vercel"
+    className="showcase showcase--vercel"
+    style={{
+      background: "#000000",
+      color: "#EDEDED",
+      fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    }}
+  >
+    <div className="showcase-inner showcase-inner--centered">
+      <span className="showcase-eyebrow" style={{ color: "#A1A1A1" }}>
+        EDGE NETWORK
+      </span>
+      <h2
+        className="showcase-headline"
+        style={{
+          backgroundImage: "linear-gradient(90deg, #FF0080 0%, #FF4D4D 35%, #7928CA 65%, #0070F3 100%)",
+          backgroundClip: "text",
+          WebkitBackgroundClip: "text",
+          color: "transparent",
+          fontWeight: 600,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        Deploy at the edge<br />of every continent.
+      </h2>
+      <p className="showcase-subhead" style={{ color: "#A1A1A1" }}>
+        126 PoPs. 20 compute-capable regions. Sub-40ms p95 latency across the planet.
+      </p>
+      <div className="showcase-ctas">
+        <span className="showcase-cta showcase-cta--primary" style={{ background: "#fff", color: "#000" }}>
+          Start Deploying
+        </span>
+        <span className="showcase-cta showcase-cta--ghost" style={{ color: "#EDEDED", borderColor: "#262626" }}>
+          Get a Demo
+        </span>
+      </div>
+      <LazyGlobe
+        src={`${EMBED_BASE}?look=default&source=examples-vercel`}
+        title="Vercel-flavored globe"
+        className="showcase-globe"
+        style={{
+          background: "#000",
+          aspectRatio: "16 / 9",
+          maxWidth: 920,
+          width: "100%",
+          marginTop: 40,
+          borderRadius: 12,
+          overflow: "hidden",
+          border: "1px solid #1F1F1F",
+        }}
+      />
+      <div className="showcase-stats" style={{ marginTop: 56 }}>
+        {[
+          { v: "126", l: "Edge PoPs" },
+          { v: "20", l: "Compute regions" },
+          { v: "<40ms", l: "p95 latency" },
+        ].map((s) => (
+          <div key={s.l} className="showcase-stat">
+            <strong
+              style={{
+                backgroundImage: "linear-gradient(90deg, #FF0080, #7928CA)",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                color: "transparent",
+              }}
+            >
+              {s.v}
+            </strong>
+            <span style={{ color: "#A1A1A1" }}>{s.l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const ProfoundShowcase = () => (
+  <section
+    id="profound"
+    className="showcase showcase--profound"
+    style={{
+      background: "#FAFAFA",
+      color: "#0A0A0A",
+      fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+    }}
+  >
+    <div className="showcase-inner showcase-inner--split">
+      <div className="showcase-copy">
+        <span className="showcase-eyebrow" style={{ color: "#00B3A4", letterSpacing: "0.14em" }}>
+          AI SEARCH ANALYTICS
+        </span>
+        <h2 className="showcase-headline" style={{ color: "#0A0A0A", fontWeight: 600 }}>
+          See where your brand appears in <em style={{ color: "#0B1F4B", fontStyle: "normal" }}>AI answers.</em>
+        </h2>
+        <p className="showcase-subhead" style={{ color: "#6B7280" }}>
+          1.5 billion+ prompts analyzed across 150+ regions and 30+ languages — live, weekly-refreshed visibility into what every assistant says about you.
+        </p>
+        <div className="showcase-ctas">
+          <span className="showcase-cta showcase-cta--primary" style={{ background: "#0B1F4B", color: "#fff" }}>
+            Get a Demo
+          </span>
+          <span className="showcase-cta showcase-cta--ghost" style={{ color: "#0B1F4B", borderColor: "#0B1F4B" }}>
+            Get Started
+          </span>
+        </div>
+      </div>
+      <LazyGlobe
+        src={`${EMBED_BASE}?look=default&source=examples-profound`}
+        title="Profound-flavored globe"
+        className="showcase-globe showcase-globe--side"
+        style={{
+          background: "#0B1F4B",
+          aspectRatio: "1 / 1",
+          width: "100%",
+          maxWidth: 500,
+          borderRadius: 16,
+          overflow: "hidden",
+          boxShadow: "0 40px 100px -30px rgba(11, 31, 75, 0.35)",
+        }}
+      />
+    </div>
+  </section>
+);
+
+const LinearShowcase = () => (
+  <section
+    id="linear"
+    className="showcase showcase--linear"
+    style={{
+      background: "#08090A",
+      color: "#F7F8F8",
+      fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif',
+    }}
+  >
+    <div className="showcase-inner showcase-inner--centered">
+      <span className="showcase-eyebrow" style={{ color: "#5E6AD2" }}>
+        BUILT FOR PRODUCT TEAMS
+      </span>
+      <h2
+        className="showcase-headline"
+        style={{
+          color: "#F7F8F8",
+          fontWeight: 600,
+          letterSpacing: "-0.025em",
+        }}
+      >
+        The product development system<br />for teams and agents.
+      </h2>
+      <p className="showcase-subhead" style={{ color: "rgba(247, 248, 248, 0.6)" }}>
+        Purpose-built for planning and building products. Designed for the AI era.
+      </p>
+      <div className="showcase-ctas">
+        <span className="showcase-cta showcase-cta--primary" style={{ background: "#F7F8F8", color: "#08090A" }}>
+          Start free
+        </span>
+        <span className="showcase-cta showcase-cta--ghost" style={{ color: "#F7F8F8", borderColor: "rgba(247, 248, 248, 0.18)" }}>
+          Talk to sales
+        </span>
+      </div>
+      <div style={{ position: "relative", marginTop: 60, maxWidth: 920, width: "100%" }}>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: -80,
+            background: "radial-gradient(circle at 50% 50%, rgba(94, 106, 210, 0.35), rgba(94, 106, 210, 0) 60%)",
+            filter: "blur(40px)",
+            pointerEvents: "none",
+          }}
+        />
+        <LazyGlobe
+          src={`${EMBED_BASE}?look=aurora&source=examples-linear`}
+          title="Linear-flavored globe"
+          className="showcase-globe"
+          style={{
+            background: "#08090A",
+            aspectRatio: "16 / 9",
+            width: "100%",
+            borderRadius: 16,
+            overflow: "hidden",
+            border: "1px solid rgba(247, 248, 248, 0.08)",
+            position: "relative",
+          }}
+        />
+      </div>
+      <div className="showcase-stats" style={{ marginTop: 56 }}>
+        {[
+          { v: "25,000", l: "product teams" },
+          { v: "3.3×", l: "faster issue resolution" },
+          { v: "28%", l: "issues authored by agents" },
+        ].map((s) => (
+          <div key={s.l} className="showcase-stat">
+            <strong style={{ color: "#F7F8F8" }}>{s.v}</strong>
+            <span style={{ color: "rgba(247, 248, 248, 0.6)" }}>{s.l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const StripeShowcase = () => (
+  <section
+    id="stripe"
+    className="showcase showcase--stripe"
+    style={{
+      background: "#F6F9FC",
+      color: "#0A2540",
+      fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+    }}
+  >
+    <div className="showcase-inner showcase-inner--centered">
+      <span className="showcase-eyebrow" style={{ color: "#635BFF" }}>
+        GLOBAL PAYMENTS
+      </span>
+      <h2 className="showcase-headline" style={{ color: "#0A2540", fontWeight: 500, letterSpacing: "-0.02em" }}>
+        Accept payments from anywhere<br />in the world.
+      </h2>
+      <p className="showcase-subhead" style={{ color: "#425466" }}>
+        $1.9 trillion processed in 2025. 200+ countries. 99.999% uptime. From your first transaction to your billionth.
+      </p>
+      <div className="showcase-ctas">
+        <span className="showcase-cta showcase-cta--primary" style={{ background: "#0A2540", color: "#fff" }}>
+          Start now
+        </span>
+        <span className="showcase-cta showcase-cta--ghost" style={{ color: "#635BFF", borderColor: "transparent" }}>
+          Contact sales →
+        </span>
+      </div>
+      <LazyGlobe
+        src={`${EMBED_BASE}?look=default&source=examples-stripe`}
+        title="Stripe-flavored globe"
+        className="showcase-globe"
+        style={{
+          background: "#0A2540",
+          aspectRatio: "16 / 9",
+          maxWidth: 920,
+          width: "100%",
+          marginTop: 40,
+          borderRadius: 16,
+          overflow: "hidden",
+          boxShadow: "0 40px 100px -40px rgba(10, 37, 64, 0.35)",
+        }}
+      />
+      <div className="showcase-stats" style={{ marginTop: 56 }}>
+        {[
+          { v: "$1.9T", l: "processed in 2025" },
+          { v: "200+", l: "countries supported" },
+          { v: "99.999%", l: "uptime" },
+        ].map((s) => (
+          <div key={s.l} className="showcase-stat">
+            <strong style={{ color: "#0A2540" }}>{s.v}</strong>
+            <span style={{ color: "#425466" }}>{s.l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const EarthscaleShowcase = () => (
+  <section
+    id="earthscale"
+    className="showcase showcase--earthscale"
+    style={{
+      background: "#1d1a16",
+      color: "#ece7da",
+      fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
+      position: "relative",
+      overflow: "hidden",
+    }}
+  >
+    <LazyGlobe
+      src={`${EMBED_BASE}?look=bloom&source=examples-earthscale`}
+      title="Earthscale-flavored globe"
+      className="showcase-globe-backdrop"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        opacity: 0.55,
+      }}
+    />
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        background:
+          "linear-gradient(180deg, rgba(29,26,22,0.65) 0%, rgba(29,26,22,0.35) 40%, rgba(29,26,22,0.85) 100%)",
+        pointerEvents: "none",
+      }}
+    />
+    <div className="showcase-inner showcase-inner--centered" style={{ position: "relative" }}>
+      <span
+        className="showcase-eyebrow"
+        style={{
+          color: "#d99c66",
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          letterSpacing: "0.14em",
+        }}
+      >
+        <span
+          style={{
+            display: "inline-block",
+            width: 6,
+            height: 6,
+            borderRadius: 999,
+            background: "#d99c66",
+            marginRight: 8,
+            verticalAlign: "middle",
+            boxShadow: "0 0 0 3px rgba(217,156,102,0.2)",
+          }}
+        />
+        TIME-TO-POWER INTELLIGENCE
+      </span>
+      <h2
+        className="showcase-headline"
+        style={{
+          color: "#f5f0e2",
+          fontWeight: 500,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        Read the signals<br />that shape every project.
+      </h2>
+      <p
+        className="showcase-subhead"
+        style={{
+          color: "rgba(236, 231, 218, 0.75)",
+          fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+        }}
+      >
+        AI agents parse permits, grid plans, and supply-chain lead times — across every project on earth.
+      </p>
+      <div className="showcase-ctas">
+        <span
+          className="showcase-cta showcase-cta--primary"
+          style={{
+            background: "#d99c66",
+            color: "#1d1a16",
+            boxShadow: "0 0 0 6px rgba(217, 156, 102, 0.18)",
+          }}
+        >
+          Request a Trial Analysis
+        </span>
+        <span
+          className="showcase-cta showcase-cta--ghost"
+          style={{ color: "#ece7da", borderColor: "rgba(236, 231, 218, 0.2)" }}
+        >
+          Book a Demo
+        </span>
+      </div>
+    </div>
+  </section>
+);
+
+// --- Cards gallery ---------------------------------------------------------
+
+const CardsGallery = () => (
+  <section className="examples-block">
+    <h2 className="examples-block-title">…and inside cards.</h2>
+    <p className="examples-block-lede">
+      The same patterns work at card-scale. Drop a chip into any feature grid,
+      hero rail, or product tile — colors swap, the globe stays.
+    </p>
+    <div className="examples-cards-grid">
+      {[
+        { look: "topographic", title: "Reforestation, verified.", meta: "Pará, Brazil · 12,400 ha", bg: "#F4F1EA", fg: "#0E3B2E", accent: "#F25C3B" },
+        { look: "default", title: "Edge regions, live.", meta: "iad1 · fra1 · sin1 · syd1", bg: "#000", fg: "#EDEDED", accent: "#FF0080" },
+        { look: "iridescent", title: "AI prompt density.", meta: "150+ regions · 30+ languages", bg: "#FAFAFA", fg: "#0A0A0A", accent: "#00B3A4" },
+        { look: "aurora", title: "Issue spread by team.", meta: "25,000 teams · global", bg: "#08090A", fg: "#F7F8F8", accent: "#5E6AD2" },
+        { look: "default", title: "Where payments flow.", meta: "200+ countries · live mesh", bg: "#F6F9FC", fg: "#0A2540", accent: "#635BFF" },
+        { look: "bloom", title: "Power projects, parsed.", meta: "7 continents · 62 grids", bg: "#1d1a16", fg: "#ece7da", accent: "#d99c66" },
+      ].map((card) => (
+        <article
+          key={card.title}
+          className="examples-card"
+          style={{ background: card.bg, color: card.fg }}
+        >
+          <LazyGlobe
+            src={`${EMBED_BASE}?look=${card.look}&source=examples-card`}
+            title={card.title}
+            className="examples-card-globe"
+            style={{
+              width: "100%",
+              aspectRatio: "16 / 10",
+              background:
+                card.bg === "#FAFAFA" || card.bg === "#F4F1EA" || card.bg === "#F6F9FC"
+                  ? "#0A0A0A"
+                  : card.bg,
+            }}
+          />
+          <div className="examples-card-body">
+            <strong style={{ color: card.fg }}>{card.title}</strong>
+            <span style={{ color: card.accent }}>{card.meta}</span>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+);
+
+// --- Stats gallery ---------------------------------------------------------
+
+const StatsGallery = () => (
+  <section className="examples-block">
+    <h2 className="examples-block-title">…and as stats.</h2>
+    <p className="examples-block-lede">
+      Stat callouts that earn their headline-size type by sitting next to a
+      live globe. Each row is one HTML snippet away.
+    </p>
+    <div className="examples-stats-grid">
+      {[
+        { look: "default", value: "126", label: "Edge PoPs across the globe", bg: "#000", fg: "#EDEDED" },
+        { look: "default", value: "$1.9T", label: "processed in 2025", bg: "#F6F9FC", fg: "#0A2540" },
+        { look: "topographic", value: "30M+", label: "tonnes CO₂ under management", bg: "#F4F1EA", fg: "#0E3B2E" },
+        { look: "iridescent", value: "1.5B", label: "AI prompts analyzed", bg: "#FAFAFA", fg: "#0A0A0A" },
+      ].map((stat) => (
+        <div
+          key={stat.label}
+          className="examples-stat-tile"
+          style={{ background: stat.bg, color: stat.fg }}
+        >
+          <LazyGlobe
+            src={`${EMBED_BASE}?look=${stat.look}&source=examples-stat`}
+            title={stat.label}
+            className="examples-stat-globe"
+            style={{
+              width: 100,
+              height: 100,
+              flexShrink: 0,
+              background: stat.bg === "#000" ? "#000" : "#0A0A0A",
+              borderRadius: 8,
+              overflow: "hidden",
+            }}
+          />
+          <div className="examples-stat-meta">
+            <strong style={{ color: stat.fg }}>{stat.value}</strong>
+            <span style={{ color: stat.fg, opacity: 0.7 }}>{stat.label}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+);
+
+// --- Code reference (collapsible) ------------------------------------------
+
+const CODE_SNIPPETS = {
+  pachama: `<section style="background:#F4F1EA;color:#0E3B2E;padding:64px;text-align:center;font-family:Georgia,serif">
+  <span style="font-size:11px;letter-spacing:0.14em;opacity:0.6">CARBON REMOVAL · NATURE</span>
+  <h1 style="font-size:72px;margin:16px 0 24px">Restore nature, <em style="color:#F25C3B">at scale.</em></h1>
+  <p style="font-size:18px;opacity:0.75;max-width:640px;margin:0 auto 32px">AI and satellite data monitoring 30M+ tonnes of CO₂ across global forest projects.</p>
+  <iframe src="${SITE}/embed?look=topographic" width="920" height="517" style="border:0;border-radius:12px"></iframe>
+</section>`,
+  vercel: `<section style="background:#000;color:#EDEDED;padding:64px;text-align:center;font-family:system-ui,sans-serif">
+  <span style="font-size:11px;letter-spacing:0.14em;color:#A1A1A1">EDGE NETWORK</span>
+  <h1 style="font-size:80px;font-weight:600;background:linear-gradient(90deg,#FF0080,#FF4D4D,#7928CA,#0070F3);-webkit-background-clip:text;color:transparent;margin:16px 0 24px">Deploy at the edge of every continent.</h1>
+  <p style="color:#A1A1A1;font-size:18px">126 PoPs. 20 regions. &lt;40ms p95.</p>
+  <iframe src="${SITE}/embed?look=default" width="920" height="517" style="border:0;border-radius:12px;border:1px solid #1F1F1F"></iframe>
+</section>`,
+  profound: `<section style="background:#FAFAFA;color:#0A0A0A;padding:64px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;font-family:system-ui,sans-serif">
+  <div>
+    <span style="color:#00B3A4;letter-spacing:0.14em;font-size:11px">AI SEARCH ANALYTICS</span>
+    <h1 style="font-size:56px;margin:16px 0">See where your brand appears in <em style="color:#0B1F4B;font-style:normal">AI answers.</em></h1>
+    <p style="color:#6B7280">1.5B+ prompts across 150+ regions and 30+ languages.</p>
+  </div>
+  <iframe src="${SITE}/embed?look=default" width="100%" height="500" style="border:0;border-radius:16px;background:#0B1F4B"></iframe>
+</section>`,
+  linear: `<section style="background:#08090A;color:#F7F8F8;padding:64px;text-align:center;font-family:system-ui,sans-serif">
+  <span style="color:#5E6AD2;font-size:11px;letter-spacing:0.14em">BUILT FOR PRODUCT TEAMS</span>
+  <h1 style="font-size:72px;font-weight:600;letter-spacing:-0.025em;margin:16px 0">The product development system for teams and agents.</h1>
+  <p style="color:rgba(247,248,248,0.6)">Purpose-built for planning. Designed for the AI era.</p>
+  <iframe src="${SITE}/embed?look=aurora" width="920" height="517" style="border:0;border-radius:16px"></iframe>
+</section>`,
+  stripe: `<section style="background:#F6F9FC;color:#0A2540;padding:64px;text-align:center;font-family:system-ui,sans-serif">
+  <span style="color:#635BFF;font-size:11px;letter-spacing:0.14em">GLOBAL PAYMENTS</span>
+  <h1 style="font-size:72px;font-weight:500;letter-spacing:-0.02em;margin:16px 0">Accept payments from anywhere in the world.</h1>
+  <p style="color:#425466">$1.9T processed. 200+ countries. 99.999% uptime.</p>
+  <iframe src="${SITE}/embed?look=default" width="920" height="517" style="border:0;border-radius:16px;background:#0A2540"></iframe>
+</section>`,
+  earthscale: `<section style="background:#1d1a16;color:#ece7da;padding:120px 64px;text-align:center;position:relative;overflow:hidden;font-family:Georgia,serif">
+  <iframe src="${SITE}/embed?look=bloom" style="position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0.55"></iframe>
+  <div style="position:relative;max-width:760px;margin:0 auto">
+    <span style="color:#d99c66;font-family:monospace;letter-spacing:0.14em;font-size:11px">● TIME-TO-POWER INTELLIGENCE</span>
+    <h1 style="color:#f5f0e2;font-size:72px;margin:16px 0">Read the signals that shape every project.</h1>
+    <a style="background:#d99c66;color:#1d1a16;padding:14px 24px;text-decoration:none;border-radius:8px">Request a Trial Analysis</a>
+  </div>
+</section>`,
+};
+
+const CodeReference = () => {
+  const [openId, setOpenId] = useState(null);
+  return (
+    <section className="examples-block">
+      <h2 className="examples-block-title">Steal any of these.</h2>
+      <p className="examples-block-lede">
+        Click a name to expand the raw HTML. Tweak colors, swap the preset,
+        paste anywhere that takes an iframe.
+      </p>
+      <div className="examples-code-list">
+        {SHOWCASES.map((s) => (
+          <details
+            key={s.id}
+            className="examples-code-item"
+            open={openId === s.id}
+            onToggle={(e) => {
+              if (e.currentTarget.open) setOpenId(s.id);
+              else if (openId === s.id) setOpenId(null);
+            }}
+          >
+            <summary className="examples-code-summary">
+              <span>{s.name}</span>
+              <span className="examples-code-summary-hint">View HTML →</span>
+            </summary>
+            <div className="examples-code-body">
+              <CodeBlock language="html">{CODE_SNIPPETS[s.id]}</CodeBlock>
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+// --- Page ------------------------------------------------------------------
 
 export const ExamplesPage = () => {
   useBodyScrollable();
@@ -142,153 +708,46 @@ export const ExamplesPage = () => {
     };
     setMeta(
       'meta[name="description"]',
-      "Real-world examples of using Globestudio in hero sections, card components, stat tiles, split layouts, and ambient footers. Copy-paste HTML.",
+      "Real-world examples of Globestudio in product marketing — Pachama, Vercel, Profound, Linear, Stripe, Earthscale. Six full-screen hero showcases plus card and stat patterns. Copy-paste HTML.",
     );
   }, []);
+
+  const activeId = useActiveShowcase(SHOWCASES.map((s) => s.id));
 
   return (
     <>
       <TakeoverNav />
-      <main className="examples-page docs-page">
-        <header className="docs-page-header">
+      <main className="examples-page examples-page--showcase">
+        <header className="examples-hero">
           <a
-            className="docs-page-brand takeover-page-brand"
+            className="examples-hero-brand takeover-page-brand"
             href="/"
             aria-label="Globestudio home"
           >
             <DottedGlobe size={56} />
           </a>
-          <h1 className="docs-page-title">Examples</h1>
-          <p className="docs-page-lede">
-            Real-world layouts built on the <code>/embed</code> iframe. Each
-            preview below is a live globe — copy the HTML to drop the same
-            pattern into your site.
+          <h1 className="examples-hero-title">Real-world examples</h1>
+          <p className="examples-hero-lede">
+            Six hero showcases in the actual palette + voice of six products
+            you already know — Pachama, Vercel, Profound, Linear, Stripe,
+            Earthscale. Then cards. Then stats. Steal any of it.
           </p>
         </header>
 
-        <div className="docs-page-content">
-          <section className="docs-section">
-            <SectionHeading id="hero" className="docs-section-title">
-              Hero section
-            </SectionHeading>
-            <p>
-              Full-width landing hero. The globe sits as a background layer
-              with headline + CTA composited on top — works for SaaS, fintech,
-              and any product with a global story.
-            </p>
-            <div className="example-preview example-preview--hero">
-              <iframe
-                className="example-preview-bg"
-                src={EMBED("aurora")}
-                title="Aurora globe preview"
-                loading="lazy"
-              />
-              <div className="example-preview-content">
-                <h2>Reach every market</h2>
-                <p>Designer-first dotted maps and animated 3D globes.</p>
-                <span className="example-preview-cta">Start free →</span>
-              </div>
-            </div>
-            <CodeBlock language="html">{HERO_SNIPPET}</CodeBlock>
-          </section>
+        <ShowcaseChipNav activeId={activeId} />
 
-          <section className="docs-section">
-            <SectionHeading id="card" className="docs-section-title">
-              Card component
-            </SectionHeading>
-            <p>
-              Product card with the globe as the visual element on top. Great
-              for feature grids on marketing pages or dashboards.
-            </p>
-            <div className="example-preview example-preview--card">
-              <iframe
-                src={EMBED("halftone")}
-                title="Halftone globe preview"
-                loading="lazy"
-              />
-              <div className="example-preview-card-body">
-                <strong>Worldwide coverage</strong>
-                <span>180+ countries, 24/7 monitoring.</span>
-              </div>
-            </div>
-            <CodeBlock language="html">{CARD_SNIPPET}</CodeBlock>
-          </section>
-
-          <section className="docs-section">
-            <SectionHeading id="stat" className="docs-section-title">
-              Stat tile
-            </SectionHeading>
-            <p>
-              Small metric block with the globe as a supporting illustration.
-              Pairs the kind of data point you'd put on an analytics page or a
-              press release.
-            </p>
-            <div className="example-preview example-preview--stat">
-              <iframe
-                src={EMBED("newsprint")}
-                title="Newsprint globe preview"
-                loading="lazy"
-              />
-              <div className="example-preview-stat-meta">
-                <strong>4.2M</strong>
-                <span>data points worldwide</span>
-              </div>
-            </div>
-            <CodeBlock language="html">{STAT_SNIPPET}</CodeBlock>
-          </section>
-
-          <section className="docs-section">
-            <SectionHeading id="split" className="docs-section-title">
-              Split layout
-            </SectionHeading>
-            <p>
-              Classic two-column section — copy on one side, globe on the
-              other. Stacks to a single column on narrow viewports.
-            </p>
-            <div className="example-preview example-preview--split">
-              <div className="example-preview-split-copy">
-                <h2>Built for global teams</h2>
-                <p>Time zones, languages, currencies — all handled.</p>
-                <ul>
-                  <li>180+ countries</li>
-                  <li>40 currencies</li>
-                  <li>24/7 support</li>
-                </ul>
-              </div>
-              <iframe
-                className="example-preview-split-globe"
-                src={EMBED("risograph")}
-                title="Risograph globe preview"
-                loading="lazy"
-              />
-            </div>
-            <CodeBlock language="html">{SPLIT_SNIPPET}</CodeBlock>
-          </section>
-
-          <section className="docs-section">
-            <SectionHeading id="footer" className="docs-section-title">
-              Ambient footer
-            </SectionHeading>
-            <p>
-              Subtle globe as a backdrop for the page footer. Reduced opacity
-              keeps the text readable while the motion still ties the bottom
-              of the page back to the product's global identity.
-            </p>
-            <div className="example-preview example-preview--footer">
-              <iframe
-                src={EMBED("topographic")}
-                title="Topographic globe preview"
-                loading="lazy"
-              />
-              <div className="example-preview-footer-content">
-                <p>© 2026 Acme Inc. — operating in 64 countries.</p>
-              </div>
-            </div>
-            <CodeBlock language="html">{FOOTER_SNIPPET}</CodeBlock>
-          </section>
+        <div className="showcase-stack">
+          <PachamaShowcase />
+          <VercelShowcase />
+          <ProfoundShowcase />
+          <LinearShowcase />
+          <StripeShowcase />
+          <EarthscaleShowcase />
         </div>
 
-        <OnThisPage sections={TOC} />
+        <CardsGallery />
+        <StatsGallery />
+        <CodeReference />
 
         <PagePager />
       </main>
