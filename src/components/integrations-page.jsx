@@ -139,8 +139,14 @@ const ReactLogo = ({ size = 28 }) => (
   </svg>
 );
 
-const REPO_DOCS = "https://github.com/alevizio/globestudio/blob/main/docs/integrations";
-
+// Each card is now self-sufficient: brand logo, one-line blurb, the
+// exact snippet to paste with a copy button. The "Full recipe → GitHub"
+// link used to live here as a fallback when the page was just a stub,
+// but the snippet IS the recipe — sending designers off to read a raw
+// .md on github.com was strictly worse UX. If a platform-native CTA
+// fits (an install link for a published Figma plugin, an npm install
+// line, a wordpress.org plugin slug), add it via `cta: { href, label }`
+// per entry; otherwise the card is complete.
 const INTEGRATIONS = [
   {
     id: "webflow",
@@ -158,7 +164,6 @@ const INTEGRATIONS = [
   loading="lazy"
   title="Globestudio dotted globe"
 ></iframe>`,
-    recipe: `${REPO_DOCS}/webflow.md`,
   },
   {
     id: "framer",
@@ -169,7 +174,6 @@ const INTEGRATIONS = [
     blurb:
       "Add an Embed component, paste the iframe URL, pick auto-resize. Works in Free + Pro projects, no plugin install.",
     snippet: `https://globestudio.app/embed?look=aurora`,
-    recipe: `${REPO_DOCS}/framer.md`,
   },
   {
     id: "figma",
@@ -178,9 +182,8 @@ const INTEGRATIONS = [
     bg: "#0a0a0a",
     fg: "#ffffff",
     blurb:
-      "Use the Globestudio plugin (or any iframe-aware embed plugin). Renders inside FigJam frames too.",
+      "Paste the URL into any FigJam frame — Figma's FigJam canvas supports iframes natively. A dedicated Figma plugin (for design files) is in the oven.",
     snippet: `https://globestudio.app/embed?look=risograph`,
-    recipe: `${REPO_DOCS}/figma.md`,
   },
   {
     id: "notion",
@@ -191,7 +194,6 @@ const INTEGRATIONS = [
     blurb:
       "Type /embed, paste the URL, choose Display as embed. The globe scales to the column width.",
     snippet: `https://globestudio.app/embed?look=iridescent`,
-    recipe: `${REPO_DOCS}/notion.md`,
   },
   {
     id: "wordpress",
@@ -208,11 +210,10 @@ const INTEGRATIONS = [
   style="border:0"
   loading="lazy"
 ></iframe>`,
-    recipe: `${REPO_DOCS}/wordpress.md`,
   },
   {
     id: "html",
-    name: "Plain HTML",
+    name: "Vanilla JS / Script tag",
     Logo: HtmlLogo,
     bg: "#E34F26",
     fg: "#ffffff",
@@ -220,7 +221,6 @@ const INTEGRATIONS = [
       "Drop a div + the one-line script-tag loader. Reads data-look / data-config from the div, no install.",
     snippet: `<div data-globestudio data-look="bayer" style="height:480px"></div>
 <script src="https://globestudio.app/embed.js" async></script>`,
-    recipe: `${REPO_DOCS}/html.md`,
   },
   {
     id: "react",
@@ -240,7 +240,6 @@ const INTEGRATIONS = [
     title="Globestudio dotted globe"
   />
 );`,
-    recipe: `${REPO_DOCS}/react.md`,
   },
 ];
 
@@ -301,10 +300,14 @@ export const IntegrationsPage = () => {
             >
               {tool.snippet}
             </CodeBlock>
-            {tool.recipe && (
+            {tool.cta && (
               <p className="integrations-recipe">
-                <a href={tool.recipe} target="_blank" rel="noreferrer noopener">
-                  Full recipe →
+                <a
+                  href={tool.cta.href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  {tool.cta.label} →
                 </a>
               </p>
             )}
