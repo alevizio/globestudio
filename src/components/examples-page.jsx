@@ -4,6 +4,69 @@ import { PagePager } from "./ui/page-pager.jsx";
 import { DottedGlobe } from "./icons.jsx";
 import { TakeoverNav } from "./ui/takeover-nav.jsx";
 import { CodeBlock } from "./ui/code-block.jsx";
+import { buildShareUrl } from "../utils/share-config.js";
+
+// Per-company globe configs — palette-matched so the rendered globe
+// reads as part of the brand instead of a default Globestudio mark.
+// Each is fed through buildShareUrl(config, site, "/embed") to produce
+// the canonical /embed?c=… URL the iframe loads.
+const BRAND_GLOBES = {
+  pachama: {
+    selection: "world",
+    background: "#F4F1EA",
+    dotColor: "#0E3B2E",
+    worldFill: "#F4F1EA",
+    worldStroke: "#0E3B2E",
+    dotsVisible: true,
+    shape: "Circle",
+    density: 38,
+  },
+  vercel: {
+    selection: "world",
+    background: "#000000",
+    dotColor: "#FFFFFF",
+    worldFill: "#0A0A0A",
+    worldStroke: "#1F1F1F",
+    shape: "Circle",
+    density: 42,
+  },
+  profound: {
+    selection: "world",
+    background: "#0B1F4B",
+    dotColor: "#00B3A4",
+    worldFill: "#0B1F4B",
+    worldStroke: "#1A3070",
+    shape: "Circle",
+    density: 40,
+  },
+  linear: {
+    selection: "world",
+    background: "#08090A",
+    dotColor: "#5E6AD2",
+    worldFill: "#08090A",
+    worldStroke: "#1a1a22",
+    shape: "Circle",
+    density: 42,
+  },
+  stripe: {
+    selection: "world",
+    background: "#0A2540",
+    dotColor: "#635BFF",
+    worldFill: "#0A2540",
+    worldStroke: "#1a3a6a",
+    shape: "Circle",
+    density: 42,
+  },
+  earthscale: {
+    selection: "world",
+    background: "#1d1a16",
+    dotColor: "#d99c66",
+    worldFill: "#1d1a16",
+    worldStroke: "#3a3128",
+    shape: "Circle",
+    density: 38,
+  },
+};
 
 // /examples — full-screen showcase of how 6 real products could use
 // Globestudio in their own marketing. Each section is styled in the
@@ -21,6 +84,16 @@ import { CodeBlock } from "./ui/code-block.jsx";
 
 const EMBED_BASE = "https://globestudio.app/embed";
 const SITE = "https://globestudio.app";
+
+// Construct a brand-tinted embed URL from a partial config (look +
+// colors). Routes through the canonical share-URL encoder so any
+// schema change in normalizeConfig propagates here automatically.
+const brandEmbedUrl = (look, brandKey, source) => {
+  const config = { ...BRAND_GLOBES[brandKey], ...(look ? { look } : {}) };
+  const url = new URL(buildShareUrl(config, SITE, "/embed"));
+  if (source) url.searchParams.set("source", source);
+  return url.toString();
+};
 
 const SHOWCASES = [
   { id: "pachama", name: "Pachama" },
@@ -106,6 +179,129 @@ const LazyGlobe = ({ src, className, title, style }) => {
   );
 };
 
+// --- Brand marks (SVG) -----------------------------------------------------
+// Editorial / nominative-fair-use — same precedent as /integrations page
+// which uses Webflow, Framer, Figma, Notion, WordPress marks. Each is the
+// minimum recognizable shape so the showcase reads as "obviously [brand]"
+// without copying a full logo asset wholesale.
+
+const VercelMark = ({ size = 22 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 2L24 22H0L12 2Z" />
+  </svg>
+);
+
+const LinearMark = ({ size = 22 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+    <defs>
+      <linearGradient id="lg-linear" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#5E6AD2" />
+        <stop offset="100%" stopColor="#9d8bff" />
+      </linearGradient>
+    </defs>
+    <path
+      fill="url(#lg-linear)"
+      d="M1.22.27c-.27.49-.27 1.07-.27 2.23v95c0 1.16 0 1.74.27 2.23.22.42.57.78 1 1 .49.27 1.07.27 2.23.27h91.1c1.16 0 1.74 0 2.23-.27.42-.22.78-.58 1-1 .27-.49.27-1.07.27-2.23v-95c0-1.16 0-1.74-.27-2.23-.22-.42-.58-.78-1-1C97.29 0 96.71 0 95.55 0H4.45c-1.16 0-1.74 0-2.23.27-.42.22-.78.58-1 1z"
+    />
+  </svg>
+);
+
+const StripeMark = ({ size = 22 }) => (
+  // Stripe's word IS the mark — render as styled text.
+  <span
+    style={{
+      fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
+      fontWeight: 700,
+      fontSize: size,
+      letterSpacing: "-0.04em",
+      fontStyle: "italic",
+      lineHeight: 1,
+      color: "currentColor",
+    }}
+  >
+    stripe
+  </span>
+);
+
+const PachamaMark = ({ size = 18 }) => (
+  <span
+    style={{
+      fontFamily: 'ui-serif, "Fraunces", Georgia, serif',
+      fontWeight: 500,
+      fontSize: size,
+      letterSpacing: "-0.01em",
+      lineHeight: 1,
+      color: "currentColor",
+    }}
+  >
+    pachama
+  </span>
+);
+
+const ProfoundMark = ({ size = 18 }) => (
+  <span
+    style={{
+      fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
+      fontWeight: 700,
+      fontSize: size,
+      letterSpacing: "-0.02em",
+      lineHeight: 1,
+      color: "currentColor",
+    }}
+  >
+    Profound
+  </span>
+);
+
+const EarthscaleMark = ({ size = 16 }) => (
+  <span
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      fontFamily: 'ui-serif, "Fraunces", Georgia, serif',
+      fontWeight: 500,
+      fontSize: size,
+      letterSpacing: "0",
+      lineHeight: 1,
+      color: "currentColor",
+    }}
+  >
+    <span
+      aria-hidden="true"
+      style={{
+        display: "inline-block",
+        width: 12,
+        height: 12,
+        borderRadius: "50%",
+        background: "currentColor",
+        opacity: 0.9,
+      }}
+    />
+    earthscale
+  </span>
+);
+
+// --- Faked company navbars -------------------------------------------------
+// Each navbar is non-interactive (spans not links) — they're decorative
+// chrome to make the hero feel like it's sitting on the real product page.
+
+const CompanyNav = ({ brand, items, right, style }) => (
+  <div className="showcase-nav" style={style}>
+    <div className="showcase-nav-inner">
+      <div className="showcase-nav-brand">{brand}</div>
+      <div className="showcase-nav-items">
+        {items.map((label) => (
+          <span key={label} className="showcase-nav-item">
+            {label}
+          </span>
+        ))}
+      </div>
+      <div className="showcase-nav-right">{right}</div>
+    </div>
+  </div>
+);
+
 // --- Per-company showcase sections -----------------------------------------
 
 const PachamaShowcase = () => (
@@ -118,6 +314,19 @@ const PachamaShowcase = () => (
       fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
     }}
   >
+    <CompanyNav
+      brand={<PachamaMark size={20} />}
+      items={["Projects", "Platform", "Resources", "About"]}
+      right={
+        <>
+          <span className="showcase-nav-link" style={{ color: "#0E3B2E", opacity: 0.7 }}>Sign in</span>
+          <span className="showcase-nav-cta" style={{ background: "#0E3B2E", color: "#F4F1EA" }}>
+            Get in touch
+          </span>
+        </>
+      }
+      style={{ borderBottom: "1px solid rgba(14, 59, 46, 0.12)", color: "#0E3B2E" }}
+    />
     <div className="showcase-inner showcase-inner--centered">
       <span className="showcase-eyebrow" style={{ color: "#0E3B2E", opacity: 0.6 }}>
         CARBON REMOVAL · NATURE
@@ -137,7 +346,7 @@ const PachamaShowcase = () => (
         </span>
       </div>
       <LazyGlobe
-        src={`${EMBED_BASE}?look=topographic&source=examples-pachama`}
+        src={brandEmbedUrl("topographic", "pachama", "examples-pachama")}
         title="Pachama-flavored globe"
         className="showcase-globe"
         style={{
@@ -177,6 +386,25 @@ const VercelShowcase = () => (
       fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     }}
   >
+    <CompanyNav
+      brand={
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#fff", fontWeight: 700, letterSpacing: "-0.02em", fontSize: 17 }}>
+          <VercelMark size={18} />
+          Vercel
+        </span>
+      }
+      items={["Products", "Solutions", "Resources", "Enterprise", "Docs", "Pricing"]}
+      right={
+        <>
+          <span className="showcase-nav-link" style={{ color: "#A1A1A1" }}>Contact</span>
+          <span className="showcase-nav-link" style={{ color: "#A1A1A1" }}>Log In</span>
+          <span className="showcase-nav-cta" style={{ background: "#fff", color: "#000" }}>
+            Sign Up
+          </span>
+        </>
+      }
+      style={{ borderBottom: "1px solid #1F1F1F", color: "#EDEDED" }}
+    />
     <div className="showcase-inner showcase-inner--centered">
       <span className="showcase-eyebrow" style={{ color: "#A1A1A1" }}>
         EDGE NETWORK
@@ -206,7 +434,7 @@ const VercelShowcase = () => (
         </span>
       </div>
       <LazyGlobe
-        src={`${EMBED_BASE}?look=default&source=examples-vercel`}
+        src={brandEmbedUrl("default", "vercel", "examples-vercel")}
         title="Vercel-flavored globe"
         className="showcase-globe"
         style={{
@@ -255,6 +483,19 @@ const ProfoundShowcase = () => (
       fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
     }}
   >
+    <CompanyNav
+      brand={<ProfoundMark size={18} />}
+      items={["Platform", "Pricing", "Customers", "Company"]}
+      right={
+        <>
+          <span className="showcase-nav-link" style={{ color: "#6B7280" }}>Sign in</span>
+          <span className="showcase-nav-cta" style={{ background: "#0B1F4B", color: "#fff" }}>
+            Get a Demo
+          </span>
+        </>
+      }
+      style={{ borderBottom: "1px solid rgba(11, 31, 75, 0.08)", color: "#0B1F4B" }}
+    />
     <div className="showcase-inner showcase-inner--split">
       <div className="showcase-copy">
         <span className="showcase-eyebrow" style={{ color: "#00B3A4", letterSpacing: "0.14em" }}>
@@ -276,7 +517,7 @@ const ProfoundShowcase = () => (
         </div>
       </div>
       <LazyGlobe
-        src={`${EMBED_BASE}?look=default&source=examples-profound`}
+        src={brandEmbedUrl("default", "profound", "examples-profound")}
         title="Profound-flavored globe"
         className="showcase-globe showcase-globe--side"
         style={{
@@ -303,6 +544,24 @@ const LinearShowcase = () => (
       fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif',
     }}
   >
+    <CompanyNav
+      brand={
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#F7F8F8", fontWeight: 600, letterSpacing: "-0.01em", fontSize: 16 }}>
+          <LinearMark size={18} />
+          Linear
+        </span>
+      }
+      items={["Product", "Pricing", "Customers", "Method", "Now"]}
+      right={
+        <>
+          <span className="showcase-nav-link" style={{ color: "rgba(247,248,248,0.7)" }}>Log in</span>
+          <span className="showcase-nav-cta" style={{ background: "#F7F8F8", color: "#08090A" }}>
+            Sign up
+          </span>
+        </>
+      }
+      style={{ borderBottom: "1px solid rgba(247, 248, 248, 0.08)", color: "#F7F8F8" }}
+    />
     <div className="showcase-inner showcase-inner--centered">
       <span className="showcase-eyebrow" style={{ color: "#5E6AD2" }}>
         BUILT FOR PRODUCT TEAMS
@@ -340,7 +599,7 @@ const LinearShowcase = () => (
           }}
         />
         <LazyGlobe
-          src={`${EMBED_BASE}?look=aurora&source=examples-linear`}
+          src={brandEmbedUrl("aurora", "linear", "examples-linear")}
           title="Linear-flavored globe"
           className="showcase-globe"
           style={{
@@ -380,6 +639,22 @@ const StripeShowcase = () => (
       fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
     }}
   >
+    <CompanyNav
+      brand={<StripeMark size={26} />}
+      items={["Products", "Solutions", "Developers", "Resources", "Pricing"]}
+      right={
+        <>
+          <span className="showcase-nav-link" style={{ color: "#0A2540" }}>Sign in</span>
+          <span className="showcase-nav-cta" style={{ background: "#635BFF", color: "#fff" }}>
+            Contact sales →
+          </span>
+        </>
+      }
+      style={{
+        borderBottom: "1px solid rgba(10, 37, 64, 0.08)",
+        color: "#0A2540",
+      }}
+    />
     <div className="showcase-inner showcase-inner--centered">
       <span className="showcase-eyebrow" style={{ color: "#635BFF" }}>
         GLOBAL PAYMENTS
@@ -399,7 +674,7 @@ const StripeShowcase = () => (
         </span>
       </div>
       <LazyGlobe
-        src={`${EMBED_BASE}?look=default&source=examples-stripe`}
+        src={brandEmbedUrl("default", "stripe", "examples-stripe")}
         title="Stripe-flavored globe"
         className="showcase-globe"
         style={{
@@ -442,7 +717,7 @@ const EarthscaleShowcase = () => (
     }}
   >
     <LazyGlobe
-      src={`${EMBED_BASE}?look=bloom&source=examples-earthscale`}
+      src={brandEmbedUrl("bloom", "earthscale", "examples-earthscale")}
       title="Earthscale-flavored globe"
       className="showcase-globe-backdrop"
       style={{
@@ -461,6 +736,26 @@ const EarthscaleShowcase = () => (
         background:
           "linear-gradient(180deg, rgba(29,26,22,0.65) 0%, rgba(29,26,22,0.35) 40%, rgba(29,26,22,0.85) 100%)",
         pointerEvents: "none",
+      }}
+    />
+    <CompanyNav
+      brand={<EarthscaleMark size={16} />}
+      items={["Team"]}
+      right={
+        <>
+          <span className="showcase-nav-link" style={{ color: "rgba(236, 231, 218, 0.7)", fontFamily: 'ui-sans-serif, system-ui' }}>Book a Demo</span>
+          <span className="showcase-nav-cta" style={{ background: "#d99c66", color: "#1d1a16", boxShadow: "0 0 0 4px rgba(217, 156, 102, 0.2)" }}>
+            Request Trial
+          </span>
+        </>
+      }
+      style={{
+        position: "relative",
+        zIndex: 1,
+        borderBottom: "1px solid rgba(236, 231, 218, 0.08)",
+        color: "#ece7da",
+        background: "rgba(29, 26, 22, 0.4)",
+        backdropFilter: "blur(12px)",
       }}
     />
     <div className="showcase-inner showcase-inner--centered" style={{ position: "relative" }}>
@@ -538,12 +833,12 @@ const CardsGallery = () => (
     </p>
     <div className="examples-cards-grid">
       {[
-        { look: "topographic", title: "Reforestation, verified.", meta: "Pará, Brazil · 12,400 ha", bg: "#F4F1EA", fg: "#0E3B2E", accent: "#F25C3B" },
-        { look: "default", title: "Edge regions, live.", meta: "iad1 · fra1 · sin1 · syd1", bg: "#000", fg: "#EDEDED", accent: "#FF0080" },
-        { look: "iridescent", title: "AI prompt density.", meta: "150+ regions · 30+ languages", bg: "#FAFAFA", fg: "#0A0A0A", accent: "#00B3A4" },
-        { look: "aurora", title: "Issue spread by team.", meta: "25,000 teams · global", bg: "#08090A", fg: "#F7F8F8", accent: "#5E6AD2" },
-        { look: "default", title: "Where payments flow.", meta: "200+ countries · live mesh", bg: "#F6F9FC", fg: "#0A2540", accent: "#635BFF" },
-        { look: "bloom", title: "Power projects, parsed.", meta: "7 continents · 62 grids", bg: "#1d1a16", fg: "#ece7da", accent: "#d99c66" },
+        { brand: "pachama",    look: "topographic", title: "Reforestation, verified.",   meta: "Pará, Brazil · 12,400 ha",    bg: "#F4F1EA", fg: "#0E3B2E", accent: "#F25C3B" },
+        { brand: "vercel",     look: "default",     title: "Edge regions, live.",        meta: "iad1 · fra1 · sin1 · syd1",   bg: "#000",    fg: "#EDEDED", accent: "#FF0080" },
+        { brand: "profound",   look: "default",     title: "AI prompt density.",         meta: "150+ regions · 30+ languages", bg: "#FAFAFA", fg: "#0B1F4B", accent: "#00B3A4" },
+        { brand: "linear",     look: "aurora",      title: "Issue spread by team.",      meta: "25,000 teams · global",       bg: "#08090A", fg: "#F7F8F8", accent: "#5E6AD2" },
+        { brand: "stripe",     look: "default",     title: "Where payments flow.",       meta: "200+ countries · live mesh",  bg: "#F6F9FC", fg: "#0A2540", accent: "#635BFF" },
+        { brand: "earthscale", look: "bloom",       title: "Power projects, parsed.",    meta: "7 continents · 62 grids",     bg: "#1d1a16", fg: "#ece7da", accent: "#d99c66" },
       ].map((card) => (
         <article
           key={card.title}
@@ -551,16 +846,13 @@ const CardsGallery = () => (
           style={{ background: card.bg, color: card.fg }}
         >
           <LazyGlobe
-            src={`${EMBED_BASE}?look=${card.look}&source=examples-card`}
+            src={brandEmbedUrl(card.look, card.brand, "examples-card")}
             title={card.title}
             className="examples-card-globe"
             style={{
               width: "100%",
               aspectRatio: "16 / 10",
-              background:
-                card.bg === "#FAFAFA" || card.bg === "#F4F1EA" || card.bg === "#F6F9FC"
-                  ? "#0A0A0A"
-                  : card.bg,
+              background: BRAND_GLOBES[card.brand].background,
             }}
           />
           <div className="examples-card-body">
@@ -584,10 +876,10 @@ const StatsGallery = () => (
     </p>
     <div className="examples-stats-grid">
       {[
-        { look: "default", value: "126", label: "Edge PoPs across the globe", bg: "#000", fg: "#EDEDED" },
-        { look: "default", value: "$1.9T", label: "processed in 2025", bg: "#F6F9FC", fg: "#0A2540" },
-        { look: "topographic", value: "30M+", label: "tonnes CO₂ under management", bg: "#F4F1EA", fg: "#0E3B2E" },
-        { look: "iridescent", value: "1.5B", label: "AI prompts analyzed", bg: "#FAFAFA", fg: "#0A0A0A" },
+        { brand: "vercel",   look: "default",     value: "126",   label: "Edge PoPs across the globe", bg: "#000",    fg: "#EDEDED" },
+        { brand: "stripe",   look: "default",     value: "$1.9T", label: "processed in 2025",          bg: "#F6F9FC", fg: "#0A2540" },
+        { brand: "pachama",  look: "topographic", value: "30M+",  label: "tonnes CO₂ under management", bg: "#F4F1EA", fg: "#0E3B2E" },
+        { brand: "profound", look: "default",     value: "1.5B",  label: "AI prompts analyzed",        bg: "#FAFAFA", fg: "#0B1F4B" },
       ].map((stat) => (
         <div
           key={stat.label}
@@ -595,14 +887,14 @@ const StatsGallery = () => (
           style={{ background: stat.bg, color: stat.fg }}
         >
           <LazyGlobe
-            src={`${EMBED_BASE}?look=${stat.look}&source=examples-stat`}
+            src={brandEmbedUrl(stat.look, stat.brand, "examples-stat")}
             title={stat.label}
             className="examples-stat-globe"
             style={{
               width: 100,
               height: 100,
               flexShrink: 0,
-              background: stat.bg === "#000" ? "#000" : "#0A0A0A",
+              background: BRAND_GLOBES[stat.brand].background,
               borderRadius: 8,
               overflow: "hidden",
             }}

@@ -1393,20 +1393,99 @@ button {
 .showcase {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 32px;
+  flex-direction: column;
   position: relative;
 }
 
 .showcase-inner {
+  flex: 1 1 auto;
   width: 100%;
   max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 32px 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 24px;
   text-align: center;
+}
+
+/* Faked-but-faithful company navbars — sit at the top of each
+   showcase so the hero below feels like it's living on the real
+   product page. Non-interactive: rendered as spans not links. */
+.showcase-nav {
+  width: 100%;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.showcase-nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.showcase-nav-brand {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.showcase-nav-items {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  overflow: hidden;
+}
+
+.showcase-nav-item {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.85;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.showcase-nav-right {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.showcase-nav-link {
+  font-size: 13px;
+  font-weight: 500;
+  cursor: default;
+}
+
+.showcase-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: default;
+}
+
+@media (max-width: 720px) {
+  .showcase-nav-inner {
+    padding: 12px 16px;
+    gap: 16px;
+    font-size: 12px;
+  }
+  .showcase-nav-items { display: none; }
+  .showcase-nav-right { gap: 10px; }
+  .showcase-nav-link { display: none; }
 }
 
 .showcase-inner--split {
