@@ -61,7 +61,18 @@ export const LooksBar = ({ onPick, appliedId = null, currentId = null }) => {
             data-tooltip={preset.blurb}
             onClick={() => onPick(preset)}
           >
-            <span>{preset.name}</span>
+            <span className="looks-chip-thumb" aria-hidden="true">
+              <img
+                src={`/looks/${preset.id}.png`}
+                alt=""
+                loading="lazy"
+                draggable="false"
+                onError={(event) => {
+                  event.currentTarget.style.display = "none";
+                }}
+              />
+            </span>
+            <span className="looks-chip-label">{preset.name}</span>
           </button>
         </li>
       ))}

@@ -237,7 +237,6 @@ button {
 .brand-page,
 .docs-page,
 .changelog-page,
-.integrations-page,
 .privacy-page {
   position: relative;
   min-height: 100svh;
@@ -257,7 +256,6 @@ button {
 .brand-page-header,
 .docs-page-header,
 .changelog-page-header,
-.integrations-page-header,
 .privacy-page-header {
   margin-bottom: 36px;
 }
@@ -269,7 +267,6 @@ button {
 .brand-page-brand,
 .docs-page-brand,
 .changelog-page-brand,
-.integrations-page-brand,
 .privacy-page-brand {
   display: inline-flex;
   align-items: center;
@@ -287,7 +284,6 @@ button {
 .brand-page-brand:hover,
 .docs-page-brand:hover,
 .changelog-page-brand:hover,
-.integrations-page-brand:hover,
 .privacy-page-brand:hover {
   opacity: 0.7;
   text-decoration: none;
@@ -296,7 +292,6 @@ button {
 .brand-page-title,
 .docs-page-title,
 .changelog-page-title,
-.integrations-page-title,
 .privacy-page-title {
   margin: 0 0 10px;
   font-size: 32px;
@@ -307,7 +302,6 @@ button {
 .brand-page-lede,
 .docs-page-lede,
 .changelog-page-lede,
-.integrations-page-lede,
 .privacy-page-lede {
   margin: 0;
   color: var(--muted);
@@ -393,41 +387,22 @@ button {
   font-weight: 700;
   letter-spacing: 0.01em;
   text-decoration: none;
-  /* Pixel-stepped corners on the chip itself so hover + active states
-     read as proper pixel-art badges. 4px notch matches the kbd / code
-     block scale at this small link size. */
-  clip-path: polygon(
-    0 4px,
-    4px 4px,
-    4px 0,
-    calc(100% - 4px) 0,
-    calc(100% - 4px) 4px,
-    100% 4px,
-    100% calc(100% - 4px),
-    calc(100% - 4px) calc(100% - 4px),
-    calc(100% - 4px) 100%,
-    4px 100%,
-    4px calc(100% - 4px),
-    0 calc(100% - 4px)
-  );
   transition:
     color 140ms var(--ease),
     background 140ms var(--ease);
 }
 
 .takeover-nav-link:hover {
-  /* Cyan tint on hover so hover + active live in the same color family
-     — the chip lights up slightly, signaling "this is interactive". */
-  color: #8ddfff;
-  background: rgba(141, 223, 255, 0.12);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* Active link gets the full cyan accent that other takeover-page links
-   use, so the "you are here" indicator stays consistent with the
-   product's inline-link hue. */
+/* Active link gets the cyan accent that other takeover-page links use,
+   so the "you are here" indicator stays consistent with the product's
+   inline-link hue. */
 .takeover-nav-link.is-active {
   color: #8ddfff;
-  background: rgba(141, 223, 255, 0.22);
+  background: rgba(141, 223, 255, 0.1);
 }
 
 /* Theme toggle button — same `takeover-nav-link` visual weight but
@@ -539,9 +514,6 @@ button {
 }
 
 .code-block-copy {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   padding: 4px 10px;
   border: 0;
   background: transparent;
@@ -638,67 +610,21 @@ button {
 }
 
 .on-this-page-link {
-  /* Inline-block so the ::before bullet sits inline next to the label
-     and the link only grows to its content width. Padding gives a
-     proper click target without making the whole row clickable. */
-  position: relative;
   display: block;
-  padding: 4px 0 4px 14px;
+  padding: 4px 0;
   color: var(--muted) !important;
   font-size: 12px;
   font-weight: 600;
   text-decoration: none !important;
-  transition:
-    color 220ms var(--ease),
-    transform 220ms var(--ease);
-}
-
-.on-this-page-link::before {
-  /* 2-pixel bullet that stays muted until the link is hovered or
-     becomes active — gives the eye a clear "you are here" cue without
-     a heavy underline or background chip. */
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 4px;
-  height: 4px;
-  margin-top: -2px;
-  background: var(--dim);
-  opacity: 0;
-  transform: translateX(-2px);
-  transition:
-    opacity 220ms var(--ease),
-    transform 220ms var(--ease),
-    background 220ms var(--ease);
+  transition: color 140ms var(--ease);
 }
 
 .on-this-page-link:hover {
   color: var(--text) !important;
-  transform: translateX(1px);
-}
-
-.on-this-page-link:hover::before {
-  opacity: 0.5;
-  transform: translateX(0);
 }
 
 .on-this-page-link.is-active {
   color: #8ddfff !important;
-  transform: translateX(2px);
-}
-
-.on-this-page-link.is-active::before {
-  opacity: 1;
-  background: #8ddfff;
-  transform: translateX(0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .on-this-page-link,
-  .on-this-page-link::before {
-    transition: none;
-  }
 }
 
 /* Hide the floating TOC below the threshold where it would overlap
@@ -772,17 +698,10 @@ button {
 }
 
 .page-pager-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
   color: var(--text);
   font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.01em;
-}
-
-.page-pager-next .page-pager-label {
-  flex-direction: row-reverse;
 }
 
 /* On the cyan-link-using takeover pages, override the underline rule
@@ -800,102 +719,8 @@ button {
   margin-top: 40px;
 }
 
-/* Integration sections render as proper cards — pixel-cornered chrome,
-   panel-3 bg, section title pinned at top, body + code below, and a
-   trailing "Full recipe →" CTA in the panel's accent cyan. Reads as
-   a stack of equally-weighted recipes the visitor can scan.
-   No border — the pixel-corner clip-path + panel-2 bg already
-   defines the card edge; the stroke was creating a 1px outline
-   that read as extra visual weight. */
-.integrations-section {
-  margin-top: 24px;
-  padding: 24px 24px 16px;
-  background:
-    linear-gradient(var(--panel-2), var(--panel-2)),
-    var(--bg);
-  border: 0;
-  border-radius: 0;
-  clip-path: polygon(
-    0px 9px,
-    0px 3px,
-    3px 3px,
-    3px 0px,
-    9px 0px,
-    calc(100% - 9px) 0px,
-    calc(100% - 3px) 0px,
-    calc(100% - 3px) 3px,
-    calc(100% - 0px) 3px,
-    calc(100% - 0px) 9px,
-    calc(100% - 0px) calc(100% - 9px),
-    calc(100% - 0px) calc(100% - 3px),
-    calc(100% - 3px) calc(100% - 3px),
-    calc(100% - 3px) calc(100% - 0px),
-    calc(100% - 9px) calc(100% - 0px),
-    9px calc(100% - 0px),
-    3px calc(100% - 0px),
-    3px calc(100% - 3px),
-    0px calc(100% - 3px),
-    0px calc(100% - 9px)
-  );
-}
-
-.integrations-section-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 8px;
-}
-
-.integrations-section-logo {
-  flex: 0 0 auto;
-  /* 40×40 chip with the brand color as bg, icon centered.
-     Pixel-cornered like every other elevated surface in the app. */
-  width: 40px;
-  height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  clip-path: polygon(
-    0 6px,
-    6px 6px,
-    6px 0,
-    calc(100% - 6px) 0,
-    calc(100% - 6px) 6px,
-    100% 6px,
-    100% calc(100% - 6px),
-    calc(100% - 6px) calc(100% - 6px),
-    calc(100% - 6px) 100%,
-    6px 100%,
-    6px calc(100% - 6px),
-    0 calc(100% - 6px)
-  );
-}
-
-.integrations-section-title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--text);
-  flex: 1 1 auto;
-}
-
-.integrations-section p {
-  margin: 0 0 14px;
-}
-
-.integrations-recipe {
-  margin: 4px 0 0;
-  font-size: 13px;
-}
-
-.integrations-recipe a {
-  font-weight: 700;
-}
-
 .brand-section-title,
-.docs-section-title,
-.integrations-section-title {
+.docs-section-title {
   margin: 0 0 12px;
   font-size: 18px;
   font-weight: 700;
@@ -903,8 +728,7 @@ button {
 }
 
 .brand-section p,
-.docs-section p,
-.integrations-section p {
+.docs-section p {
   margin: 0 0 12px;
   color: var(--muted);
   max-width: 64ch;
@@ -918,7 +742,6 @@ button {
 .brand-section a,
 .docs-section a,
 .changelog-section a,
-.integrations-section a,
 .privacy-section a {
   color: #8ddfff;
   text-decoration: underline;
@@ -930,20 +753,17 @@ button {
 .brand-section a:hover,
 .docs-section a:hover,
 .changelog-section a:hover,
-.integrations-section a:hover,
 .privacy-section a:hover,
 .brand-section a:focus-visible,
 .docs-section a:focus-visible,
 .changelog-section a:focus-visible,
-.integrations-section a:focus-visible,
 .privacy-section a:focus-visible {
   color: #c8ecff;
   text-decoration-color: #c8ecff;
 }
 
 .brand-section code,
-.docs-section code,
-.integrations-section code {
+.docs-section code {
   padding: 1px 6px;
   border-radius: 4px;
   background: var(--field);
@@ -982,11 +802,11 @@ button {
 
 .brand-card-caption {
   font-size: 12px;
-  color: var(--text-soft);
+  color: var(--muted);
 }
 
 .brand-logo-card--light .brand-card-caption {
-  color: rgba(0, 0, 0, 0.72);
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .brand-link,
@@ -1294,223 +1114,6 @@ button {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-/* /examples page — live previews of common embed layouts.
-   Each .example-preview is a mini design composition: hero, card,
-   stat tile, split, or footer band. Pixel-corner 9px polygon ties
-   them visually to the rest of the docs surfaces. The iframes
-   inside are live globes; the surrounding chrome is hand-styled
-   so the preview matches what the copy-paste HTML produces. */
-.example-preview {
-  position: relative;
-  margin: 16px 0;
-  background: #0b0b0c;
-  color: #f6f2ea;
-  overflow: hidden;
-  clip-path: polygon(
-    0 9px, 9px 9px, 9px 0,
-    calc(100% - 9px) 0, calc(100% - 9px) 9px, 100% 9px,
-    100% calc(100% - 9px), calc(100% - 9px) calc(100% - 9px), calc(100% - 9px) 100%,
-    9px 100%, 9px calc(100% - 9px), 0 calc(100% - 9px)
-  );
-}
-
-.example-preview iframe {
-  border: 0;
-  display: block;
-}
-
-/* Hero — globe fills the entire frame, content sits on top with a
-   left-side dark-vignette overlay to keep the headline legible. */
-.example-preview--hero {
-  height: 360px;
-}
-
-.example-preview--hero .example-preview-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.example-preview--hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(11, 11, 12, 0.85) 0%,
-    rgba(11, 11, 12, 0.6) 35%,
-    rgba(11, 11, 12, 0.05) 70%,
-    rgba(11, 11, 12, 0) 100%
-  );
-  z-index: 1;
-  pointer-events: none;
-}
-
-.example-preview-content {
-  position: relative;
-  z-index: 2;
-  max-width: 60%;
-  padding: 48px;
-}
-
-.example-preview-content h2 {
-  margin: 0 0 8px;
-  font-size: 28px;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-}
-
-.example-preview-content p {
-  margin: 0 0 16px;
-  color: #cdc8be;
-  font-size: 15px;
-}
-
-.example-preview-cta {
-  display: inline-block;
-  padding: 10px 18px;
-  background: #3df4ff;
-  color: #0b0b0c;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-/* Card — globe on top, body underneath. Two-row grid. */
-.example-preview--card {
-  display: grid;
-  grid-template-rows: 200px auto;
-  max-width: 340px;
-  background: #131316;
-  border: 1px solid #2a2a2c;
-}
-
-.example-preview--card iframe {
-  width: 100%;
-  height: 100%;
-}
-
-.example-preview-card-body {
-  padding: 16px 20px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.example-preview-card-body strong {
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.example-preview-card-body span {
-  color: #a8a39b;
-  font-size: 14px;
-}
-
-/* Stat tile — globe to the left of a big number + label. */
-.example-preview--stat {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 24px;
-  background: #f6f2ea;
-  color: #1a1a1c;
-}
-
-.example-preview--stat iframe {
-  width: 140px;
-  height: 140px;
-  flex-shrink: 0;
-  background: #0b0b0c;
-}
-
-.example-preview-stat-meta {
-  display: flex;
-  flex-direction: column;
-}
-
-.example-preview-stat-meta strong {
-  font-size: 42px;
-  font-weight: 800;
-  color: #0b0b0c;
-  line-height: 1;
-}
-
-.example-preview-stat-meta span {
-  margin-top: 4px;
-  color: #555;
-  font-size: 14px;
-}
-
-/* Split — two equal columns. Stacks on narrow screens. */
-.example-preview--split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  align-items: center;
-  padding: 32px;
-}
-
-.example-preview-split-copy h2 {
-  margin: 0 0 12px;
-  font-size: 24px;
-  letter-spacing: -0.01em;
-}
-
-.example-preview-split-copy p {
-  margin: 0 0 12px;
-  color: #cdc8be;
-  font-size: 14px;
-}
-
-.example-preview-split-copy ul {
-  margin: 0;
-  padding-left: 18px;
-  color: #cdc8be;
-  font-size: 14px;
-}
-
-.example-preview-split-copy ul li {
-  margin-bottom: 4px;
-}
-
-.example-preview-split-globe {
-  width: 100%;
-  aspect-ratio: 1;
-}
-
-@media (max-width: 640px) {
-  .example-preview--split {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Footer — wide ambient band, globe at reduced opacity. */
-.example-preview--footer {
-  height: 200px;
-}
-
-.example-preview--footer iframe {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.55;
-}
-
-.example-preview-footer-content {
-  position: relative;
-  z-index: 1;
-  padding: 80px 32px;
-  text-align: center;
-}
-
-.example-preview-footer-content p {
-  margin: 0;
-  color: #f6f2ea;
-  font-size: 14px;
-}
-
 .docs-preset-grid {
   margin: 0;
   padding: 0;
@@ -1522,9 +1125,9 @@ button {
 
 .docs-preset-link {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
   background: var(--field);
   text-decoration: none;
   transition: background 140ms var(--ease);
@@ -1536,55 +1139,12 @@ button {
   text-decoration: none;
 }
 
-/* Real-canvas thumbnail captured by scripts/capture-thumbnails.js.
-   Same pixel-corner notch as the kbd/chip vocabulary so the preset
-   card reads as part of the design system. */
-.docs-preset-thumb {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  background: var(--bg);
-  clip-path: polygon(
-    0 4px, 4px 4px, 4px 0,
-    calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
-    100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
-    4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)
-  );
-  overflow: hidden;
-}
-
-.docs-preset-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  image-rendering: pixelated;
-}
-
-.docs-preset-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
 .docs-preset-link strong {
   font-size: 13px;
   font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .docs-preset-link span {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.docs-preset-text span {
   font-size: 12px;
   color: var(--muted);
 }
@@ -2201,7 +1761,6 @@ button {
   top: 12px;
   right: 12px;
   display: grid;
-  grid-template-columns: auto auto;
   grid-template-columns: auto auto;
   gap: 2px 8px;
   padding: 0;
@@ -2877,7 +2436,6 @@ button {
 .looks-bar {
   display: flex;
   gap: 4px;
-  list-style: none;
   /* Negative horizontal margins extend the scroll container all the way
      to the card's inner edges (cancelling the .control-panel's 10px
      padding), so chips fade in and out at the card edges instead of 10px
@@ -2905,11 +2463,6 @@ button {
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
 }
 
-.looks-item {
-  flex: 0 0 auto;
-  display: contents;
-}
-
 .looks-bar[data-at-start="true"] {
   mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%);
   -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%);
@@ -2930,11 +2483,12 @@ button {
 }
 
 .looks-chip {
+  flex: 0 0 auto;
   min-height: 36px;
-  padding: 0 14px;
+  padding: 0 14px 0 4px;
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--field);
@@ -2947,6 +2501,37 @@ button {
   transform: scale(1);
   transition: background 180ms var(--ease), border-color 180ms var(--ease),
     color 180ms var(--ease), transform 140ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Real-canvas thumbnail on the left of each chip. Uses the same
+   pixel-corner notch as the kbd / docs-preset-thumb vocabulary so
+   the chip reads as part of the design system. */
+.looks-chip-thumb {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--bg);
+  clip-path: polygon(
+    0 4px, 4px 4px, 4px 0,
+    calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)
+  );
+  overflow: hidden;
+}
+
+.looks-chip-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.looks-chip-label {
+  display: inline-block;
 }
 
 /* Chip's left-cell preview. Solid black backdrop with a 1px stroke on
@@ -3998,41 +3583,6 @@ button {
   text-transform: uppercase;
 }
 
-/* Real-shader thumbnail rendered to the left of preset-apply rows.
-   Uses the same pixel-corner notch vocabulary as kbd / chip surfaces;
-   sized to read as a glance preview without crowding the row text. */
-.command-palette-thumb {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: var(--bg);
-  clip-path: polygon(
-    0 4px,
-    4px 4px,
-    4px 0,
-    calc(100% - 4px) 0,
-    calc(100% - 4px) 4px,
-    100% 4px,
-    100% calc(100% - 4px),
-    calc(100% - 4px) calc(100% - 4px),
-    calc(100% - 4px) 100%,
-    4px 100%,
-    4px calc(100% - 4px),
-    0 calc(100% - 4px)
-  );
-  overflow: hidden;
-}
-
-.command-palette-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  image-rendering: pixelated;
-}
-
 .command-palette-label {
   flex: 1 1 auto;
   min-width: 0;
@@ -4526,45 +4076,15 @@ button {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: 14px;
   background: var(--panel);
-  /* Replaced box-shadow with filter:drop-shadow so the shadow follows
-     the pixel-corner clip-path silhouette instead of being sliced off
-     at the polygon edges (clip-path clips box-shadow but NOT
-     filter:drop-shadow, which is applied AFTER clipping per spec). */
-  filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.32));
+  box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   color: var(--muted);
   cursor: pointer;
   animation: panel-toggle-in 280ms var(--ease);
   transition: background 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
-  /* Same 9px 2-step staircase as the rest of the canvas-app chrome —
-     applied locally instead of via the global selector list because
-     the global rule strips borders, and this button needs its 1px
-     border for visual definition against the dark canvas. */
-  clip-path: polygon(
-    0px 9px,
-    0px 3px,
-    3px 3px,
-    3px 0px,
-    9px 0px,
-    calc(100% - 9px) 0px,
-    calc(100% - 3px) 0px,
-    calc(100% - 3px) 3px,
-    calc(100% - 0px) 3px,
-    calc(100% - 0px) 9px,
-    calc(100% - 0px) calc(100% - 9px),
-    calc(100% - 0px) calc(100% - 3px),
-    calc(100% - 3px) calc(100% - 3px),
-    calc(100% - 3px) calc(100% - 0px),
-    calc(100% - 9px) calc(100% - 0px),
-    9px calc(100% - 0px),
-    3px calc(100% - 0px),
-    3px calc(100% - 3px),
-    0px calc(100% - 3px),
-    0px calc(100% - 9px)
-  );
 }
 
 @keyframes panel-toggle-in {
@@ -4719,13 +4239,6 @@ button {
   pointer-events: none;
   transition: opacity 260ms cubic-bezier(0.4, 0, 0.2, 1),
     transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Perf HUD is visible in normal (paneled) mode for dev introspection,
-   but hidden in the fullscreen / panel-collapsed ambient view so it
-   doesn't intrude on the canvas-only artwork. */
-.app-shell.is-panel-collapsed .perf-monitor {
-  display: none !important;
 }
 
 .app-shell.is-panel-collapsed .map-zoom-controls,
@@ -5073,13 +4586,27 @@ button {
   padding: 4px;
   border: 1px solid var(--border);
   border-radius: 0;
-  /* `--field` gives the toggle a darker, recessed bed that visibly
-     contrasts with the control-rail's panel bg. Using `--panel` here
-     made the toggle blend invisibly into the rail because both used
-     the same color. Same pattern as .color-picker-fill /
-     .color-picker-modes — keeps the toggle family on a single key. */
-  background: var(--field);
+  background: var(--panel-soft, var(--panel));
   margin: 4px 0 10px;
+  /* 4px single-step pixel corner — visibly chunkier than the 9px
+     2-step pattern used elsewhere, which gets visually muddled at the
+     small SegmentedToggle scale. `!important` here so this beats the
+     global nuclear pixel-corner rule further down (which would apply
+     a 9px 2-step polygon that reads as "rounded" at this size). */
+  clip-path: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  ) !important;
 }
 
 .segmented-toggle-indicator {
@@ -5089,7 +4616,25 @@ button {
   left: 4px;
   width: calc((100% - 12px) / 2);
   border-radius: 0;
-  /* clip-path applied via shared selector list below. */
+  /* 5px notch — bumped up from 3px because the smaller cut was hard
+     to see when the indicator's accent color sat against the
+     similarly-colored outer toggle bg. 5px on a ~30px tall indicator
+     gives 5+5=10px consumed vertically, 20px middle — well within
+     limits and visibly chunky. */
+  clip-path: polygon(
+    0 5px,
+    5px 5px,
+    5px 0,
+    calc(100% - 5px) 0,
+    calc(100% - 5px) 5px,
+    100% 5px,
+    100% calc(100% - 5px),
+    calc(100% - 5px) calc(100% - 5px),
+    calc(100% - 5px) 100%,
+    5px 100%,
+    5px calc(100% - 5px),
+    0 calc(100% - 5px)
+  ) !important;
   border: 1px solid var(--accent);
   background: var(--accent);
   /* translateX(100%) is the indicator's own width, +4px is the gap;
@@ -5143,49 +4688,62 @@ button {
   padding: 4px 8px 8px;
 }
 
+/* PanelSection accordion. The section was migrated from native
+   <details>/<summary> to a custom <section>+<button> structure so
+   the eye toggle could nest as a real button without the click-bubble
+   gymnastics that <summary> required. CSS targets the new classes:
+   - .option-block-header     row containing disclosure + eye + chevron
+   - .option-block-disclosure transparent button wrapping icon + title
+   - .option-block-chevron    chevron icon (rotates when open)
+   - [data-open="true"]       open-state indicator on the .option-block */
 .option-block-header {
   min-height: 28px;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 0 8px;
-}
-
-.option-block-disclosure {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0;
-  border: 0;
-  background: transparent;
   color: var(--dim);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  cursor: pointer;
   user-select: none;
   transition: color 180ms var(--ease);
 }
 
-.option-block-disclosure:hover,
-.option-block-disclosure:focus-visible {
+.option-block-disclosure {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color 180ms var(--ease);
+}
+
+.option-block-disclosure:hover {
   color: var(--muted);
 }
 
 .option-block-chevron {
-  flex: 0 0 auto;
+  margin-left: auto;
   opacity: 0.55;
   transition: transform 180ms var(--ease), opacity 180ms var(--ease);
 }
 
 /* Layer-visibility eye button inside a PanelSection header. Sits
-   between the title and the chevron. The button's margin-left: auto
-   pushes it to the right edge; the chevron follows naturally with
-   a small gap (overriding the auto-margin from the .svg:last-child
-   selector above). */
+   between the disclosure and the chevron. margin-left: auto pushes
+   it to the right edge; the chevron follows with a small gap
+   (overriding the auto-margin from the .option-block-chevron rule). */
 .option-block-header .option-block-eye {
   margin-left: auto;
   display: inline-flex;
@@ -5206,16 +4764,9 @@ button {
   color: var(--text);
   background: var(--field);
 }
-/* When the layer is hidden, the eye renders closed and dims a step
-   further so the off state reads obviously. */
 .option-block.is-layer-disabled .option-block-eye {
   color: var(--dim);
 }
-/* "Nothing to toggle yet" state — eye visible but non-interactive
-   (e.g. Shaders section when no effect is picked). Dimmer than the
-   normal off state and cursor reverts to default so it doesn't
-   advertise itself as a control. The native title attribute still
-   surfaces a tooltip on hover explaining why. */
 .option-block-header .option-block-eye.is-disabled {
   color: var(--dim);
   opacity: 0.45;
@@ -5226,17 +4777,10 @@ button {
   background: transparent;
   color: var(--dim);
 }
-.option-block-header .option-block-eye + svg {
-  /* Bumped from 4px → 10px so the eye's hover background (22×22
-     square) has breathing room before the chevron — at 4px the
-     two read as visually mashed together when the eye lights up. */
+.option-block-header .option-block-eye + .option-block-chevron {
   margin-left: 10px !important;
 }
 
-/* When a section's layer toggle is off, dim the section header so
-   users can scan the panel and see at a glance which layers are
-   contributing. The body content (when expanded) is unaffected so
-   they can still adjust settings while the layer is hidden. */
 .option-block.is-layer-disabled .option-block-disclosure > span {
   opacity: 0.55;
 }
@@ -5999,12 +5543,12 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .color-swatch {
-  /* 22×22 square — same height as the on/off toggle track so every
-     control in the panel's right column sits on the same horizontal
-     line. Also matches the 22×22 gradient-stop swatches inside the
-     color picker. */
-  width: 22px;
-  height: 22px;
+  /* Square footprint — previously 32×22 (wide rectangle). Matching
+     width to height makes the swatch read as a color "tile" rather
+     than a button, and aligns visually with the 22×22 gradient-stop
+     swatches inside the picker so the two patterns feel related. */
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6038,14 +5582,11 @@ input[type="range"]:active::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: 14px;
   background: var(--panel);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   box-shadow: var(--shadow-xl);
-  /* clip-path applied via the shared canvas-app pixel-corner selector
-     list below so the popover card uses the same 9px 2-step polygon
-     as every other panel control. */
   /* Horizontal stays hidden so the rounded card edge isn't broken
      by a scrollbar; vertical switches to auto so picker content
      can scroll internally when it overflows the viewport height
@@ -6068,31 +5609,13 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .color-picker-header {
-  /* 3-column layout: grip-left | title-center | X-right. Grid keeps
-     the title centered relative to the card even when the grip and
-     close buttons have different widths. */
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
   align-items: center;
   gap: 10px;
   padding: 4px 10px 6px;
   cursor: grab;
   user-select: none;
   flex: 0 0 auto;
-}
-
-.color-picker-title {
-  /* Exact match for the panel section-title typography (SURFACE,
-     GLOBE, GRID, ...) — same color, size, weight, tracking, transform
-     so the picker header reads as part of the same family as the main
-     card's section labels. Centered in its grid slot. */
-  margin: 0;
-  text-align: center;
-  color: var(--dim);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 .color-picker-header:active {
@@ -6215,15 +5738,7 @@ input[type="range"]:active::-moz-range-thumb {
   cursor: crosshair;
   touch-action: none;
   user-select: none;
-  /* overflow:visible so the cursor can extend past the pad's edge at
-     extreme S/V values (corners). Previously `overflow:hidden` clipped
-     the cursor to a quarter-circle at the corners — which made the
-     selector almost invisible when the chosen color was pure black
-     (bottom-left corner of the SV pad). The pad's gradient still
-     respects the border-radius via background-clip default, so the
-     swatch area stays nicely rounded. */
-  overflow: visible;
-  background-clip: padding-box;
+  overflow: hidden;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
@@ -6241,16 +5756,7 @@ input[type="range"]:active::-moz-range-thumb {
   margin: -6px 0 0 -6px;
   border: 2px solid #ffffff;
   border-radius: 999px;
-  /* Sandwich the white border between TWO black rings (one inset, one
-     outset). Means the cursor stays visible whether the fill is black
-     (outer black blends, white + inset visible), white (white blends,
-     outer + inset black visible), or any color in between. Without
-     the inset ring, a white fill would have only the 1px outer black
-     to read against — almost invisible. */
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.65),
-    0 0 0 1px rgba(0, 0, 0, 0.65),
-    0 2px 4px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.45);
   pointer-events: none;
 }
 
@@ -6402,16 +5908,15 @@ input[type="range"]:active::-moz-range-thumb {
   gap: 3px;
   padding: 3px;
   border: 0;
-  border-radius: 0;
+  border-radius: 10px;
   background: var(--field);
-  /* clip-path applied via shared canvas-app pixel-corner list below. */
 }
 
 .color-picker-mode {
   min-height: 28px;
   padding: 0;
   border: 0;
-  border-radius: 0;
+  border-radius: 8px;
   background: transparent;
   color: var(--muted);
   font-size: 12px;
@@ -6502,9 +6007,8 @@ input[type="range"]:active::-moz-range-thumb {
   gap: 5px;
   padding: 5px;
   border: 0;
-  border-radius: 0;
+  border-radius: 14px;
   background: var(--field);
-  /* clip-path applied via shared canvas-app pixel-corner list below. */
 }
 
 .color-picker-fill-indicator {
@@ -6513,8 +6017,7 @@ input[type="range"]:active::-moz-range-thumb {
   bottom: 5px;
   left: 5px;
   width: calc((100% - 15px) / 2);
-  border-radius: 0;
-  /* clip-path applied via shared canvas-app pixel-corner list below. */
+  border-radius: 10px;
   border: 1px solid var(--accent);
   background: var(--accent);
   transform: translateX(0);
@@ -7202,15 +6705,6 @@ input[type="range"]:active::-moz-range-thumb {
 .ascii-symbol-input,
 .custom-topology-input,
 .export-modal-input,
-/* Color-picker chrome added here so the Solid/Gradient toggle, the
-   HEX/RGB/HSB/HSL mode picker, and their active indicators share the
-   same 9px 2-step staircase as every other panel control. The
-   `.color-picker` popover card itself stays OUT — it has a real
-   box-shadow that clip-path would slice off. */
-.color-picker-fill,
-.color-picker-fill-indicator,
-.color-picker-modes,
-.color-picker-mode,
 input,
 select,
 textarea {
