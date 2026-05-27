@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "globestudio/embed",
+  "version": "0.1.0",
+  "title": "Globestudio",
+  "category": "embed",
+  "icon": "admin-site-alt3",
+  "description": "Embed a Globestudio dotted globe or map. Pick a preset, set the height, publish.",
+  "keywords": ["globe", "map", "dotted", "embed", "iframe"],
+  "supports": {
+    "html": false,
+    "align": ["wide", "full"],
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
+  },
+  "attributes": {
+    "look": {
+      "type": "string",
+      "default": "halftone"
+    },
+    "height": {
+      "type": "number",
+      "default": 480
+    }
+  },
+  "textdomain": "globestudio",
+  "editorScript": "globestudio-block-editor",
+  "render": "file:./render.php"
+}
