@@ -29,6 +29,10 @@ const BRAND_GLOBES = {
     density: 38,
   },
   vercel: {
+    // awesome-design-md/vercel: white page, but the globe lives in an
+    // intentional dark "deployment map" panel (Vercel uses dark product
+    // panels on light pages). White dots on the dark panel + the three
+    // signature Vercel gradients glowing beneath it.
     selection: "world",
     transparent: true,
     dotColor: "#FFFFFF",
@@ -502,96 +506,122 @@ const VercelShowcase = () => (
     id="vercel"
     className="showcase showcase--vercel"
     style={{
-      background: "#000000",
-      color: "#EDEDED",
-      fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      // awesome-design-md/vercel: white canvas, ink #171717, Geist.
+      background: "#FFFFFF",
+      color: "#171717",
+      fontFamily: '"Geist", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
     }}
   >
     <CompanyNav
       brand={
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#fff", fontWeight: 700, letterSpacing: "-0.02em", fontSize: 17 }}>
-          <VercelMark size={18} />
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#171717", fontWeight: 600, letterSpacing: "-0.04em", fontSize: 18 }}>
+          <VercelMark size={17} />
           Vercel
         </span>
       }
       items={["Products", "Solutions", "Resources", "Enterprise", "Docs", "Pricing"]}
       right={
         <>
-          <span className="showcase-nav-link" style={{ color: "#A1A1A1" }}>Contact</span>
-          <span className="showcase-nav-link" style={{ color: "#A1A1A1" }}>Log In</span>
-          <span className="showcase-nav-cta" style={{ background: "#fff", color: "#000" }}>
+          <span className="showcase-nav-link" style={{ color: "#171717" }}>Log In</span>
+          <span className="showcase-nav-cta" style={{ background: "#171717", color: "#fff" }}>
             Sign Up
           </span>
         </>
       }
-      style={{ borderBottom: "1px solid #1F1F1F", color: "#EDEDED" }}
+      style={{ borderBottom: "1px solid #EBEBEB", color: "#171717" }}
     />
     <div className="showcase-inner showcase-inner--centered">
-      <span className="showcase-eyebrow" style={{ color: "#A1A1A1" }}>
-        EDGE NETWORK
+      {/* Vercel's announcement pill */}
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "5px 5px 5px 14px",
+          borderRadius: 999,
+          border: "1px solid #EBEBEB",
+          background: "#FAFAFA",
+          fontSize: 13,
+          color: "#171717",
+          fontWeight: 500,
+        }}
+      >
+        Ship 2026 is coming to 5 cities
+        <span style={{ background: "#171717", color: "#fff", borderRadius: 999, padding: "3px 10px", fontSize: 12 }}>
+          Get your ticket →
+        </span>
       </span>
       <h2
         className="showcase-headline"
         style={{
-          backgroundImage: "linear-gradient(90deg, #FF0080 0%, #FF4D4D 35%, #7928CA 65%, #0070F3 100%)",
-          backgroundClip: "text",
-          WebkitBackgroundClip: "text",
-          color: "transparent",
+          color: "#171717",
           fontWeight: 600,
-          letterSpacing: "-0.02em",
+          letterSpacing: "-0.05em",
+          lineHeight: 1.0,
         }}
       >
         Deploy at the edge<br />of every continent.
       </h2>
-      <p className="showcase-subhead" style={{ color: "#A1A1A1" }}>
-        126 PoPs. 20 compute-capable regions. Sub-40ms p95 latency across the planet.
+      <p className="showcase-subhead" style={{ color: "#4d4d4d" }}>
+        Vercel runs your frontend across 126 PoPs and 20 compute regions —
+        sub-40ms p95 latency, everywhere.
       </p>
       <div className="showcase-ctas">
-        <span className="showcase-cta showcase-cta--primary" style={{ background: "#fff", color: "#000" }}>
-          Start Deploying
+        <span className="showcase-cta showcase-cta--primary" style={{ background: "#171717", color: "#fff", display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <VercelMark size={13} /> Start Deploying
         </span>
-        <span className="showcase-cta showcase-cta--ghost" style={{ color: "#EDEDED", borderColor: "#262626" }}>
+        <span className="showcase-cta" style={{ background: "#fff", color: "#171717", border: "1px solid #EBEBEB" }}>
           Get a Demo
         </span>
       </div>
-      <LazyGlobe
-        src={brandEmbedUrl("default", "vercel", "examples-vercel")}
-        title="Vercel-flavored globe"
-        className="showcase-globe"
-        style={{
-          background: "#000",
-          aspectRatio: "16 / 9",
-          maxWidth: 920,
-          width: "100%",
-          marginTop: 40,
-          borderRadius: 12,
-          overflow: "hidden",
-          border: "1px solid #1F1F1F",
-        }}
-      />
-      <div className="showcase-stats" style={{ marginTop: 56 }}>
+      {/* Globe in a bordered card, with the three signature Vercel
+          gradients (develop blue→cyan, preview violet→pink, ship
+          red→amber) glowing beneath it. */}
+      <div style={{ position: "relative", maxWidth: 920, width: "100%", marginTop: 48 }}>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: "auto 8% -40px 8%",
+            height: 200,
+            zIndex: 0,
+            pointerEvents: "none",
+            filter: "blur(60px)",
+            opacity: 0.7,
+            background:
+              "linear-gradient(90deg, #007cf0 0%, #00dfd8 28%, #7928ca 50%, #ff0080 72%, #ff4d4d 86%, #f9cb28 100%)",
+          }}
+        />
+        <LazyGlobe
+          src={brandEmbedUrl("default", "vercel", "examples-vercel")}
+          title="Vercel-flavored globe"
+          className="showcase-globe"
+          style={{
+            position: "relative",
+            background: "#000000",
+            aspectRatio: "16 / 9",
+            width: "100%",
+            borderRadius: 12,
+            overflow: "hidden",
+            border: "1px solid #EBEBEB",
+            boxShadow: "0 24px 60px -30px rgba(0,0,0,0.25)",
+          }}
+        />
+      </div>
+      <div className="showcase-stats" style={{ marginTop: 64 }}>
         {[
           { v: "126", l: "Edge PoPs" },
           { v: "20", l: "Compute regions" },
           { v: "<40ms", l: "p95 latency" },
         ].map((s) => (
           <div key={s.l} className="showcase-stat">
-            <strong
-              style={{
-                backgroundImage: "linear-gradient(90deg, #FF0080, #7928CA)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              {s.v}
-            </strong>
-            <span style={{ color: "#A1A1A1" }}>{s.l}</span>
+            <strong style={{ color: "#171717", letterSpacing: "-0.04em" }}>{s.v}</strong>
+            <span style={{ color: "#888888" }}>{s.l}</span>
           </div>
         ))}
       </div>
       <LogoWall
-        color="#A1A1A1"
+        color="#888888"
         label="Trusted by"
         logos={[
           { name: "Notion", weight: 700 },
