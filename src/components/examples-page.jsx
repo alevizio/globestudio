@@ -56,11 +56,13 @@ const BRAND_GLOBES = {
     density: 42,
   },
   stripe: {
+    // Exact tokens from awesome-design-md/stripe DESIGN.md: primary
+    // indigo #533afd, dashboard chrome navy #1c1e54.
     selection: "world",
     transparent: true,
-    dotColor: "#635BFF",
-    worldFill: "#0A2540",
-    worldStroke: "#1a3a6a",
+    dotColor: "#665efd",
+    worldFill: "#1c1e54",
+    worldStroke: "#2e2b8c",
     shape: "Circle",
     density: 42,
   },
@@ -83,7 +85,7 @@ const BRAND_BG = {
   vercel:     "#000000",
   profound:   "#0B1F4B",
   linear:     "#08090A",
-  stripe:     "#0A2540",
+  stripe:     "#1c1e54",
   earthscale: "#1d1a16",
 };
 
@@ -903,7 +905,7 @@ const StripeShowcase = () => (
     className="showcase showcase--stripe"
     style={{
       background: "#FFFFFF",
-      color: "#0A2540",
+      color: "#0d253d",
       fontFamily: '"Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
       position: "relative",
       overflow: "hidden",
@@ -926,20 +928,22 @@ const StripeShowcase = () => (
         height: 1080,
         zIndex: 0,
         pointerEvents: "none",
-        filter: "blur(14px) saturate(1.1)",
+        filter: "blur(14px) saturate(1.05)",
+        // Mesh colors straight from the Stripe DESIGN.md: cream
+        // (#f5e9d4) → sherbet → lavender (#b9b9f9) → indigo (#533afd)
+        // → ruby (#ea2261) → magenta (#f96bee), swept as a corner fan.
         background: `
-          radial-gradient(60% 45% at 70% 18%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 55%),
-          radial-gradient(55% 55% at 58% 58%, rgba(255,90,170,0.35) 0%, rgba(255,90,170,0) 60%),
-          conic-gradient(from 195deg at 88% 6%,
-            #FFB23D 0deg,
-            #FF7A4D 26deg,
-            #FF4D8F 52deg,
-            #E0469E 74deg,
-            #9B5BFF 96deg,
-            #6A5BFF 118deg,
-            #4F8DFF 140deg,
-            #57C7FF 158deg,
-            rgba(87,199,255,0) 178deg)
+          radial-gradient(60% 45% at 70% 16%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 55%),
+          radial-gradient(55% 55% at 56% 60%, rgba(249,107,238,0.32) 0%, rgba(249,107,238,0) 60%),
+          conic-gradient(from 198deg at 88% 6%,
+            #f5e9d4 0deg,
+            #ffb060 24deg,
+            #f96bee 48deg,
+            #ea2261 68deg,
+            #533afd 92deg,
+            #665efd 116deg,
+            #b9b9f9 142deg,
+            rgba(185,185,249,0) 176deg)
         `,
         clipPath: "polygon(26% 0, 100% 0, 100% 82%, 50% 100%, 28% 62%, 16% 20%)",
       }}
@@ -962,13 +966,13 @@ const StripeShowcase = () => (
       items={["Products", "Solutions", "Developers", "Resources", "Pricing"]}
       right={
         <>
-          <span className="showcase-nav-link" style={{ color: "#E0457B", fontWeight: 600 }}>Sign in</span>
-          <span className="showcase-nav-cta" style={{ background: "#635BFF", color: "#fff" }}>
+          <span className="showcase-nav-link" style={{ color: "#ea2261", fontWeight: 600 }}>Sign in</span>
+          <span className="showcase-nav-cta" style={{ background: "#533afd", color: "#fff" }}>
             Contact sales →
           </span>
         </>
       }
-      style={{ color: "#0A2540", position: "relative", zIndex: 2 }}
+      style={{ color: "#0d253d", position: "relative", zIndex: 2 }}
     />
     {/* Left-anchored copy column — Stripe's hero is NOT centered. Copy
         sits in the left ~58%, the ribbon owns the right. */}
@@ -986,7 +990,7 @@ const StripeShowcase = () => (
         <div
           style={{
             fontSize: 14,
-            color: "#0A2540",
+            color: "#0d253d",
             fontWeight: 500,
             marginBottom: 20,
             display: "flex",
@@ -995,7 +999,7 @@ const StripeShowcase = () => (
           }}
         >
           Global GDP running on Stripe:
-          <span style={{ fontVariantNumeric: "tabular-nums", color: "#635BFF", fontWeight: 600 }}>
+          <span style={{ fontVariantNumeric: "tabular-nums", color: "#533afd", fontWeight: 600 }}>
             1.65433278%
           </span>
         </div>
@@ -1004,17 +1008,17 @@ const StripeShowcase = () => (
         <h2
           style={{
             margin: 0,
-            fontSize: "clamp(34px, 4vw, 52px)",
-            lineHeight: 1.1,
+            fontSize: "clamp(34px, 3.6vw, 48px)",
+            lineHeight: 1.15,
             fontWeight: 300,
-            letterSpacing: "-0.02em",
-            color: "#0A2540",
+            letterSpacing: "-0.96px",
+            fontFeatureSettings: '"ss01"',
+            color: "#0d253d",
             maxWidth: 720,
           }}
         >
-          Financial infrastructure to grow{" "}
-          <span style={{ color: "#0A2540" }}>your revenue.</span>{" "}
-          <span style={{ color: "#5B6B8C" }}>
+          Financial infrastructure to grow your revenue.{" "}
+          <span style={{ color: "#273951" }}>
             Accept payments, offer financial services, and visualize global
             money movement—from your first transaction to your billionth.
           </span>
@@ -1022,7 +1026,7 @@ const StripeShowcase = () => (
         <div className="showcase-ctas" style={{ justifyContent: "flex-start", marginTop: 28 }}>
           <span
             className="showcase-cta showcase-cta--primary"
-            style={{ background: "#635BFF", color: "#fff", fontWeight: 600 }}
+            style={{ background: "#533afd", color: "#fff", fontWeight: 600 }}
           >
             Get started →
           </span>
@@ -1030,7 +1034,7 @@ const StripeShowcase = () => (
             className="showcase-cta"
             style={{
               background: "#fff",
-              color: "#0A2540",
+              color: "#0d253d",
               border: "1px solid rgba(10,37,64,0.12)",
               boxShadow: "0 2px 5px rgba(0,0,0,0.06)",
               display: "inline-flex",
@@ -1109,7 +1113,7 @@ const StripeShowcase = () => (
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <span style={{ fontSize: 12, color: "#697386", fontWeight: 500 }}>Global volume</span>
-            <span style={{ fontSize: 22, fontWeight: 600, color: "#0A2540", letterSpacing: "-0.01em" }}>$1.9T</span>
+            <span style={{ fontSize: 22, fontWeight: 600, color: "#0d253d", letterSpacing: "-0.01em" }}>$1.9T</span>
           </div>
           <span
             style={{
@@ -1129,7 +1133,7 @@ const StripeShowcase = () => (
           src={brandEmbedUrl("default", "stripe", "examples-stripe")}
           title="Stripe global payments globe"
           style={{
-            background: "#0A2540",
+            background: "#0d253d",
             aspectRatio: "16 / 11",
             width: "100%",
           }}
@@ -1143,7 +1147,7 @@ const StripeShowcase = () => (
             padding: "12px 16px",
             borderTop: "1px solid rgba(10,37,64,0.06)",
             fontSize: 12,
-            color: "#0A2540",
+            color: "#0d253d",
           }}
         >
           <span style={{ width: 8, height: 8, borderRadius: 999, background: "#3ECF8E", boxShadow: "0 0 0 3px rgba(62,207,142,0.2)", flexShrink: 0 }} />
@@ -1363,7 +1367,7 @@ const CardsGallery = () => (
         { brand: "vercel",     look: "default",     title: "Edge regions, live.",        meta: "iad1 · fra1 · sin1 · syd1",   bg: "#000",    fg: "#EDEDED", accent: "#FF0080" },
         { brand: "profound",   look: "default",     title: "AI prompt density.",         meta: "150+ regions · 30+ languages", bg: "#FAFAFA", fg: "#0B1F4B", accent: "#00B3A4" },
         { brand: "linear",     look: "aurora",      title: "Issue spread by team.",      meta: "25,000 teams · global",       bg: "#08090A", fg: "#F7F8F8", accent: "#5E6AD2" },
-        { brand: "stripe",     look: "default",     title: "Where payments flow.",       meta: "200+ countries · live mesh",  bg: "#F6F9FC", fg: "#0A2540", accent: "#635BFF" },
+        { brand: "stripe",     look: "default",     title: "Where payments flow.",       meta: "200+ countries · live mesh",  bg: "#F6F9FC", fg: "#0d253d", accent: "#533afd" },
         { brand: "earthscale", look: "bloom",       title: "Power projects, parsed.",    meta: "7 continents · 62 grids",     bg: "#1d1a16", fg: "#ece7da", accent: "#d99c66" },
       ].map((card) => (
         <article
@@ -1403,7 +1407,7 @@ const StatsGallery = () => (
     <div className="examples-stats-grid">
       {[
         { brand: "vercel",   look: "default",     value: "126",   label: "Edge PoPs across the globe", bg: "#000",    fg: "#EDEDED" },
-        { brand: "stripe",   look: "default",     value: "$1.9T", label: "processed in 2025",          bg: "#F6F9FC", fg: "#0A2540" },
+        { brand: "stripe",   look: "default",     value: "$1.9T", label: "processed in 2025",          bg: "#F6F9FC", fg: "#0d253d" },
         { brand: "pachama",  look: "topographic", value: "30M+",  label: "tonnes CO₂ under management", bg: "#F4F1EA", fg: "#0E3B2E" },
         { brand: "profound", look: "default",     value: "1.5B",  label: "AI prompts analyzed",        bg: "#FAFAFA", fg: "#0B1F4B" },
       ].map((stat) => (
@@ -1464,11 +1468,11 @@ const CODE_SNIPPETS = {
   <p style="color:rgba(247,248,248,0.6)">Purpose-built for planning. Designed for the AI era.</p>
   <iframe src="${SITE}/embed?look=aurora" width="920" height="517" style="border:0;border-radius:16px"></iframe>
 </section>`,
-  stripe: `<section style="background:#F6F9FC;color:#0A2540;padding:64px;text-align:center;font-family:system-ui,sans-serif">
-  <span style="color:#635BFF;font-size:11px;letter-spacing:0.14em">GLOBAL PAYMENTS</span>
+  stripe: `<section style="background:#F6F9FC;color:#0d253d;padding:64px;text-align:center;font-family:system-ui,sans-serif">
+  <span style="color:#533afd;font-size:11px;letter-spacing:0.14em">GLOBAL PAYMENTS</span>
   <h1 style="font-size:72px;font-weight:500;letter-spacing:-0.02em;margin:16px 0">Accept payments from anywhere in the world.</h1>
   <p style="color:#425466">$1.9T processed. 200+ countries. 99.999% uptime.</p>
-  <iframe src="${SITE}/embed?look=default" width="920" height="517" style="border:0;border-radius:16px;background:#0A2540"></iframe>
+  <iframe src="${SITE}/embed?look=default" width="920" height="517" style="border:0;border-radius:16px;background:#0d253d"></iframe>
 </section>`,
   earthscale: `<section style="background:#1d1a16;color:#ece7da;padding:120px 64px;text-align:center;position:relative;overflow:hidden;font-family:Georgia,serif">
   <iframe src="${SITE}/embed?look=bloom" style="position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0.55"></iframe>
