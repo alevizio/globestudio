@@ -902,143 +902,162 @@ const StripeShowcase = () => (
     id="stripe"
     className="showcase showcase--stripe"
     style={{
-      background: "#F6F9FC",
+      background: "#FFFFFF",
       color: "#0A2540",
-      fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      fontFamily: '"Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
       position: "relative",
       overflow: "hidden",
     }}
   >
-    {/* Stripe's iconic wavy gradient banner at the top of the section —
-        the visual signature you immediately recognize as Stripe. SVG
-        with smooth pink → peach → teal → lime flowing bands. */}
+    {/* Stripe's signature diagonal wave gradient — anchored top-right,
+        skewed, flowing pink → coral → purple → blue. This is THE Stripe
+        visual signature. Sits behind everything (z-index 0). */}
     <div
       aria-hidden="true"
       style={{
         position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 320,
+        top: -120,
+        right: -200,
+        width: "85%",
+        height: 760,
         zIndex: 0,
         pointerEvents: "none",
-        background: "linear-gradient(180deg, #F6F9FC 0%, transparent 100%)",
+        transform: "skewY(-12deg)",
+        background:
+          "linear-gradient(110deg, #FF5996 0%, #FF7D4D 22%, #B14BFF 52%, #635BFF 72%, #2BC7FF 100%)",
+        opacity: 0.92,
+        clipPath:
+          "polygon(8% 0, 100% 0, 100% 64%, 38% 100%, 0 78%, 0 26%)",
+        filter: "blur(0.5px)",
       }}
-    >
-      <svg
-        width="100%"
-        height="320"
-        viewBox="0 0 1440 320"
-        preserveAspectRatio="none"
-        style={{ position: "absolute", top: 0, left: 0 }}
-      >
-        <defs>
-          <linearGradient id="stripe-wave" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#FF80B5" stopOpacity="0.65" />
-            <stop offset="30%" stopColor="#FFB178" stopOpacity="0.55" />
-            <stop offset="60%" stopColor="#00D4FF" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#A4F0A4" stopOpacity="0.4" />
-          </linearGradient>
-          <linearGradient id="stripe-wave-fade" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#fff" stopOpacity="1" />
-            <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-          </linearGradient>
-          <mask id="stripe-wave-mask">
-            <rect width="1440" height="320" fill="url(#stripe-wave-fade)" />
-          </mask>
-        </defs>
-        <g mask="url(#stripe-wave-mask)">
-          {/* Multiple wave bands stacked at slight offsets */}
-          <path
-            fill="url(#stripe-wave)"
-            d="M0,80 C240,160 480,40 720,100 C960,160 1200,40 1440,90 L1440,0 L0,0 Z"
-          />
-          <path
-            fill="url(#stripe-wave)"
-            opacity="0.7"
-            d="M0,140 C240,80 480,180 720,140 C960,100 1200,180 1440,140 L1440,0 L0,0 Z"
-          />
-          <path
-            fill="url(#stripe-wave)"
-            opacity="0.5"
-            d="M0,200 C240,150 480,240 720,200 C960,160 1200,240 1440,200 L1440,0 L0,0 Z"
-          />
-        </g>
-      </svg>
-    </div>
+    />
+    {/* Soft white fade so the gradient melts into the page at the bottom
+        and left, exactly like stripe.com. */}
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0) 30%, #FFFFFF 88%), linear-gradient(90deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 45%)",
+      }}
+    />
     <CompanyNav
       brand={<StripeMark size={26} />}
       items={["Products", "Solutions", "Developers", "Resources", "Pricing"]}
       right={
         <>
-          <span className="showcase-nav-link" style={{ color: "#0A2540" }}>Sign in</span>
-          <span className="showcase-nav-cta" style={{ background: "#635BFF", color: "#fff" }}>
+          <span className="showcase-nav-link" style={{ color: "#FFFFFF" }}>Sign in</span>
+          <span className="showcase-nav-cta" style={{ background: "rgba(255,255,255,0.25)", color: "#fff", backdropFilter: "blur(4px)" }}>
             Contact sales →
           </span>
         </>
       }
-      style={{
-        borderBottom: "1px solid rgba(10, 37, 64, 0.08)",
-        color: "#0A2540",
-      }}
+      style={{ color: "#FFFFFF", position: "relative", zIndex: 2 }}
     />
-    <div className="showcase-inner showcase-inner--centered">
-      <span className="showcase-eyebrow" style={{ color: "#635BFF" }}>
-        GLOBAL PAYMENTS
-      </span>
-      <h2 className="showcase-headline" style={{ color: "#0A2540", fontWeight: 500, letterSpacing: "-0.02em" }}>
-        Accept payments from anywhere<br />in the world.
-      </h2>
-      <p className="showcase-subhead" style={{ color: "#425466" }}>
-        $1.9 trillion processed in 2025. 200+ countries. 99.999% uptime. From your first transaction to your billionth.
-      </p>
-      <div className="showcase-ctas">
-        <span className="showcase-cta showcase-cta--primary" style={{ background: "#0A2540", color: "#fff" }}>
-          Start now
+    <div
+      className="showcase-inner showcase-inner--split"
+      style={{ position: "relative", zIndex: 1 }}
+    >
+      <div className="showcase-copy">
+        <span
+          className="showcase-eyebrow"
+          style={{ color: "#FFFFFF", display: "inline-flex", alignItems: "center", gap: 8 }}
+        >
+          GLOBAL GDP RUNNING ON STRIPE
+          <span style={{ opacity: 0.7, fontWeight: 500 }}>→</span>
         </span>
-        <span className="showcase-cta showcase-cta--ghost" style={{ color: "#635BFF", borderColor: "transparent" }}>
-          Contact sales →
-        </span>
+        <h2
+          className="showcase-headline"
+          style={{ color: "#0A2540", fontWeight: 600, letterSpacing: "-0.025em" }}
+        >
+          Financial infrastructure<br />
+          to grow{" "}
+          <span
+            style={{
+              backgroundImage: "linear-gradient(90deg, #FF5996, #635BFF)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            your revenue.
+          </span>
+        </h2>
+        <p className="showcase-subhead" style={{ color: "#3D4B66" }}>
+          Accept payments, offer financial services, and visualize global
+          money movement — from your first transaction to your billionth.
+          $1.9 trillion processed across 200+ countries.
+        </p>
+        <div className="showcase-ctas">
+          <span className="showcase-cta showcase-cta--primary" style={{ background: "#635BFF", color: "#fff" }}>
+            Start now →
+          </span>
+          <span
+            className="showcase-cta"
+            style={{ background: "#fff", color: "#0A2540", border: "1px solid rgba(10,37,64,0.12)", boxShadow: "0 2px 5px rgba(0,0,0,0.06)" }}
+          >
+            Contact sales
+          </span>
+        </div>
+        <LogoWall
+          color="#425466"
+          label="Powering payments at"
+          logos={[
+            { name: "Amazon", weight: 700 },
+            { name: "Shopify", weight: 700, tracking: "-0.02em" },
+            { name: "Anthropic", weight: 600 },
+            { name: "Coinbase", weight: 700, tracking: "-0.02em" },
+            { name: "Uber", weight: 700, tracking: "-0.02em" },
+          ]}
+        />
       </div>
-      <LazyGlobe
-        src={brandEmbedUrl("default", "stripe", "examples-stripe")}
-        title="Stripe-flavored globe"
-        className="showcase-globe"
-        style={{
-          background: "#0A2540",
-          aspectRatio: "16 / 9",
-          maxWidth: 920,
-          width: "100%",
-          marginTop: 40,
-          borderRadius: 16,
-          overflow: "hidden",
-          boxShadow: "0 40px 100px -40px rgba(10, 37, 64, 0.35)",
-        }}
-      />
-      <div className="showcase-stats" style={{ marginTop: 56 }}>
-        {[
-          { v: "$1.9T", l: "processed in 2025" },
-          { v: "200+", l: "countries supported" },
-          { v: "99.999%", l: "uptime" },
-        ].map((s) => (
-          <div key={s.l} className="showcase-stat">
-            <strong style={{ color: "#0A2540" }}>{s.v}</strong>
-            <span style={{ color: "#425466" }}>{s.l}</span>
+
+      {/* Right: the classic Stripe dotted globe in a floating product
+          card — purple dots on deep navy, the global-payments mesh
+          Stripe's homepage was famous for. */}
+      <div style={{ position: "relative" }}>
+        <LazyGlobe
+          src={brandEmbedUrl("default", "stripe", "examples-stripe")}
+          title="Stripe global payments globe"
+          style={{
+            background: "#0A2540",
+            aspectRatio: "1 / 1",
+            width: "100%",
+            maxWidth: 480,
+            borderRadius: 18,
+            overflow: "hidden",
+            boxShadow: "0 50px 120px -40px rgba(10, 37, 64, 0.45)",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        />
+        {/* Floating payment-route chip — Stripe's connection-arc city
+            labels reimagined as a live transaction ticker. */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 20,
+            left: -24,
+            padding: "12px 16px",
+            background: "#fff",
+            borderRadius: 12,
+            boxShadow: "0 12px 32px rgba(10,37,64,0.18)",
+            fontSize: 12,
+            color: "#0A2540",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <span style={{ width: 8, height: 8, borderRadius: 999, background: "#3ECF8E", boxShadow: "0 0 0 3px rgba(62,207,142,0.2)" }} />
+          <div style={{ lineHeight: 1.3 }}>
+            <div style={{ fontWeight: 700 }}>Singapore → São Paulo</div>
+            <div style={{ color: "#697386", fontSize: 11 }}>$48,200.00 · settled in 1.2s</div>
           </div>
-        ))}
+        </div>
       </div>
-      <LogoWall
-        color="#425466"
-        label="Powering payments at"
-        logos={[
-          { name: "Amazon", weight: 700, tracking: "0" },
-          { name: "Shopify", weight: 700, tracking: "-0.02em" },
-          { name: "Airbnb", weight: 700, tracking: "-0.02em" },
-          { name: "Figma", weight: 600 },
-          { name: "Atlassian", weight: 700 },
-          { name: "Uber", weight: 700, tracking: "-0.02em" },
-        ]}
-      />
     </div>
   </section>
 );
@@ -1416,6 +1435,22 @@ export const ExamplesPage = () => {
       'meta[name="description"]',
       "Real-world examples of Globestudio in product marketing — Pachama, Vercel, Profound, Linear, Stripe, Earthscale. Six full-screen hero showcases plus card and stat patterns. Copy-paste HTML.",
     );
+
+    // Load the real brand display fonts (Geist for Vercel, Inter for
+    // Linear/Profound/Stripe, Fraunces serif for Earthscale/Pachama
+    // display) only on this route — the fidelity jump from system-ui
+    // to the actual faces is the single biggest "looks like their
+    // site" lever. Scoped + cleaned up on unmount so it never taxes
+    // the canvas app.
+    const fontLink = document.createElement("link");
+    fontLink.rel = "stylesheet";
+    fontLink.href =
+      "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap";
+    fontLink.dataset.examplesFonts = "true";
+    document.head.appendChild(fontLink);
+    return () => {
+      if (fontLink.parentNode) fontLink.parentNode.removeChild(fontLink);
+    };
   }, []);
 
   const activeId = useActiveShowcase(SHOWCASES.map((s) => s.id));
