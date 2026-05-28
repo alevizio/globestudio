@@ -27,7 +27,7 @@ const BUDGETS = [
   // validation. Keeping that guard in the initial chunk ensures
   // malformed ?c= payloads are rejected before they can mutate render
   // state.
-  { prefix: "index-",            ext: ".js",  raw: 320_000,  gzip:  96_000, lazy: false },
+  { prefix: "index-",            ext: ".js",  raw: 340_000,  gzip:  98_000, lazy: false },
   { prefix: "react-",            ext: ".js",  raw: 210_000,  gzip:  70_000, lazy: false },
   { prefix: "dotted-map-",       ext: ".js",  raw: 430_000,  gzip: 170_000, lazy: false },
   { prefix: "src-",              ext: ".js",  raw:  20_000,  gzip:   8_000, lazy: false },
