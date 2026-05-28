@@ -214,7 +214,11 @@ export const EmbedView = () => {
   }
 
   return (
-    <div className="embed-view" data-source={params.source}>
+    <div
+      className="embed-view"
+      data-source={params.source}
+      data-transparent={settings.transparent ? "true" : undefined}
+    >
       <Suspense fallback={<div className="embed-view-placeholder" aria-hidden="true" />}>
         <GlobeBackground
           mapData={mapData}

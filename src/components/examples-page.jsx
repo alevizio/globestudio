@@ -18,9 +18,12 @@ const BRAND_GLOBES = {
   pachama: {
     selection: "world",
     transparent: true,
-    dotColor: "#0E3B2E",
-    worldFill: "#F4F1EA",
-    worldStroke: "#0E3B2E",
+    // Canopy lime on dark-forest inset bg — forest green on forest green
+    // (matching their wordmark color) reads as invisible; lime is the
+    // satellite-canopy color that already lives in their LiDAR palette.
+    dotColor: "#B8E14C",
+    worldFill: "#0E3B2E",
+    worldStroke: "#1f5240",
     dotsVisible: true,
     shape: "Circle",
     density: 38,

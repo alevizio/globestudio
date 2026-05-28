@@ -2465,6 +2465,18 @@ button {
   overflow: hidden;
 }
 
+/* When ?c=…&transparent=true is in the URL, the embed canvas paints
+   without its own bg so the iframe is see-through to whatever the
+   host page/iframe-wrapper sits behind it. Used by /examples to drop
+   brand-tinted globes onto cream / off-white / brand-colored hero
+   panels without the dark wrapper bleeding through. */
+.embed-view[data-transparent="true"] {
+  background: transparent;
+}
+.embed-view[data-transparent="true"] .embed-view-placeholder {
+  background: transparent;
+}
+
 .embed-view-placeholder {
   position: fixed;
   inset: 0;
