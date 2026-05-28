@@ -858,6 +858,7 @@ const LinearShowcase = () => (
           <span style={{ color: "rgba(247,248,248,0.5)", fontSize: 11, marginLeft: 4 }}>+ 5</span>
         </div>
       </div>
+      </div>
       <div className="showcase-stats" style={{ marginTop: 56 }}>
         {[
           { v: "25,000", l: "product teams" },
