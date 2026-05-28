@@ -10,10 +10,14 @@ import { buildShareUrl } from "../utils/share-config.js";
 // reads as part of the brand instead of a default Globestudio mark.
 // Each is fed through buildShareUrl(config, site, "/embed") to produce
 // the canonical /embed?c=… URL the iframe loads.
+// Each brand sets transparent: true so the embed iframe doesn't paint
+// its own (hard-coded var(--bg)) background — the iframe wrapper in
+// the showcase has the brand bg set inline, and that shows through.
+// dotColor + worldStroke control the only colors the user actually sees.
 const BRAND_GLOBES = {
   pachama: {
     selection: "world",
-    background: "#F4F1EA",
+    transparent: true,
     dotColor: "#0E3B2E",
     worldFill: "#F4F1EA",
     worldStroke: "#0E3B2E",
@@ -23,16 +27,16 @@ const BRAND_GLOBES = {
   },
   vercel: {
     selection: "world",
-    background: "#000000",
+    transparent: true,
     dotColor: "#FFFFFF",
     worldFill: "#0A0A0A",
-    worldStroke: "#1F1F1F",
+    worldStroke: "#262626",
     shape: "Circle",
     density: 42,
   },
   profound: {
     selection: "world",
-    background: "#0B1F4B",
+    transparent: true,
     dotColor: "#00B3A4",
     worldFill: "#0B1F4B",
     worldStroke: "#1A3070",
@@ -41,7 +45,7 @@ const BRAND_GLOBES = {
   },
   linear: {
     selection: "world",
-    background: "#08090A",
+    transparent: true,
     dotColor: "#5E6AD2",
     worldFill: "#08090A",
     worldStroke: "#1a1a22",
@@ -50,7 +54,7 @@ const BRAND_GLOBES = {
   },
   stripe: {
     selection: "world",
-    background: "#0A2540",
+    transparent: true,
     dotColor: "#635BFF",
     worldFill: "#0A2540",
     worldStroke: "#1a3a6a",
@@ -59,13 +63,25 @@ const BRAND_GLOBES = {
   },
   earthscale: {
     selection: "world",
-    background: "#1d1a16",
+    transparent: true,
     dotColor: "#d99c66",
     worldFill: "#1d1a16",
     worldStroke: "#3a3128",
     shape: "Circle",
     density: 38,
   },
+};
+
+// Background colors shown UNDER each transparent iframe — the iframe
+// wrapper picks the bg from here so the globe color story is unified
+// across showcase / card / stat surfaces for one brand.
+const BRAND_BG = {
+  pachama:    "#F4F1EA",
+  vercel:     "#000000",
+  profound:   "#0B1F4B",
+  linear:     "#08090A",
+  stripe:     "#0A2540",
+  earthscale: "#1d1a16",
 };
 
 // /examples — full-screen showcase of how 6 real products could use
@@ -852,7 +868,7 @@ const CardsGallery = () => (
             style={{
               width: "100%",
               aspectRatio: "16 / 10",
-              background: BRAND_GLOBES[card.brand].background,
+              background: BRAND_BG[card.brand],
             }}
           />
           <div className="examples-card-body">
@@ -894,7 +910,7 @@ const StatsGallery = () => (
               width: 100,
               height: 100,
               flexShrink: 0,
-              background: BRAND_GLOBES[stat.brand].background,
+              background: BRAND_BG[stat.brand],
               borderRadius: 8,
               overflow: "hidden",
             }}
