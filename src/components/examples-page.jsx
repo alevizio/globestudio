@@ -909,116 +909,171 @@ const StripeShowcase = () => (
       overflow: "hidden",
     }}
   >
-    {/* Stripe's signature diagonal wave gradient — anchored top-right,
-        skewed, flowing pink → coral → purple → blue. This is THE Stripe
-        visual signature. Sits behind everything (z-index 0). */}
+    {/* Stripe's signature silk-ribbon gradient — fans out from the
+        top-right corner: warm orange/amber up top → periwinkle blue
+        cutting through the middle → magenta/pink at the bottom. Built
+        from layered blurred radial blobs (Stripe's is WebGL; this is
+        the closest CSS approximation) clipped to a diagonal that
+        sweeps from the top-right toward the lower-center. */}
     <div
       aria-hidden="true"
       style={{
         position: "absolute",
-        top: -120,
-        right: -200,
-        width: "85%",
-        height: 760,
+        top: -200,
+        right: -160,
+        width: 1100,
+        height: 1000,
         zIndex: 0,
         pointerEvents: "none",
-        transform: "skewY(-12deg)",
-        background:
-          "linear-gradient(110deg, #FF5996 0%, #FF7D4D 22%, #B14BFF 52%, #635BFF 72%, #2BC7FF 100%)",
-        opacity: 0.92,
-        clipPath:
-          "polygon(8% 0, 100% 0, 100% 64%, 38% 100%, 0 78%, 0 26%)",
-        filter: "blur(0.5px)",
-      }}
-    />
-    {/* Soft white fade so the gradient melts into the page at the bottom
-        and left, exactly like stripe.com. */}
-    <div
-      aria-hidden="true"
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 0,
-        pointerEvents: "none",
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,0) 30%, #FFFFFF 88%), linear-gradient(90deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 45%)",
+        filter: "blur(36px)",
+        transform: "rotate(8deg)",
+        background: `
+          radial-gradient(closest-side at 62% 8%, #FFA63D 0%, rgba(255,166,61,0) 70%),
+          radial-gradient(closest-side at 78% 20%, #FF7A4D 0%, rgba(255,122,77,0) 68%),
+          radial-gradient(closest-side at 50% 34%, #8E7BFF 0%, rgba(142,123,255,0) 66%),
+          radial-gradient(closest-side at 70% 46%, #6A5BFF 0%, rgba(106,91,255,0) 64%),
+          radial-gradient(closest-side at 55% 60%, #FF4D9D 0%, rgba(255,77,157,0) 62%),
+          radial-gradient(closest-side at 78% 70%, #FF5FB0 0%, rgba(255,95,176,0) 60%)
+        `,
+        opacity: 0.95,
+        clipPath: "polygon(28% 0, 100% 0, 100% 78%, 52% 100%, 30% 64%, 20% 22%)",
       }}
     />
     <CompanyNav
-      brand={<StripeMark size={26} />}
+      brand={<StripeMark size={24} />}
       items={["Products", "Solutions", "Developers", "Resources", "Pricing"]}
       right={
         <>
-          <span className="showcase-nav-link" style={{ color: "#FFFFFF" }}>Sign in</span>
-          <span className="showcase-nav-cta" style={{ background: "rgba(255,255,255,0.25)", color: "#fff", backdropFilter: "blur(4px)" }}>
+          <span className="showcase-nav-link" style={{ color: "#E0457B", fontWeight: 600 }}>Sign in</span>
+          <span className="showcase-nav-cta" style={{ background: "#635BFF", color: "#fff" }}>
             Contact sales →
           </span>
         </>
       }
-      style={{ color: "#FFFFFF", position: "relative", zIndex: 2 }}
+      style={{ color: "#0A2540", position: "relative", zIndex: 2 }}
     />
+    {/* Left-anchored copy column — Stripe's hero is NOT centered. Copy
+        sits in the left ~58%, the ribbon owns the right. */}
     <div
-      className="showcase-inner showcase-inner--split"
-      style={{ position: "relative", zIndex: 1 }}
+      className="showcase-inner"
+      style={{
+        position: "relative",
+        zIndex: 1,
+        alignItems: "flex-start",
+        textAlign: "left",
+        maxWidth: 1180,
+      }}
     >
-      <div className="showcase-copy">
-        <span
-          className="showcase-eyebrow"
-          style={{ color: "#FFFFFF", display: "inline-flex", alignItems: "center", gap: 8 }}
+      <div style={{ maxWidth: 680 }}>
+        <div
+          style={{
+            fontSize: 14,
+            color: "#0A2540",
+            fontWeight: 500,
+            marginBottom: 20,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
         >
-          GLOBAL GDP RUNNING ON STRIPE
-          <span style={{ opacity: 0.7, fontWeight: 500 }}>→</span>
-        </span>
+          Global GDP running on Stripe:
+          <span style={{ fontVariantNumeric: "tabular-nums", color: "#635BFF", fontWeight: 600 }}>
+            1.65433278%
+          </span>
+        </div>
+        {/* Light-weight Söhne-style headline: dark first sentence,
+            then the rest flows in blue — exactly like the real site. */}
         <h2
-          className="showcase-headline"
-          style={{ color: "#0A2540", fontWeight: 600, letterSpacing: "-0.025em" }}
+          style={{
+            margin: 0,
+            fontSize: "clamp(34px, 4vw, 52px)",
+            lineHeight: 1.1,
+            fontWeight: 300,
+            letterSpacing: "-0.02em",
+            color: "#0A2540",
+            maxWidth: 720,
+          }}
         >
-          Financial infrastructure<br />
-          to grow{" "}
-          <span
-            style={{
-              backgroundImage: "linear-gradient(90deg, #FF5996, #635BFF)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              color: "transparent",
-            }}
-          >
-            your revenue.
+          Financial infrastructure to grow{" "}
+          <span style={{ color: "#0A2540" }}>your revenue.</span>{" "}
+          <span style={{ color: "#5B6B8C" }}>
+            Accept payments, offer financial services, and visualize global
+            money movement—from your first transaction to your billionth.
           </span>
         </h2>
-        <p className="showcase-subhead" style={{ color: "#3D4B66" }}>
-          Accept payments, offer financial services, and visualize global
-          money movement — from your first transaction to your billionth.
-          $1.9 trillion processed across 200+ countries.
-        </p>
-        <div className="showcase-ctas">
-          <span className="showcase-cta showcase-cta--primary" style={{ background: "#635BFF", color: "#fff" }}>
-            Start now →
+        <div className="showcase-ctas" style={{ justifyContent: "flex-start", marginTop: 28 }}>
+          <span
+            className="showcase-cta showcase-cta--primary"
+            style={{ background: "#635BFF", color: "#fff", fontWeight: 600 }}
+          >
+            Get started →
           </span>
           <span
             className="showcase-cta"
-            style={{ background: "#fff", color: "#0A2540", border: "1px solid rgba(10,37,64,0.12)", boxShadow: "0 2px 5px rgba(0,0,0,0.06)" }}
+            style={{
+              background: "#fff",
+              color: "#0A2540",
+              border: "1px solid rgba(10,37,64,0.12)",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.06)",
+              display: "inline-flex",
+              gap: 8,
+              alignItems: "center",
+            }}
           >
-            Contact sales
+            <span style={{ fontWeight: 700, color: "#4285F4" }}>G</span>
+            Sign up with Google
           </span>
         </div>
-        <LogoWall
-          color="#425466"
-          label="Powering payments at"
-          logos={[
-            { name: "Amazon", weight: 700 },
-            { name: "Shopify", weight: 700, tracking: "-0.02em" },
-            { name: "Anthropic", weight: 600 },
-            { name: "Coinbase", weight: 700, tracking: "-0.02em" },
-            { name: "Uber", weight: 700, tracking: "-0.02em" },
-          ]}
-        />
+
+        {/* Customer logo row — grayscale, single line, like Stripe's. */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 36,
+            marginTop: 56,
+            flexWrap: "wrap",
+            opacity: 0.7,
+          }}
+        >
+          {[
+            { name: "amazon", weight: 700 },
+            { name: "NVIDIA", weight: 800, tracking: "0.02em" },
+            { name: "Ford", weight: 700, italic: true },
+            { name: "coinbase", weight: 600 },
+            { name: "Google", weight: 500 },
+            { name: "shopify", weight: 700, tracking: "-0.02em" },
+            { name: "mindbody", weight: 600 },
+          ].map((l) => (
+            <span
+              key={l.name}
+              style={{
+                fontFamily: '"Inter", system-ui, sans-serif',
+                fontWeight: l.weight,
+                fontStyle: l.italic ? "italic" : "normal",
+                letterSpacing: l.tracking || "-0.01em",
+                fontSize: 17,
+                color: "#697386",
+              }}
+            >
+              {l.name}
+            </span>
+          ))}
+        </div>
       </div>
 
-      {/* Right: the classic Stripe dotted globe in a floating product
-          card — purple dots on deep navy, the global-payments mesh
-          Stripe's homepage was famous for. */}
-      <div style={{ position: "relative" }}>
+      {/* The classic Stripe dotted globe floats lower-right, over the
+          ribbon — purple dots on navy, with a live payment-route chip.
+          Stripe's connection-arc globe, reimagined. */}
+      <div
+        style={{
+          position: "absolute",
+          right: -8,
+          bottom: 40,
+          width: 320,
+          maxWidth: "38%",
+        }}
+      >
         <LazyGlobe
           src={brandEmbedUrl("default", "stripe", "examples-stripe")}
           title="Stripe global payments globe"
@@ -1026,35 +1081,32 @@ const StripeShowcase = () => (
             background: "#0A2540",
             aspectRatio: "1 / 1",
             width: "100%",
-            maxWidth: 480,
-            borderRadius: 18,
+            borderRadius: 16,
             overflow: "hidden",
-            boxShadow: "0 50px 120px -40px rgba(10, 37, 64, 0.45)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: "0 40px 90px -30px rgba(10, 37, 64, 0.5)",
+            border: "1px solid rgba(255,255,255,0.1)",
           }}
         />
-        {/* Floating payment-route chip — Stripe's connection-arc city
-            labels reimagined as a live transaction ticker. */}
         <div
           style={{
             position: "absolute",
-            bottom: 20,
-            left: -24,
-            padding: "12px 16px",
+            bottom: 16,
+            left: -28,
+            padding: "10px 14px",
             background: "#fff",
             borderRadius: 12,
             boxShadow: "0 12px 32px rgba(10,37,64,0.18)",
-            fontSize: 12,
+            fontSize: 11,
             color: "#0A2540",
             display: "flex",
             alignItems: "center",
-            gap: 12,
+            gap: 10,
           }}
         >
           <span style={{ width: 8, height: 8, borderRadius: 999, background: "#3ECF8E", boxShadow: "0 0 0 3px rgba(62,207,142,0.2)" }} />
           <div style={{ lineHeight: 1.3 }}>
             <div style={{ fontWeight: 700 }}>Singapore → São Paulo</div>
-            <div style={{ color: "#697386", fontSize: 11 }}>$48,200.00 · settled in 1.2s</div>
+            <div style={{ color: "#697386", fontSize: 10 }}>$48,200.00 · settled 1.2s</div>
           </div>
         </div>
       </div>
