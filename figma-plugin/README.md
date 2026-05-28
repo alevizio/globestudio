@@ -1,5 +1,7 @@
 # Globestudio — Figma plugin
 
+**🚀 [Install from Figma Community →](https://www.figma.com/community/plugin/1641603648370488902/globestudio)**
+
 Drops a customized Globestudio dotted globe into your Figma file as a
 high-resolution image. The plugin UI is a thin iframe over
 `globestudio.app/embed`, so you get the full preset library + shader

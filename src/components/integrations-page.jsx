@@ -212,8 +212,12 @@ const INTEGRATIONS = [
     bg: "#0a0a0a",
     fg: "#ffffff",
     blurb:
-      "Paste the URL into any FigJam frame — Figma's FigJam canvas supports iframes natively. A dedicated Figma plugin (for design files) is in the oven.",
+      "The Globestudio plugin is live on Figma Community. Install it and drop a dotted globe straight onto your canvas — pick any of 21 presets, customize, click Insert. Also works in FigJam via the embed URL.",
     snippet: `https://globestudio.app/embed?look=risograph`,
+    cta: {
+      href: "https://www.figma.com/community/plugin/1641603648370488902/globestudio",
+      label: "Install plugin",
+    },
   },
   {
     id: "notion",
