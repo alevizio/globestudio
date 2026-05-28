@@ -633,7 +633,18 @@ const ProfoundShowcase = () => (
           AI SEARCH ANALYTICS
         </span>
         <h2 className="showcase-headline" style={{ color: "#0A0A0A", fontWeight: 600 }}>
-          See where your brand appears in <em style={{ color: "#0B1F4B", fontStyle: "normal" }}>AI answers.</em>
+          Win in{" "}
+          <span className="profound-engine-cycle" style={{ color: "#0B1F4B" }} aria-label="every AI engine">
+            <span className="profound-engine-track">
+              <span>Perplexity</span>
+              <span>ChatGPT</span>
+              <span>Claude</span>
+              <span>Gemini</span>
+              <span>Grok</span>
+              <span>Copilot</span>
+              <span>Perplexity</span>
+            </span>
+          </span>
         </h2>
         <p className="showcase-subhead" style={{ color: "#6B7280" }}>
           1.5 billion+ prompts analyzed across 150+ regions and 30+ languages — live, weekly-refreshed visibility into what every assistant says about you.

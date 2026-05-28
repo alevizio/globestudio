@@ -1411,6 +1411,43 @@ button {
   text-align: center;
 }
 
+/* Profound's signature cycling-engine headline — the AI engine name
+   rotates through Perplexity → ChatGPT → Claude → Gemini → Grok →
+   Copilot. A vertical "slot" reveals one engine at a time; the track
+   translates up by one line per engine. The 7th item repeats the
+   first so the loop reset is seamless. */
+.profound-engine-cycle {
+  display: inline-block;
+  height: 1.15em;
+  line-height: 1.15em;
+  overflow: hidden;
+  vertical-align: bottom;
+  position: relative;
+  top: 0.04em;
+}
+.profound-engine-track {
+  display: flex;
+  flex-direction: column;
+  animation: profound-engine-cycle 10.5s infinite;
+}
+.profound-engine-track > span {
+  height: 1.15em;
+  line-height: 1.15em;
+  white-space: nowrap;
+}
+@keyframes profound-engine-cycle {
+  0%, 11%    { transform: translateY(0); }
+  14.3%, 25% { transform: translateY(-1.15em); }
+  28.6%, 39% { transform: translateY(-2.3em); }
+  42.9%, 53% { transform: translateY(-3.45em); }
+  57.2%, 67% { transform: translateY(-4.6em); }
+  71.5%, 81% { transform: translateY(-5.75em); }
+  85.8%, 100% { transform: translateY(-6.9em); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .profound-engine-track { animation: none; }
+}
+
 /* Faked-but-faithful company navbars — sit at the top of each
    showcase so the hero below feels like it's living on the real
    product page. Non-interactive: rendered as spans not links. */
