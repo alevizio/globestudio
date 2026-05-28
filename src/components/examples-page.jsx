@@ -909,34 +909,52 @@ const StripeShowcase = () => (
       overflow: "hidden",
     }}
   >
-    {/* Stripe's signature silk-ribbon gradient — fans out from the
-        top-right corner: warm orange/amber up top → periwinkle blue
-        cutting through the middle → magenta/pink at the bottom. Built
-        from layered blurred radial blobs (Stripe's is WebGL; this is
-        the closest CSS approximation) clipped to a diagonal that
-        sweeps from the top-right toward the lower-center. */}
+    {/* Stripe's signature silk-ribbon gradient. The fanning-from-a-
+        corner look is a conic gradient anchored at the top-right
+        corner: warm amber → coral → magenta → violet → blue swept as
+        angular bands. Layered with two soft radial highlights for the
+        silk sheen, lightly blurred, and clipped to a diagonal so it
+        sweeps from the top-right toward lower-center like the real
+        site (whose version is WebGL). */}
     <div
       aria-hidden="true"
       style={{
         position: "absolute",
-        top: -200,
-        right: -160,
-        width: 1100,
-        height: 1000,
+        top: -260,
+        right: -240,
+        width: 1180,
+        height: 1080,
         zIndex: 0,
         pointerEvents: "none",
-        filter: "blur(36px)",
-        transform: "rotate(8deg)",
+        filter: "blur(14px) saturate(1.1)",
         background: `
-          radial-gradient(closest-side at 62% 8%, #FFA63D 0%, rgba(255,166,61,0) 70%),
-          radial-gradient(closest-side at 78% 20%, #FF7A4D 0%, rgba(255,122,77,0) 68%),
-          radial-gradient(closest-side at 50% 34%, #8E7BFF 0%, rgba(142,123,255,0) 66%),
-          radial-gradient(closest-side at 70% 46%, #6A5BFF 0%, rgba(106,91,255,0) 64%),
-          radial-gradient(closest-side at 55% 60%, #FF4D9D 0%, rgba(255,77,157,0) 62%),
-          radial-gradient(closest-side at 78% 70%, #FF5FB0 0%, rgba(255,95,176,0) 60%)
+          radial-gradient(60% 45% at 70% 18%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 55%),
+          radial-gradient(55% 55% at 58% 58%, rgba(255,90,170,0.35) 0%, rgba(255,90,170,0) 60%),
+          conic-gradient(from 195deg at 88% 6%,
+            #FFB23D 0deg,
+            #FF7A4D 26deg,
+            #FF4D8F 52deg,
+            #E0469E 74deg,
+            #9B5BFF 96deg,
+            #6A5BFF 118deg,
+            #4F8DFF 140deg,
+            #57C7FF 158deg,
+            rgba(87,199,255,0) 178deg)
         `,
-        opacity: 0.95,
-        clipPath: "polygon(28% 0, 100% 0, 100% 78%, 52% 100%, 30% 64%, 20% 22%)",
+        clipPath: "polygon(26% 0, 100% 0, 100% 82%, 50% 100%, 28% 62%, 16% 20%)",
+      }}
+    />
+    {/* White feather on the left + bottom edges so the ribbon melts
+        into the page instead of ending in a hard polygon line. */}
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        background:
+          "linear-gradient(95deg, #FFFFFF 30%, rgba(255,255,255,0) 62%), linear-gradient(0deg, #FFFFFF 4%, rgba(255,255,255,0) 34%)",
       }}
     />
     <CompanyNav
@@ -1062,52 +1080,75 @@ const StripeShowcase = () => (
         </div>
       </div>
 
-      {/* The classic Stripe dotted globe floats lower-right, over the
-          ribbon — purple dots on navy, with a live payment-route chip.
-          Stripe's connection-arc globe, reimagined. */}
+      {/* The globe lives in a clean white Stripe-Dashboard widget that
+          floats over the ribbon, lower-right — exactly how Stripe
+          floats product-UI cards over its gradient. Header + globe +
+          live volume stat + a live payment-route row underneath. */}
       <div
         style={{
           position: "absolute",
-          right: -8,
-          bottom: 40,
-          width: 320,
-          maxWidth: "38%",
+          right: 0,
+          bottom: 28,
+          width: 340,
+          maxWidth: "40%",
+          background: "#fff",
+          borderRadius: 16,
+          boxShadow: "0 30px 70px -24px rgba(10,37,64,0.35), 0 4px 12px rgba(10,37,64,0.08)",
+          overflow: "hidden",
+          border: "1px solid rgba(10,37,64,0.06)",
         }}
       >
+        {/* Card header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 16px 10px",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <span style={{ fontSize: 12, color: "#697386", fontWeight: 500 }}>Global volume</span>
+            <span style={{ fontSize: 22, fontWeight: 600, color: "#0A2540", letterSpacing: "-0.01em" }}>$1.9T</span>
+          </div>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#3ECF8E",
+              background: "rgba(62,207,142,0.12)",
+              padding: "3px 8px",
+              borderRadius: 6,
+            }}
+          >
+            ↑ 24.1%
+          </span>
+        </div>
+        {/* Globe — Stripe-purple dots on deep navy */}
         <LazyGlobe
           src={brandEmbedUrl("default", "stripe", "examples-stripe")}
           title="Stripe global payments globe"
           style={{
             background: "#0A2540",
-            aspectRatio: "1 / 1",
+            aspectRatio: "16 / 11",
             width: "100%",
-            borderRadius: 16,
-            overflow: "hidden",
-            boxShadow: "0 40px 90px -30px rgba(10, 37, 64, 0.5)",
-            border: "1px solid rgba(255,255,255,0.1)",
           }}
         />
+        {/* Live payment-route row */}
         <div
           style={{
-            position: "absolute",
-            bottom: 16,
-            left: -28,
-            padding: "10px 14px",
-            background: "#fff",
-            borderRadius: 12,
-            boxShadow: "0 12px 32px rgba(10,37,64,0.18)",
-            fontSize: 11,
-            color: "#0A2540",
             display: "flex",
             alignItems: "center",
             gap: 10,
+            padding: "12px 16px",
+            borderTop: "1px solid rgba(10,37,64,0.06)",
+            fontSize: 12,
+            color: "#0A2540",
           }}
         >
-          <span style={{ width: 8, height: 8, borderRadius: 999, background: "#3ECF8E", boxShadow: "0 0 0 3px rgba(62,207,142,0.2)" }} />
-          <div style={{ lineHeight: 1.3 }}>
-            <div style={{ fontWeight: 700 }}>Singapore → São Paulo</div>
-            <div style={{ color: "#697386", fontSize: 10 }}>$48,200.00 · settled 1.2s</div>
-          </div>
+          <span style={{ width: 8, height: 8, borderRadius: 999, background: "#3ECF8E", boxShadow: "0 0 0 3px rgba(62,207,142,0.2)", flexShrink: 0 }} />
+          <span style={{ fontWeight: 600 }}>Singapore → São Paulo</span>
+          <span style={{ marginLeft: "auto", color: "#697386", fontVariantNumeric: "tabular-nums" }}>$48,200 · 1.2s</span>
         </div>
       </div>
     </div>
