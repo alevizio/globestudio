@@ -321,6 +321,56 @@ const CompanyNav = ({ brand, items, right, style }) => (
   </div>
 );
 
+// Monochrome customer-logo wall. Real product pages use these to
+// signal traction without screaming. Rendered as styled wordmarks so
+// we don't have to ship 6+ logo SVGs per showcase.
+const LogoWall = ({ logos, color, label }) => (
+  <div style={{ marginTop: 60, width: "100%", textAlign: "center" }}>
+    {label && (
+      <div
+        style={{
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color,
+          opacity: 0.55,
+          marginBottom: 18,
+          fontWeight: 600,
+        }}
+      >
+        {label}
+      </div>
+    )}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 40,
+        flexWrap: "wrap",
+        opacity: 0.65,
+      }}
+    >
+      {logos.map((l) => (
+        <span
+          key={l.name}
+          style={{
+            fontFamily: l.font || 'ui-sans-serif, system-ui, sans-serif',
+            fontWeight: l.weight ?? 600,
+            fontSize: l.size ?? 18,
+            letterSpacing: l.tracking || "-0.01em",
+            fontStyle: l.italic ? "italic" : "normal",
+            color,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {l.name}
+        </span>
+      ))}
+    </div>
+  </div>
+);
+
 // --- Per-company showcase sections -----------------------------------------
 
 const PachamaShowcase = () => (
@@ -330,7 +380,9 @@ const PachamaShowcase = () => (
     style={{
       background: "#F4F1EA",
       color: "#0E3B2E",
-      fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
+      // Pachama's actual display face is a punchy modern geometric sans
+      // (Söhne/GT-style). Earlier draft used Georgia serif — wrong vibe.
+      fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
     }}
   >
     <CompanyNav
@@ -364,21 +416,69 @@ const PachamaShowcase = () => (
           Get in touch
         </span>
       </div>
-      <LazyGlobe
-        src={brandEmbedUrl("topographic", "pachama", "examples-pachama")}
-        title="Pachama-flavored globe"
-        className="showcase-globe"
-        style={{
-          background: "#0E3B2E",
-          aspectRatio: "16 / 9",
-          maxWidth: 920,
-          width: "100%",
-          marginTop: 40,
-          borderRadius: 12,
-          overflow: "hidden",
-          boxShadow: "0 30px 80px -30px rgba(14, 59, 46, 0.4)",
-        }}
-      />
+      <div style={{ position: "relative", width: "100%", maxWidth: 920, marginTop: 40 }}>
+        <LazyGlobe
+          src={brandEmbedUrl("topographic", "pachama", "examples-pachama")}
+          title="Pachama-flavored globe"
+          className="showcase-globe"
+          style={{
+            background: "#0E3B2E",
+            aspectRatio: "16 / 9",
+            width: "100%",
+            borderRadius: 12,
+            overflow: "hidden",
+            boxShadow: "0 30px 80px -30px rgba(14, 59, 46, 0.4)",
+          }}
+        />
+        {/* Pachama project chips floating over the bottom-right of the
+            globe — their signature "live projects" overlay pattern. */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          {[
+            { flag: "🇧🇷", name: "Jari Pará", type: "ARR · 12,400 ha", dot: "#F25C3B" },
+            { flag: "🇨🇴", name: "Cauca Reserva", type: "Conservation · 8,200 ha", dot: "#B8E14C" },
+            { flag: "🇰🇪", name: "Mau Forest", type: "Reforestation · 4,800 ha", dot: "#6A4BE0" },
+          ].map((p) => (
+            <div
+              key={p.name}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "8px 14px",
+                background: "rgba(244, 241, 234, 0.96)",
+                color: "#0E3B2E",
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 500,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <span style={{ fontSize: 16 }}>{p.flag}</span>
+              <span style={{ fontWeight: 700 }}>{p.name}</span>
+              <span style={{ opacity: 0.55, fontSize: 11 }}>{p.type}</span>
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: 999,
+                  background: p.dot,
+                  boxShadow: `0 0 0 3px ${p.dot}33`,
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
       <div className="showcase-stats" style={{ marginTop: 56 }}>
         {[
           { v: "100M ha", l: "to restore by 2030" },
@@ -488,6 +588,18 @@ const VercelShowcase = () => (
           </div>
         ))}
       </div>
+      <LogoWall
+        color="#A1A1A1"
+        label="Trusted by"
+        logos={[
+          { name: "Notion", weight: 700 },
+          { name: "OpenAI", weight: 600 },
+          { name: "Adobe", weight: 700, tracking: "0.02em" },
+          { name: "GitHub", weight: 600 },
+          { name: "Loom", weight: 700, tracking: "-0.03em" },
+          { name: "Cursor", weight: 600 },
+        ]}
+      />
     </div>
   </section>
 );
@@ -535,20 +647,85 @@ const ProfoundShowcase = () => (
           </span>
         </div>
       </div>
-      <LazyGlobe
-        src={brandEmbedUrl("default", "profound", "examples-profound")}
-        title="Profound-flavored globe"
-        className="showcase-globe showcase-globe--side"
+      {/* Fake Profound dashboard chrome around the globe — filter chips
+          at top, globe canvas in middle, live mention counter at bottom.
+          Reads as "this is a screenshot of the product" without us
+          having to ship a separate product UI mockup. */}
+      <div
         style={{
-          background: "#0B1F4B",
-          aspectRatio: "1 / 1",
           width: "100%",
-          maxWidth: 500,
+          maxWidth: 540,
           borderRadius: 16,
+          background: "#fff",
+          border: "1px solid rgba(11, 31, 75, 0.08)",
+          boxShadow: "0 40px 100px -30px rgba(11, 31, 75, 0.18), 0 8px 24px -12px rgba(11, 31, 75, 0.12)",
           overflow: "hidden",
-          boxShadow: "0 40px 100px -30px rgba(11, 31, 75, 0.35)",
         }}
-      />
+      >
+        {/* Filter chips row */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "14px 16px",
+            borderBottom: "1px solid rgba(11, 31, 75, 0.08)",
+            fontSize: 11,
+            fontWeight: 600,
+          }}
+        >
+          {["All engines", "30 days", "150 regions", "EN"].map((c) => (
+            <span
+              key={c}
+              style={{
+                padding: "4px 10px",
+                borderRadius: 999,
+                background: "#F1F4F9",
+                color: "#0B1F4B",
+              }}
+            >
+              {c}
+            </span>
+          ))}
+          <span style={{ marginLeft: "auto", fontSize: 10, color: "#6B7280", display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: "#00B3A4", boxShadow: "0 0 0 3px rgba(0,179,164,0.2)" }} />
+            LIVE
+          </span>
+        </div>
+
+        <LazyGlobe
+          src={brandEmbedUrl("default", "profound", "examples-profound")}
+          title="Profound-flavored globe"
+          style={{
+            background: "#0B1F4B",
+            aspectRatio: "5 / 4",
+            width: "100%",
+          }}
+        />
+
+        {/* Footer: mention counter + engine breakdown */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "12px 16px",
+            borderTop: "1px solid rgba(11, 31, 75, 0.08)",
+            fontSize: 12,
+            color: "#0B1F4B",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+            <strong style={{ fontSize: 22, fontWeight: 700 }}>1,577</strong>
+            <span style={{ color: "#6B7280", fontWeight: 500 }}>mentions this week</span>
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <span style={{ padding: "2px 8px", borderRadius: 4, background: "rgba(16,185,129,0.12)", color: "#059669", fontWeight: 700, fontSize: 10 }}>
+              GOOD 61%
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 );
@@ -631,6 +808,55 @@ const LinearShowcase = () => (
             position: "relative",
           }}
         />
+        {/* Floating "issue card" overlay — Linear's annotated-screenshot
+            pattern; sits over the top-right of the globe, signals
+            "this is a Linear-native product view of global team data." */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: 24,
+            right: 24,
+            padding: "12px 16px",
+            background: "rgba(20, 21, 26, 0.94)",
+            border: "1px solid rgba(247, 248, 248, 0.1)",
+            borderRadius: 10,
+            color: "#F7F8F8",
+            fontSize: 12,
+            maxWidth: 240,
+            boxShadow: "0 12px 32px rgba(0,0,0,0.4)",
+            backdropFilter: "blur(8px)",
+            zIndex: 2,
+            textAlign: "left",
+          }}
+        >
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, color: "#5E6AD2", fontSize: 10, fontWeight: 600, letterSpacing: "0.04em" }}>
+          <span style={{ width: 6, height: 6, borderRadius: 2, background: "#5E6AD2" }} />
+          ENG-247
+        </div>
+        <div style={{ fontWeight: 600, fontSize: 13 }}>World expansion: edge regions Q1</div>
+        <div style={{ marginTop: 6, display: "flex", gap: 6 }}>
+          {["E", "A", "R"].map((init, i) => (
+            <div
+              key={init}
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 999,
+                background: ["#FF9F8C", "#A6F0C6", "#A4B3FF"][i],
+                color: "#0a0a0a",
+                fontSize: 10,
+                fontWeight: 700,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {init}
+            </div>
+          ))}
+          <span style={{ color: "rgba(247,248,248,0.5)", fontSize: 11, marginLeft: 4 }}>+ 5</span>
+        </div>
       </div>
       <div className="showcase-stats" style={{ marginTop: 56 }}>
         {[
@@ -644,6 +870,17 @@ const LinearShowcase = () => (
           </div>
         ))}
       </div>
+      <LogoWall
+        color="rgba(247, 248, 248, 0.7)"
+        label="Customers"
+        logos={[
+          { name: "OpenAI", weight: 600 },
+          { name: "Mercury", weight: 600 },
+          { name: "Vercel", weight: 700 },
+          { name: "Ramp", weight: 700, tracking: "-0.02em" },
+          { name: "Cursor", weight: 600 },
+        ]}
+      />
     </div>
   </section>
 );
@@ -656,8 +893,67 @@ const StripeShowcase = () => (
       background: "#F6F9FC",
       color: "#0A2540",
       fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      position: "relative",
+      overflow: "hidden",
     }}
   >
+    {/* Stripe's iconic wavy gradient banner at the top of the section —
+        the visual signature you immediately recognize as Stripe. SVG
+        with smooth pink → peach → teal → lime flowing bands. */}
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 320,
+        zIndex: 0,
+        pointerEvents: "none",
+        background: "linear-gradient(180deg, #F6F9FC 0%, transparent 100%)",
+      }}
+    >
+      <svg
+        width="100%"
+        height="320"
+        viewBox="0 0 1440 320"
+        preserveAspectRatio="none"
+        style={{ position: "absolute", top: 0, left: 0 }}
+      >
+        <defs>
+          <linearGradient id="stripe-wave" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#FF80B5" stopOpacity="0.65" />
+            <stop offset="30%" stopColor="#FFB178" stopOpacity="0.55" />
+            <stop offset="60%" stopColor="#00D4FF" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#A4F0A4" stopOpacity="0.4" />
+          </linearGradient>
+          <linearGradient id="stripe-wave-fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fff" stopOpacity="1" />
+            <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+          </linearGradient>
+          <mask id="stripe-wave-mask">
+            <rect width="1440" height="320" fill="url(#stripe-wave-fade)" />
+          </mask>
+        </defs>
+        <g mask="url(#stripe-wave-mask)">
+          {/* Multiple wave bands stacked at slight offsets */}
+          <path
+            fill="url(#stripe-wave)"
+            d="M0,80 C240,160 480,40 720,100 C960,160 1200,40 1440,90 L1440,0 L0,0 Z"
+          />
+          <path
+            fill="url(#stripe-wave)"
+            opacity="0.7"
+            d="M0,140 C240,80 480,180 720,140 C960,100 1200,180 1440,140 L1440,0 L0,0 Z"
+          />
+          <path
+            fill="url(#stripe-wave)"
+            opacity="0.5"
+            d="M0,200 C240,150 480,240 720,200 C960,160 1200,240 1440,200 L1440,0 L0,0 Z"
+          />
+        </g>
+      </svg>
+    </div>
     <CompanyNav
       brand={<StripeMark size={26} />}
       items={["Products", "Solutions", "Developers", "Resources", "Pricing"]}
@@ -719,6 +1015,18 @@ const StripeShowcase = () => (
           </div>
         ))}
       </div>
+      <LogoWall
+        color="#425466"
+        label="Powering payments at"
+        logos={[
+          { name: "Amazon", weight: 700, tracking: "0" },
+          { name: "Shopify", weight: 700, tracking: "-0.02em" },
+          { name: "Airbnb", weight: 700, tracking: "-0.02em" },
+          { name: "Figma", weight: 600 },
+          { name: "Atlassian", weight: 700 },
+          { name: "Uber", weight: 700, tracking: "-0.02em" },
+        ]}
+      />
     </div>
   </section>
 );
@@ -836,6 +1144,81 @@ const EarthscaleShowcase = () => (
         >
           Book a Demo
         </span>
+      </div>
+      {/* Earthscale team row — their site's signature founders card pattern.
+          4 circular avatars with role labels in JetBrains Mono small caps,
+          each tagged with the brand's amber dot. */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 40,
+          marginTop: 64,
+          flexWrap: "wrap",
+        }}
+      >
+        {[
+          { name: "Felix Dorrek", role: "CO-FOUNDER", initial: "F" },
+          { name: "Noah Golmant", role: "CO-FOUNDER", initial: "N" },
+          { name: "Anya Petrova", role: "ENGINEER", initial: "A" },
+          { name: "Mark Reyes", role: "GEOSPATIAL", initial: "M" },
+        ].map((m, i) => (
+          <div
+            key={m.name}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              color: "#ece7da",
+              fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+            }}
+          >
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                border: "1px solid rgba(236,231,218,0.18)",
+                background: ["#3a3128", "#4a3a2c", "#3a3128", "#4a3a2c"][i],
+                color: "#d99c66",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 600,
+                fontSize: 14,
+                fontFamily: 'ui-serif, "Fraunces", Georgia, serif',
+              }}
+            >
+              {m.initial}
+            </div>
+            <div style={{ textAlign: "left", lineHeight: 1.3 }}>
+              <div
+                style={{
+                  fontSize: 10,
+                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                  color: "#d99c66",
+                  letterSpacing: "0.14em",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <span
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: 999,
+                    background: "#d99c66",
+                    boxShadow: "0 0 0 2px rgba(217,156,102,0.2)",
+                  }}
+                />
+                {m.role}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 500 }}>{m.name}</div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   </section>
