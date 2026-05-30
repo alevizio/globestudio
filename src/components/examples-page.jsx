@@ -216,21 +216,26 @@ const LazyGlobe = ({ src, className, title, style }) => {
   const [shouldLoad, setShouldLoad] = useState(false);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    if (shouldLoad) return undefined;
     const el = ref.current;
     if (!el) return undefined;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setShouldLoad(true);
-          observer.disconnect();
-        }
+        // Mount the globe iframe only while near the viewport, and UNMOUNT
+        // it once scrolled away. Each globe holds its own WebGL2 context and
+        // browsers cap simultaneous contexts (~8-16); keeping every showcase
+        // globe mounted exhausts that cap, so later globes fail
+        // getContext("webgl2") and fall back to "WebGL 2 not supported".
+        // Toggling both ways keeps live contexts down to what's on screen.
+        setShouldLoad(entry.isIntersecting);
+        if (!entry.isIntersecting) setLoaded(false);
       },
-      { rootMargin: "150% 0px" },
+      // ~half a screen of lead-in so it's painted before it scrolls in,
+      // without preloading several screens of globes at once.
+      { rootMargin: "50% 0px" },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [shouldLoad]);
+  }, []);
   return (
     <div ref={ref} className={className} style={style}>
       {shouldLoad ? (
@@ -1753,13 +1758,9 @@ const StripeShowcase = () => {
     style={{
       background: "#FFFFFF",
       color: "#0d253d",
-      // DEV-only: preview the real Söhne face (staged in the gitignored
-      // public/_stripe-local/). Production has no such file and the
-      // @font-face below isn't rendered, so it falls back to Inter — no
-      // licensed font ever ships.
-      fontFamily: import.meta.env.DEV
-        ? '"Sohne Local", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif'
-        : '"Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
+      // Söhne web font (licensed — see public/showcase-fonts/) with Inter as
+      // the fallback while it loads / if it fails.
+      fontFamily: '"Sohne Local", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
       position: "relative",
       overflow: "hidden",
       display: "flex",
@@ -1767,9 +1768,7 @@ const StripeShowcase = () => {
       borderBottom: "1px solid rgba(10,37,64,0.1)",
     }}
   >
-    {import.meta.env.DEV && (
-      <style>{`@font-face{font-family:"Sohne Local";src:url("/_stripe-local/sohne.woff2") format("woff2");font-weight:100 800;font-style:normal;font-display:swap;}`}</style>
-    )}
+    <style>{`@font-face{font-family:"Sohne Local";src:url("/showcase-fonts/sohne.woff2") format("woff2");font-weight:100 800;font-style:normal;font-display:swap;}`}</style>
     {/* Background gradient removed — the globe is the hero visual now. */}
     {/* Vertical container rules — frame the hero at the edges of the nav's
         container width. They start at the nav's bottom hairline (not the
