@@ -118,6 +118,10 @@ const App = () => {
     return (
       <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
         <TeaserPage />
+        {/* Mount analytics here too — the teaser returns early, so without
+            this the waitlist page records no pageviews or waitlist_signup
+            conversions. Same privacy gating applies. */}
+        <Analytics />
       </Suspense>
     );
   }
