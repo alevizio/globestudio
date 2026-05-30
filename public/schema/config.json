@@ -26,7 +26,7 @@
 
     "background": { "type": "string", "description": "Canvas background — hex color.", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
     "transparent": { "type": "boolean", "description": "Use transparent background instead of `background`." },
-    "backgroundStyle": { "type": "string", "enum": ["solid", "space"], "description": "`solid` paints a flat color; `space` paints a starfield-and-nebula scene." },
+    "backgroundStyle": { "type": "string", "enum": ["solid", "space", "flow"], "description": "`solid` paints a flat color; `space` paints a starfield-and-nebula scene; `flow` paints an animated gradient-mesh shader." },
 
     "density": { "type": "number", "minimum": 1, "maximum": 100, "description": "Dot density across the visible area." },
     "dotSize": { "type": "number", "minimum": 0.1, "maximum": 30, "description": "Dot radius." },
@@ -141,6 +141,21 @@
         "motion": { "type": "number", "minimum": 0, "maximum": 100 },
         "nebula": { "type": "number", "minimum": 0, "maximum": 100 },
         "hue": { "type": "number", "minimum": 0, "maximum": 360 },
+        "brightness": { "type": "number", "minimum": 0, "maximum": 200 }
+      }
+    },
+
+    "flowSettings": {
+      "type": "object",
+      "description": "Animated gradient-mesh tuning. Applies when backgroundStyle is `flow`.",
+      "properties": {
+        "colorA": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+        "colorB": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+        "colorC": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+        "motion": { "type": "number", "minimum": 0, "maximum": 100 },
+        "turbulence": { "type": "number", "minimum": 0, "maximum": 100 },
+        "grain": { "type": "number", "minimum": 0, "maximum": 100 },
+        "scale": { "type": "number", "minimum": 0, "maximum": 100 },
         "brightness": { "type": "number", "minimum": 0, "maximum": 200 }
       }
     },

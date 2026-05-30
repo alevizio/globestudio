@@ -1306,12 +1306,17 @@ button {
      full viewport to feel like landing pages. */
   max-width: none;
   padding: 0;
+  /* Clip the full-bleed `100vw` bands (mesh gradient, logo marquee) so they
+     can't overshoot by the scrollbar width and leave black space / a
+     horizontal scroll on the right. `clip` (not `hidden`) avoids creating a
+     nested scroll container or affecting vertical scrolling. */
+  overflow-x: clip;
 }
 
 .examples-page--showcase .examples-hero {
   max-width: 760px;
   margin: 0 auto;
-  padding: 80px 24px 48px;
+  padding: 36px 24px 28px;
   text-align: center;
 }
 
@@ -1391,10 +1396,15 @@ button {
    Per-section background/color is set inline from the component;
    layout chrome lives here. */
 .showcase {
-  min-height: 100vh;
+  min-height: 100vh; /* fallback */
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   position: relative;
+  /* No top padding: the global nav is non-sticky on this page (see the
+     :has rule below), so each section's faked company nav sits flush at
+     its top — stuck directly to whatever precedes it, no separation. */
+  padding-top: 0;
 }
 
 .showcase-inner {
@@ -1590,6 +1600,146 @@ button {
 }
 .showcase-cta--primary { border-color: transparent; }
 .showcase-cta--ghost  { background: transparent; }
+/* The /examples heroes are real-product mockups, so their buttons opt out of
+   the global pixel-corner flatten (the `* { border-radius: 0 !important }`
+   nuclear rule) and keep rounded corners. Class specificity + !important beats
+   the universal selector. */
+.showcase--stripe .showcase-cta { border-radius: 16px !important; }
+/* Same opt-out for the faked nav buttons (Sign in / Contact sales) — smaller
+   buttons, so a smaller radius. */
+.showcase--stripe .showcase-nav-cta { border-radius: 10px !important; }
+/* Vercel hero: every button is a full pill. Opts out of the global
+   border-radius flatten like the Stripe overrides above. */
+.showcase--vercel .showcase-cta,
+.showcase--vercel .showcase-nav-cta,
+.showcase--vercel .vercel-pill {
+  border-radius: 999px !important;
+}
+/* Small dropdown chevron on every Vercel nav item except the last (Pricing). */
+.showcase--vercel .showcase-nav-item {
+  display: inline-flex;
+  align-items: center;
+}
+.showcase--vercel .showcase-nav-item:not(:last-child)::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  margin-left: 5px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-1px);
+  opacity: 0.55;
+}
+/* Outlined (stroked) buttons — Log in + Get a Demo. Re-adds a border and pill
+   radius that the global border-strip / radius-flatten rules remove. */
+.showcase--vercel .vercel-outline {
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 999px !important;
+}
+/* Solid black disc behind the globe so its dots sit on pure black (the globe
+   composites transparent, so the glow would otherwise bleed through). */
+.vercel-globe-disc {
+  border-radius: 50% !important;
+  clip-path: none !important;
+}
+/* Animated Vercel-gradient glow behind the globe (adapted from the gist).
+   A blurred, scaled, circular gradient that cycles its position. */
+.vercel-globe-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: none !important;
+  /* Fills the hero; colour reads blue (left) → green/yellow (centre) → red
+     (right), like vercel.com. */
+  filter: blur(70px);
+  background: linear-gradient(95deg, #0a4dff 0%, #16b34a 30%, #ffd21e 52%, #ff7a00 72%, #ff1f1f 100%);
+  background-size: 180% 100%;
+  opacity: 0.78;
+  /* Radiate from behind the globe (lower-centre) and fade to dark at the
+     corners — broad atmospheric glow, not a tight halo. */
+  -webkit-mask-image: radial-gradient(ellipse 56% 54% at 50% 82%, #000 10%, transparent 68%);
+  mask-image: radial-gradient(ellipse 56% 54% at 50% 82%, #000 10%, transparent 68%);
+  animation: vercel-glow 14s ease infinite;
+}
+@keyframes vercel-glow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vercel-globe-glow::after { animation: none; }
+}
+/* Ambient unicorn-blinds gradient wash behind the whole Vercel hero — soft,
+   low opacity, slowly drifting. Sits behind everything (first child). */
+.vercel-bg-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: linear-gradient(-10deg, #f10d5e 0%, #ffb43e 25%, #43e03c 50%, #6528ff 100%);
+  background-size: 200% 200%;
+  filter: blur(28px);
+  opacity: 0.42;
+  /* Don't let it reach the top — fade out toward the nav/headline. */
+  -webkit-mask-image: linear-gradient(to top, #000 35%, transparent 80%);
+  mask-image: linear-gradient(to top, #000 35%, transparent 80%);
+  animation: vercel-bg-slide 14s ease infinite;
+}
+@keyframes vercel-bg-slide {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vercel-bg-wash { animation: none; }
+}
+/* "Ask AI" — looping rainbow gradient text. The gradient's first and last
+   stops match so the panning background tiles seamlessly. */
+.ai-gradient {
+  background-image: linear-gradient(
+    90deg,
+    #6f9bff, #6fce93, #ffe487, #ffb273, #ff8a8a, #6f9bff
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: ai-gradient-pan 5s linear infinite;
+}
+@keyframes ai-gradient-pan {
+  to { background-position: 200% center; }
+}
+/* Hero contour-mesh gradient — sweeps side to side. !important on the size
+   beats the inline `background` shorthand (which would reset size to auto). */
+.vercel-mesh-gradient {
+  background-size: 200% 100% !important;
+  animation: vercel-mesh-pan 5s ease-in-out infinite alternate;
+}
+@keyframes vercel-mesh-pan {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vercel-mesh-gradient { animation: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-gradient { animation: none; }
+}
+/* Tiny rotating flag beside "195 countries" — flips in on each swap. */
+.rotating-flag {
+  transform-origin: center;
+  backface-visibility: hidden;
+  animation: rotating-flag-flip 760ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@keyframes rotating-flag-flip {
+  0% { transform: rotateY(52deg); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: rotateY(0deg); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rotating-flag { animation: none; }
+}
 
 .showcase-stats {
   display: grid;
@@ -1623,6 +1773,93 @@ button {
 
 .showcase-globe-backdrop iframe {
   filter: saturate(0.9);
+}
+
+/* Stripe customer-logo marquee — infinite horizontal scroll with soft
+   edge fades. The track holds the logo list twice; translating -50% lands
+   exactly on the duplicate so the loop is seamless. */
+.stripe-logo-marquee {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+.stripe-logo-marquee-track {
+  display: flex;
+  align-items: center;
+  gap: 52px;
+  width: max-content;
+  animation: stripe-logo-marquee 26s linear infinite;
+}
+@keyframes stripe-logo-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stripe-logo-marquee-track { animation: none; }
+}
+
+/* Stripe nav — matched to the live site: ~76px bar, 14px/400 #061b31
+   items with dropdown carets and 24px gaps, a 25px-tall wordmark. */
+.showcase--stripe .showcase-nav-inner {
+  max-width: 1262px;
+  padding: 18px 24px;
+}
+.showcase--stripe .showcase-nav-items {
+  gap: 24px;
+  margin-left: 8px;
+}
+.showcase--stripe .showcase-nav-item {
+  font-size: 14px;
+  font-weight: 600;
+  color: #061b31;
+  opacity: 1;
+  display: inline-flex;
+  align-items: center;
+}
+/* Dropdown caret on every item except the last (Pricing has none). */
+.showcase--stripe .showcase-nav-item:not(:last-child)::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-1px);
+  opacity: 0.5;
+}
+.showcase--stripe .showcase-nav-right { gap: 20px; }
+
+/* Stripe hero: a compact band (a little taller than pure content height),
+   with the fake nav flush to the very top of the section. */
+.showcase--stripe { min-height: 100vh; min-height: 100svh; padding-top: 0; }
+
+/* Match Stripe's exact one-viewport height — the Vercel content otherwise
+   runs ~150px taller. The bottom is the full-bleed globe band (already
+   designed to crop), so capping + clipping keeps the heroes uniform. */
+.showcase--vercel {
+  height: 100vh; /* fallback */
+  height: 100svh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* On the examples showcase, the global site nav scrolls away (non-sticky)
+   instead of sticking over the sections — so each section's own faked
+   company nav reaches the very top of the viewport when you land on it,
+   like a standalone page. The chip nav is hidden entirely: it rendered as
+   a dark band sitting directly on top of the company nav, which read as an
+   unwanted separation above the nav. */
+/* The scroll container is the body (.is-body-scrollable sets overflow:auto on
+   both axes). On the full-bleed showcase page that lets the 100vw bands give a
+   horizontal scrollbar + black space on the right — clip the x axis here. */
+body:has(.examples-page--showcase).is-body-scrollable {
+  overflow-x: hidden;
+}
+body:has(.examples-page--showcase) .takeover-nav {
+  position: relative;
+}
+body:has(.examples-page--showcase) .showcase-chip-nav {
+  display: none;
 }
 
 /* --- Cards + Stats + Code Reference (regular scroll below showcases) --- */
@@ -2513,6 +2750,26 @@ button {
 .embed-view[data-transparent="true"] .embed-view-placeholder {
   background: transparent;
 }
+/* The WebGL canvas already clears at alpha 0, so the only thing painting
+   a "black box" behind it is the .globe-background mount div's own
+   var(--bg). Null it out (plus its soft radial glow ::before, which would
+   otherwise leave a faint rectangular halo) so the spinning globe + its
+   in-scene atmosphere glow composite straight onto the host page. */
+.embed-view[data-transparent="true"] .globe-background {
+  background: transparent;
+}
+.embed-view[data-transparent="true"] .globe-background::before {
+  display: none;
+}
+/* The mobile breakpoint crops .globe-background up by 210px to clear the
+   app's control-rail bottom sheet. The embed has no control rail, so when
+   an embed iframe is narrower than that breakpoint (small dashboard cards,
+   mobile) that crop wrongly collapses the globe to a ~30px sliver. The
+   embed globe must always fill its iframe — this higher-specificity rule
+   beats the mobile crop at every width. */
+.embed-view .globe-background {
+  inset: 0;
+}
 
 .embed-view-placeholder {
   position: fixed;
@@ -3323,10 +3580,18 @@ button {
   background: #03030a;
 }
 
+.app-shell.is-flow-background {
+  background: #080714;
+}
+
 .app-shell.is-space-background .globe-background,
 .app-shell.is-space-background .map-background,
 .app-shell.is-space-background .map-background-placeholder,
-.app-shell.is-space-background .map-background-error {
+.app-shell.is-space-background .map-background-error,
+.app-shell.is-flow-background .globe-background,
+.app-shell.is-flow-background .map-background,
+.app-shell.is-flow-background .map-background-placeholder,
+.app-shell.is-flow-background .map-background-error {
   background: transparent;
 }
 
@@ -7581,7 +7846,8 @@ input[type="range"]:active::-moz-range-thumb {
   }
 
   .app-shell {
-    min-height: 100vh;
+    min-height: 100vh; /* fallback */
+    min-height: 100svh;
     overflow: hidden;
   }
   /* Tablet-portrait range no longer overrides the bottom-sheet behavior.

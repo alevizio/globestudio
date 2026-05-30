@@ -85,6 +85,8 @@ export const ControlPanel = ({
   setShadeBackground,
   spaceSettings,
   setSpaceSettings,
+  flowSettings,
+  setFlowSettings,
   mapDepth,
   setMapDepth,
   tiltX,

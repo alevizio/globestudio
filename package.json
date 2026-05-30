@@ -17,6 +17,7 @@
     "check": "npm run test && npm run build && npm run check:bundle"
   },
   "dependencies": {
+    "@paper-design/shaders-react": "^0.0.76",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "d3-geo": "^3.1.1",

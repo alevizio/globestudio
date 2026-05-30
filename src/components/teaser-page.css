@@ -1,0 +1,344 @@
+/* Coming-soon teaser — rotating globe behind a centered email capture,
+   with the brand-hero showcases scrolling below. Shown app-wide when
+   VITE_TEASER=1 (see App.jsx). */
+.teaser-page {
+  position: relative;
+  height: 100vh; /* fallback */
+  height: 100svh;
+  overflow-y: auto;
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  background: #06070d;
+}
+/* Each hero is a full-screen snap point — scrolling switches hero-by-hero. */
+.teaser-page > .teaser,
+.teaser-page .showcase {
+  scroll-snap-align: start;
+}
+/* Enter transition: each hero fades up as it snaps in. Scroll-driven +
+   CSS-only (no JS); degrades to "just appears" where view() isn't supported
+   and is disabled for reduced-motion. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .teaser-page > .teaser,
+    .teaser-page .showcase {
+      animation: hero-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 14%;
+    }
+  }
+}
+@keyframes hero-reveal {
+  from { opacity: 0.15; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.teaser {
+  position: relative;
+  min-height: 100vh; /* fallback */
+  min-height: 100svh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #0d1326 0%, #06070d 60%, #04050a 100%);
+  color: #eef3fb;
+  font-family: "Geist Pixel", ui-monospace, monospace;
+  letter-spacing: 0.01em;
+  text-align: center;
+  padding: clamp(20px, 5vw, 64px);
+}
+
+/* Rotating globe — large, centered, faded into the background. */
+.teaser-globe {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%) translate(var(--tg-x, 7px), var(--tg-y, 500px))
+    scale(calc(var(--tg-scale, 220) / 100));
+  width: min(860px, 116vmin);
+  aspect-ratio: 1 / 1;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.92;
+  -webkit-mask-image: radial-gradient(closest-side, #000 60%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 60%, transparent 100%);
+}
+.teaser-globe iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+}
+
+/* Legibility veil so the copy reads over the globe. */
+.teaser-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(70% 60% at 50% 52%, rgba(4, 5, 10, 0.78) 0%, rgba(4, 5, 10, 0.35) 45%, transparent 78%);
+}
+
+.teaser-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  max-width: 560px;
+  /* Globe sits low + large, so lift the copy toward the upper third. */
+  transform: translateY(-17vh);
+}
+
+.teaser-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  margin-bottom: 12px;
+}
+
+.teaser-title {
+  margin: 0;
+  font-family: "Geist Pixel", ui-monospace, monospace;
+  font-size: clamp(22px, 3.7vw, 44px);
+  line-height: 1.28;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+
+.teaser-tagline {
+  margin: 0;
+  font-size: clamp(14px, 1.6vw, 18px);
+  line-height: 1.55;
+  color: #b7c3da;
+  max-width: 46ch;
+}
+
+.teaser-form {
+  display: flex;
+  gap: 10px;
+  width: min(440px, 100%);
+  margin-top: 8px;
+}
+
+.teaser-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 48px;
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  outline: none;
+  clip-path: polygon(
+    0 9px, 0 3px, 3px 3px, 3px 0, 9px 0,
+    calc(100% - 9px) 0, calc(100% - 3px) 0, calc(100% - 3px) 3px, 100% 3px, 100% 9px,
+    100% calc(100% - 9px), 100% calc(100% - 3px), calc(100% - 3px) calc(100% - 3px), calc(100% - 3px) 100%, calc(100% - 9px) 100%,
+    9px 100%, 3px 100%, 3px calc(100% - 3px), 0 calc(100% - 3px), 0 calc(100% - 9px)
+  );
+  transition: border-color 160ms ease, background 160ms ease;
+}
+.teaser-input::placeholder { color: #aab4c8; }
+.teaser-input:focus-visible {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+}
+.teaser-input[aria-invalid="true"] {
+  border-color: #ff6b81;
+}
+
+.teaser-submit {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 48px;
+  padding: 0 18px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: #06070d;
+  background: #ffffff;
+  border: 0;
+  cursor: pointer;
+  clip-path: polygon(
+    0 9px, 0 3px, 3px 3px, 3px 0, 9px 0,
+    calc(100% - 9px) 0, calc(100% - 3px) 0, calc(100% - 3px) 3px, 100% 3px, 100% 9px,
+    100% calc(100% - 9px), 100% calc(100% - 3px), calc(100% - 3px) calc(100% - 3px), calc(100% - 3px) 100%, calc(100% - 9px) 100%,
+    9px 100%, 3px 100%, 3px calc(100% - 3px), 0 calc(100% - 3px), 0 calc(100% - 9px)
+  );
+  transition: background 160ms ease, transform 80ms ease;
+}
+.teaser-submit:hover { background: #e6ebf2; }
+.teaser-submit:active { transform: translateY(1px); }
+.teaser-submit:disabled { opacity: 0.6; cursor: default; }
+
+.teaser-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.teaser-result {
+  margin: 2px 0 0;
+  font-size: 14px;
+  min-height: 1.2em;
+}
+.teaser-result--ok { color: #8be0a4; }
+.teaser-result--err { color: #ff8095; }
+
+.teaser-footnote {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #7e8aa6;
+}
+
+/* Bottom hero — logo + signup on top, then a big app preview that crops
+   off the bottom edge of the screen. */
+.teaser-look-hero {
+  position: relative;
+  height: 100vh; /* fallback */
+  height: 100svh;
+  scroll-snap-align: start;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* no bottom padding — the app frame bleeds off the bottom (cropped) */
+  padding: clamp(28px, 5vh, 56px) clamp(16px, 4vw, 48px) 0;
+  gap: clamp(18px, 3vh, 32px);
+  background:
+    radial-gradient(60% 44% at 50% 64%, rgba(60, 90, 150, 0.16), transparent 72%),
+    #000;
+}
+.teaser-look-head {
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(14px, 2.4vh, 28px);
+}
+.teaser-look-logo {
+  display: block;
+}
+/* Big app preview window — fixed tall height so its bottom is cropped by
+   the section's overflow:hidden, with pixelated top corners. */
+.teaser-app-frame {
+  position: relative;
+  flex: 1 1 auto;
+  width: min(1240px, 100%);
+  min-height: 0;
+  margin-top: clamp(20px, 5vh, 60px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom: 0;
+  background: #01010a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  /* Pixelated rounded TOP corners only (same 9px notch as the input/button;
+     bottom is cropped off-screen). */
+  clip-path: polygon(
+    0 9px, 0 3px, 3px 3px, 3px 0, 9px 0,
+    calc(100% - 9px) 0, calc(100% - 3px) 0, calc(100% - 3px) 3px, 100% 3px, 100% 9px,
+    100% 100%, 0 100%
+  );
+}
+.teaser-app-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /* taller than the visible frame so the app's bottom crops off-screen */
+  height: 860px;
+  max-height: none;
+  border: 0;
+  display: block;
+  pointer-events: none; /* preview, not functional */
+}
+
+/* Real chrome/prismatic shader canvas — sized to the globe aspect. */
+.teaser-logo-shader {
+  width: clamp(190px, 30vw, 250px);
+  aspect-ratio: 915 / 523;
+}
+
+/* Prismatic / holographic-foil logo — rainbow gradient swept across the
+   globe silhouette (mask). CSS reproduction of a prismatic shader. */
+.teaser-logo-prismatic {
+  display: block;
+  width: clamp(160px, 26vw, 210px);
+  aspect-ratio: 915 / 523;
+  -webkit-mask: url("/logo-globe.svg") center / contain no-repeat;
+  mask: url("/logo-globe.svg") center / contain no-repeat;
+  /* Holographic chrome: a moving white sheen (chrome bands) over an
+     iridescent rainbow, overlay-blended so it reads metallic + prismatic. */
+  background:
+    repeating-linear-gradient(
+      108deg,
+      rgba(255, 255, 255, 0) 0 5%,
+      rgba(255, 255, 255, 0.6) 8%,
+      rgba(255, 255, 255, 0) 12%
+    ),
+    linear-gradient(
+      115deg,
+      #7af0ff, #6aa6ff, #b08bff, #ff8bd0, #ffd98b, #8bffc0, #7af0ff
+    );
+  background-size: 220% 100%, 360% 100%;
+  /* Sheen + rainbow positions track the cursor (--mx/--my set in JS). */
+  background-position:
+    calc(var(--mx, 0.5) * 260%) calc(var(--my, 0.5) * 100%),
+    calc(var(--mx, 0.5) * 360%) 50%;
+  background-blend-mode: overlay;
+  filter: saturate(1.4) brightness(1.12)
+    hue-rotate(calc((var(--mx, 0.5) - 0.5) * 140deg))
+    drop-shadow(0 0 16px rgba(150, 180, 255, 0.35));
+  transition: background-position 140ms ease-out, filter 140ms ease-out;
+  /* Gentle idle drift so it shimmers before the first mouse move. */
+  animation: prismatic-idle 7s ease-in-out infinite alternate;
+}
+/* Idle drift nudges the hue via a fallback when the cursor hasn't moved;
+   the JS-set --mx overrides background-position so the two don't fight. */
+@keyframes prismatic-idle {
+  from { filter: saturate(1.3) brightness(1.08) hue-rotate(calc((var(--mx, 0.5) - 0.5) * 140deg - 18deg)) drop-shadow(0 0 14px rgba(150, 180, 255, 0.3)); }
+  to { filter: saturate(1.5) brightness(1.16) hue-rotate(calc((var(--mx, 0.5) - 0.5) * 140deg + 18deg)) drop-shadow(0 0 18px rgba(150, 180, 255, 0.4)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .teaser-logo-prismatic { animation: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .teaser-logo-prismatic { animation: none; }
+}
+
+.teaser-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 520px) {
+  .teaser-form { flex-direction: column; }
+  .teaser-submit { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The globe's own autoSpin already respects reduced-motion via the
+     embed; nothing else here animates. */
+}

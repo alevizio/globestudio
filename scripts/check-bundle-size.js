@@ -33,6 +33,7 @@ const BUDGETS = [
   { prefix: "src-",              ext: ".js",  raw:  20_000,  gzip:   8_000, lazy: false },
   { prefix: "vendor-",           ext: ".js",  raw:  10_000,  gzip:   5_000, lazy: false },
   { prefix: "rolldown-runtime-", ext: ".js",  raw:   2_000,  gzip:   1_000, lazy: false },
+  { prefix: "preload-helper-",   ext: ".js",  raw:   2_000,  gzip:   1_000, lazy: false },
   // CSS is unminified — the build pipeline drops -webkit-backdrop-filter
   // / backdrop-filter pairs when minified, breaking modal frosted-glass
   // across browsers (see vite.config.js#cssMinify: false). Budget bumped
@@ -40,7 +41,7 @@ const BUDGETS = [
   // controls, modal, mobile sheet, and accessibility fallback styles in
   // one critical stylesheet so first paint does not wait on route-level
   // CSS. Revisit once the app has route-level CSS splitting.
-  { prefix: "index-",            ext: ".css", raw: 200_000,  gzip:  46_000, lazy: false },
+  { prefix: "index-",            ext: ".css", raw: 214_000,  gzip:  50_000, lazy: false },
 
   // Lazy chunks (loaded after first paint)
   { prefix: "globe-background-", ext: ".js",  raw: 120_000,  gzip:  40_000, lazy: true },
@@ -48,6 +49,18 @@ const BUDGETS = [
   { prefix: "geo-",              ext: ".js",  raw:  35_000,  gzip:  12_000, lazy: true },
   { prefix: "states-10m-",       ext: ".js",  raw: 130_000,  gzip:  45_000, lazy: true },
   { prefix: "countries-50m-",    ext: ".js",  raw: 800_000,  gzip: 260_000, lazy: true },
+  // Route-level split: the /examples showcase (heavy hero CSS + globe
+  // embeds) is lazy-loaded, so it no longer weighs on first paint. Its
+  // deps (flow shader, math) split out alongside it.
+  { prefix: "examples-page-",    ext: ".js",  raw:  40_000,  gzip:  13_000, lazy: true },
+  { prefix: "examples-page-",    ext: ".css", raw:  13_000,  gzip:   4_000, lazy: true },
+  { prefix: "flow-background-shader-", ext: ".js", raw: 5_000, gzip: 2_000, lazy: true },
+  { prefix: "math-",             ext: ".js",  raw:   4_000,  gzip:   2_500, lazy: true },
+  // Pre-launch teaser (only loaded when VITE_TEASER=1). Includes the
+  // LiquidMetal + the canvas ChromeShader logo shaders — hence the budget.
+  { prefix: "teaser-page-",      ext: ".js",  raw:  62_000,  gzip:  20_000, lazy: true },
+  // Headroom for the CRT/pixel-corner clip-path polygons (verbose by nature).
+  { prefix: "teaser-page-",      ext: ".css", raw:  11_000,  gzip:   4_500, lazy: true },
 ];
 
 // Total initial-payload budget. Sum of non-lazy chunks' gzip sizes.

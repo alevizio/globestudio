@@ -20,6 +20,7 @@
 // 800-1500 chars. Most chat/social platforms handle that fine.
 
 import { CUSTOM_SHAPE_MAX_BYTES, dotShapeOptions } from "../config/constants.js";
+import { DEFAULT_FLOW_SETTINGS, DEFAULT_SPACE_SETTINGS } from "../config/backgrounds.js";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS, shaderEffectOptions } from "../config/shader-effects.js";
 import { sanitizeSvgSource } from "./custom-shape.js";
@@ -35,7 +36,7 @@ const MAX_ASCII_SYMBOL_LENGTH = 12;
 const enumValues = (items) => new Set(items.map((item) => item.value ?? item));
 const SHAPES = enumValues(dotShapeOptions);
 const SHADER_EFFECTS = enumValues(shaderEffectOptions);
-const BACKGROUND_STYLES = new Set(["solid", "space"]);
+const BACKGROUND_STYLES = new Set(["solid", "space", "flow"]);
 const RENDER_MODES = new Set(["dots", "solid"]);
 const GLOBE_LOOKS = new Set(["classic", "borderless"]);
 const FLAT_PROJECTIONS = new Set(["mercator", "equirectangular", "equal-earth", "winkel-tripel", "robinson"]);
@@ -200,17 +201,22 @@ export const normalizeConfig = (config) => {
     surfaceGradient: normalizeGradient,
   }));
 
-  apply(next, "spaceSettings", normalizeSettings(config.spaceSettings, {
-    density: 65,
-    motion: 35,
-    nebula: 55,
-    hue: 0,
-    brightness: 100,
-  }, {
+  apply(next, "spaceSettings", normalizeSettings(config.spaceSettings, DEFAULT_SPACE_SETTINGS, {
     density: percent,
     motion: percent,
     nebula: percent,
     hue: (value) => normalizeNumber(value, 0, 360),
+    brightness: (value) => normalizeNumber(value, 0, 200),
+  }));
+
+  apply(next, "flowSettings", normalizeSettings(config.flowSettings, DEFAULT_FLOW_SETTINGS, {
+    colorA: normalizeHex,
+    colorB: normalizeHex,
+    colorC: normalizeHex,
+    motion: percent,
+    turbulence: percent,
+    grain: percent,
+    scale: percent,
     brightness: (value) => normalizeNumber(value, 0, 200),
   }));
 

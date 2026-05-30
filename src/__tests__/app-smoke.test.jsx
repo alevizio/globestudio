@@ -45,5 +45,8 @@ describe("App smoke", () => {
     // App's module-level code (which can read media queries) runs.
     const { default: App } = await import("../App.jsx");
     expect(() => render(<App />)).not.toThrow();
-  });
+    // Full-app mount (canvas shell, observers, lazy route wiring) is heavy
+    // in jsdom and flaky at the 5s default under CI load — this test only
+    // guards "doesn't throw", not timing, so give it room.
+  }, 20000);
 });

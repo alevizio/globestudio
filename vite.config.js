@@ -98,6 +98,9 @@ export default defineConfig({
           if (id.includes("/dotted-map/")) return "dotted-map";
           if (id.includes("/d3-geo/") || id.includes("/d3-array/")) return "geo";
           if (id.includes("/react/") || id.includes("/react-dom/") || id.includes("/scheduler/")) return "react";
+          // Paper Design shaders are only used by the lazy teaser — let them
+          // ride that chunk instead of the initial vendor bundle.
+          if (id.includes("@paper-design")) return undefined;
           return "vendor";
         },
       },

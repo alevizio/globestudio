@@ -26,9 +26,11 @@ describe("share-config", () => {
   it("round-trips deeply-nested config (gradients, shader/globe settings)", () => {
     const config = {
       selection: "continent:Europe",
+      backgroundStyle: "flow",
       dotGradient: { from: "#ff0", to: "#0ff", angle: 45 },
       shaderSettings: { effect: "halftone", cellSize: 10, intensity: 80 },
       globeSettings: { autoSpin: false, networkMono: true, glowStrength: 64 },
+      flowSettings: { colorA: "#635bff", colorB: "#00d4ff", colorC: "#ff5c93", turbulence: 72 },
     };
     const url = buildShareUrl(config, "https://globestudio.app");
     const parsed = parseShareConfig(`?${url.split("?")[1]}`);

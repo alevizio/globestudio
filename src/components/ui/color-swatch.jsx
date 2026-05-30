@@ -11,6 +11,17 @@ const SWATCH_GAP = 14;
 const alphaToHex = (a) =>
   Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
 
+// Perceived luminance (0–1) of a hex color, for picking a stroke that always
+// reads: a dark hairline on light swatches, a light one on dark swatches.
+const hexLuminance = (hex) => {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec((hex || "").trim());
+  if (!m) return 1;
+  let h = m[1];
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const n = parseInt(h, 16);
+  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+};
+
 export const ColorSwatch = ({
   value,
   onChange,
@@ -55,9 +66,20 @@ export const ColorSwatch = ({
     : value === "transparent"
       ? "linear-gradient(#18171a, #18171a)"
       : `linear-gradient(${value}${alphaToHex(supportsAlpha ? stopAlpha(alpha) : 1)}, ${value}${alphaToHex(supportsAlpha ? stopAlpha(alpha) : 1)})`;
-  const swatchStyle = hasTransparency
-    ? { backgroundImage: `${colorLayer}, ${checker}`, backgroundSize: "100% 100%, 8px 8px" }
-    : { backgroundImage: colorLayer };
+  // Adaptive hairline so the swatch edge reads on any background — checked
+  // against the swatch's own fill, not the panel theme. Light fill → 20%
+  // black; dark fill → 20% white. Gradients use their start color;
+  // "transparent" shows the dark placeholder, so it gets the light edge.
+  const strokeRef = hasGradient ? gradient.from : value === "transparent" ? "#18171a" : value;
+  const swatchStroke = hexLuminance(strokeRef) > 0.6 ? "rgba(0, 0, 0, 0.2)" : "rgba(255, 255, 255, 0.2)";
+  // The global pixel-corner rule forces `border: 0 !important` + a clip-path,
+  // so the stroke has to be an inset box-shadow — it rides the same clip.
+  const swatchStyle = {
+    ...(hasTransparency
+      ? { backgroundImage: `${colorLayer}, ${checker}`, backgroundSize: "100% 100%, 8px 8px" }
+      : { backgroundImage: colorLayer }),
+    boxShadow: `inset 0 0 0 1px ${swatchStroke}`,
+  };
 
   useLayoutEffect(() => {
     if (!open || !swatchRef.current) return undefined;

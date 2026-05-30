@@ -1,0 +1,397 @@
+/* Examples-page-only styles (signal-lost CRT screen + newspaper).
+   Co-located and imported by examples-page.jsx so that, with the
+   route lazy-loaded, this CSS ships in the /examples chunk instead
+   of the global initial payload. */
+
+/* ============================================================
+   Game Over — "Signal lost" CRT screen frame (.signal-lost)
+   Pure-CSS take on Karl Saunders' CRT effect (vignette + RGB
+   scanlines + subtle wobble). Frame only — no cabinet/VCR noise.
+   ============================================================ */
+/* The room photo, kept at its native aspect so our screen stays aligned. */
+.signal-lost .tv-stage {
+  position: relative;
+  aspect-ratio: 1672 / 941;
+  width: min(100%, calc(100svh * 1.7768));
+  max-height: 100%;
+  background: url("/retro-tv.png") center center / cover no-repeat;
+  /* Fade all four edges of the photo into the black section background.
+     The CRT sits at ~27–71% x and ~17–69% y, so the edge fades never
+     touch it. Two gradients intersected = fade on any edge. */
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 10%, #000 76%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 10%, #000 76%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* Our CRT picture — absolutely placed over the Panasonic's glass.
+   Percentages map to the photo since .tv-stage shares its aspect ratio. */
+.signal-lost .crt {
+  position: absolute;
+  left: var(--crt-left, 27.4%);
+  top: var(--crt-top, 17.1%);
+  width: var(--crt-w, 43.5%);
+  height: var(--crt-h, 52.3%);
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: 3cqh 6cqh 4cqh;
+  /* match the rounded cathode glass */
+  border-radius: var(--crt-radius, 13.6% / 17.3%) !important;
+  background: radial-gradient(126% 126% at 50% 44%, #0c1018 0%, #06070b 60%, #020308 100%);
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 90px 10px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 26px rgba(0, 0, 0, 0.6);
+  animation: crt-wobble 110ms steps(2) infinite;
+}
+
+@keyframes crt-wobble {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(0.4px, 0); }
+}
+
+/* RGB scanlines (subtle) */
+.signal-lost .crt-scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.18) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+  background-size: 100% 3px, 4px 100%;
+}
+
+/* Animated static / VCR tracking noise */
+.signal-lost .crt-noise {
+  position: absolute;
+  inset: 0;
+  z-index: 26;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.12;
+  mix-blend-mode: screen;
+  image-rendering: pixelated;
+}
+
+/* Slow vertical refresh/roll bar */
+.signal-lost .crt-rollbar {
+  position: absolute;
+  inset: 0;
+  z-index: 27;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 255, 255, 0.035) 48%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.035) 52%,
+    transparent 100%
+  );
+  background-size: 100% 220%;
+  animation: crt-roll 7s linear infinite;
+}
+@keyframes crt-roll {
+  0% { background-position: 0 -60%; }
+  100% { background-position: 0 170%; }
+}
+
+/* Curved-corner vignette — the "frame" */
+.signal-lost .crt-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(56% 38% at 28% 12%, rgba(255, 255, 255, 0.06), transparent 60%),
+    radial-gradient(112% 112% at 50% 50%, transparent 34%, rgba(0, 0, 0, 0.62) 76%, rgba(0, 0, 0, 0.96) 100%);
+  box-shadow: inset 0 0 90px 18px rgba(0, 0, 0, 0.72);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-lost .crt,
+  .signal-lost .crt-rollbar { animation: none; }
+}
+
+/* "Signal lost" headline — corrupt RGB-split glitch (matches the globe) */
+.signal-lost .signal-glitch {
+  animation: signal-glitch 3.2s infinite;
+  will-change: transform, text-shadow;
+}
+@keyframes signal-glitch {
+  0%, 88%, 100% {
+    text-shadow:
+      -1px 0 rgba(255, 0, 60, 0.55),
+      1px 0 rgba(0, 229, 255, 0.5),
+      0 0 26px rgba(255, 60, 86, 0.4);
+    transform: translateX(0);
+  }
+  90% { text-shadow: -4px 0 #ff003c, 3px 0 #00e5ff, 0 0 26px rgba(255, 60, 86, 0.4); transform: translateX(2px); }
+  92% { text-shadow: 3px 0 #ff003c, -3px 0 #00e5ff, 0 0 26px rgba(255, 60, 86, 0.4); transform: translateX(-2px); }
+  94% { text-shadow: -4px 0 #ff003c, 4px 0 #00e5ff; transform: translateX(1px); }
+  96% { text-shadow: -2px 0 #ff003c, 2px 0 #00e5ff, 0 0 26px rgba(255, 60, 86, 0.4); transform: translateX(0); }
+}
+
+/* YES — flickers on and off like a failing signal */
+.signal-lost .signal-yes {
+  animation: signal-yes-flicker 1.4s infinite steps(1);
+}
+@keyframes signal-yes-flicker {
+  0%, 100% { opacity: 1; }
+  82% { opacity: 1; }
+  84% { opacity: 0.15; }
+  86% { opacity: 1; }
+  90% { opacity: 0.15; }
+  93% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-lost .signal-glitch,
+  .signal-lost .signal-yes { animation: none; }
+}
+
+/* ============================================================
+   "The Globe Dispatch" — vintage broadsheet front page (.newsroom)
+   Halftone globe = the rotating lead press photo. Sharp corners
+   are fine here (the global border-radius:0 reset suits newsprint).
+   ============================================================ */
+.showcase--news.newsroom {
+  background:
+    radial-gradient(120% 110% at 50% -10%, rgba(0, 0, 0, 0.05), transparent 55%),
+    #f1e8d4;
+  color: #1c1813;
+  font-family: Georgia, "Times New Roman", serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(14px, 2.5vw, 40px);
+}
+
+.newsroom .news-paper {
+  width: min(1180px, 97%);
+  display: flex;
+  flex-direction: column;
+  /* faint newsprint grain */
+  background-image: radial-gradient(rgba(28, 24, 19, 0.045) 0.5px, transparent 0.6px);
+  background-size: 4px 4px;
+  padding: clamp(10px, 1.5vw, 22px);
+}
+
+.newsroom .news-masthead {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+}
+.newsroom .news-title {
+  font-family: "UnifrakturMaguntia", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(40px, 7vw, 96px);
+  line-height: 0.9;
+  margin: 0;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+.newsroom .news-mast-side {
+  font-size: clamp(9px, 1vw, 12px);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  line-height: 1.5;
+  color: #4a4031;
+  text-align: center;
+}
+
+.newsroom .news-dateline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 30px);
+  margin-top: clamp(8px, 1.2vw, 14px);
+  padding: 6px 0;
+  border-top: 3px double #1c1813;
+  border-bottom: 3px double #1c1813;
+  font-size: clamp(8.5px, 0.95vw, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.newsroom .news-body {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 2.3fr);
+  gap: clamp(16px, 2.4vw, 36px);
+  margin-top: clamp(12px, 1.6vw, 22px);
+  align-items: start;
+  min-height: 0;
+}
+
+/* narrow info column */
+.newsroom .news-col {
+  font-size: clamp(11px, 0.95vw, 13px);
+  line-height: 1.5;
+  text-align: justify;
+}
+.newsroom .news-col p { margin: 0 0 9px; }
+.newsroom .news-col > p:first-of-type::first-letter {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 900;
+  font-size: 3.2em;
+  float: left;
+  line-height: 0.66;
+  padding: 3px 6px 0 0;
+}
+
+/* wide main column: lead photo + the rest */
+.newsroom .news-main {
+  min-width: 0;
+  text-align: center;
+  border-left: 1px solid rgba(28, 24, 19, 0.28);
+  padding-left: clamp(16px, 2.4vw, 36px);
+}
+
+.newsroom .news-text {
+  width: 100%;
+  margin-top: clamp(8px, 1.2vw, 16px);
+  font-size: clamp(12px, 1.05vw, 14.5px);
+  line-height: 1.55;
+  text-align: justify;
+  column-count: 2;
+  column-gap: clamp(20px, 3vw, 40px);
+  column-rule: 1px solid rgba(28, 24, 19, 0.28);
+}
+.newsroom .news-text > p { margin: 0 0 9px; }
+.newsroom .news-subhead {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(13px, 1.3vw, 17px);
+  text-align: center;
+  margin: 4px 0 6px;
+  break-inside: avoid;
+}
+.newsroom .news-text > p:first-of-type::first-letter {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 900;
+  font-size: 3.4em;
+  float: left;
+  line-height: 0.66;
+  padding: 4px 7px 0 0;
+}
+
+.newsroom .news-kicker {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(11px, 1vw, 13px);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  border-bottom: 1px solid #1c1813;
+  padding-bottom: 4px;
+  margin: 0 0 9px;
+}
+.newsroom .news-feature .news-kicker { align-self: stretch; }
+
+.newsroom .news-headline {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(26px, 3.6vw, 52px);
+  line-height: 1.02;
+  margin: 0 0 6px;
+}
+.newsroom .news-deck {
+  font-style: italic;
+  font-size: clamp(12px, 1.2vw, 16px);
+  color: #3a3225;
+  margin: 0 auto 13px;
+  max-width: 46ch;
+}
+
+.newsroom .news-photo {
+  width: 100%;
+  margin: 0;
+}
+.newsroom .news-photo-frame {
+  width: 100%;
+  border: 1px solid #1c1813;
+  padding: clamp(6px, 0.8vw, 12px);
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+  /* wide letterbox — spans the column side to side */
+  aspect-ratio: 9 / 5;
+}
+.newsroom .news-globe {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: translate(var(--news-globe-x, 0%), var(--news-globe-y, 0%))
+    scale(calc(var(--news-globe-scale, 150) / 100));
+  transform-origin: center;
+}
+/* globe square, centered in the letterbox; overflow clipped by the frame */
+.newsroom .news-globe iframe {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.newsroom figcaption {
+  font-size: clamp(9px, 0.9vw, 11px);
+  font-style: italic;
+  color: #4a4031;
+  text-align: center;
+  margin-top: 7px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(28, 24, 19, 0.3);
+}
+
+.newsroom .news-index {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: clamp(10px, 0.95vw, 12px);
+}
+.newsroom .news-index li {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dotted rgba(28, 24, 19, 0.45);
+  padding: 3px 0;
+}
+.newsroom .news-byline { font-style: italic; color: #4a4031; margin-top: 8px; }
+
+.newsroom .news-quote {
+  margin: 0;
+  padding: 8px 0 0;
+  border-top: 1px solid rgba(28, 24, 19, 0.28);
+  font-family: "Playfair Display", Georgia, serif;
+  font-style: italic;
+  font-size: clamp(13px, 1.2vw, 16px);
+  line-height: 1.35;
+  text-align: left;
+}
+.newsroom .news-quote cite {
+  display: block;
+  margin-top: 6px;
+  font-family: Georgia, serif;
+  font-style: normal;
+  font-size: clamp(9px, 0.9vw, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #4a4031;
+}
+
+@media (max-width: 760px) {
+  .newsroom .news-body { grid-template-columns: 1fr; }
+  .newsroom .news-main { border-left: 0; padding-left: 0; }
+  .newsroom .news-text { column-count: 1; }
+}

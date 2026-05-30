@@ -1,4 +1,5 @@
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
+import { DEFAULT_FLOW_SETTINGS, DEFAULT_SPACE_SETTINGS } from "../config/backgrounds.js";
 import { effectPresets } from "../config/shader-effects.js";
 
 const base = {
@@ -18,7 +19,8 @@ const base = {
   worldStroke: "#f6f2ea",
   shaderSettings: { ...effectPresets.none },
   globeSettings: { ...DEFAULT_GLOBE_SETTINGS },
-  spaceSettings: { density: 65, motion: 35, nebula: 55, hue: 0, brightness: 100 },
+  spaceSettings: { ...DEFAULT_SPACE_SETTINGS },
+  flowSettings: { ...DEFAULT_FLOW_SETTINGS },
   mapDepth: 55,
   tiltX: 0,
   tiltY: 0,
@@ -30,6 +32,7 @@ const merge = (overrides = {}) => ({
   shaderSettings: { ...base.shaderSettings, ...(overrides.shaderSettings ?? {}) },
   globeSettings: { ...base.globeSettings, ...(overrides.globeSettings ?? {}) },
   spaceSettings: { ...base.spaceSettings, ...(overrides.spaceSettings ?? {}) },
+  flowSettings: { ...base.flowSettings, ...(overrides.flowSettings ?? {}) },
 });
 
 export const lookPresets = [

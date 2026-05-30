@@ -6,6 +6,29 @@
     <meta name="theme-color" content="#0a0a0a" />
     <meta name="color-scheme" content="dark" />
 
+    <!-- A transparent embed (/embed?transparent=1) must paint see-through
+         from the first frame. Without this, the app's dark default shows
+         for a tick before the React bundle applies transparency — a black
+         flash. This sets it transparent synchronously, before the bundle. -->
+    <style>
+      html[data-embed-transparent],
+      html[data-embed-transparent] body,
+      html[data-embed-transparent] #root { background: transparent !important; }
+    </style>
+    <script>
+      (function () {
+        try {
+          var p = location.pathname.replace(/\/+$/, "");
+          if (/(^|\/)embed$/.test(p) && /[?&]transparent=(1|true)\b/.test(location.search)) {
+            var de = document.documentElement;
+            de.setAttribute("data-embed-transparent", "");
+            de.style.background = "transparent";
+            de.style.colorScheme = "normal";
+          }
+        } catch (e) {}
+      })();
+    </script>
+
     <title>Globestudio — Open-Source Dotted Maps and 3D Globes for Designers</title>
     <meta
       name="description"
@@ -240,6 +263,16 @@
          mobile connections where the font CDN is otherwise discovered
          late in the critical path. -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+
+    <!-- Vintage-newspaper typefaces for the "Globe Dispatch" showcase:
+         UnifrakturMaguntia (blackletter nameplate) + Playfair Display
+         (high-contrast serif headlines). Body copy uses system serifs. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=UnifrakturMaguntia&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Google Search Console verification.
          No analytics script — GSC reads only the search-side data

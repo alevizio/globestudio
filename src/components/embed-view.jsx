@@ -1,5 +1,11 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { lookPresets } from "../data/look-presets.js";
+import {
+  DEFAULT_FLOW_SETTINGS,
+  DEFAULT_SPACE_SETTINGS,
+  FLOW_BACKGROUND_BASE,
+  SPACE_BACKGROUND_BASE,
+} from "../config/backgrounds.js";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { effectPresets, DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { areaOptions } from "../data/geography.js";
@@ -46,6 +52,11 @@ const parseParams = (search) => {
     source: params.get("source") || "embed",
     background: params.get("background") ? `#${params.get("background").replace(/^#/, "")}` : "#0a0a0a",
     transparent: bool("transparent", false),
+    // Render theme. The globe's default palette (glow, grid, surface) is
+    // tuned for dark backgrounds; `theme=light` flips it to a graphite-on-
+    // cream palette so a transparent embed reads cleanly on a light host
+    // page instead of washing out. Anything other than "light" stays dark.
+    theme: params.get("theme") === "light" ? "light" : "dark",
     // `plugin=figma` enables the host-plugin shell: an Insert button that
     // captures the canvas as a PNG and postMessages the bytes back to the
     // parent (Figma plugin UI bridge). See figma-plugin/ for the host.
@@ -82,7 +93,8 @@ const buildSettings = (raw, shareConfig) => {
   };
   if (!shareConfig) return base;
   // Share config flat keys map 1:1 to settings keys, with the exception
-  // of the nested shaderSettings / globeSettings / spaceSettings — those
+  // of the nested shaderSettings / globeSettings / spaceSettings /
+  // flowSettings — those
   // need a shallow merge so the share's partial overrides don't blow
   // away the preset's defaults for fields it didn't customize.
   return {
@@ -91,6 +103,7 @@ const buildSettings = (raw, shareConfig) => {
     globeSettings: { ...base.globeSettings, ...(shareConfig.globeSettings ?? {}) },
     shaderSettings: { ...base.shaderSettings, ...(shareConfig.shaderSettings ?? {}) },
     spaceSettings: { ...(base.spaceSettings ?? {}), ...(shareConfig.spaceSettings ?? {}) },
+    flowSettings: { ...(base.flowSettings ?? {}), ...(shareConfig.flowSettings ?? {}) },
   };
 };
 
@@ -121,6 +134,8 @@ export const EmbedView = () => {
   // plugin's Insert flow to read the live canvas pixels.
   const canvasHandleRef = useRef(null);
   const [inserting, setInserting] = useState(false);
+  const isSpaceBackground = settings.backgroundStyle === "space";
+  const isFlowBackground = settings.backgroundStyle === "flow";
 
   // Figma plugin Insert: capture the live canvas at native resolution,
   // package the PNG bytes, and postMessage them to window.parent (the
@@ -174,6 +189,39 @@ export const EmbedView = () => {
     const gl = probe.getContext("webgl2") || probe.getContext("webgl");
     setHasWebGL(Boolean(gl));
   }, []);
+
+  // When ?c=…&transparent flag is set, make the WHOLE embed document
+  // see-through — not just the .embed-view wrapper but <html> and
+  // <body> too. The WebGL canvas already clears at alpha 0, so once
+  // the document chrome is transparent the iframe shows the host
+  // page behind it. This is what lets /examples drop brand-tinted
+  // globes straight onto cream / white / brand-colored heroes with
+  // no dark box.
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    if (!settings.transparent) return undefined;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.background;
+    const prevBody = body.style.background;
+    const prevColorScheme = html.style.colorScheme;
+    html.style.background = "transparent";
+    body.style.background = "transparent";
+    // The app declares color-scheme: dark (meta + :root), which makes
+    // Chromium paint an opaque UA backdrop behind the (otherwise fully
+    // transparent) embed document. Drop to the neutral scheme so the
+    // embed doesn't impose its own opaque backdrop. NOTE: the decisive
+    // fix lives on the EMBEDDER side — Chromium ties an iframe's backdrop
+    // opacity to the *embedder's* color-scheme, so a transparent host
+    // must also set color-scheme on the iframe element (see examples-page
+    // LazyGlobe). This line keeps the embed itself neutral regardless.
+    html.style.colorScheme = "normal";
+    return () => {
+      html.style.background = prevHtml;
+      body.style.background = prevBody;
+      html.style.colorScheme = prevColorScheme;
+    };
+  }, [settings.transparent]);
 
   // Resize-aware postMessage protocol for parent iframes. Whenever the
   // viewport changes, we tell the parent "my content height is N pixels"
@@ -252,8 +300,8 @@ export const EmbedView = () => {
           customTopologyVisible={false}
           selectionCountryCodes={ids}
           selectionCollection={null}
-          background={settings.background}
-          transparent={settings.transparent}
+          background={isSpaceBackground ? SPACE_BACKGROUND_BASE : isFlowBackground ? FLOW_BACKGROUND_BASE : settings.background}
+          transparent={settings.transparent || isSpaceBackground || isFlowBackground}
           morphMode={params.view === "flat" ? "flat" : "globe"}
           morphTransition={null}
           interactive={false}
@@ -262,11 +310,14 @@ export const EmbedView = () => {
           mapDepth={55}
           mapZoom={1}
           panelCollapsed
-          spaceSettings={{ density: 65, motion: 35, nebula: 55, hue: 0, brightness: 100 }}
+          spaceSettings={settings.spaceSettings || DEFAULT_SPACE_SETTINGS}
+          flowSettings={settings.flowSettings || DEFAULT_FLOW_SETTINGS}
           shaderSettings={settings.shaderSettings}
           globeSettings={settings.globeSettings}
-          backgroundStyle="solid"
+          backgroundStyle={settings.backgroundStyle || "solid"}
           reducedMotion={motionFrozen}
+          uiTheme={params.theme}
+          perfHud={false}
           canvasHandleRef={canvasHandleRef}
           label="Globestudio dotted globe (embed)"
         />

@@ -9,3 +9,9 @@ test-results
 .vercel
 # Font cache for scripts/generate-og-images.js. Re-downloaded on demand.
 scripts/.cache/
+# Local-only reference snapshots of third-party sites (design study, never shipped).
+.stripe-reference/
+# Dev-only third-party assets used for local A/B preview only. Gated behind
+# import.meta.env.DEV in the code, gitignored, and absent on the deploy host —
+# so they never enter the repo or the production bundle.
+public/_stripe-local/

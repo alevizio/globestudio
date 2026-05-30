@@ -28,6 +28,8 @@ import { createGlobeNetwork, setNetworkColors, updateGlobeNetwork } from "../thr
 import { createSpaceBackgroundMesh } from "../three/space-mesh.js";
 import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
+import { DEFAULT_FLOW_SETTINGS } from "../config/backgrounds.js";
+import { createFlowBackgroundMesh } from "../three/flow-background-mesh.js";
 import { loadWorldCountries } from "../data/world-countries-topology.js";
 import { getCachedWorldRivers, loadWorldRivers } from "../data/world-rivers-topology.js";
 import { getCachedWorldCities, loadWorldCities } from "../data/world-cities-topology.js";
@@ -118,6 +120,7 @@ export const GlobeBackground = ({
   shaderSettings,
   globeSettings,
   spaceSettings,
+  flowSettings,
   backgroundStyle,
   shadeBackground = true,
   uiTheme = "dark",
@@ -125,9 +128,11 @@ export const GlobeBackground = ({
   label,
   canvasHandleRef,
   panelCollapsed,
+  perfHud = true,
 }) => {
   const mountRef = useRef(null);
   const spaceSettingsRef = useRef(spaceSettings);
+  const flowSettingsRef = useRef(flowSettings);
   const backgroundStyleRef = useRef(backgroundStyle);
   const shadeBackgroundRef = useRef(shadeBackground);
   const reducedMotionRef = useRef(reducedMotion);
@@ -141,6 +146,7 @@ export const GlobeBackground = ({
   // in production builds (the mount is gated on `import.meta.env.DEV`).
   const perfMetricsRef = useRef({ fps: 60, calls: 0, geometries: 0, dots: 0 });
   spaceSettingsRef.current = spaceSettings;
+  flowSettingsRef.current = flowSettings;
   backgroundStyleRef.current = backgroundStyle;
   shadeBackgroundRef.current = shadeBackground;
   reducedMotionRef.current = reducedMotion;
@@ -388,7 +394,7 @@ export const GlobeBackground = ({
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
     camera.position.set(0, 0, GLOBE_CAMERA_DISTANCE);
 
-    // Space background lives in its OWN scene (bgScene), rendered to a
+    // Procedural backgrounds live in their OWN scene (bgScene), rendered to a
     // separate target each frame. The customPass receives that target as a
     // texture and composites it behind the effect output. Why split:
     // pattern post-effects (halftone, newsprint, bayer, threshold,
@@ -400,15 +406,18 @@ export const GlobeBackground = ({
     // while the bg is laid in behind via the composite step.
     const bgScene = new THREE.Scene();
     const spaceBackground = createSpaceBackgroundMesh();
-    // Initial parent: when shadeBackground is true (default), space mesh
+    // Initial parent: when shadeBackground is true (default), bg meshes
     // lives in the main scene so the active post-effect processes it
     // alongside the globe. When false, it lives in bgScene and is
     // composited behind the effect output by the customPass — keeps the
-    // globe halftone readable on top of a clean starfield.
+    // globe halftone readable on top of a clean procedural background.
+    const flowBackground = createFlowBackgroundMesh();
     if (shadeBackgroundRef.current) {
       scene.add(spaceBackground);
+      scene.add(flowBackground);
     } else {
       bgScene.add(spaceBackground);
+      bgScene.add(flowBackground);
     }
 
     const renderer = new THREE.WebGLRenderer({
@@ -568,6 +577,7 @@ export const GlobeBackground = ({
       outerHaloMaterial,
       outerHalo,
       spaceBackground,
+      flowBackground,
       bgScene,
       bgTarget,
       atmosphereIntensity: 0.42,
@@ -725,7 +735,13 @@ export const GlobeBackground = ({
       globeGroup.position.x = (offset.x / Math.max(rectWidth, 1)) * visibleWidth * flatProgress + globeFocusOffset * rotationProgress;
       globeGroup.position.y = (-offset.y / Math.max(rectHeight, 1)) * visibleHeight * flatProgress;
       globeGroup.position.z = 0;
-      globeGroup.rotation.x = THREE.MathUtils.degToRad(transform.tiltX || 0) * flatProgress + state.currentX * rotationProgress;
+      // tiltX is a base orientation applied in BOTH globe and flat modes —
+      // it tips the globe's poles toward/away from the camera (e.g. a
+      // view-from-above). The drag/auto-spin rotation (state.currentX) layers
+      // on top and only contributes in globe mode (rotationProgress→1). In
+      // flat mode rotationProgress is 0, so this reduces to the old
+      // tilt-the-map behavior.
+      globeGroup.rotation.x = THREE.MathUtils.degToRad(transform.tiltX || 0) + state.currentX * rotationProgress;
       // Extra Z-axis roll mid-morph adds character — direction-aware so the
       // roll feels like an intentional cinematic flourish in both
       // directions, never a glitchy snap.
@@ -734,7 +750,7 @@ export const GlobeBackground = ({
       // aware, layered on top of the natural rotation so the world feels
       // like it's spinning into place.
       const cinematicSpin = morphPulse * 0.45 * morphDirection;
-      globeGroup.rotation.y = THREE.MathUtils.degToRad(transform.tiltY || 0) * flatProgress + state.currentY * rotationProgress + cinematicSpin;
+      globeGroup.rotation.y = THREE.MathUtils.degToRad(transform.tiltY || 0) + state.currentY * rotationProgress + cinematicSpin;
       // Scale dip — group contracts ~3% at the peak then rebounds. Combined
       // with the FOV punch this gives a subtle vertigo / "Hitchcock dolly"
       // feel without losing alignment with the projection.
@@ -806,36 +822,60 @@ export const GlobeBackground = ({
       twinkleUniforms.uSizeVary.value = sizeVaryRef.current ? 1 : 0;
 
       const sbg = threeRef.current?.spaceBackground;
-      if (sbg) {
+      const fbg = threeRef.current?.flowBackground;
+      if (sbg || fbg) {
         const wantsSpace = backgroundStyleRef.current === "space";
-        sbg.visible = wantsSpace;
-        // Re-parent the space mesh on toggle change. Compared against
-        // sbg.parent rather than a separate state ref so we react to
-        // any external mutation (e.g., disposal logic) too.
+        const wantsFlow = backgroundStyleRef.current === "flow";
         const wantShade = shadeBackgroundRef.current;
         const desiredParent = wantShade
           ? threeRef.current.scene
           : threeRef.current.bgScene;
-        if (sbg.parent !== desiredParent && desiredParent) {
-          sbg.parent?.remove(sbg);
-          desiredParent.add(sbg);
-        }
-        if (wantsSpace) {
+
+        const syncBackgroundMesh = (mesh, visible) => {
+          if (!mesh) return;
+          mesh.visible = visible;
+          // Re-parent on toggle change. Compared against mesh.parent rather
+          // than a separate state ref so we react to external mutation too.
+          if (mesh.parent !== desiredParent && desiredParent) {
+            mesh.parent?.remove(mesh);
+            desiredParent.add(mesh);
+          }
+        };
+
+        syncBackgroundMesh(sbg, wantsSpace);
+        syncBackgroundMesh(fbg, wantsFlow);
+
+        const bgWidth = threeRef.current.canvasWidth ?? renderer.domElement.clientWidth ?? 1;
+        const bgHeight = threeRef.current.canvasHeight ?? renderer.domElement.clientHeight ?? 1;
+
+        if (sbg && wantsSpace) {
           const settings = spaceSettingsRef.current || {};
-          // Reuse the cached dimensions captured by `resize()` rather than
-          // forcing a per-frame layout flush.
-          const sbgWidth = threeRef.current.canvasWidth ?? renderer.domElement.clientWidth ?? 1;
-          const sbgHeight = threeRef.current.canvasHeight ?? renderer.domElement.clientHeight ?? 1;
           const u = sbg.material.uniforms;
           u.uTime.value = ambientTime;
-          u.uResolution.value.set(Math.max(1, sbgWidth), Math.max(1, sbgHeight));
+          u.uResolution.value.set(Math.max(1, bgWidth), Math.max(1, bgHeight));
           u.uDensity.value = (settings.density ?? 65) / 100;
           u.uMotion.value = (settings.motion ?? 35) / 100;
           u.uNebula.value = (settings.nebula ?? 55) / 100;
           u.uHue.value = (settings.hue ?? 0) / 50;
           u.uBrightness.value = (settings.brightness ?? 100) / 100;
         }
-        // Render the bg scene (just the space mesh, or empty for solid bg)
+
+        if (fbg && wantsFlow) {
+          const settings = { ...DEFAULT_FLOW_SETTINGS, ...(flowSettingsRef.current || {}) };
+          const u = fbg.material.uniforms;
+          u.uTime.value = ambientTime;
+          u.uResolution.value.set(Math.max(1, bgWidth), Math.max(1, bgHeight));
+          u.uMotion.value = (settings.motion ?? DEFAULT_FLOW_SETTINGS.motion) / 100;
+          u.uTurbulence.value = (settings.turbulence ?? DEFAULT_FLOW_SETTINGS.turbulence) / 100;
+          u.uGrain.value = (settings.grain ?? DEFAULT_FLOW_SETTINGS.grain) / 100;
+          u.uScale.value = (settings.scale ?? DEFAULT_FLOW_SETTINGS.scale) / 100;
+          u.uBrightness.value = (settings.brightness ?? DEFAULT_FLOW_SETTINGS.brightness) / 100;
+          u.colorA.value.set(settings.colorA || DEFAULT_FLOW_SETTINGS.colorA);
+          u.colorB.value.set(settings.colorB || DEFAULT_FLOW_SETTINGS.colorB);
+          u.colorC.value.set(settings.colorC || DEFAULT_FLOW_SETTINGS.colorC);
+        }
+
+        // Render the bg scene (space/flow mesh, or empty for solid bg)
         // to its own target. The customPass samples this and composites it
         // behind the effect output so pattern shaders only mark the globe
         // and the bg shows through cleanly in the gaps. For solid bg we
@@ -978,6 +1018,12 @@ export const GlobeBackground = ({
               displayH * targetPR,
             );
           }
+          if (refs.flowBackground?.material?.uniforms?.uResolution) {
+            refs.flowBackground.material.uniforms.uResolution.value.set(
+              displayW * targetPR,
+              displayH * targetPR,
+            );
+          }
           refs.postHandle.composer.render();
           renderer.domElement.toBlob((blob) => {
             // Restore original render size regardless of toBlob outcome.
@@ -986,6 +1032,12 @@ export const GlobeBackground = ({
             refs.postHandle.setSize(displayW * originalPixelRatio, displayH * originalPixelRatio);
             if (refs.spaceBackground?.material?.uniforms?.uResolution) {
               refs.spaceBackground.material.uniforms.uResolution.value.set(
+                displayW * originalPixelRatio,
+                displayH * originalPixelRatio,
+              );
+            }
+            if (refs.flowBackground?.material?.uniforms?.uResolution) {
+              refs.flowBackground.material.uniforms.uResolution.value.set(
                 displayW * originalPixelRatio,
                 displayH * originalPixelRatio,
               );
@@ -1017,6 +1069,7 @@ export const GlobeBackground = ({
         canvasHandleRef.current = null;
       }
       disposeThreeObject(scene);
+      disposeThreeObject(bgScene);
       threeRef.current?.postHandle?.dispose?.();
       renderer.dispose();
       renderer.domElement.remove();
@@ -1361,6 +1414,24 @@ export const GlobeBackground = ({
     refs.baseMaterial.metalness = solidActive ? 0 : isBorderless ? 0.22 : 0.12;
     refs.baseMaterial.roughness = solidActive ? 0.92 : isBorderless ? 0.46 : 0.78;
     refs.baseOpacity = solidActive ? 1 : isBorderless ? (transparent ? 0.18 : 0.34) : (transparent ? 0.2 : 0.3);
+    // In a transparent embed the host page shows through, so a dark
+    // semi-opaque sphere body smears a gray haze over light pages. Render
+    // the sphere depth-only (colorWrite off, depthWrite stays on) when
+    // transparent and not in solid mode: it still occludes back-hemisphere
+    // dots for a clean front-facing read, but contributes no color — what's
+    // left is just the dots + graticule + atmosphere glow, a clean
+    // "hologram" that composites cleanly onto any host background.
+    // Keep the globe's surface independent of the background: if Surface is on,
+    // render it with colour even when the background is hidden (transparent).
+    // Only fall back to the depth-only "hologram" body when Surface is off — so
+    // "hide background" no longer strips the globe's own surface.
+    const surfaceOn =
+      !!globeSettings?.surface && (globeSettings?.surfaceStrength ?? 100) > 0.1;
+    const depthOnlyBody = transparent && !solidActive && !surfaceOn;
+    if (refs.baseMaterial.colorWrite === depthOnlyBody) {
+      refs.baseMaterial.colorWrite = !depthOnlyBody;
+      refs.baseMaterial.needsUpdate = true;
+    }
     refs.atmosphereMaterial.uniforms.glowColor.value.copy(glowColor);
     refs.atmosphereIntensity = isBorderless ? 0.52 + intensity * 0.3 : 0.32 + intensity * 0.24;
     refs.graticuleOpacity = isBorderless ? 0.035 + intensity * 0.045 : 0.08 + intensity * 0.08;
@@ -1399,7 +1470,7 @@ export const GlobeBackground = ({
       onClick={toggleNearestDot}
       onKeyDown={handleGlobeKey}
     >
-      {import.meta.env.DEV ? <PerfMonitor metricsRef={perfMetricsRef} /> : null}
+      {import.meta.env.DEV && perfHud ? <PerfMonitor metricsRef={perfMetricsRef} /> : null}
     </div>
   );
 };

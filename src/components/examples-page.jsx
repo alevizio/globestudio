@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import "./examples-page.css";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { PagePager } from "./ui/page-pager.jsx";
 import { DottedGlobe } from "./icons.jsx";
 import { TakeoverNav } from "./ui/takeover-nav.jsx";
+import { FlowBackdrop } from "./ui/flow-backdrop.jsx";
+import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
 import { CodeBlock } from "./ui/code-block.jsx";
 import { buildShareUrl } from "../utils/share-config.js";
 
@@ -10,36 +13,40 @@ import { buildShareUrl } from "../utils/share-config.js";
 // reads as part of the brand instead of a default Globestudio mark.
 // Each is fed through buildShareUrl(config, site, "/embed") to produce
 // the canonical /embed?c=… URL the iframe loads.
-// Each brand sets transparent: true so the embed iframe doesn't paint
-// its own (hard-coded var(--bg)) background — the iframe wrapper in
-// the showcase has the brand bg set inline, and that shows through.
-// dotColor + worldStroke control the only colors the user actually sees.
+// Each brand sets transparent: true so the embed paints with a fully
+// see-through background (the WebGL canvas clears at alpha 0 and, with
+// the .embed-view[data-transparent] CSS, every layer behind it —
+// including the .globe-background mount div — is transparent too). The
+// spinning globe + its in-scene atmosphere glow composite straight onto
+// the brand page with no box and no clipping. dotColor + worldStroke +
+// globeSettings.glowColor are the only colors the user sees; they carry
+// the brand identity. worldFill tints the (mostly hidden) sphere body.
 const BRAND_GLOBES = {
+  // Light page (cream): deep-green dots + subtle green grid read on the
+  // cream; glow off because the blue-tinted additive atmosphere washes
+  // out over light. theme=light (see BRAND_THEME) flips the render palette.
   pachama: {
     selection: "world",
     transparent: true,
-    // Canopy lime on dark-forest inset bg — forest green on forest green
-    // (matching their wordmark color) reads as invisible; lime is the
-    // satellite-canopy color that already lives in their LiDAR palette.
-    dotColor: "#B8E14C",
+    dotColor: "#2F7D4F", // canopy green, dark enough to read on cream
     worldFill: "#0E3B2E",
     worldStroke: "#1f5240",
     dotsVisible: true,
     shape: "Circle",
     density: 38,
+    globeSettings: { glow: false, grid: true, gridColor: "#1f5240", gridStrength: 22 },
   },
+  // Light page (white): black dots + faint gray grid, the minimal Vercel
+  // aesthetic. The conic rainbow ring behind the globe carries the colour.
   vercel: {
-    // awesome-design-md/vercel: white page, but the globe lives in an
-    // intentional dark "deployment map" panel (Vercel uses dark product
-    // panels on light pages). White dots on the dark panel + the three
-    // signature Vercel gradients glowing beneath it.
     selection: "world",
     transparent: true,
-    dotColor: "#FFFFFF",
+    dotColor: "#171717",
     worldFill: "#0A0A0A",
     worldStroke: "#262626",
     shape: "Circle",
     density: 42,
+    globeSettings: { glow: false, grid: true, gridColor: "#171717", gridStrength: 14 },
   },
   profound: {
     selection: "world",
@@ -49,26 +56,30 @@ const BRAND_GLOBES = {
     worldStroke: "#1A3070",
     shape: "Circle",
     density: 40,
+    globeSettings: { glow: true, glowColor: "#00B3A4", glowStrength: 60 },
   },
   linear: {
     selection: "world",
     transparent: true,
-    dotColor: "#5E6AD2",
+    dotColor: "#7C89F0",
     worldFill: "#08090A",
     worldStroke: "#1a1a22",
     shape: "Circle",
     density: 42,
+    globeSettings: { glow: true, glowColor: "#5E6AD2", glowStrength: 66 },
   },
+  // Dark surface: the globe floats in a deep-navy (#0d253d) Stripe-
+  // Dashboard card, so it stays dark-themed — bright Stripe-purple dots +
+  // indigo glow on navy. Primary #533afd from awesome-design-md/stripe.
   stripe: {
-    // Exact tokens from awesome-design-md/stripe DESIGN.md: primary
-    // indigo #533afd, dashboard chrome navy #1c1e54.
     selection: "world",
     transparent: true,
-    dotColor: "#665efd",
+    dotColor: "#8E89FF",
     worldFill: "#1c1e54",
     worldStroke: "#2e2b8c",
     shape: "Circle",
     density: 42,
+    globeSettings: { glow: true, glowColor: "#533afd", glowStrength: 62 },
   },
   earthscale: {
     selection: "world",
@@ -78,19 +89,37 @@ const BRAND_GLOBES = {
     worldStroke: "#3a3128",
     shape: "Circle",
     density: 38,
+    globeSettings: { glow: true, glowColor: "#d99c66", glowStrength: 60 },
   },
 };
 
 // Background colors shown UNDER each transparent iframe — the iframe
 // wrapper picks the bg from here so the globe color story is unified
 // across showcase / card / stat surfaces for one brand.
+// Background the card/stat-gallery globes sit on. Must match each brand's
+// render theme (see BRAND_THEME): light brands get a light card so their
+// graphite/coloured dots read; dark brands get their dark brand surface.
 const BRAND_BG = {
   pachama:    "#F4F1EA",
-  vercel:     "#000000",
+  vercel:     "#FFFFFF",
   profound:   "#0B1F4B",
   linear:     "#08090A",
-  stripe:     "#1c1e54",
+  stripe:     "#0d253d",
   earthscale: "#1d1a16",
+};
+
+// Render theme per brand, matched to the surface the globe actually sits
+// on. Light surfaces (Pachama cream, Vercel white, Stripe white card) use
+// theme=light so the globe's palette flips to graphite-on-cream and the
+// dark-tuned blue glow doesn't wash out. Dark surfaces keep theme=dark so
+// the cinematic atmosphere glow reads. Passed to /embed as ?theme=.
+const BRAND_THEME = {
+  pachama:    "light",
+  vercel:     "light",
+  stripe:     "dark",
+  profound:   "dark",
+  linear:     "dark",
+  earthscale: "dark",
 };
 
 // /examples — full-screen showcase of how 6 real products could use
@@ -113,20 +142,31 @@ const SITE = "https://globestudio.app";
 // Construct a brand-tinted embed URL from a partial config (look +
 // colors). Routes through the canonical share-URL encoder so any
 // schema change in normalizeConfig propagates here automatically.
-const brandEmbedUrl = (look, brandKey, source) => {
-  const config = { ...BRAND_GLOBES[brandKey], ...(look ? { look } : {}) };
-  const url = new URL(buildShareUrl(config, SITE, "/embed"));
+// Embed from the current origin so /examples shows the locally-running
+// (or preview-deploy) globes, not always production. Falls back to the
+// canonical site for any non-browser render path.
+const embedOrigin = () => (typeof window !== "undefined" ? window.location.origin : SITE);
+// opts: { theme, config } — lets a single placement (e.g. a bold hero
+// centerpiece) override the brand's default globe config/theme without
+// disturbing the card/stat-gallery instances that share the brand key.
+const brandEmbedUrl = (look, brandKey, source, opts = {}) => {
+  const config = { ...BRAND_GLOBES[brandKey], ...(opts.config || {}), ...(look ? { look } : {}) };
+  const url = new URL(buildShareUrl(config, embedOrigin(), "/embed"));
+  url.searchParams.set("theme", opts.theme || BRAND_THEME[brandKey] || "dark");
   if (source) url.searchParams.set("source", source);
   return url.toString();
 };
 
 const SHOWCASES = [
-  { id: "pachama", name: "Pachama" },
-  { id: "vercel", name: "Vercel" },
-  { id: "profound", name: "Profound" },
-  { id: "linear", name: "Linear" },
   { id: "stripe", name: "Stripe" },
-  { id: "earthscale", name: "Earthscale" },
+  { id: "vercel", name: "Vercel" },
+  { id: "gameover", name: "Game Over" },
+  { id: "news", name: "Dispatch" },
+  // Temporarily focused on Vercel + Stripe; others hidden for now.
+  // { id: "pachama", name: "Pachama" },
+  // { id: "profound", name: "Profound" },
+  // { id: "linear", name: "Linear" },
+  // { id: "earthscale", name: "Earthscale" },
 ];
 
 // Tracks which showcase section is most visible so the chip nav can
@@ -174,6 +214,7 @@ const ShowcaseChipNav = ({ activeId }) => (
 const LazyGlobe = ({ src, className, title, style }) => {
   const ref = useRef(null);
   const [shouldLoad, setShouldLoad] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     if (shouldLoad) return undefined;
     const el = ref.current;
@@ -197,7 +238,28 @@ const LazyGlobe = ({ src, className, title, style }) => {
           src={src}
           title={title}
           loading="lazy"
-          style={{ border: 0, width: "100%", height: "100%", display: "block" }}
+          // The iframe `load` event fires once the embed's HTML + scripts are
+          // in; the WebGL globe paints its first frame a beat later. Wait out
+          // that beat, then fade 0 → 1 so the globe arrives smoothly instead
+          // of popping in.
+          onLoad={() => {
+            window.setTimeout(() => setLoaded(true), 420);
+          }}
+          // color-scheme: normal is load-bearing for transparency. The app
+          // root is color-scheme: dark, and Chromium gives an iframe an
+          // OPAQUE backdrop (a black/white box) whenever its embedder uses a
+          // dark scheme — no matter that the embed's own document is fully
+          // transparent. Setting the iframe element's own color-scheme breaks
+          // that inheritance so the host page shows through the globe.
+          style={{
+            border: 0,
+            width: "100%",
+            height: "100%",
+            display: "block",
+            colorScheme: "normal",
+            opacity: loaded ? 1 : 0,
+            transition: "opacity 700ms ease",
+          }}
         />
       ) : null}
     </div>
@@ -422,18 +484,15 @@ const PachamaShowcase = () => (
           Get in touch
         </span>
       </div>
-      <div style={{ position: "relative", width: "100%", maxWidth: 920, marginTop: 40 }}>
+      <div style={{ position: "relative", width: "100%", maxWidth: 560, marginTop: 24, aspectRatio: "1 / 1" }}>
         <LazyGlobe
-          src={brandEmbedUrl("topographic", "pachama", "examples-pachama")}
+          src={brandEmbedUrl("default", "pachama", "examples-pachama")}
           title="Pachama-flavored globe"
           className="showcase-globe"
           style={{
-            background: "#0E3B2E",
-            aspectRatio: "16 / 9",
+            background: "transparent",
+            aspectRatio: "1 / 1",
             width: "100%",
-            borderRadius: 12,
-            overflow: "hidden",
-            boxShadow: "0 30px 80px -30px rgba(14, 59, 46, 0.4)",
           }}
         />
         {/* Pachama project chips floating over the bottom-right of the
@@ -501,140 +560,745 @@ const PachamaShowcase = () => (
   </section>
 );
 
-const VercelShowcase = () => (
+// Pixel-faithful recreation of vercel.com's hero (captured 2026-05):
+// white canvas, faint blueprint grid, [Events] announcement pill, the
+// "Build and deploy on the AI Cloud." headline in Geist 600 / -0.05em,
+// and the warm→cool contour-mesh gradient band the brand renders behind
+// its 3D mark — with our globe standing in for that centre object.
+// Vercel globe: centered, big, cropped by the band. Tunable via ?tune.
+const VERCEL_GLOBE_DEFAULTS = {
+  tiltX: 29,
+  tiltY: 0,
+  spin: 40,
+  width: 1600,
+  x: 0,
+  bottom: -760,
+};
+const VERCEL_TUNER_FIELDS = [
+  { key: "tiltX", label: "Tilt ↑ (above)", min: -90, max: 90, step: 1 },
+  { key: "tiltY", label: "Tilt → (turn)", min: -90, max: 90, step: 1 },
+  { key: "spin", label: "Spin speed", min: 0, max: 100, step: 1 },
+  { key: "width", label: "Size (px)", min: 400, max: 2400, step: 10 },
+  { key: "x", label: "X offset (center)", min: -800, max: 800, step: 10 },
+  { key: "bottom", label: "Y offset (bottom)", min: -1200, max: 400, step: 10 },
+];
+
+const VercelShowcase = () => {
+  const { values, committed, set, reset } = useGlobeTuner(
+    "globestudio:vercel-globe-tune",
+    VERCEL_GLOBE_DEFAULTS,
+  );
+  return (
   <section
     id="vercel"
     className="showcase showcase--vercel"
     style={{
-      // awesome-design-md/vercel: white canvas, ink #171717, Geist.
-      background: "#FFFFFF",
-      color: "#171717",
+      background: "#000000",
+      color: "#ededed",
       fontFamily: '"Geist", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
+      position: "relative",
+      overflow: "hidden",
     }}
   >
+    {/* Ambient animated gradient wash (unicorn-blinds) — soft, low-opacity,
+        behind everything, for a gentle drifting colour across the whole hero. */}
+    <div className="vercel-bg-wash" aria-hidden="true" />
+    {/* Blueprint dot/line grid — Vercel's hero sits on a faint technical
+        graph-paper backdrop that fades out toward the edges. */}
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        backgroundImage:
+          "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
+        backgroundSize: "64px 64px",
+        backgroundPosition: "center -1px",
+        maskImage:
+          "radial-gradient(ellipse 78% 62% at 50% 28%, #000 38%, transparent 76%)",
+        WebkitMaskImage:
+          "radial-gradient(ellipse 78% 62% at 50% 28%, #000 38%, transparent 76%)",
+      }}
+    />
+    {/* Animated Vercel-gradient glow behind the globe. At the section level so
+        the band's hard edge doesn't crop it — the radial mask fades it out. */}
+    <div
+      className="vercel-globe-glow"
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+      }}
+    />
     <CompanyNav
       brand={
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#171717", fontWeight: 600, letterSpacing: "-0.04em", fontSize: 18 }}>
-          <VercelMark size={17} />
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 7, color: "#fff", fontWeight: 600, letterSpacing: "-0.04em", fontSize: 19 }}>
+          <VercelMark size={18} />
           Vercel
         </span>
       }
-      items={["Products", "Solutions", "Resources", "Enterprise", "Docs", "Pricing"]}
+      items={["Products", "Resources", "Solutions", "Enterprise", "Pricing"]}
       right={
         <>
-          <span className="showcase-nav-link" style={{ color: "#171717" }}>Log In</span>
-          <span className="showcase-nav-cta" style={{ background: "#171717", color: "#fff" }}>
+          <span className="showcase-nav-link ai-gradient">Ask AI</span>
+          <span className="showcase-nav-link vercel-outline" style={{ color: "#ededed", padding: "7px 15px" }}>Log in</span>
+          <span className="showcase-nav-cta" style={{ background: "#fff", color: "#000", borderRadius: 6 }}>
             Sign Up
           </span>
         </>
       }
-      style={{ borderBottom: "1px solid #EBEBEB", color: "#171717" }}
+      style={{ color: "#ededed", position: "relative", zIndex: 2 }}
     />
-    <div className="showcase-inner showcase-inner--centered">
-      {/* Vercel's announcement pill */}
+    <div className="showcase-inner" style={{ position: "relative", zIndex: 1, gap: 20, justifyContent: "flex-start", paddingBottom: 0 }}>
+      {/* Announcement pill: [Events] tag · message · dark ticket button */}
       <span
+        className="vercel-pill"
         style={{
           display: "inline-flex",
           alignItems: "center",
           gap: 8,
-          padding: "5px 5px 5px 14px",
+          padding: "5px 5px 5px 6px",
           borderRadius: 999,
-          border: "1px solid #EBEBEB",
-          background: "#FAFAFA",
-          fontSize: 13,
-          color: "#171717",
-          fontWeight: 500,
+          border: "1px solid rgba(255,255,255,0.14)",
+          background: "rgba(255,255,255,0.06)",
+          fontSize: 14,
+          color: "#ededed",
+          boxShadow: "none",
         }}
       >
-        Ship 2026 is coming to 5 cities
-        <span style={{ background: "#171717", color: "#fff", borderRadius: 999, padding: "3px 10px", fontSize: 12 }}>
+        <span className="vercel-pill" style={{ background: "rgba(0,112,243,0.22)", color: "#6cb2ff", borderRadius: 999, padding: "2px 9px", fontSize: 12, fontWeight: 500 }}>
+          Events
+        </span>
+        Ship 26 is coming to 5 cities
+        <span className="vercel-pill" style={{ background: "#fff", color: "#000", borderRadius: 999, padding: "4px 11px", fontSize: 13, fontWeight: 500 }}>
           Get your ticket →
         </span>
       </span>
       <h2
         className="showcase-headline"
         style={{
-          color: "#171717",
+          color: "#ffffff",
           fontWeight: 600,
           letterSpacing: "-0.05em",
           lineHeight: 1.0,
+          fontSize: "clamp(38px, 4.4vw, 56px)",
         }}
       >
-        Deploy at the edge<br />of every continent.
+        Deploy to the edge of the world.
       </h2>
-      <p className="showcase-subhead" style={{ color: "#4d4d4d" }}>
-        Vercel runs your frontend across 126 PoPs and 20 compute regions —
-        sub-40ms p95 latency, everywhere.
+      <p className="showcase-subhead" style={{ color: "#a1a1a1", fontSize: "clamp(17px, 1.5vw, 20px)", lineHeight: 1.6, maxWidth: 540 }}>
+        Vercel runs your frontend on a global edge network — every visitor, in
+        every region, gets a faster, more personalized web.
       </p>
       <div className="showcase-ctas">
-        <span className="showcase-cta showcase-cta--primary" style={{ background: "#171717", color: "#fff", display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <VercelMark size={13} /> Start Deploying
+        <span className="showcase-cta showcase-cta--primary" style={{ background: "#fff", color: "#000", display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 6 }}>
+          <VercelMark size={12} /> Start Deploying
         </span>
-        <span className="showcase-cta" style={{ background: "#fff", color: "#171717", border: "1px solid #EBEBEB" }}>
+        <span className="showcase-cta vercel-outline" style={{ background: "transparent", color: "#ededed" }}>
           Get a Demo
         </span>
       </div>
-      {/* Globe in a bordered card, with the three signature Vercel
-          gradients (develop blue→cyan, preview violet→pink, ship
-          red→amber) glowing beneath it. */}
-      <div style={{ position: "relative", maxWidth: 920, width: "100%", marginTop: 48 }}>
+      {/* Vercel's signature contour-mesh gradient band — full-bleed and
+          grown to fill the whole viewport below the hero copy, fading up
+          into the white page where the headline sits. The 3D mark sits
+          dead-centre on the real site — our globe takes that slot. */}
+      <div
+        style={{
+          position: "relative",
+          width: "100vw",
+          // Symmetric full-bleed margins. The parent .showcase-inner is
+          // align-items:center; a single marginLeft gets re-centered and leaves
+          // black space on the right. Matching marginRight makes the margin box
+          // fill the content box, neutralizing the centering so the band (and
+          // the globe inside it) reach both viewport edges.
+          marginLeft: "calc(50% - 50vw)",
+          marginRight: "calc(50% - 50vw)",
+          flex: "1 1 auto",
+          minHeight: "clamp(340px, 42vw, 600px)",
+          overflow: "hidden",
+          // The globe is taller than this band, so overflow:hidden hard-crops
+          // its top. Fade the band's top edge so the globe melts out softly
+          // instead of being cut by a hard line.
+          WebkitMaskImage: "linear-gradient(to top, #000 84%, transparent 100%)",
+          maskImage: "linear-gradient(to top, #000 84%, transparent 100%)",
+        }}
+      >
+        {/* Mesh gradient + contour rings removed. Glow lives at the section
+            level (below) so the band's hard edge doesn't crop it. */}
         <div
-          aria-hidden="true"
           style={{
             position: "absolute",
-            inset: "auto 8% -40px 8%",
-            height: 200,
-            zIndex: 0,
-            pointerEvents: "none",
-            filter: "blur(60px)",
-            opacity: 0.7,
-            background:
-              "linear-gradient(90deg, #007cf0 0%, #00dfd8 28%, #7928ca 50%, #ff0080 72%, #ff4d4d 86%, #f9cb28 100%)",
+            left: "50%",
+            bottom: `${values.bottom}px`,
+            transform: `translateX(calc(-50% + ${values.x}px))`,
+            width: `${values.width}px`,
+            aspectRatio: "1 / 1",
+            zIndex: 1,
           }}
-        />
-        <LazyGlobe
-          src={brandEmbedUrl("default", "vercel", "examples-vercel")}
-          title="Vercel-flavored globe"
-          className="showcase-globe"
-          style={{
-            position: "relative",
-            background: "#000000",
-            aspectRatio: "16 / 9",
-            width: "100%",
-            borderRadius: 12,
-            overflow: "hidden",
-            border: "1px solid #EBEBEB",
-            boxShadow: "0 24px 60px -30px rgba(0,0,0,0.25)",
-          }}
-        />
+        >
+          {/* Soft dark halo grounds the globe as a glowing planet on the
+              bright mesh — mirrors how Vercel's metallic 3D mark sits in a
+              pool of shadow at the centre of the gradient. */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: "8%",
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle, rgba(8,8,12,0.92) 0%, rgba(8,8,12,0.62) 46%, rgba(8,8,12,0) 70%)",
+              filter: "blur(3px)",
+            }}
+          />
+          <LazyGlobe
+            src={brandEmbedUrl("default", "vercel", "examples-vercel", {
+              theme: "dark",
+              // globestudio-world-globe (1).json — triangle dots, RGB shader,
+              // network arcs + routes, dark surface sphere. Composited
+              // transparent so the gradient mesh shows around the planet.
+              config: {
+                selection: "world",
+                transparent: true,
+                backgroundStyle: "solid",
+                density: 90,
+                dotSize: 8.1,
+                dotColor: "#ffffff",
+                shape: "Triangle",
+                dotRotation: 69,
+                shapeRotationSpeed: 76,
+                renderMode: "dots",
+                worldFill: "#5a5a64",
+                worldStroke: "#f6f2ea",
+                worldStrokeWidth: 1.8,
+                mapDepth: 55,
+                tiltX: committed.tiltX,
+                tiltY: committed.tiltY,
+                shaderSettings: {
+                  effect: "aurora",
+                  intensity: 31,
+                  split: 7,
+                  grain: 84,
+                  scanlines: 0,
+                  cellSize: 16,
+                  threshold: 50,
+                  warp: 24,
+                  motion: 44,
+                },
+                globeSettings: {
+                  autoSpin: true,
+                  autoSpinSpeed: committed.spin,
+                  dotLift: 100,
+                  glow: false,
+                  glowStrength: 22,
+                  glowSpread: 95,
+                  glowColor: "#ffffff",
+                  grid: false,
+                  look: "classic",
+                  network: true,
+                  networkStrength: 100,
+                  networkArcs: 100,
+                  networkPulses: 100,
+                  networkMono: true,
+                  arcColor: "#ffffff",
+                  pulseColor: "#ffffff",
+                  routes: true,
+                  routesStrength: 82,
+                  surface: true,
+                  surfaceStrength: 100,
+                  surfaceColor: "#18191d",
+                },
+              },
+            })}
+            title="Vercel-flavored globe"
+            className="showcase-globe"
+            style={{ position: "relative", background: "transparent", aspectRatio: "1 / 1", width: "100%" }}
+          />
+        </div>
       </div>
-      <div className="showcase-stats" style={{ marginTop: 64 }}>
-        {[
-          { v: "126", l: "Edge PoPs" },
-          { v: "20", l: "Compute regions" },
-          { v: "<40ms", l: "p95 latency" },
-        ].map((s) => (
-          <div key={s.l} className="showcase-stat">
-            <strong style={{ color: "#171717", letterSpacing: "-0.04em" }}>{s.v}</strong>
-            <span style={{ color: "#888888" }}>{s.l}</span>
-          </div>
-        ))}
-      </div>
-      <LogoWall
-        color="#888888"
-        label="Trusted by"
-        logos={[
-          { name: "Notion", weight: 700 },
-          { name: "OpenAI", weight: 600 },
-          { name: "Adobe", weight: 700, tracking: "0.02em" },
-          { name: "GitHub", weight: 600 },
-          { name: "Loom", weight: 700, tracking: "-0.03em" },
-          { name: "Cursor", weight: 600 },
-        ]}
-      />
     </div>
+    {/* Globe tuner — append ?tune to the URL in dev to show it. */}
+    {import.meta.env.DEV &&
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).has("tune") && (
+        <GlobeTunerPanel values={values} fields={VERCEL_TUNER_FIELDS} set={set} reset={reset} label="Vercel" side="right" />
+      )}
   </section>
+  );
+};
+
+// Retro "game over" screen — the corrupt (datamosh) shader on the globe as a
+// glitchy backdrop, with Geist Pixel type for GAME OVER + a CONTINUE? menu.
+// Default fit of our screen over the Panasonic glass (percent of the photo).
+const TV_FIT_DEFAULT = { left: 27.4, top: 17.1, width: 43.5, height: 52.3, radius: 13.6 };
+const TV_FIT_KEY = "globestudio:tv-fit";
+
+// Dev-only tuner (visit /examples?tunetv) to move/resize the screen overlay
+// so it lines up with the TV in the photo. Values persist to localStorage.
+const TvFitRow = ({ label, value, min, max, onChange }) => (
+  <label style={{ display: "grid", gridTemplateColumns: "52px 1fr 56px", alignItems: "center", gap: 8, fontSize: 12 }}>
+    <span>{label}</span>
+    <input type="range" min={min} max={max} step={0.1} value={value}
+      onChange={(e) => onChange(parseFloat(e.target.value))} />
+    <input type="number" min={min} max={max} step={0.1} value={value}
+      onChange={(e) => onChange(parseFloat(e.target.value))}
+      style={{ width: 54, background: "#111", color: "#fff", border: "1px solid #333", padding: "2px 4px", fontSize: 12 }} />
+  </label>
 );
+
+const TvFitPanel = ({ fit, setFit }) => {
+  const up = (k) => (v) => setFit((f) => ({ ...f, [k]: v }));
+  const css =
+    `left: ${fit.left}%;\ntop: ${fit.top}%;\nwidth: ${fit.width}%;\n` +
+    `height: ${fit.height}%;\nborder-radius: ${fit.radius}% / ${(fit.radius * 1.27).toFixed(1)}% !important;`;
+  const btn = { background: "#1c2230", color: "#dfe7ea", border: "1px solid #333", padding: "5px 9px", fontSize: 12, cursor: "pointer" };
+  return (
+    <div style={{ position: "fixed", top: 16, right: 16, zIndex: 99999, width: 286,
+      background: "rgba(12,14,18,0.96)", color: "#e8eef0", border: "1px solid #2a2f37",
+      padding: 14, fontFamily: "ui-monospace, monospace", boxShadow: "0 12px 40px rgba(0,0,0,0.55)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <strong style={{ fontSize: 13 }}>TV screen fit</strong>
+        <button style={btn} onClick={() => setFit(TV_FIT_DEFAULT)}>reset</button>
+      </div>
+      <div style={{ display: "grid", gap: 8 }}>
+        <TvFitRow label="left" value={fit.left} min={0} max={60} onChange={up("left")} />
+        <TvFitRow label="top" value={fit.top} min={0} max={60} onChange={up("top")} />
+        <TvFitRow label="width" value={fit.width} min={10} max={90} onChange={up("width")} />
+        <TvFitRow label="height" value={fit.height} min={10} max={90} onChange={up("height")} />
+        <TvFitRow label="radius" value={fit.radius} min={0} max={30} onChange={up("radius")} />
+      </div>
+      <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+        <button style={btn} onClick={() => setFit((f) => ({ ...f, left: +((100 - f.width) / 2).toFixed(2) }))}>center ⇆</button>
+        <button style={btn} onClick={() => navigator.clipboard && navigator.clipboard.writeText(css)}>copy CSS</button>
+      </div>
+      <pre style={{ marginTop: 10, fontSize: 11, background: "#0a0c10", padding: 8, whiteSpace: "pre-wrap", color: "#9fb1b8" }}>{css}</pre>
+    </div>
+  );
+};
+
+// Animated CRT static + VCR tracking noise (ported from Karl Saunders' pen).
+// Low-res canvas stretched over the screen, screen-blended so the white specks
+// read as glowing static over the dark picture. Disabled for reduced-motion.
+const CrtNoise = () => {
+  const ref = useRef(null);
+  const reduced = usePrefersReducedMotion();
+  useEffect(() => {
+    if (reduced) return undefined;
+    const canvas = ref.current;
+    if (!canvas) return undefined;
+    const ctx = canvas.getContext("2d");
+    const W = (canvas.width = 220);
+    const H = (canvas.height = 165);
+    const rand = (a, b) => a + Math.random() * (b - a);
+    let raf;
+    let last = 0;
+    let trackY = H;
+    const draw = (t) => {
+      raf = requestAnimationFrame(draw);
+      if (t - last < 42) return; // ~24fps for an authentic flicker
+      last = t;
+      // --- snow / static ---
+      const img = ctx.createImageData(W, H);
+      const buf = new Uint32Array(img.data.buffer);
+      for (let i = 0; i < buf.length; i++) {
+        if (Math.random() < 0.16) {
+          const v = rand(120, 255) | 0;
+          buf[i] = (200 << 24) | (v << 16) | (v << 8) | v; // ABGR
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+      // --- VCR tracking band rolling up the screen ---
+      trackY -= 1.4;
+      if (trackY < -30) trackY = H + rand(40, 180);
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      for (let i = 0; i < 26; i++) {
+        const x = Math.random() * W;
+        const y = trackY + Math.random() * 22;
+        ctx.fillRect(x, y, rand(1, 5), 1);
+      }
+    };
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, [reduced]);
+  return <canvas ref={ref} className="crt-noise" aria-hidden="true" />;
+};
+
+// "Signal lost" — a kernel-panic / crashed-renderer screen. The corrupt-shader
+// globe glitches hard above a monospace error dump and a reboot prompt.
+const GameOverShowcase = () => {
+  const [fit, setFit] = useState(() => {
+    try {
+      const raw = localStorage.getItem(TV_FIT_KEY);
+      if (raw) return { ...TV_FIT_DEFAULT, ...JSON.parse(raw) };
+    } catch {
+      /* ignore */
+    }
+    return TV_FIT_DEFAULT;
+  });
+  const [showTuner, setShowTuner] = useState(false);
+  useEffect(() => {
+    setShowTuner(new URLSearchParams(window.location.search).has("tunetv"));
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem(TV_FIT_KEY, JSON.stringify(fit));
+    } catch {
+      /* ignore */
+    }
+  }, [fit]);
+
+  const crtStyle = {
+    "--crt-left": `${fit.left}%`,
+    "--crt-top": `${fit.top}%`,
+    "--crt-w": `${fit.width}%`,
+    "--crt-h": `${fit.height}%`,
+    "--crt-radius": `${fit.radius}% / ${(fit.radius * 1.27).toFixed(1)}%`,
+  };
+
+  return (
+  <section
+    id="gameover"
+    className="showcase showcase--gameover signal-lost"
+    style={{
+      background: "#000",
+      color: "#cdd4d2",
+      fontFamily: '"Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
+      position: "relative",
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+    }}
+  >
+    {/* Photo of the room + Panasonic CRT; our screen overlays its glass. */}
+    <div className="tv-stage">
+      <div className="crt" style={crtStyle}>
+        {/* Heavily corrupted globe — the crashed render. */}
+        <div style={{ width: "56cqh", aspectRatio: "1 / 1", marginBottom: "-6cqh" }}>
+          <LazyGlobe
+            src={brandEmbedUrl("default", "gameover", "examples-gameover", {
+              theme: "dark",
+              config: {
+                selection: "world",
+                transparent: true,
+                background: "#100008",
+                density: 80,
+                dotSize: 12,
+                dotColor: "#ffffff",
+                shape: "Square",
+                renderMode: "dots",
+                shaderSettings: {
+                  effect: "corrupt",
+                  cellSize: 5,
+                  intensity: 92,
+                  motion: 60,
+                  split: 12,
+                  grain: 60,
+                  scanlines: 0,
+                  threshold: 50,
+                  warp: 42,
+                },
+                globeSettings: {
+                  autoSpin: true,
+                  autoSpinSpeed: 70,
+                  glow: false,
+                  grid: false,
+                  surface: true,
+                  surfaceStrength: 100,
+                  surfaceColor: "#100008",
+                },
+              },
+            })}
+            title="Corrupted globe"
+            className="showcase-globe"
+            style={{ background: "transparent", aspectRatio: "1 / 1", width: "100%" }}
+          />
+        </div>
+        <h2
+          className="signal-glitch"
+          style={{
+            margin: 0,
+            fontFamily: '"Geist Pixel", ui-monospace, monospace',
+            fontSize: "9.5cqh",
+            lineHeight: 1,
+            letterSpacing: "0.05em",
+            color: "#ffffff",
+            textShadow: "0 0 3cqh rgba(255,60,86,0.45)",
+            display: "inline-flex",
+            alignItems: "center",
+          }}
+        >
+          Signal lost
+          <span className="signal-cursor" aria-hidden="true" />
+        </h2>
+        {/* Monospace crash dump + reboot prompt. */}
+        <div style={{ marginTop: "4cqh", fontSize: "2.5cqh", lineHeight: 1.7 }}>
+          <div style={{ fontSize: "2cqh", lineHeight: 1.9 }}>
+            <div style={{ color: "#ff5a6e" }}>FATAL: world_renderer.so crashed</div>
+            <div style={{ color: "#7c878c" }}>signal 11 (SIGSEGV) at 0x0000007f</div>
+            <div style={{ color: "#7c878c" }}>dots dropped: 14,203 / 196,400</div>
+            <div style={{ color: "#7c878c" }}>connection to globe lost.</div>
+          </div>
+          <div style={{ marginTop: "4cqh", color: "#cdd4d2" }}>
+            <span style={{ color: "#5a6468" }}>&gt; </span>
+            reboot world? <span style={{ color: "#7c878c" }}>[Y/n]</span>
+          </div>
+          <div style={{ marginTop: "2.6cqh", display: "flex", alignItems: "center", justifyContent: "center", gap: "8cqh" }}>
+            <span className="signal-yes" style={{ display: "inline-flex", alignItems: "center", gap: "2.6cqh", color: "#ffffff" }}>
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderTop: "1.1cqh solid transparent",
+                  borderBottom: "1.1cqh solid transparent",
+                  borderLeft: "1.8cqh solid #43e03c",
+                }}
+              />
+              YES
+            </span>
+            <span style={{ opacity: 0.45 }}>NO</span>
+          </div>
+        </div>
+        {/* CRT frame overlays — scanlines, animated static, rolling refresh
+            bar, then the curved-corner vignette on top. */}
+        <div className="crt-scanlines" aria-hidden="true" />
+        <CrtNoise />
+        <div className="crt-rollbar" aria-hidden="true" />
+        <div className="crt-vignette" aria-hidden="true" />
+      </div>
+    </div>
+    {showTuner && <TvFitPanel fit={fit} setFit={setFit} />}
+  </section>
+  );
+};
+
+// Dev-only tuner (visit /examples?tunenews) to scale + recenter the halftone
+// globe inside its press-photo frame. Reuses the TvFitRow slider row.
+const NEWS_GLOBE_DEFAULT = { scale: 150, x: 0, y: 0 };
+const NEWS_GLOBE_KEY = "globestudio:news-globe-v2";
+
+const NewsGlobePanel = ({ v, setV }) => {
+  const up = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
+  const css = `transform: translate(${v.x}%, ${v.y}%) scale(${(v.scale / 100).toFixed(2)});`;
+  const btn = { background: "#1c2230", color: "#dfe7ea", border: "1px solid #333", padding: "5px 9px", fontSize: 12, cursor: "pointer" };
+  return (
+    <div style={{ position: "fixed", top: 16, right: 16, zIndex: 99999, width: 286,
+      background: "rgba(12,14,18,0.96)", color: "#e8eef0", border: "1px solid #2a2f37",
+      padding: 14, fontFamily: "ui-monospace, monospace", boxShadow: "0 12px 40px rgba(0,0,0,0.55)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <strong style={{ fontSize: 13 }}>Globe fit</strong>
+        <button style={btn} onClick={() => setV(NEWS_GLOBE_DEFAULT)}>reset</button>
+      </div>
+      <div style={{ display: "grid", gap: 8 }}>
+        <TvFitRow label="scale" value={v.scale} min={40} max={400} onChange={up("scale")} />
+        <TvFitRow label="x" value={v.x} min={-50} max={50} onChange={up("x")} />
+        <TvFitRow label="y" value={v.y} min={-50} max={50} onChange={up("y")} />
+      </div>
+      <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+        <button style={btn} onClick={() => setV((s) => ({ ...s, x: 0, y: 0 }))}>center</button>
+        <button style={btn} onClick={() => navigator.clipboard && navigator.clipboard.writeText(css)}>copy CSS</button>
+      </div>
+      <pre style={{ marginTop: 10, fontSize: 11, background: "#0a0c10", padding: 8, whiteSpace: "pre-wrap", color: "#9fb1b8" }}>{css}</pre>
+    </div>
+  );
+};
+
+// "The Globe Dispatch" — a vintage broadsheet front page where the rotating
+// halftone globe stands in for the lead press photo (newspaper photos were
+// halftone dot screens). Aged paper, blackletter masthead, justified columns.
+const NewsShowcase = () => {
+  const [globe, setGlobe] = useState(() => {
+    try {
+      const raw = localStorage.getItem(NEWS_GLOBE_KEY);
+      if (raw) return { ...NEWS_GLOBE_DEFAULT, ...JSON.parse(raw) };
+    } catch {
+      /* ignore */
+    }
+    return NEWS_GLOBE_DEFAULT;
+  });
+  const [showTuner, setShowTuner] = useState(false);
+  useEffect(() => {
+    setShowTuner(new URLSearchParams(window.location.search).has("tunenews"));
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem(NEWS_GLOBE_KEY, JSON.stringify(globe));
+    } catch {
+      /* ignore */
+    }
+  }, [globe]);
+
+  const globeStyle = {
+    "--news-globe-scale": globe.scale,
+    "--news-globe-x": `${globe.x}%`,
+    "--news-globe-y": `${globe.y}%`,
+  };
+
+  return (
+  <section id="news" className="showcase showcase--news newsroom">
+    <div className="news-paper">
+      <header className="news-masthead">
+        <div className="news-mast-side">Est.<br />MMXXVI</div>
+        <h1 className="news-title">The Globe Dispatch</h1>
+        <div className="news-mast-side">World<br />Edition</div>
+      </header>
+      <div className="news-dateline">
+        <span>Vol. CXXIV · No. 195</span>
+        <span>May 29, 2026</span>
+        <span>Printed in 196,400 dots</span>
+        <span>Price: One Dot</span>
+      </div>
+      <div className="news-body">
+        <aside className="news-col">
+          <h3 className="news-kicker">On the Wire</h3>
+          <p>
+            Reports continue to arrive from every meridian confirming the same
+            dispatch: the world, against all odds, is still turning.
+          </p>
+          <p>
+            Officials urged calm. “It has done this every day for some time,” a
+            spokesman noted, “and we fully expect it to continue.”
+          </p>
+          <p>
+            Eyewitnesses described the motion as “smooth,” “uneventful,” and,
+            from close range, “frankly rather beautiful.”
+          </p>
+          <p>
+            The Meteorological Office added that conditions remained “largely
+            atmospheric,” with visibility extending, in places, to the horizon.
+          </p>
+          <h3 className="news-kicker">Index</h3>
+          <ul className="news-index">
+            <li>Weather <span>Scattered dots</span></li>
+            <li>Markets <span>Dots ▲ 2</span></li>
+            <li>Rotation <span>On schedule</span></li>
+            <li>Tides <span>Coming, going</span></li>
+            <li>Horizon <span>Curved, as ever</span></li>
+            <li>Outlook <span>Spherical</span></li>
+          </ul>
+          <h3 className="news-kicker">Late Bulletin</h3>
+          <p>
+            The Bureau of Longitude reports all 360 degrees present and in their
+            usual order, pending the customary review.
+          </p>
+          <h3 className="news-kicker">Quoted</h3>
+          <blockquote className="news-quote">
+            “We checked twice. It is, reassuringly, still round.”
+            <cite>— Office of the Cartographer Royal</cite>
+          </blockquote>
+          <h3 className="news-kicker">Also Inside</h3>
+          <ul className="news-index">
+            <li>Letters <span>p. 4</span></li>
+            <li>Almanac <span>p. 7</span></li>
+            <li>Horizons <span>p. 12</span></li>
+            <li>Crossword <span>p. 16</span></li>
+          </ul>
+        </aside>
+        <div className="news-main">
+          <h2 className="news-headline">The World, Rendered</h2>
+          <p className="news-deck">
+            After 4.5 billion years, Earth keeps its appointment — printed here
+            in full halftone, one dot at a time.
+          </p>
+          <figure className="news-photo">
+            <div className="news-photo-frame">
+              <div className="news-globe" style={globeStyle}>
+                <LazyGlobe
+                src={brandEmbedUrl("default", "news", "examples-news", {
+                  theme: "light",
+                  config: {
+                    selection: "world",
+                    transparent: true,
+                    background: "#f1e8d4",
+                    density: 90,
+                    dotSize: 9,
+                    dotColor: "#1a1610",
+                    shape: "Circle",
+                    renderMode: "dots",
+                    shaderSettings: {
+                      effect: "halftone",
+                      intensity: 58,
+                      cellSize: 6,
+                      motion: 20,
+                      scanlines: 0,
+                      grain: 0,
+                      split: 0,
+                      threshold: 50,
+                      warp: 0,
+                    },
+                    globeSettings: {
+                      autoSpin: true,
+                      autoSpinSpeed: 22,
+                      glow: false,
+                      grid: false,
+                      surface: false,
+                    },
+                  },
+                })}
+                  title="Halftone globe"
+                  className="showcase-globe"
+                  style={{ background: "transparent", width: "100%", aspectRatio: "1 / 1" }}
+                />
+              </div>
+            </div>
+            <figcaption>
+              THE EARTH, photographed mid-spin from the newsroom window.
+              — Staff dot-photography
+            </figcaption>
+          </figure>
+          <div className="news-text">
+            <p>
+              Cartographers working through the night re-counted the continents
+              and found them, reassuringly, all present and accounted for. A
+              correspondent stationed at the equator filed only two words before
+              deadline: “Still spinning.”
+            </p>
+            <p>
+              From the wire desk: dispatches confirm sunrise occurred on schedule
+              in all reporting zones, with no objections formally filed.
+            </p>
+            <p>
+              Analysts cautioned against complacency, noting the planet remains
+              under no obligation to continue — and does so, they stress, purely
+              out of long-standing habit.
+            </p>
+            <p>
+              Markets greeted the news with characteristic indifference, the Dot
+              Index closing two points higher on famously light trading.
+            </p>
+            <p>
+              In the capitals, ministers convened to affirm their continued
+              support for the planet’s rotation while declining, as ever, to
+              take any personal credit for it.
+            </p>
+            <h4 className="news-subhead">No End in Sight</h4>
+            <p>
+              The Institute for Obvious Phenomena released a four-hundred-page
+              study whose abstract read, in its entirety: “Yes.”
+            </p>
+            <p>
+              Abroad, the sun again rose in the east, prompting renewed calls for
+              a formal inquiry into precisely why it insists on doing so.
+            </p>
+            <p>
+              Readers wishing to confirm the rotation independently were advised
+              to stand quite still and wait.
+            </p>
+            <p className="news-byline">By A. Staff Writer</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    {showTuner && <NewsGlobePanel v={globe} setV={setGlobe} />}
+  </section>
+  );
+};
 
 const ProfoundShowcase = () => (
   <section
@@ -826,13 +1490,13 @@ const LinearShowcase = () => (
           Talk to sales
         </span>
       </div>
-      <div style={{ position: "relative", marginTop: 60, maxWidth: 920, width: "100%" }}>
+      <div style={{ position: "relative", marginTop: 48, maxWidth: 540, width: "100%", aspectRatio: "1 / 1" }}>
         <div
           aria-hidden="true"
           style={{
             position: "absolute",
-            inset: -80,
-            background: "radial-gradient(circle at 50% 50%, rgba(94, 106, 210, 0.35), rgba(94, 106, 210, 0) 60%)",
+            inset: -60,
+            background: "radial-gradient(circle at 50% 50%, rgba(94, 106, 210, 0.4), rgba(94, 106, 210, 0) 62%)",
             filter: "blur(40px)",
             pointerEvents: "none",
           }}
@@ -842,12 +1506,9 @@ const LinearShowcase = () => (
           title="Linear-flavored globe"
           className="showcase-globe"
           style={{
-            background: "#08090A",
-            aspectRatio: "16 / 9",
+            background: "transparent",
+            aspectRatio: "1 / 1",
             width: "100%",
-            borderRadius: 16,
-            overflow: "hidden",
-            border: "1px solid rgba(247, 248, 248, 0.08)",
             position: "relative",
           }}
         />
@@ -929,80 +1590,280 @@ const LinearShowcase = () => (
   </section>
 );
 
-const StripeShowcase = () => (
+// --- Dev-only globe tuner --------------------------------------------------
+// A floating control panel (DEV only) for visually positioning the Stripe
+// hero globe: tilt (view-from-above / left-right), size, and the crop
+// offsets. Live preview; persists to localStorage so a page reload keeps
+// your tweaks; "Copy values" emits the exact numbers to paste back into the
+// hardcoded defaults below. Never ships — the panel render is
+// import.meta.env.DEV-gated and production always uses STRIPE_GLOBE_DEFAULTS.
+const STRIPE_GLOBE_DEFAULTS = {
+  tiltX: 36,
+  tiltY: -14,
+  spin: 26,
+  width: 1650,
+  right: -690,
+  bottom: -360,
+};
+
+const STRIPE_TUNER_FIELDS = [
+  { key: "tiltX", label: "Tilt ↑ (above)", min: -90, max: 90, step: 1 },
+  { key: "tiltY", label: "Tilt → (turn)", min: -90, max: 90, step: 1 },
+  { key: "spin", label: "Spin speed", min: 0, max: 100, step: 1 },
+  { key: "width", label: "Size (px)", min: 600, max: 2400, step: 10 },
+  { key: "right", label: "X offset (right)", min: -1400, max: 200, step: 10 },
+  { key: "bottom", label: "Y offset (bottom)", min: -1400, max: 200, step: 10 },
+];
+
+// Holds the tuner state. tilt + spin feed the embed URL (so they're debounced
+// — changing them reloads the iframe), while size/offsets are parent CSS and
+// apply live. In production this is inert: it returns the static defaults and
+// runs no storage/debounce effects.
+const useGlobeTuner = (storageKey, defaults) => {
+  const [values, setValues] = useState(() => {
+    if (!import.meta.env.DEV || typeof localStorage === "undefined") return defaults;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+    } catch {
+      return defaults;
+    }
+  });
+  const [committed, setCommitted] = useState(values);
+  useEffect(() => {
+    if (!import.meta.env.DEV) return undefined;
+    const id = setTimeout(() => setCommitted(values), 220);
+    return () => clearTimeout(id);
+  }, [values]);
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof localStorage === "undefined") return;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(values));
+    } catch {
+      /* private mode / quota — tuning just won't persist */
+    }
+  }, [storageKey, values]);
+  const set = (key, value) => setValues((v) => ({ ...v, [key]: value }));
+  const reset = () => setValues(defaults);
+  return { values, committed, set, reset };
+};
+
+const GlobeTunerPanel = ({ values, fields, set, reset, label = "Stripe", side = "left" }) => {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(values, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1400);
+    } catch {
+      /* clipboard blocked — values are still visible in the panel */
+    }
+  };
+  const btn = {
+    flex: 1,
+    padding: "7px 8px",
+    border: "1px solid rgba(255,255,255,0.18)",
+    borderRadius: 7,
+    background: "rgba(255,255,255,0.08)",
+    color: "#fff",
+    font: "inherit",
+    cursor: "pointer",
+  };
+  return (
+    <div
+      style={{
+        position: "fixed",
+        left: side === "right" ? "auto" : 16,
+        right: side === "right" ? 16 : "auto",
+        bottom: 16,
+        zIndex: 99999,
+        width: 256,
+        padding: 14,
+        borderRadius: 12,
+        background: "rgba(17,17,20,0.94)",
+        color: "#fff",
+        fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+        fontSize: 11,
+        lineHeight: 1.3,
+        boxShadow: "0 10px 34px rgba(0,0,0,0.45)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, fontWeight: 700, fontSize: 12 }}>
+        <span>Globe tuner</span>
+        <span style={{ opacity: 0.45, fontWeight: 500 }}>DEV · {label}</span>
+      </div>
+      {fields.map((f) => (
+        <label key={f.key} style={{ display: "block", marginBottom: 9 }}>
+          <span style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+            <span style={{ opacity: 0.8 }}>{f.label}</span>
+            <span style={{ fontVariantNumeric: "tabular-nums" }}>{values[f.key]}</span>
+          </span>
+          <input
+            type="range"
+            min={f.min}
+            max={f.max}
+            step={f.step}
+            value={values[f.key]}
+            onChange={(e) => set(f.key, Number(e.target.value))}
+            style={{ width: "100%", accentColor: "#6a00ff" }}
+          />
+        </label>
+      ))}
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <button type="button" onClick={copy} style={{ ...btn, background: copied ? "#6a00ff" : btn.background, borderColor: copied ? "#6a00ff" : btn.border }}>
+          {copied ? "Copied ✓" : "Copy values"}
+        </button>
+        <button type="button" onClick={reset} style={btn}>
+          Reset
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// A tiny flag beside "195 countries" that rotates through a handful of
+// country flags (flag-icons 4x3, served from the alevizio/icons CDN). Each
+// swap flips in like a little coin; static under prefers-reduced-motion.
+const FLAG_CODES = ["us", "gb", "jp", "br", "fr", "de", "in", "mx", "za", "au", "ca", "kr"];
+
+const RotatingFlag = ({ height = 13 }) => {
+  const [index, setIndex] = useState(0);
+  const reduceMotion = usePrefersReducedMotion();
+  useEffect(() => {
+    if (reduceMotion) return undefined;
+    const id = setInterval(
+      () => setIndex((n) => (n + 1) % FLAG_CODES.length),
+      1700,
+    );
+    return () => clearInterval(id);
+  }, [reduceMotion]);
+  const code = FLAG_CODES[index];
+  return (
+    <img
+      key={code}
+      className="rotating-flag"
+      src={`https://alevizio.github.io/icons/svg/flag-icons/4x3/${code}.svg`}
+      alt=""
+      aria-hidden="true"
+      width={Math.round((height * 4) / 3)}
+      height={height}
+      style={{
+        display: "inline-block",
+        objectFit: "cover",
+        boxShadow: "0 0 0 1px rgba(10,37,64,0.1)",
+      }}
+    />
+  );
+};
+
+const StripeShowcase = () => {
+  const { values, committed, set, reset } = useGlobeTuner(
+    "globestudio:stripe-globe-tune",
+    STRIPE_GLOBE_DEFAULTS,
+  );
+  return (
   <section
     id="stripe"
     className="showcase showcase--stripe"
     style={{
       background: "#FFFFFF",
       color: "#0d253d",
-      fontFamily: '"Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
+      // DEV-only: preview the real Söhne face (staged in the gitignored
+      // public/_stripe-local/). Production has no such file and the
+      // @font-face below isn't rendered, so it falls back to Inter — no
+      // licensed font ever ships.
+      fontFamily: import.meta.env.DEV
+        ? '"Sohne Local", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif'
+        : '"Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
       position: "relative",
       overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+      borderBottom: "1px solid rgba(10,37,64,0.1)",
     }}
   >
-    {/* Stripe's signature silk-ribbon gradient. The fanning-from-a-
-        corner look is a conic gradient anchored at the top-right
-        corner: warm amber → coral → magenta → violet → blue swept as
-        angular bands. Layered with two soft radial highlights for the
-        silk sheen, lightly blurred, and clipped to a diagonal so it
-        sweeps from the top-right toward lower-center like the real
-        site (whose version is WebGL). */}
+    {import.meta.env.DEV && (
+      <style>{`@font-face{font-family:"Sohne Local";src:url("/_stripe-local/sohne.woff2") format("woff2");font-weight:100 800;font-style:normal;font-display:swap;}`}</style>
+    )}
+    {/* Background gradient removed — the globe is the hero visual now. */}
+    {/* Vertical container rules — frame the hero at the edges of the nav's
+        container width. They start at the nav's bottom hairline (not the
+        section top) so they read as dropping down from the nav header
+        rather than running up through it. */}
+    <div aria-hidden="true" style={{ position: "absolute", top: 76, left: 0, right: 0, bottom: 0, zIndex: 1, pointerEvents: "none", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100%", maxWidth: 1262, height: "100%", borderLeft: "1px solid rgba(10,37,64,0.07)", borderRight: "1px solid rgba(10,37,64,0.07)" }} />
+    </div>
+    {/* Flow-shader backdrop — aligned to the vertical container rules above
+        (same top:76 + maxWidth:1262, centered) and run full-height behind the
+        hero so the wash fills the framed area. Same flow shader as the app, at
+        low opacity over the white section so the navy copy stays legible.
+        zIndex 0 sits below the rules + copy (z1) and below the globe (z2). */}
     <div
       aria-hidden="true"
       style={{
         position: "absolute",
-        top: -260,
-        right: -240,
-        width: 1180,
-        height: 1080,
+        top: 0,
+        left: 0,
+        right: 0,
+        // Meet the marquee's top hairline. Strip = borders(2) + padding(48) +
+        // ~36px logos ≈ 86px, plus the inner's 34px bottom padding ≈ 120px
+        // from the section bottom.
+        bottom: 120,
         zIndex: 0,
         pointerEvents: "none",
-        filter: "blur(14px) saturate(1.05)",
-        // Mesh colors straight from the Stripe DESIGN.md: cream
-        // (#f5e9d4) → sherbet → lavender (#b9b9f9) → indigo (#533afd)
-        // → ruby (#ea2261) → magenta (#f96bee), swept as a corner fan.
-        background: `
-          radial-gradient(60% 45% at 70% 16%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 55%),
-          radial-gradient(55% 55% at 56% 60%, rgba(249,107,238,0.32) 0%, rgba(249,107,238,0) 60%),
-          conic-gradient(from 198deg at 88% 6%,
-            #f5e9d4 0deg,
-            #ffb060 24deg,
-            #f96bee 48deg,
-            #ea2261 68deg,
-            #533afd 92deg,
-            #665efd 116deg,
-            #b9b9f9 142deg,
-            rgba(185,185,249,0) 176deg)
-        `,
-        clipPath: "polygon(26% 0, 100% 0, 100% 82%, 50% 100%, 28% 62%, 16% 20%)",
+        display: "flex",
+        justifyContent: "center",
       }}
-    />
-    {/* White feather on the left + bottom edges so the ribbon melts
-        into the page instead of ending in a hard polygon line. */}
-    <div
-      aria-hidden="true"
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 0,
-        pointerEvents: "none",
-        background:
-          "linear-gradient(95deg, #FFFFFF 30%, rgba(255,255,255,0) 62%), linear-gradient(0deg, #FFFFFF 4%, rgba(255,255,255,0) 34%)",
-      }}
-    />
+    >
+      <div style={{ position: "relative", width: "100%", maxWidth: 1262, height: "100%", overflow: "hidden" }}>
+        <FlowBackdrop
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.22 }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            // Start below the nav so the shader stays visible (and blurrable)
+            // behind the frosted nav instead of being whitened out.
+            top: 77,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background:
+              "linear-gradient(90deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.22) 55%, rgba(255,255,255,0) 100%)",
+          }}
+        />
+        {/* White wash toward the globe — horizontal, transparent on the left
+            ramping to fully white near the right (~88%) where the globe sits,
+            so the shader fades to clean white under the globe. */}
+        <div
+          style={{
+            position: "absolute",
+            top: 77,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background:
+              "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 88%)",
+          }}
+        />
+      </div>
+    </div>
     <CompanyNav
-      brand={<StripeMark size={24} />}
+      brand={import.meta.env.DEV
+        ? <img src="/_stripe-local/logos/stripe.svg" alt="Stripe" style={{ height: 25, display: "block" }} />
+        : <StripeMark size={22} />}
       items={["Products", "Solutions", "Developers", "Resources", "Pricing"]}
       right={
         <>
-          <span className="showcase-nav-link" style={{ color: "#ea2261", fontWeight: 600 }}>Sign in</span>
-          <span className="showcase-nav-cta" style={{ background: "#533afd", color: "#fff" }}>
-            Contact sales →
+          <span className="showcase-nav-cta" style={{ background: "#fff", color: "#0a2540", border: "1px solid #d4dde6", borderRadius: 4, fontWeight: 400, fontSize: 14, padding: "11px 16px", boxShadow: "0 1px 1px rgba(10,37,64,0.05)" }}>Sign in</span>
+          <span className="showcase-nav-cta" style={{ background: "#533afd", color: "#fff", borderRadius: 4, fontWeight: 400, fontSize: 14, padding: "11px 16px" }}>
+            Contact sales ›
           </span>
         </>
       }
-      style={{ color: "#0d253d", position: "relative", zIndex: 2 }}
+      style={{ color: "#0d253d", position: "relative", zIndex: 2, borderBottom: "1px solid rgba(10,37,64,0.08)", background: "rgba(255,255,255,0.42)", backdropFilter: "blur(16px) saturate(150%)", WebkitBackdropFilter: "blur(16px) saturate(150%)" }}
     />
     {/* Left-anchored copy column — Stripe's hero is NOT centered. Copy
         sits in the left ~58%, the ribbon owns the right. */}
@@ -1010,184 +1871,254 @@ const StripeShowcase = () => (
       className="showcase-inner"
       style={{
         position: "relative",
-        zIndex: 1,
+        zIndex: 2,
+        flex: "1 1 auto",
         alignItems: "flex-start",
+        justifyContent: "flex-start",
         textAlign: "left",
-        maxWidth: 1180,
+        maxWidth: 1262,
+        // Top pad 0 + gap 0 so the copy wrapper's centering region spans
+        // exactly nav-bottom → marquee-top (the flow rectangle), centering the
+        // copy between the two lines. paddingBottom 34 still seats the marquee.
+        padding: "0px 24px 34px",
+        gap: 0,
       }}
     >
-      <div style={{ maxWidth: 680 }}>
+      {/* Center the copy block in the flow rectangle — this wrapper grows to
+          fill the space above the marquee and centers the copy on both axes. */}
+      <div style={{ flex: "1 1 auto", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100%" }}>
+      <div style={{ maxWidth: 1180, transform: "translate(64px, -48px)" }}>
         <div
           style={{
             fontSize: 14,
             color: "#0d253d",
             fontWeight: 500,
-            marginBottom: 20,
+            marginBottom: 32,
             display: "flex",
             alignItems: "center",
             gap: 8,
           }}
         >
-          Global GDP running on Stripe:
+          Payments now live across
           <span style={{ fontVariantNumeric: "tabular-nums", color: "#533afd", fontWeight: 600 }}>
-            1.65433278%
+            195 countries
           </span>
+          <RotatingFlag />
         </div>
         {/* Light-weight Söhne-style headline: dark first sentence,
             then the rest flows in blue — exactly like the real site. */}
         <h2
           style={{
             margin: 0,
-            fontSize: "clamp(34px, 3.6vw, 48px)",
+            // 48px / weight 300 / -0.96px in a wide column so the headline
+            // wraps to fewer lines across the white hero.
+            fontSize: "clamp(32px, 3.4vw, 48px)",
             lineHeight: 1.15,
             fontWeight: 300,
             letterSpacing: "-0.96px",
             fontFeatureSettings: '"ss01"',
-            color: "#0d253d",
-            maxWidth: 720,
+            color: "#0a2540",
+            maxWidth: 1180,
+            textWrap: "balance",
+            // Blend the copy onto the globe behind it — multiply keeps the
+            // dark text readable while letting the globe show through.
+            mixBlendMode: "multiply",
           }}
         >
-          Financial infrastructure to grow your revenue.{" "}
-          <span style={{ color: "#273951" }}>
-            Accept payments, offer financial services, and visualize global
-            money movement—from your first transaction to your billionth.
+          Payments infrastructure that spans the globe.{" "}
+          <span style={{ color: "#41597a" }}>
+            Accept money across borders, settle in local currency, and reach
+            customers in every time zone—from your first transaction to your
+            billionth.
           </span>
         </h2>
-        <div className="showcase-ctas" style={{ justifyContent: "flex-start", marginTop: 28 }}>
+        <div className="showcase-ctas" style={{ justifyContent: "flex-start", marginTop: 44, gap: 12 }}>
           <span
             className="showcase-cta showcase-cta--primary"
-            style={{ background: "#533afd", color: "#fff", fontWeight: 600 }}
+            style={{ background: "#533afd", color: "#fff", fontWeight: 400, fontSize: 16, padding: "15px 24px", borderRadius: 16, boxShadow: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
           >
-            Get started →
+            Get started
+            <span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1, fontWeight: 400 }}>›</span>
           </span>
           <span
             className="showcase-cta"
             style={{
               background: "#fff",
-              color: "#0d253d",
-              border: "1px solid rgba(10,37,64,0.12)",
-              boxShadow: "0 2px 5px rgba(0,0,0,0.06)",
+              color: "#533afd",
+              border: "1px solid #d4dde6",
+              borderRadius: 16,
+              boxShadow: "none",
+              fontWeight: 400,
+              fontSize: 16,
+              padding: "15px 24px",
               display: "inline-flex",
-              gap: 8,
+              gap: 10,
               alignItems: "center",
             }}
           >
-            <span style={{ fontWeight: 700, color: "#4285F4" }}>G</span>
+            {/* Official multi-colour Google "G" mark (standard sign-in glyph). */}
+            <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true" style={{ display: "block", flexShrink: 0 }}>
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+            </svg>
             Sign up with Google
           </span>
         </div>
 
-        {/* Customer logo row — grayscale, single line, like Stripe's. */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 36,
-            marginTop: 56,
-            flexWrap: "wrap",
-            opacity: 0.7,
-          }}
-        >
-          {[
-            { name: "amazon", weight: 700 },
-            { name: "NVIDIA", weight: 800, tracking: "0.02em" },
-            { name: "Ford", weight: 700, italic: true },
-            { name: "coinbase", weight: 600 },
-            { name: "Google", weight: 500 },
-            { name: "shopify", weight: 700, tracking: "-0.02em" },
-            { name: "mindbody", weight: 600 },
-          ].map((l) => (
-            <span
-              key={l.name}
-              style={{
-                fontFamily: '"Inter", system-ui, sans-serif',
-                fontWeight: l.weight,
-                fontStyle: l.italic ? "italic" : "normal",
-                letterSpacing: l.tracking || "-0.01em",
-                fontSize: 17,
-                color: "#697386",
-              }}
-            >
-              {l.name}
-            </span>
-          ))}
-        </div>
       </div>
-
-      {/* The globe lives in a clean white Stripe-Dashboard widget that
-          floats over the ribbon, lower-right — exactly how Stripe
-          floats product-UI cards over its gradient. Header + globe +
-          live volume stat + a live payment-route row underneath. */}
-      <div
-        style={{
-          position: "absolute",
-          right: 0,
-          bottom: 28,
-          width: 340,
-          maxWidth: "40%",
-          background: "#fff",
-          borderRadius: 16,
-          boxShadow: "0 30px 70px -24px rgba(10,37,64,0.35), 0 4px 12px rgba(10,37,64,0.08)",
-          overflow: "hidden",
-          border: "1px solid rgba(10,37,64,0.06)",
-        }}
-      >
-        {/* Card header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "14px 16px 10px",
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <span style={{ fontSize: 12, color: "#697386", fontWeight: 500 }}>Global volume</span>
-            <span style={{ fontSize: 22, fontWeight: 600, color: "#0d253d", letterSpacing: "-0.01em" }}>$1.9T</span>
+      </div>
+      {/* Customer logo marquee — flow element spanning the full container
+          width (line to line, bleeding to the vertical rules) with a
+          hairline above. Infinite scroll; the track holds the list twice
+          for a seamless -50% loop. */}
+      <div style={{ width: "100vw", marginLeft: "calc(50% - 50vw)", borderTop: "1px solid rgba(10,37,64,0.1)", borderBottom: "1px solid rgba(10,37,64,0.1)", paddingTop: 24, paddingBottom: 24 }}>
+        {/* Lines stay full-bleed; the logo track is clipped to the 1262
+            container (the vertical rules) — no gutters, so logos crop exactly
+            at the lines. */}
+        <div style={{ maxWidth: 1262, margin: "0 auto" }}>
+        <div className="stripe-logo-marquee">
+          <div className="stripe-logo-marquee-track">
+            {(() => {
+              const logos = [
+                { name: "Vercel", file: "vercel.svg", weight: 600, h: 32 },
+                { name: "Uber", file: "uber.svg", weight: 700, h: 30 },
+                { name: "Anthropic", file: "anthropic.svg", weight: 500, tracking: "0.02em", h: 28 },
+                { name: "Lightspeed", file: "lightspeed.svg", weight: 600, h: 32 },
+                { name: "Cursor", file: "cursor.svg", weight: 600, tracking: "0.04em", h: 30 },
+                { name: "OpenAI", file: "openai.svg", weight: 500, h: 32 },
+                { name: "amazon", file: "amazon.svg", weight: 700, h: 36 },
+                { name: "NVIDIA", file: "nvidia.svg", weight: 700, tracking: "0.02em", h: 32 },
+              ];
+              return [...logos, ...logos].map((l, i) => {
+                const hidden = i >= logos.length;
+                return import.meta.env.DEV ? (
+                  <img
+                    key={l.name + i}
+                    src={`/_stripe-local/logos/${l.file}`}
+                    alt={hidden ? "" : l.name}
+                    aria-hidden={hidden ? "true" : undefined}
+                    style={{ height: l.h, width: "auto", display: "block", flexShrink: 0 }}
+                  />
+                ) : (
+                  <span
+                    key={l.name + i}
+                    aria-hidden={hidden ? "true" : undefined}
+                    style={{
+                      fontFamily: '"Inter", system-ui, sans-serif',
+                      fontWeight: l.weight,
+                      letterSpacing: l.tracking || "-0.01em",
+                      fontSize: 27,
+                      color: "#697386",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {l.name}
+                  </span>
+                );
+              });
+            })()}
           </div>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#3ECF8E",
-              background: "rgba(62,207,142,0.12)",
-              padding: "3px 8px",
-              borderRadius: 6,
-            }}
-          >
-            ↑ 24.1%
-          </span>
         </div>
-        {/* Globe — Stripe-purple dots on deep navy */}
-        <LazyGlobe
-          src={brandEmbedUrl("default", "stripe", "examples-stripe")}
-          title="Stripe global payments globe"
-          style={{
-            background: "#0d253d",
-            aspectRatio: "16 / 11",
-            width: "100%",
-          }}
-        />
-        {/* Live payment-route row */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "12px 16px",
-            borderTop: "1px solid rgba(10,37,64,0.06)",
-            fontSize: 12,
-            color: "#0d253d",
-          }}
-        >
-          <span style={{ width: 8, height: 8, borderRadius: 999, background: "#3ECF8E", boxShadow: "0 0 0 3px rgba(62,207,142,0.2)", flexShrink: 0 }} />
-          <span style={{ fontWeight: 600 }}>Singapore → São Paulo</span>
-          <span style={{ marginLeft: "auto", color: "#697386", fontVariantNumeric: "tabular-nums" }}>$48,200 · 1.2s</span>
         </div>
       </div>
     </div>
+    {/* Globe — large, cropped into the section's bottom-right corner (the
+        section clips overflow). No backdrop; the dotted planet bleeds off
+        the corner as the hero visual. */}
+    <div
+      style={{
+        position: "absolute",
+        right: `${values.right}px`,
+        bottom: `${values.bottom}px`,
+        width: `${values.width}px`,
+        aspectRatio: "1 / 1",
+        zIndex: 1,
+        pointerEvents: "none",
+      }}
+    >
+      <LazyGlobe
+        src={brandEmbedUrl("default", "stripe", "examples-stripe", {
+          theme: "light",
+          // globestudio-world-globe.json design: a dense dotted world with a
+          // graticule grid, routes, and mono purple network arcs, spinning.
+          // Composited transparent onto the section's white (the proven
+          // showcase pattern). Two palette tweaks vs. the source file: the
+          // dots/grid are darkened from the file's light-grey — those were
+          // tuned to sit on a solid grey sphere, but a transparent composite
+          // hides that sphere (depth-only), so light dots would vanish on
+          // white. Darkening makes the dotted world read on the white hero.
+          config: {
+            selection: "world",
+            transparent: true,
+            backgroundStyle: "solid",
+            density: 77,
+            dotSize: 6.3,
+            // Light, airy greys to match the hero's hairline rules
+            // (rgba(10,37,64,~0.08) ≈ a very pale blue-grey on white). Dots
+            // sit a touch darker than the grid so the dotted continents still
+            // read against the white section.
+            dotColor: "#c3c8d2",
+            shape: "Circle",
+            renderMode: "dots",
+            worldStroke: "#dde1e9",
+            worldStrokeWidth: 1.8,
+            mapDepth: 55,
+            // Tilt + spin driven by the dev Globe tuner (committed/debounced
+            // so dragging a slider doesn't thrash the iframe). Production uses
+            // the STRIPE_GLOBE_DEFAULTS baked above.
+            tiltX: committed.tiltX,
+            tiltY: committed.tiltY,
+            globeSettings: {
+              autoSpin: true,
+              autoSpinSpeed: committed.spin,
+              glow: false,
+              grid: true,
+              gridColor: "#dde1e9",
+              gridSize: 24,
+              gridStrength: 100,
+              look: "classic",
+              network: true,
+              networkStrength: 70,
+              networkArcs: 60,
+              networkPulses: 50,
+              arcColor: "#6a00ff",
+              pulseColor: "#b56b9c",
+              networkMono: true,
+              routes: true,
+              routesStrength: 88,
+              surface: false,
+            },
+            shaderSettings: {
+              effect: "none",
+              intensity: 45,
+              split: 7,
+              grain: 8,
+              scanlines: 36,
+              cellSize: 14,
+              threshold: 50,
+              warp: 24,
+              motion: 35,
+            },
+          },
+        })}
+        title="Stripe global payments globe"
+        className="showcase-globe"
+        style={{ background: "transparent", aspectRatio: "1 / 1", width: "100%" }}
+      />
+    </div>
+    {/* Globe tuner panel — hidden by default. Append ?tune to the URL in dev
+        to show it (e.g. /examples?tune). The useGlobeTuner hook above still
+        feeds the baked STRIPE_GLOBE_DEFAULTS into the globe either way. */}
+    {import.meta.env.DEV &&
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).has("tune") && (
+        <GlobeTunerPanel values={values} fields={STRIPE_TUNER_FIELDS} set={set} reset={reset} />
+      )}
   </section>
-);
+  );
+};
 
 const EarthscaleShowcase = () => (
   <section
@@ -1336,7 +2267,7 @@ const EarthscaleShowcase = () => (
               style={{
                 width: 36,
                 height: 36,
-                borderRadius: "50%",
+                clipPath: "circle(48%)",
                 border: "1px solid rgba(236,231,218,0.18)",
                 background: ["#3a3128", "#4a3a2c", "#3a3128", "#4a3a2c"][i],
                 color: "#d99c66",
@@ -1550,6 +2481,36 @@ const CodeReference = () => {
 
 // --- Page ------------------------------------------------------------------
 
+// The brand-hero showcase stack (Stripe, Vercel, the CRT "Signal lost"
+// screen, the newspaper). Exported so the teaser landing page can render
+// it below its hero too. Loads the real brand display fonts on mount.
+export const ShowcaseStack = () => {
+  useEffect(() => {
+    // Geist (Vercel), Inter (Stripe/Linear/Profound), Fraunces (serif
+    // display) — the actual faces are the biggest "looks like their site"
+    // lever. Scoped + removed on unmount so the canvas app never pays for it.
+    if (document.querySelector("link[data-examples-fonts]")) return undefined;
+    const fontLink = document.createElement("link");
+    fontLink.rel = "stylesheet";
+    fontLink.href =
+      "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap";
+    fontLink.dataset.examplesFonts = "true";
+    document.head.appendChild(fontLink);
+    return () => {
+      if (fontLink.parentNode) fontLink.parentNode.removeChild(fontLink);
+    };
+  }, []);
+
+  return (
+    <div className="showcase-stack">
+      <StripeShowcase />
+      <VercelShowcase />
+      <GameOverShowcase />
+      <NewsShowcase />
+    </div>
+  );
+};
+
 export const ExamplesPage = () => {
   useBodyScrollable();
   useEffect(() => {
@@ -1562,22 +2523,6 @@ export const ExamplesPage = () => {
       'meta[name="description"]',
       "Real-world examples of Globestudio in product marketing — Pachama, Vercel, Profound, Linear, Stripe, Earthscale. Six full-screen hero showcases plus card and stat patterns. Copy-paste HTML.",
     );
-
-    // Load the real brand display fonts (Geist for Vercel, Inter for
-    // Linear/Profound/Stripe, Fraunces serif for Earthscale/Pachama
-    // display) only on this route — the fidelity jump from system-ui
-    // to the actual faces is the single biggest "looks like their
-    // site" lever. Scoped + cleaned up on unmount so it never taxes
-    // the canvas app.
-    const fontLink = document.createElement("link");
-    fontLink.rel = "stylesheet";
-    fontLink.href =
-      "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap";
-    fontLink.dataset.examplesFonts = "true";
-    document.head.appendChild(fontLink);
-    return () => {
-      if (fontLink.parentNode) fontLink.parentNode.removeChild(fontLink);
-    };
   }, []);
 
   const activeId = useActiveShowcase(SHOWCASES.map((s) => s.id));
@@ -1604,18 +2549,11 @@ export const ExamplesPage = () => {
 
         <ShowcaseChipNav activeId={activeId} />
 
-        <div className="showcase-stack">
-          <PachamaShowcase />
-          <VercelShowcase />
-          <ProfoundShowcase />
-          <LinearShowcase />
-          <StripeShowcase />
-          <EarthscaleShowcase />
-        </div>
+        <ShowcaseStack />
 
-        <CardsGallery />
-        <StatsGallery />
-        <CodeReference />
+        {/* <CardsGallery /> */}
+        {/* <StatsGallery /> */}
+        {/* <CodeReference /> */}
 
         <PagePager />
       </main>

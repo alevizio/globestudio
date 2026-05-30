@@ -1,5 +1,11 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { US_COUNTRY_ID } from "./config/constants.js";
+import {
+  DEFAULT_FLOW_SETTINGS,
+  DEFAULT_SPACE_SETTINGS,
+  FLOW_BACKGROUND_BASE,
+  SPACE_BACKGROUND_BASE,
+} from "./config/backgrounds.js";
 import { DEFAULT_SHADER_SETTINGS } from "./config/shader-effects.js";
 import {
   DEFAULT_GLOBE_SETTINGS,
@@ -52,7 +58,42 @@ import { BrandPage } from "./components/brand-page.jsx";
 import { DocsPage } from "./components/docs-page.jsx";
 import { ChangelogPage } from "./components/changelog-page.jsx";
 import { IntegrationsPage } from "./components/integrations-page.jsx";
-import { ExamplesPage } from "./components/examples-page.jsx";
+// Lazy: the /examples showcase carries heavy hero CSS + globe embeds that
+// most visitors never see, so it's split out of the initial payload.
+const ExamplesPage = lazy(() =>
+  import("./components/examples-page.jsx").then((m) => ({ default: m.ExamplesPage })),
+);
+const TeaserPage = lazy(() =>
+  import("./components/teaser-page.jsx").then((m) => ({ default: m.TeaserPage })),
+);
+
+// "Hidden till launch": set VITE_TEASER=1 on the pre-launch deploy and every
+// route serves the coming-soon teaser instead of the app. The team can
+// bypass by visiting any URL with ?preview (stored in localStorage); remove
+// the env var at launch to reveal the app.
+const TEASER_MODE = import.meta.env.VITE_TEASER === "1";
+const isTeaserActive = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    const sp = new URLSearchParams(window.location.search);
+    // Non-persisting bypass for embedded app previews (the teaser's bottom
+    // showcase iframes the real app via /looks/:id?app=1). Doesn't touch
+    // localStorage, so it never leaks the bypass to the parent page.
+    if (sp.has("app")) return false;
+    if (sp.has("preview")) localStorage.setItem("gs_preview", "1");
+    // Dev-only quick preview: visit /?teaser to see the teaser without
+    // setting VITE_TEASER + rebuilding. /?preview turns it back off.
+    if (import.meta.env.DEV && sp.has("teaser")) {
+      localStorage.setItem("gs_teaser", "1");
+      localStorage.removeItem("gs_preview");
+    }
+    if (localStorage.getItem("gs_preview") === "1") return false;
+    if (import.meta.env.DEV && localStorage.getItem("gs_teaser") === "1") return true;
+    return TEASER_MODE;
+  } catch {
+    return TEASER_MODE;
+  }
+};
 import { PrivacyPage } from "./components/privacy-page.jsx";
 import { NotFoundPage } from "./components/not-found-page.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
@@ -72,6 +113,15 @@ const App = () => {
   // app; anything else lands on the 404 takeover. SPA navigation
   // happens via full reload (anchor href="/path") so no router
   // library needed.
+  // Pre-launch teaser takeover — gates the entire app behind a waitlist.
+  if (isTeaserActive()) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
+        <TeaserPage />
+      </Suspense>
+    );
+  }
+
   if (typeof window !== "undefined") {
     // Strip an optional trailing `/index.html` first, then a trailing
     // slash. This lets static hosts that serve the SPA at the literal
@@ -84,7 +134,12 @@ const App = () => {
     if (path === "/docs") return <DocsPage />;
     if (path === "/changelog") return <ChangelogPage />;
     if (path === "/integrations") return <IntegrationsPage />;
-    if (path === "/examples") return <ExamplesPage />;
+    if (path === "/examples")
+      return (
+        <Suspense fallback={<div style={{ minHeight: "100vh", background: "#0b0b0c" }} />}>
+          <ExamplesPage />
+        </Suspense>
+      );
     if (path === "/privacy") return <PrivacyPage />;
     const isHome = path === "/";
     const isPresetRoute = /^\/looks\/[\w-]+$/.test(path);
@@ -120,14 +175,8 @@ const App = () => {
     "shadeBackground",
     true,
   );
-  const DEFAULT_SPACE_SETTINGS = {
-    density: 65,
-    motion: 35,
-    nebula: 55,
-    hue: 0,
-    brightness: 100,
-  };
   const [spaceSettings, setSpaceSettings] = usePersistedState("spaceSettings", DEFAULT_SPACE_SETTINGS);
+  const [flowSettings, setFlowSettings] = usePersistedState("flowSettings", DEFAULT_FLOW_SETTINGS);
   const [viewMode, setViewMode] = useState("globe");
   const [viewTransition, setViewTransition] = useState(null);
   const viewTransitionTimeoutRef = useRef(0);
@@ -330,6 +379,10 @@ const App = () => {
     if (!motionFrozen) return spaceSettings;
     return { ...spaceSettings, motion: 0 };
   }, [spaceSettings, motionFrozen]);
+  const effectiveFlowSettings = useMemo(() => {
+    if (!motionFrozen) return flowSettings;
+    return { ...flowSettings, motion: 0 };
+  }, [flowSettings, motionFrozen]);
   const effectiveShaderSettings = useMemo(() => {
     if (!motionFrozen) return shaderSettings;
     return { ...shaderSettings, motion: 0 };
@@ -436,6 +489,7 @@ const App = () => {
     setTransparent(false);
     setBackgroundStyle("solid");
     setSpaceSettings({ ...DEFAULT_SPACE_SETTINGS });
+    setFlowSettings({ ...DEFAULT_FLOW_SETTINGS });
     setViewMode("globe");
     setViewTransition(null);
     window.clearTimeout(viewTransitionTimeoutRef.current);
@@ -489,6 +543,7 @@ const App = () => {
     if (s.transparent !== undefined) setTransparent(s.transparent);
     if (s.backgroundStyle !== undefined) setBackgroundStyle(s.backgroundStyle);
     if (s.spaceSettings) setSpaceSettings((current) => ({ ...current, ...s.spaceSettings }));
+    if (s.flowSettings) setFlowSettings((current) => ({ ...current, ...s.flowSettings }));
     if (s.density !== undefined) setDensity(s.density);
     if (s.dotSize !== undefined) setDotSize(s.dotSize);
     if (s.dotColor !== undefined) setDotColor(themeColor(s.dotColor));
@@ -750,6 +805,7 @@ const App = () => {
       shaderSettings,
       globeSettings,
       spaceSettings,
+      flowSettings,
       animationsEnabled,
     }),
     [
@@ -759,7 +815,7 @@ const App = () => {
       renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible,
       worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible,
       worldStrokeWidth, mapDepth, tiltX, tiltY, shaderSettings, globeSettings,
-      spaceSettings, animationsEnabled,
+      spaceSettings, flowSettings, animationsEnabled,
     ],
   );
 
@@ -833,6 +889,7 @@ const App = () => {
     if (safeConfig.shaderSettings) setShaderSettings((current) => ({ ...current, ...safeConfig.shaderSettings }));
     if (safeConfig.globeSettings) setGlobeSettings((current) => ({ ...current, ...safeConfig.globeSettings }));
     if (safeConfig.spaceSettings) setSpaceSettings((current) => ({ ...current, ...safeConfig.spaceSettings }));
+    if (safeConfig.flowSettings) setFlowSettings((current) => ({ ...current, ...safeConfig.flowSettings }));
     setStatusMessage("Configuration imported");
   };
 
@@ -955,8 +1012,9 @@ const App = () => {
     : 0;
 
   const isSpaceBackground = backgroundStyle === "space";
+  const isFlowBackground = backgroundStyle === "flow";
   const isTransparentBackground = backgroundStyle === "transparent" || transparent;
-  const effectiveTransparent = isTransparentBackground || isSpaceBackground;
+  const effectiveTransparent = isTransparentBackground || isSpaceBackground || isFlowBackground;
 
   // Command-palette actions. Built fresh on every render — cheap, and
   // it means the closures always capture the latest values (current
@@ -1033,9 +1091,11 @@ const App = () => {
       className={`app-shell ${viewMode === "globe" ? "is-globe-mode" : "is-flat-mode"} ${
         globeSettings.look === "borderless" ? "is-borderless-globe" : ""
       } ${
-        isTransparentBackground && !isSpaceBackground ? "is-transparent-preview" : ""
+        isTransparentBackground && !isSpaceBackground && !isFlowBackground ? "is-transparent-preview" : ""
       } ${
         isSpaceBackground ? "is-space-background" : ""
+      } ${
+        isFlowBackground ? "is-flow-background" : ""
       } ${
         panelCollapsed ? "is-panel-collapsed" : ""
       } ${
@@ -1046,7 +1106,13 @@ const App = () => {
         appliedLookId ? "is-preset-applying" : ""
       }`}
       style={{
-        "--preview-bg": isSpaceBackground ? "#03030a" : isTransparentBackground ? "#f4f4f4" : background,
+        "--preview-bg": isSpaceBackground
+          ? SPACE_BACKGROUND_BASE
+          : isFlowBackground
+            ? FLOW_BACKGROUND_BASE
+            : isTransparentBackground
+              ? "#f4f4f4"
+              : background,
         "--map-offset-x": `${mapOffset.x}px`,
         "--map-offset-y": `${mapOffset.y}px`,
         "--map-perspective": `${1800 - mapDepth * 14}px`,
@@ -1195,7 +1261,11 @@ const App = () => {
             customTopologyVisible={customTopologyVisible}
             selectionCountryCodes={selected.countryCodes}
             selectionCollection={selected.collection}
-            background={isSpaceBackground ? "#03030a" : background}
+            background={isSpaceBackground
+              ? SPACE_BACKGROUND_BASE
+              : isFlowBackground
+                ? FLOW_BACKGROUND_BASE
+                : background}
             transparent={effectiveTransparent}
             morphMode={viewMode === "globe" ? "globe" : "flat"}
             morphTransition={viewTransition}
@@ -1212,8 +1282,9 @@ const App = () => {
             shaderSettings={effectiveShaderSettings}
             globeSettings={effectiveGlobeSettings}
             spaceSettings={effectiveSpaceSettings}
+            flowSettings={effectiveFlowSettings}
             backgroundStyle={backgroundStyle}
-            shadeBackground={shadeBackground}
+            shadeBackground={isFlowBackground ? true : shadeBackground}
             reducedMotion={motionFrozen}
             canvasHandleRef={globeCanvasRef}
             panelCollapsed={panelCollapsed}
@@ -1361,6 +1432,8 @@ const App = () => {
             setShadeBackground={setShadeBackground}
             spaceSettings={spaceSettings}
             setSpaceSettings={setSpaceSettings}
+            flowSettings={flowSettings}
+            setFlowSettings={setFlowSettings}
             mapDepth={mapDepth}
             setMapDepth={setMapDepth}
             tiltX={tiltX}
