@@ -293,23 +293,6 @@ const LinearMark = ({ size = 22 }) => (
   </svg>
 );
 
-const StripeMark = ({ size = 22 }) => (
-  // Stripe's word IS the mark — render as styled text.
-  <span
-    style={{
-      fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
-      fontWeight: 700,
-      fontSize: size,
-      letterSpacing: "-0.04em",
-      fontStyle: "italic",
-      lineHeight: 1,
-      color: "currentColor",
-    }}
-  >
-    stripe
-  </span>
-);
-
 const PachamaMark = ({ size = 18 }) => (
   <span
     style={{
@@ -1851,9 +1834,7 @@ const StripeShowcase = () => {
       </div>
     </div>
     <CompanyNav
-      brand={import.meta.env.DEV
-        ? <img src="/_stripe-local/logos/stripe.svg" alt="Stripe" style={{ height: 25, display: "block" }} />
-        : <StripeMark size={22} />}
+      brand={<img src="/showcase-logos/stripe.svg" alt="Stripe" style={{ height: 25, display: "block" }} />}
       items={["Products", "Solutions", "Developers", "Resources", "Pricing"]}
       right={
         <>
@@ -1993,29 +1974,23 @@ const StripeShowcase = () => {
               ];
               return [...logos, ...logos].map((l, i) => {
                 const hidden = i >= logos.length;
-                return import.meta.env.DEV ? (
+                return (
                   <img
                     key={l.name + i}
-                    src={`/_stripe-local/logos/${l.file}`}
+                    src={`/showcase-logos/${l.file}`}
                     alt={hidden ? "" : l.name}
                     aria-hidden={hidden ? "true" : undefined}
                     style={{ height: l.h, width: "auto", display: "block", flexShrink: 0 }}
-                  />
-                ) : (
-                  <span
-                    key={l.name + i}
-                    aria-hidden={hidden ? "true" : undefined}
-                    style={{
-                      fontFamily: '"Inter", system-ui, sans-serif',
-                      fontWeight: l.weight,
-                      letterSpacing: l.tracking || "-0.01em",
-                      fontSize: 27,
-                      color: "#697386",
-                      whiteSpace: "nowrap",
+                    // If a logo asset is ever missing, fall back to the
+                    // styled text wordmark instead of a broken image.
+                    onError={(e) => {
+                      const span = document.createElement("span");
+                      span.textContent = l.name;
+                      span.style.cssText = `font-family:"Inter",system-ui,sans-serif;font-weight:${l.weight};letter-spacing:${l.tracking || "-0.01em"};font-size:27px;color:#697386;white-space:nowrap;`;
+                      if (hidden) span.setAttribute("aria-hidden", "true");
+                      e.currentTarget.replaceWith(span);
                     }}
-                  >
-                    {l.name}
-                  </span>
+                  />
                 );
               });
             })()}
