@@ -3,18 +3,26 @@
 // Storage is provider-flexible via env vars (set in Vercel → Project →
 // Settings → Environment Variables); the first configured one wins:
 //
-//   1. Resend Audiences (recommended — lets you broadcast the launch
-//      email + handles unsubscribe/GDPR):
+//   1. Vercel Blob (first-party, no third party). One PRIVATE object per
+//      email (path = the email), so signups never race each other and
+//      dedup is free. Export the list at launch with `list({ prefix:
+//      "waitlist/" })`. Auto-injected when you create a Blob store and
+//      link it to the project:
+//        BLOB_READ_WRITE_TOKEN
+//
+//   2. Resend Audiences (lets you broadcast the launch email + handles
+//      unsubscribe/GDPR):
 //        RESEND_API_KEY=re_xxx
 //        RESEND_AUDIENCE_ID=xxxxxxxx-xxxx-...   (Resend → Audiences)
 //
-//   2. Vercel KV (100% Vercel-native, no third party — stores a deduped
-//      Redis SET you export at launch). Auto-injected when you create a
-//      KV store and link it to the project:
+//   3. Vercel KV (Upstash Redis SET). Auto-injected when you create a KV
+//      store and link it to the project:
 //        KV_REST_API_URL, KV_REST_API_TOKEN
 //
-// If neither is set the request still succeeds (so the form works in
+// If none is set the request still succeeds (so the form works in
 // preview) but logs a warning and stores nothing.
+
+import { head, put } from "@vercel/blob";
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -43,10 +51,38 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { RESEND_API_KEY, RESEND_AUDIENCE_ID, KV_REST_API_URL, KV_REST_API_TOKEN } =
-      process.env;
+    const {
+      BLOB_READ_WRITE_TOKEN,
+      RESEND_API_KEY,
+      RESEND_AUDIENCE_ID,
+      KV_REST_API_URL,
+      KV_REST_API_TOKEN,
+    } = process.env;
 
-    // --- Option 1: Resend Audiences ---
+    // --- Option 1: Vercel Blob (one private object per email) ---
+    if (BLOB_READ_WRITE_TOKEN) {
+      const pathname = `waitlist/${encodeURIComponent(email)}.json`;
+      // Already on the list? head() resolves if the object exists.
+      const exists = await head(pathname).then(
+        () => true,
+        () => false,
+      );
+      if (exists) return res.status(409).json({ ok: true, duplicate: true });
+      try {
+        await put(pathname, JSON.stringify({ email, ts: new Date().toISOString() }), {
+          access: "private",
+          addRandomSuffix: false,
+          contentType: "application/json",
+        });
+      } catch {
+        // A concurrent signup of the same email just created it — put()
+        // refuses to overwrite, so treat the conflict as a dedupe hit.
+        return res.status(409).json({ ok: true, duplicate: true });
+      }
+      return res.status(200).json({ ok: true });
+    }
+
+    // --- Option 2: Resend Audiences ---
     if (RESEND_API_KEY && RESEND_AUDIENCE_ID) {
       const r = await fetch(
         `https://api.resend.com/audiences/${RESEND_AUDIENCE_ID}/contacts`,
@@ -69,7 +105,7 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: "provider_error" });
     }
 
-    // --- Option 2: Vercel KV (Upstash REST) — SADD into a set ---
+    // --- Option 3: Vercel KV (Upstash REST) — SADD into a set ---
     if (KV_REST_API_URL && KV_REST_API_TOKEN) {
       const r = await fetch(
         `${KV_REST_API_URL}/sadd/waitlist/${encodeURIComponent(email)}`,

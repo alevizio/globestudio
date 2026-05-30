@@ -158,8 +158,7 @@ export const TeaserPage = () => {
   useBodyScrollable();
 
   // Set up the (same-origin) app preview: hide the panel header (nav + icons)
-  // and look-chips bar, then open a colour picker so the menu shows to the
-  // right. Best-effort + retried, since the app renders async.
+  // and the look-chips bar so the preview reads as a clean app shell.
   const setupAppPreview = () => {
     try {
       const doc = appFrameRef.current?.contentDocument;
@@ -170,26 +169,7 @@ export const TeaserPage = () => {
         style.id = "gs-teaser-trim";
         (doc.head || doc.documentElement).appendChild(style);
       }
-      style.textContent =
-        ".panel-header, .looks-bar { display: none !important; }" +
-        // Pin the colour picker to the right edge so it sits clear of the
-        // centered globe instead of on top of it.
-        ".color-picker { left: auto !important; right: 20px !important; }";
-
-      let tries = 0;
-      const openPicker = () => {
-        const d = appFrameRef.current?.contentDocument;
-        if (!d || d.querySelector(".color-picker")) return; // already open
-        const swatch = [...d.querySelectorAll(".color-swatch")].find((s) => s.offsetParent !== null);
-        if (swatch) {
-          swatch.click();
-        } else {
-          // No visible swatch yet — expand the first section, then retry.
-          d.querySelector(".option-block-disclosure")?.click();
-        }
-        if (!d.querySelector(".color-picker") && tries++ < 24) setTimeout(openPicker, 350);
-      };
-      setTimeout(openPicker, 1200);
+      style.textContent = ".panel-header, .looks-bar { display: none !important; }";
     } catch {
       /* cross-origin / not ready — ignore */
     }

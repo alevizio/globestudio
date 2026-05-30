@@ -36,6 +36,21 @@ const slimCountries = JSON.parse(
   };
 });
 
+// Pre-launch teaser builds (VITE_TEASER=1) replace every route with the
+// coming-soon takeover. Inject a static robots noindex so crawlers don't
+// index 28 near-duplicate teaser pages; it self-removes at launch when the
+// flag is unset. Static (not JS-injected) so non-rendering crawlers see it.
+const teaserNoindexPlugin = () => ({
+  name: "teaser-noindex",
+  transformIndexHtml(html) {
+    if (process.env.VITE_TEASER !== "1") return html;
+    return html.replace(
+      "</head>",
+      '    <meta name="robots" content="noindex, nofollow" />\n  </head>',
+    );
+  },
+});
+
 const slimCountriesPlugin = () => {
   const virtualId = "virtual:slim-countries";
   const resolvedId = `\0${virtualId}`;
@@ -54,7 +69,7 @@ const slimCountriesPlugin = () => {
 
 export default defineConfig({
   base: "/",
-  plugins: [react(), slimCountriesPlugin()],
+  plugins: [react(), slimCountriesPlugin(), teaserNoindexPlugin()],
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.{js,jsx}"],

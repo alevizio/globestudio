@@ -2,6 +2,7 @@
   "name": "globestudio",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -19,6 +20,7 @@
   "dependencies": {
     "@paper-design/shaders-react": "^0.0.76",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/blob": "^2.4.0",
     "@vercel/speed-insights": "^2.0.0",
     "d3-geo": "^3.1.1",
     "d3-geo-projection": "^4.0.0",
