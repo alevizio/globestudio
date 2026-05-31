@@ -61,9 +61,18 @@
   aspect-ratio: 1 / 1;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.92;
+  /* Fade the globe in once its first WebGL frame is painted (see is-loaded),
+     so it eases in instead of popping. Matches the showcase LazyGlobe fade. */
+  opacity: 0;
+  transition: opacity 900ms ease;
   -webkit-mask-image: radial-gradient(closest-side, #000 60%, transparent 100%);
   mask-image: radial-gradient(closest-side, #000 60%, transparent 100%);
+}
+.teaser-globe.is-loaded {
+  opacity: 0.92;
+}
+@media (prefers-reduced-motion: reduce) {
+  .teaser-globe { transition: none; }
 }
 .teaser-globe iframe {
   width: 100%;

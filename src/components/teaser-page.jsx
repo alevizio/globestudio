@@ -151,6 +151,7 @@ export const TeaserPage = () => {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [message, setMessage] = useState("");
+  const [globeLoaded, setGlobeLoaded] = useState(false); // hero globe fade-in
   const honeypotRef = useRef(null);
   const honeypotRef2 = useRef(null);
   const logoRef = useRef(null);
@@ -366,8 +367,21 @@ export const TeaserPage = () => {
   return (
     <main className="teaser-page">
       <section className="teaser">
-      <div className="teaser-globe" style={globeStyle} aria-hidden="true">
-        <iframe src={EMBED_URL} title="" tabIndex={-1} loading="eager" />
+      <div
+        className={`teaser-globe ${globeLoaded ? "is-loaded" : ""}`}
+        style={globeStyle}
+        aria-hidden="true"
+      >
+        <iframe
+          src={EMBED_URL}
+          title=""
+          tabIndex={-1}
+          loading="eager"
+          // The iframe load event fires when the embed HTML is in; the WebGL
+          // globe paints its first frame a beat later — wait that out, then
+          // fade in (via .is-loaded) so the globe eases in instead of popping.
+          onLoad={() => window.setTimeout(() => setGlobeLoaded(true), 450)}
+        />
       </div>
       <div className="teaser-veil" aria-hidden="true" />
 
