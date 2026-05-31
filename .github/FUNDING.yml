@@ -1,14 +1,13 @@
 # Surfaces on the repo's "Sponsor" button + funding section.
-# Drop a key when you have an active account on that platform.
+# Uncomment each key once you've created an account on that platform.
 
 github: [alevizio]
+# Recommended next (from the 2026 OSS-program research):
+# liberapay: alevizio            # EU-based, 0% platform fee — pairs with GitHub Sponsors
+# polar: alevizio                # if you sell a Pro tier / paid features later
+# thanks_dev: u/gh/alevizio      # passive payouts as @globestudio/* enters dependency trees
+# open_collective: globestudio   # needs a co-maintainer / org-owned repo first
 # patreon:
-# open_collective:
 # ko_fi:
 # tidelift:
-# community_bridge:
-# liberapay:
-# issuehunt:
-# otechie:
-# lfx_crowdfunding:
 # custom: ['https://alevizio.com']
