@@ -15,3 +15,4 @@ scripts/.cache/
 # import.meta.env.DEV in the code, gitignored, and absent on the deploy host —
 # so they never enter the repo or the production bundle.
 public/_stripe-local/
+.env*.local
