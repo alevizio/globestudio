@@ -76,6 +76,49 @@ const ComparePage = lazy(() =>
   import("./components/compare-page.jsx").then((m) => ({ default: m.ComparePage })),
 );
 
+// Skeleton shown while the lazy teaser chunk loads — so first-time visitors
+// see the hero structure (logo / headline / form) instantly instead of a blank
+// void. Self-contained inline styles + a scoped <style> (the teaser's own CSS
+// isn't loaded yet during this fallback). Roughly mirrors the hero layout so
+// the swap to the real teaser is smooth.
+const TeaserSkeleton = () => (
+  <div
+    aria-hidden="true"
+    style={{
+      minHeight: "100svh",
+      background: "radial-gradient(120% 90% at 50% 0%, #0d1326 0%, #06070d 60%, #04050a 100%)",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <style>{`
+      @keyframes gs-skel { 0%,100% { opacity: .32 } 50% { opacity: .6 } }
+      .gs-skel-el { animation: gs-skel 1.6s ease-in-out infinite; }
+      @media (prefers-reduced-motion: reduce) { .gs-skel-el { animation: none; opacity: .45 } }
+    `}</style>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 18,
+        transform: "translateY(-12vh)",
+      }}
+    >
+      <div className="gs-skel-el" style={{ width: 110, height: 64, borderRadius: 999, background: "rgba(255,255,255,0.10)" }} />
+      <div className="gs-skel-el" style={{ width: 300, height: 26, borderRadius: 6, background: "rgba(255,255,255,0.10)" }} />
+      <div className="gs-skel-el" style={{ width: 230, height: 26, borderRadius: 6, background: "rgba(255,255,255,0.10)", animationDelay: ".1s" }} />
+      <div className="gs-skel-el" style={{ width: 360, height: 13, borderRadius: 6, background: "rgba(255,255,255,0.06)", marginTop: 6, animationDelay: ".15s" }} />
+      <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+        <div className="gs-skel-el" style={{ width: 300, height: 48, borderRadius: 4, background: "rgba(255,255,255,0.08)", animationDelay: ".2s" }} />
+        <div className="gs-skel-el" style={{ width: 110, height: 48, borderRadius: 4, background: "rgba(255,255,255,0.14)", animationDelay: ".25s" }} />
+      </div>
+    </div>
+  </div>
+);
+
 // "Hidden till launch": set VITE_TEASER=1 on the pre-launch deploy and every
 // route serves the coming-soon teaser instead of the app. The team can
 // bypass by visiting any URL with ?preview (stored in localStorage); remove
@@ -125,7 +168,7 @@ const App = () => {
   // Pre-launch teaser takeover — gates the entire app behind a waitlist.
   if (isTeaserActive()) {
     return (
-      <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
+      <Suspense fallback={<TeaserSkeleton />}>
         <TeaserPage />
         {/* Mount analytics here too — the teaser returns early, so without
             this the waitlist page records no pageviews or waitlist_signup
