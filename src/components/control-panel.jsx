@@ -26,6 +26,7 @@ import { formatSvgNumber } from "../utils/math.js";
 import { ColorSwatch } from "./ui/color-swatch.jsx";
 import { extractPaletteFromImage, darkestColor } from "../utils/palette.js";
 import { parseDataPoints } from "../utils/data-points.js";
+import { countryCentroidIndex } from "../data/geography.js";
 import { DepthControl } from "./ui/depth-control.jsx";
 import { OptionRow } from "./ui/option-row.jsx";
 import { PanelSection } from "./ui/panel-section.jsx";
@@ -254,7 +255,7 @@ export const ControlPanel = ({
   const dataPointCount = (globeSettings?.dataPoints || []).length;
   const handleDataText = (text) => {
     setDataText(text);
-    const points = parseDataPoints(text);
+    const points = parseDataPoints(text, countryCentroidIndex);
     setGlobeSettings((settings) => ({ ...settings, dataPoints: points }));
   };
 
@@ -608,17 +609,15 @@ export const ControlPanel = ({
               rows={4}
               value={dataText}
               onChange={(event) => handleDataText(event.target.value)}
-              placeholder={"lat,lng,value\n40.7,-74,10\n51.5,-0.1,6\n35.7,139.7,8"}
-              aria-label="Data points — lat, lng, value per line"
+              placeholder={"lat,lng,value  or  country,value\n40.7,-74,10\nUS,1200\nFR,800\nJP,950"}
+              aria-label="Data points — lat,lng,value or country,value per line"
               spellCheck={false}
             />
             <button
               type="button"
               className="data-points-sample"
               onClick={() =>
-                handleDataText(
-                  "40.7,-74,10\n51.5,-0.1,7\n35.7,139.7,9\n-33.9,151.2,5\n1.35,103.8,6\n-23.6,-46.6,8",
-                )
+                handleDataText("US,1200\nGB,820\nJP,950\nDE,700\nBR,540\nAU,410\nIN,880")
               }
             >
               Load sample
@@ -634,7 +633,7 @@ export const ControlPanel = ({
               <p className="data-points-hint">
                 {dataPointCount > 0
                   ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted — markers sized by value (globe + flat).`
-                  : "Paste lat,lng,value per line to plot markers on the globe."}
+                  : "Paste lat,lng,value — or country,value (e.g. US,1200) — per line."}
               </p>
             </div>
             {dataPointCount >= 2 && (

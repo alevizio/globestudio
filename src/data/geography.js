@@ -99,6 +99,22 @@ export const cca3ToCcn3 = new Map(
     .map((country) => [country.cca3, String(parseInt(country.ccn3, 10))]),
 );
 
+// Lookup from a country code (cca2 "US" / cca3 "USA") or common name
+// ("united states"), lowercased, → its { lat, lng } centroid. Used to plot
+// data markers from country-level data (e.g. "US,1200" → a marker on the US).
+export const countryCentroidIndex = (() => {
+  const index = new Map();
+  for (const country of countryData) {
+    const ll = country.latlng;
+    if (!Array.isArray(ll) || !Number.isFinite(ll[0]) || !Number.isFinite(ll[1])) continue;
+    const point = { lat: ll[0], lng: ll[1] };
+    if (country.cca2) index.set(country.cca2.toLowerCase(), point);
+    if (country.cca3) index.set(country.cca3.toLowerCase(), point);
+    if (country.name?.common) index.set(country.name.common.toLowerCase(), point);
+  }
+  return index;
+})();
+
 const GROUP_LABELS = {
   continent: "Continent",
   subregion: "Subregion",

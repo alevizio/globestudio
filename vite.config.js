@@ -24,11 +24,14 @@ const slimCountries = JSON.parse(
     }
   }
   return {
+    cca2: country.cca2,
     cca3: country.cca3,
     // ccn3 is the numeric ISO 3166-1 code. world-atlas keys its features by the
     // same numeric (un-padded). We need it to filter the solid-mode texture
     // down to the user's selected countries.
     ccn3: country.ccn3,
+    // [lat, lng] centroid — used to plot data markers from country codes.
+    latlng: country.latlng,
     name: { common: country.name?.common },
     translations,
     region: country.region,
