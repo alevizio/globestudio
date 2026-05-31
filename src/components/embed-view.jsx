@@ -278,6 +278,17 @@ export const EmbedView = () => {
     document.documentElement.setAttribute("data-embed-source", params.source);
   }, [params.source]);
 
+  // Keep the bare /embed iframes out of the index — they're thin and would
+  // compete with the canonical pages. (SEO research.)
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const meta = document.createElement("meta");
+    meta.name = "robots";
+    meta.content = "noindex";
+    document.head.appendChild(meta);
+    return () => meta.remove();
+  }, []);
+
   if (!hasWebGL) {
     return (
       <div className="embed-view embed-view-fallback">
