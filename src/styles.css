@@ -6611,6 +6611,20 @@ select:hover {
   outline: none;
   border-color: var(--accent, var(--text));
 }
+.data-points-sample {
+  align-self: flex-start;
+  padding: 3px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+.data-points-sample:hover {
+  color: var(--text);
+  border-color: var(--accent, var(--text));
+}
 .data-points-meta {
   display: flex;
   align-items: center;

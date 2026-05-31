@@ -612,6 +612,17 @@ export const ControlPanel = ({
               aria-label="Data points — lat, lng, value per line"
               spellCheck={false}
             />
+            <button
+              type="button"
+              className="data-points-sample"
+              onClick={() =>
+                handleDataText(
+                  "40.7,-74,10\n51.5,-0.1,7\n35.7,139.7,9\n-33.9,151.2,5\n1.35,103.8,6\n-23.6,-46.6,8",
+                )
+              }
+            >
+              Load sample
+            </button>
             <div className="data-points-meta">
               <ColorSwatch
                 value={globeSettings?.dataMarkerColor || "#7edfff"}
