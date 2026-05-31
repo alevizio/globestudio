@@ -25,6 +25,7 @@ import {
   updateBorderlessNetworkMotion,
 } from "../three/globe.js";
 import { createGlobeNetwork, setNetworkColors, updateGlobeNetwork } from "../three/globe-network.js";
+import { createDataMarkers } from "../three/data-markers.js";
 import { createSpaceBackgroundMesh } from "../three/space-mesh.js";
 import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
@@ -589,6 +590,7 @@ export const GlobeBackground = ({
       globeNetwork,
       camera,
       dotLayer: null,
+      dataMarkers: null,
       flatDistance: GLOBE_CAMERA_DISTANCE,
       flatSolidMaterial,
       flatSolidMesh,
@@ -810,6 +812,11 @@ export const GlobeBackground = ({
       const ambientTime = reducedMotionRef.current ? 0 : now / 1000;
       updateBorderlessNetworkMotion(threeRef.current.borderlessNetwork, reducedMotionRef.current ? 0 : now);
       updateGlobeNetwork(threeRef.current.globeNetwork, ambientTime);
+      if (threeRef.current?.dataMarkers) {
+        // Markers are anchored on the sphere; hide them as the globe morphs
+        // flat (where they'd float). Flat-map positioning is a later increment.
+        threeRef.current.dataMarkers.visible = morph.progress > 0.5;
+      }
 
       if (threeRef.current?.atmosphereMaterial?.uniforms?.uTime) {
         threeRef.current.atmosphereMaterial.uniforms.uTime.value = ambientTime;
@@ -1138,6 +1145,29 @@ export const GlobeBackground = ({
       cancelled = true;
     };
   }, [asciiSymbol, customShape, dotColor, dotColorAlpha, dotGradient, dotRotation, dotSize, dotsVisible, globeSettings, mapData, renderMode, selectedDots, shaderSettings, shape]);
+
+  // Additive data-markers layer — rebuilt whenever the pasted data points
+  // change. Mirrors the dot-layer swap (remove → dispose → add) and is fully
+  // separate from the dot field + curated network, so it can't break them.
+  // NOTE: positioned on the sphere; flat-map positioning is a follow-up.
+  useEffect(() => {
+    const refs = threeRef.current;
+    if (!refs?.globeGroup) return undefined;
+    if (refs.dataMarkers) {
+      refs.globeGroup.remove(refs.dataMarkers);
+      disposeThreeObject(refs.dataMarkers);
+      refs.dataMarkers = null;
+    }
+    const points = Array.isArray(globeSettings?.dataPoints) ? globeSettings.dataPoints : [];
+    if (points.length) {
+      const layer = createDataMarkers(points, {
+        color: globeSettings?.dataMarkerColor || "#7edfff",
+      });
+      refs.dataMarkers = layer;
+      refs.globeGroup.add(layer);
+    }
+    return undefined;
+  }, [globeSettings?.dataPoints, globeSettings?.dataMarkerColor]);
 
   useEffect(() => {
     const refs = threeRef.current;
