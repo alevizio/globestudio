@@ -208,6 +208,7 @@ export const ExportModal = ({
   const [aspect, setAspect] = useState("original");
   const [quality, setQuality] = useState("standard");
   const [fps, setFps] = useState(60);
+  const [videoFormat, setVideoFormat] = useState("webm");
   const [videoSeconds, setVideoSeconds] = useState(Math.round((videoDurationMs ?? 5000) / 1000));
   const [linkStatus, setLinkStatus] = useState("idle");
   const handleCopyLink = async () => {
@@ -307,7 +308,7 @@ export const ExportModal = ({
 
   const handleVideo = () => {
     setVideoDurationMs?.(videoSeconds * 1000);
-    exportVideo?.({ scale, fps, durationMs: videoSeconds * 1000 });
+    exportVideo?.({ scale, fps, durationMs: videoSeconds * 1000, format: videoFormat });
   };
 
   const handleFileImport = (event) => {
@@ -402,6 +403,20 @@ export const ExportModal = ({
 
           {tab === "video" && videoSupported && (
             <>
+              <PillRow
+                label="Format"
+                options={[
+                  { id: "webm", label: "WebM" },
+                  { id: "gif", label: "GIF" },
+                ]}
+                value={videoFormat}
+                onChange={setVideoFormat}
+              />
+              {videoFormat === "gif" && (
+                <p className="export-modal-caption">
+                  GIF plays everywhere (Slack, X, Keynote, iOS) — capped to ~20fps and 640px so the file stays light.
+                </p>
+              )}
               <PillRow label="Aspect" options={ASPECT_OPTIONS} value={aspect} onChange={setAspect} />
               <PillRow label="Quality" options={QUALITY_OPTIONS} value={quality} onChange={setQuality} />
               <DimensionInputs
@@ -451,7 +466,11 @@ export const ExportModal = ({
                 disabled={isRecording}
               >
                 <Download size={17} />
-                <span>{isRecording ? `Recording… ${recordingPct}%` : "Export WebM"}</span>
+                <span>
+                  {isRecording
+                    ? `Recording… ${recordingPct}%`
+                    : `Export ${videoFormat === "gif" ? "GIF" : "WebM"}`}
+                </span>
               </button>
             </>
           )}

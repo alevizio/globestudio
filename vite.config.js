@@ -116,6 +116,9 @@ export default defineConfig({
           // Paper Design shaders are only used by the lazy teaser — let them
           // ride that chunk instead of the initial vendor bundle.
           if (id.includes("@paper-design")) return undefined;
+          // gifenc is only pulled in (via dynamic import) when a GIF export is
+          // requested — keep it out of the initial vendor bundle so it lazy-loads.
+          if (id.includes("gifenc")) return undefined;
           return "vendor";
         },
       },

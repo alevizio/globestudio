@@ -36,6 +36,7 @@ import {
   downloadBlob,
   exportScaleValue,
   pickVideoMimeType,
+  recordCanvasToGifBlob,
   recordCanvasToVideoBlob,
 } from "./utils/export.js";
 import { clearPersistedState, usePersistedState } from "./hooks/use-persisted-state.js";
@@ -751,15 +752,25 @@ const App = () => {
   const exportVideo = useCallback(async (options = {}) => {
     const canvas = globeCanvasRef.current;
     if (!canvas || videoStatus === "recording") return;
+    const format = options.format === "gif" ? "gif" : "webm";
     setVideoStatus("recording");
     setVideoProgress(0);
     try {
-      const blob = await recordCanvasToVideoBlob(canvas, {
-        durationMs: options.durationMs ?? videoDurationMs,
-        fps: options.fps ?? 60,
-        onProgress: setVideoProgress,
-      });
-      downloadBlob(blob, buildExportFilename(selected.label, "webm", viewMode));
+      const durationMs = options.durationMs ?? videoDurationMs;
+      const blob =
+        format === "gif"
+          ? await recordCanvasToGifBlob(canvas, {
+              durationMs,
+              // GIF is heavy per-frame; cap fps so a 5s loop stays reasonable.
+              fps: Math.min(options.fps ?? 15, 20),
+              onProgress: setVideoProgress,
+            })
+          : await recordCanvasToVideoBlob(canvas, {
+              durationMs,
+              fps: options.fps ?? 60,
+              onProgress: setVideoProgress,
+            });
+      downloadBlob(blob, buildExportFilename(selected.label, format, viewMode));
       setVideoStatus("ready");
       window.setTimeout(() => setVideoStatus("idle"), 2200);
     } catch (error) {

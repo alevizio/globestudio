@@ -56,6 +56,8 @@ const BUDGETS = [
   { prefix: "examples-page-",    ext: ".css", raw:  13_000,  gzip:   4_000, lazy: true },
   { prefix: "flow-background-shader-", ext: ".js", raw: 5_000, gzip: 2_000, lazy: true },
   { prefix: "math-",             ext: ".js",  raw:   4_000,  gzip:   2_500, lazy: true },
+  // gifenc — only fetched when a GIF export is requested (dynamic import).
+  { prefix: "gifenc-",           ext: ".js",  raw:  12_000,  gzip:   5_500, lazy: true },
   // Pre-launch teaser (only loaded when VITE_TEASER=1). Includes the
   // LiquidMetal + the canvas ChromeShader logo shaders — hence the budget.
   { prefix: "teaser-page-",      ext: ".js",  raw:  62_000,  gzip:  20_000, lazy: true },

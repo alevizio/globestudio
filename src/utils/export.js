@@ -105,3 +105,42 @@ export const recordCanvasToVideoBlob = (canvas, { durationMs = 4000, fps = 60, b
     }, durationMs);
   });
 };
+
+// Record the canvas as an animated GIF by sampling frames across `durationMs`
+// and encoding with gifenc. GIF plays everywhere WebM doesn't — Slack, X,
+// Keynote, iOS Safari, docs. gifenc is dynamically imported so it only loads
+// when a GIF export is actually requested (stays off the initial bundle).
+export const recordCanvasToGifBlob = async (
+  canvas,
+  { durationMs = 4000, fps = 15, maxSize = 640, onProgress } = {},
+) => {
+  const { GIFEncoder, quantize, applyPalette } = await import("gifenc");
+  const scale = Math.min(1, maxSize / Math.max(canvas.width, canvas.height));
+  const w = Math.max(2, Math.round(canvas.width * scale));
+  const h = Math.max(2, Math.round(canvas.height * scale));
+  const off = document.createElement("canvas");
+  off.width = w;
+  off.height = h;
+  const ctx = off.getContext("2d", { willReadFrequently: true });
+  if (!ctx) throw new Error("Can't get a 2D context for GIF capture");
+  const encoder = GIFEncoder();
+  const frameCount = Math.max(1, Math.round((durationMs / 1000) * fps));
+  const delay = Math.round(1000 / fps);
+  for (let i = 0; i < frameCount; i += 1) {
+    const tick = performance.now();
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(canvas, 0, 0, w, h);
+    const { data } = ctx.getImageData(0, 0, w, h);
+    const palette = quantize(data, 256);
+    const index = applyPalette(data, palette);
+    encoder.writeFrame(index, w, h, { palette, delay });
+    onProgress?.((i + 1) / frameCount);
+    // Space captures across real time so the GIF samples the live animation.
+    const elapsed = performance.now() - tick;
+    if (i < frameCount - 1 && elapsed < delay) {
+      await new Promise((resolve) => window.setTimeout(resolve, delay - elapsed));
+    }
+  }
+  encoder.finish();
+  return new Blob([encoder.bytesView()], { type: "image/gif" });
+};
