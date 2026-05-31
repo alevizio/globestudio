@@ -229,6 +229,31 @@ export const ExportModal = ({
       window.setTimeout(() => setLinkStatus("idle"), 3000);
     }
   };
+  const [reactStatus, setReactStatus] = useState("idle");
+  const handleCopyReact = async () => {
+    // Build a ready-to-paste @globestudio/react snippet from the current
+    // share config. getShareUrl()'s `?c=…` payload is exactly what the
+    // component's `config` prop expects (it re-encodes via URLSearchParams).
+    let configValue = null;
+    try {
+      if (typeof getShareUrl === "function") {
+        configValue = new URL(getShareUrl(), window.location.origin).searchParams.get("c");
+      }
+    } catch {
+      configValue = null;
+    }
+    const snippet = `import { Globe } from "@globestudio/react";\n\n<Globe\n${
+      configValue ? `  config={${JSON.stringify(configValue)}}\n` : ""
+    }  width={${width}}\n  height={${height}}\n/>`;
+    try {
+      await navigator.clipboard.writeText(snippet);
+      setReactStatus("copied");
+      window.setTimeout(() => setReactStatus("idle"), 1800);
+    } catch {
+      setReactStatus("manual");
+      window.setTimeout(() => setReactStatus("idle"), 3000);
+    }
+  };
   const fileInputRef = useRef(null);
   const dialogRef = useRef(null);
 
@@ -477,6 +502,20 @@ export const ExportModal = ({
                     : linkStatus === "manual"
                       ? "Copy the address bar URL"
                       : "Copy share link"}
+                </span>
+              </button>
+              <button
+                type="button"
+                className={`export-modal-cta is-secondary ${reactStatus === "copied" ? "is-success" : ""}`}
+                onClick={handleCopyReact}
+              >
+                {reactStatus === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
+                <span>
+                  {reactStatus === "copied"
+                    ? "React snippet copied"
+                    : reactStatus === "manual"
+                      ? "Copy failed — try again"
+                      : "Copy as React (@globestudio/react)"}
                 </span>
               </button>
               <button
