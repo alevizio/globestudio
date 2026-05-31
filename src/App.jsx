@@ -36,7 +36,10 @@ import {
   downloadBlob,
   exportScaleValue,
   pickVideoMimeType,
+  recordCanvasToGifBlob,
+  recordCanvasToMp4Blob,
   recordCanvasToVideoBlob,
+  supportsMp4Export,
 } from "./utils/export.js";
 import { clearPersistedState, usePersistedState } from "./hooks/use-persisted-state.js";
 import { usePrefersReducedMotion } from "./hooks/use-prefers-reduced-motion.js";
@@ -65,6 +68,9 @@ const ExamplesPage = lazy(() =>
 );
 const TeaserPage = lazy(() =>
   import("./components/teaser-page.jsx").then((m) => ({ default: m.TeaserPage })),
+);
+const GalleryPage = lazy(() =>
+  import("./components/gallery-page.jsx").then((m) => ({ default: m.GalleryPage })),
 );
 
 // "Hidden till launch": set VITE_TEASER=1 on the pre-launch deploy and every
@@ -142,6 +148,12 @@ const App = () => {
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh", background: "#0b0b0c" }} />}>
           <ExamplesPage />
+        </Suspense>
+      );
+    if (path === "/gallery")
+      return (
+        <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
+          <GalleryPage />
         </Suspense>
       );
     if (path === "/privacy") return <PrivacyPage />;
@@ -328,6 +340,7 @@ const App = () => {
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoDurationMs, setVideoDurationMs] = useState(5000);
   const videoSupported = useMemo(() => Boolean(pickVideoMimeType()), []);
+  const mp4Supported = useMemo(() => supportsMp4Export(), []);
   // Brief acknowledgments after destructive/successful actions. Each is a
   // single-shot flag that auto-clears so the button can be re-pressed.
   const [resetFlash, setResetFlash] = useState(false);
@@ -751,15 +764,33 @@ const App = () => {
   const exportVideo = useCallback(async (options = {}) => {
     const canvas = globeCanvasRef.current;
     if (!canvas || videoStatus === "recording") return;
+    const format = ["gif", "mp4"].includes(options.format) ? options.format : "webm";
     setVideoStatus("recording");
     setVideoProgress(0);
     try {
-      const blob = await recordCanvasToVideoBlob(canvas, {
-        durationMs: options.durationMs ?? videoDurationMs,
-        fps: options.fps ?? 60,
-        onProgress: setVideoProgress,
-      });
-      downloadBlob(blob, buildExportFilename(selected.label, "webm", viewMode));
+      const durationMs = options.durationMs ?? videoDurationMs;
+      let blob;
+      if (format === "gif") {
+        blob = await recordCanvasToGifBlob(canvas, {
+          durationMs,
+          // GIF is heavy per-frame; cap fps so a 5s loop stays reasonable.
+          fps: Math.min(options.fps ?? 15, 20),
+          onProgress: setVideoProgress,
+        });
+      } else if (format === "mp4") {
+        blob = await recordCanvasToMp4Blob(canvas, {
+          durationMs,
+          fps: options.fps ?? 30,
+          onProgress: setVideoProgress,
+        });
+      } else {
+        blob = await recordCanvasToVideoBlob(canvas, {
+          durationMs,
+          fps: options.fps ?? 60,
+          onProgress: setVideoProgress,
+        });
+      }
+      downloadBlob(blob, buildExportFilename(selected.label, format, viewMode));
       setVideoStatus("ready");
       window.setTimeout(() => setVideoStatus("idle"), 2200);
     } catch (error) {
@@ -1524,6 +1555,7 @@ const App = () => {
         copySvg={copySvg}
         copyStatus={copyStatus}
         exportVideo={exportVideo}
+        mp4Supported={mp4Supported}
         videoStatus={videoStatus}
         videoProgress={videoProgress}
         videoDurationMs={videoDurationMs}

@@ -105,3 +105,114 @@ export const recordCanvasToVideoBlob = (canvas, { durationMs = 4000, fps = 60, b
     }, durationMs);
   });
 };
+
+// Record the canvas as an animated GIF by sampling frames across `durationMs`
+// and encoding with gifenc. GIF plays everywhere WebM doesn't — Slack, X,
+// Keynote, iOS Safari, docs. gifenc is dynamically imported so it only loads
+// when a GIF export is actually requested (stays off the initial bundle).
+export const recordCanvasToGifBlob = async (
+  canvas,
+  { durationMs = 4000, fps = 15, maxSize = 640, onProgress } = {},
+) => {
+  const { GIFEncoder, quantize, applyPalette } = await import("gifenc");
+  const scale = Math.min(1, maxSize / Math.max(canvas.width, canvas.height));
+  const w = Math.max(2, Math.round(canvas.width * scale));
+  const h = Math.max(2, Math.round(canvas.height * scale));
+  const off = document.createElement("canvas");
+  off.width = w;
+  off.height = h;
+  const ctx = off.getContext("2d", { willReadFrequently: true });
+  if (!ctx) throw new Error("Can't get a 2D context for GIF capture");
+  const encoder = GIFEncoder();
+  const frameCount = Math.max(1, Math.round((durationMs / 1000) * fps));
+  const delay = Math.round(1000 / fps);
+  for (let i = 0; i < frameCount; i += 1) {
+    const tick = performance.now();
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(canvas, 0, 0, w, h);
+    const { data } = ctx.getImageData(0, 0, w, h);
+    const palette = quantize(data, 256);
+    const index = applyPalette(data, palette);
+    encoder.writeFrame(index, w, h, { palette, delay });
+    onProgress?.((i + 1) / frameCount);
+    // Space captures across real time so the GIF samples the live animation.
+    const elapsed = performance.now() - tick;
+    if (i < frameCount - 1 && elapsed < delay) {
+      await new Promise((resolve) => window.setTimeout(resolve, delay - elapsed));
+    }
+  }
+  encoder.finish();
+  return new Blob([encoder.bytesView()], { type: "image/gif" });
+};
+
+// MP4 export plays where WebM doesn't (Safari/iOS, social, Keynote). Requires
+// WebCodecs (Chrome/Edge, Safari 16.4+). Encodes H.264 via VideoEncoder and
+// muxes with mp4-muxer (both dynamic-imported -> their own lazy chunk).
+export const supportsMp4Export = () =>
+  typeof window !== "undefined" && typeof window.VideoEncoder !== "undefined";
+
+export const recordCanvasToMp4Blob = async (
+  canvas,
+  { durationMs = 4000, fps = 30, bitrate = 12_000_000, maxSize = 1024, onProgress } = {},
+) => {
+  if (!supportsMp4Export()) {
+    throw new Error("This browser can't encode MP4 (no WebCodecs). Try WebM or GIF.");
+  }
+  const { Muxer, ArrayBufferTarget } = await import("mp4-muxer");
+  // Capture from an offscreen canvas: H.264 needs even dimensions, and a
+  // capped size keeps the frame within H.264 level 4.0 limits on any aspect.
+  const scale = Math.min(1, maxSize / Math.max(canvas.width, canvas.height));
+  const width = Math.max(2, Math.round((canvas.width * scale) / 2) * 2);
+  const height = Math.max(2, Math.round((canvas.height * scale) / 2) * 2);
+  const off = document.createElement("canvas");
+  off.width = width;
+  off.height = height;
+  const ctx = off.getContext("2d");
+  if (!ctx) throw new Error("Can't get a 2D context for MP4 capture");
+
+  const muxer = new Muxer({
+    target: new ArrayBufferTarget(),
+    video: { codec: "avc", width, height },
+    fastStart: "in-memory",
+  });
+  let encodeError = null;
+  const encoder = new window.VideoEncoder({
+    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+    error: (err) => {
+      encodeError = err;
+    },
+  });
+  encoder.configure({
+    codec: "avc1.420028", // H.264 baseline, level 4.0 — broad playback + ≤1024px
+    width,
+    height,
+    bitrate,
+    framerate: fps,
+  });
+
+  const frameCount = Math.max(1, Math.round((durationMs / 1000) * fps));
+  const frameDurUs = 1_000_000 / fps;
+  const targetMs = 1000 / fps;
+  for (let i = 0; i < frameCount; i += 1) {
+    if (encodeError) throw encodeError;
+    const tick = performance.now();
+    ctx.clearRect(0, 0, width, height);
+    ctx.drawImage(canvas, 0, 0, width, height);
+    const frame = new window.VideoFrame(off, {
+      timestamp: Math.round(i * frameDurUs),
+      duration: Math.round(frameDurUs),
+    });
+    encoder.encode(frame, { keyFrame: i % fps === 0 });
+    frame.close();
+    onProgress?.((i + 1) / frameCount);
+    const elapsed = performance.now() - tick;
+    if (i < frameCount - 1 && elapsed < targetMs) {
+      await new Promise((resolve) => window.setTimeout(resolve, targetMs - elapsed));
+    }
+  }
+  await encoder.flush();
+  encoder.close();
+  if (encodeError) throw encodeError;
+  muxer.finalize();
+  return new Blob([muxer.target.buffer], { type: "video/mp4" });
+};

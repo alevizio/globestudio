@@ -1,0 +1,46 @@
+{
+  "name": "@globestudio/element",
+  "version": "0.1.0",
+  "description": "Framework-agnostic <globe-studio> web component for embedding Globestudio dotted globes — vanilla, Svelte, Vue, Solid, Astro, Webflow, Framer.",
+  "license": "MIT",
+  "author": "Alejandro Vizio <viziomas@gmail.com> (https://alevizio.com)",
+  "homepage": "https://globestudio.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alevizio/globestudio.git",
+    "directory": "packages/web-component"
+  },
+  "keywords": [
+    "web-component",
+    "custom-element",
+    "globestudio",
+    "globe",
+    "map",
+    "dotted-globe",
+    "embed",
+    "svelte",
+    "vue",
+    "astro"
+  ],
+  "type": "module",
+  "main": "./index.js",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

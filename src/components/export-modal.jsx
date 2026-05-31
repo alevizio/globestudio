@@ -195,6 +195,7 @@ export const ExportModal = ({
   copySvg,
   copyStatus,
   exportVideo,
+  mp4Supported = false,
   videoStatus,
   videoProgress,
   videoDurationMs,
@@ -208,6 +209,7 @@ export const ExportModal = ({
   const [aspect, setAspect] = useState("original");
   const [quality, setQuality] = useState("standard");
   const [fps, setFps] = useState(60);
+  const [videoFormat, setVideoFormat] = useState("webm");
   const [videoSeconds, setVideoSeconds] = useState(Math.round((videoDurationMs ?? 5000) / 1000));
   const [linkStatus, setLinkStatus] = useState("idle");
   const handleCopyLink = async () => {
@@ -307,7 +309,7 @@ export const ExportModal = ({
 
   const handleVideo = () => {
     setVideoDurationMs?.(videoSeconds * 1000);
-    exportVideo?.({ scale, fps, durationMs: videoSeconds * 1000 });
+    exportVideo?.({ scale, fps, durationMs: videoSeconds * 1000, format: videoFormat });
   };
 
   const handleFileImport = (event) => {
@@ -402,6 +404,26 @@ export const ExportModal = ({
 
           {tab === "video" && videoSupported && (
             <>
+              <PillRow
+                label="Format"
+                options={[
+                  { id: "webm", label: "WebM" },
+                  ...(mp4Supported ? [{ id: "mp4", label: "MP4" }] : []),
+                  { id: "gif", label: "GIF" },
+                ]}
+                value={videoFormat}
+                onChange={setVideoFormat}
+              />
+              {videoFormat === "gif" && (
+                <p className="export-modal-caption">
+                  GIF plays everywhere (Slack, X, Keynote, iOS) — capped to ~20fps and 640px so the file stays light.
+                </p>
+              )}
+              {videoFormat === "mp4" && (
+                <p className="export-modal-caption">
+                  MP4 (H.264) plays everywhere WebM can't — Safari/iOS, social, Keynote. Capped to 1024px.
+                </p>
+              )}
               <PillRow label="Aspect" options={ASPECT_OPTIONS} value={aspect} onChange={setAspect} />
               <PillRow label="Quality" options={QUALITY_OPTIONS} value={quality} onChange={setQuality} />
               <DimensionInputs
@@ -451,7 +473,11 @@ export const ExportModal = ({
                 disabled={isRecording}
               >
                 <Download size={17} />
-                <span>{isRecording ? `Recording… ${recordingPct}%` : "Export WebM"}</span>
+                <span>
+                  {isRecording
+                    ? `Recording… ${recordingPct}%`
+                    : `Export ${{ webm: "WebM", mp4: "MP4", gif: "GIF" }[videoFormat]}`}
+                </span>
               </button>
             </>
           )}
