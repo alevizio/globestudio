@@ -182,6 +182,7 @@ export const TeaserPage = () => {
   // steals bandwidth from the hero globe — which is what makes the globe take a
   // few seconds. Off the critical path, the hero globe loads fast.
   const showcasesRef = useRef(null);
+  const globeRef = useRef(null);
   const [showcasesVisible, setShowcasesVisible] = useState(false);
   useEffect(() => {
     const el = showcasesRef.current;
@@ -278,6 +279,36 @@ export const TeaserPage = () => {
       /* ignore */
     }
   }, [pos]);
+  // Subtle pointer parallax — the globe drifts a few px toward the cursor so
+  // the hero feels alive and dimensional. The CSS transform transition does
+  // the easing; we just feed it normalized --gx/--gy. Skipped under
+  // reduced-motion and on coarse (touch) pointers where there's no cursor.
+  useEffect(() => {
+    const el = globeRef.current;
+    if (!el) return undefined;
+    const reduceMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const fine = window.matchMedia?.("(pointer: fine)").matches;
+    if (reduceMotion || !fine) return undefined;
+    const RANGE = 18; // max px drift in each axis
+    let raf = 0;
+    const onMove = (e) => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const gx = (e.clientX / window.innerWidth - 0.5) * 2 * RANGE;
+        const gy = (e.clientY / window.innerHeight - 0.5) * 2 * RANGE;
+        el.style.setProperty("--gx", gx.toFixed(1));
+        el.style.setProperty("--gy", gy.toFixed(1));
+      });
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
   const globeStyle = {
     "--tg-x": `${pos.x}px`,
     "--tg-y": `${pos.y}px`,
@@ -394,6 +425,7 @@ export const TeaserPage = () => {
     <main className="teaser-page">
       <section className="teaser">
       <div
+        ref={globeRef}
         className={`teaser-globe ${globeLoaded ? "is-loaded" : ""}`}
         style={globeStyle}
         aria-hidden="true"

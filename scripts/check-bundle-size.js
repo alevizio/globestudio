@@ -72,8 +72,10 @@ const BUDGETS = [
   // Pre-launch teaser (only loaded when VITE_TEASER=1). Includes the
   // LiquidMetal + the canvas ChromeShader logo shaders — hence the budget.
   { prefix: "teaser-page-",      ext: ".js",  raw:  62_000,  gzip:  20_000, lazy: true },
-  // Headroom for the CRT/pixel-corner clip-path polygons (verbose by nature).
-  { prefix: "teaser-page-",      ext: ".css", raw:  11_000,  gzip:   4_500, lazy: true },
+  // Headroom for the CRT/pixel-corner clip-path polygons (verbose by nature)
+  // plus the choreographed entrance (stagger keyframes), globe pointer-parallax
+  // transform, and CTA/input micro-interactions. Gzip stays well under.
+  { prefix: "teaser-page-",      ext: ".css", raw:  12_500,  gzip:   4_500, lazy: true },
 ];
 
 // Total initial-payload budget. Sum of non-lazy chunks' gzip sizes.
