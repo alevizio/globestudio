@@ -274,7 +274,7 @@ export const TeaserPage = () => {
       if (res.status === 409) {
         track("waitlist_duplicate");
         setStatus("success");
-        setMessage("You're already on the list — see you at launch.");
+        setMessage("That email is already on the list — you're all set, no need to sign up again.");
         return;
       }
       if (!res.ok) throw new Error(`status ${res.status}`);
