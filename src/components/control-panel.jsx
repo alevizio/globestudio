@@ -612,11 +612,20 @@ export const ControlPanel = ({
               aria-label="Data points — lat, lng, value per line"
               spellCheck={false}
             />
-            <p className="data-points-hint">
-              {dataPointCount > 0
-                ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted — markers sized by value (globe view).`
-                : "Paste lat,lng,value per line to plot markers on the globe."}
-            </p>
+            <div className="data-points-meta">
+              <ColorSwatch
+                value={globeSettings?.dataMarkerColor || "#7edfff"}
+                onChange={(hex) =>
+                  setGlobeSettings((settings) => ({ ...settings, dataMarkerColor: hex }))
+                }
+                label="Data marker color"
+              />
+              <p className="data-points-hint">
+                {dataPointCount > 0
+                  ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted — markers sized by value (globe view).`
+                  : "Paste lat,lng,value per line to plot markers on the globe."}
+              </p>
+            </div>
           </div>
         </OptionRow>
         <OptionRow label="Density" value={density}>

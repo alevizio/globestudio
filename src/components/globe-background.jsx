@@ -812,6 +812,11 @@ export const GlobeBackground = ({
       const ambientTime = reducedMotionRef.current ? 0 : now / 1000;
       updateBorderlessNetworkMotion(threeRef.current.borderlessNetwork, reducedMotionRef.current ? 0 : now);
       updateGlobeNetwork(threeRef.current.globeNetwork, ambientTime);
+      if (threeRef.current?.dataMarkers) {
+        // Markers are anchored on the sphere; hide them as the globe morphs
+        // flat (where they'd float). Flat-map positioning is a later increment.
+        threeRef.current.dataMarkers.visible = morph.progress > 0.5;
+      }
 
       if (threeRef.current?.atmosphereMaterial?.uniforms?.uTime) {
         threeRef.current.atmosphereMaterial.uniforms.uTime.value = ambientTime;
