@@ -31,6 +31,24 @@ const findUpdateTarget = function () {
 figma.ui.onmessage = async function (msg) {
   if (msg.type === "insert") {
     try {
+      // Prefer EDITABLE VECTORS when the embed sent SVG — designers can
+      // restyle the dots/background as real Figma layers (Background / Dots /
+      // Effects groups) instead of a flat raster. Falls back to the PNG path
+      // below if no SVG. NOTE: very dense maps become many vector nodes and
+      // can lag Figma; a "rasterize if huge" guard is a future refinement.
+      if (msg.svg) {
+        const node = figma.createNodeFromSvg(msg.svg);
+        node.name = msg.presetName || "Globestudio";
+        node.x = Math.round(figma.viewport.center.x - node.width / 2);
+        node.y = Math.round(figma.viewport.center.y - node.height / 2);
+        node.setPluginData("globestudio", "1");
+        figma.currentPage.appendChild(node);
+        figma.viewport.scrollAndZoomIntoView([node]);
+        figma.currentPage.selection = [node];
+        figma.notify("Globestudio inserted (editable vectors)");
+        return;
+      }
+
       // bytes arrives as a Uint8Array via structured clone. Some browsers/
       // versions may surface it as a plain object with numeric keys, so
       // normalize through Uint8Array.from to be safe.

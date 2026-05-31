@@ -10,6 +10,7 @@ import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { effectPresets, DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { areaOptions } from "../data/geography.js";
 import { createCountryMapData } from "../utils/dot-generation.js";
+import { createDottedSvg } from "../utils/svg-markup.js";
 import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
 import { parseShareConfig } from "../utils/share-config.js";
 
@@ -160,11 +161,40 @@ export const EmbedView = () => {
       });
       const buf = await blob.arrayBuffer();
       const bytes = new Uint8Array(buf);
+      // Also generate the dotted-map SVG so the plugin can insert editable
+      // vectors (named Background/Dots/Effects layers) instead of a flat PNG.
+      // Best-effort: if it throws, the plugin falls back to the PNG bytes.
+      let svg = null;
+      try {
+        svg = createDottedSvg({
+          mapData,
+          dotColor: settings.dotColor || "#ffffff",
+          dotColorAlpha: settings.dotColorAlpha ?? 1,
+          dotGradient: settings.dotGradient ?? null,
+          dotSize: settings.dotSize,
+          shape: settings.shape || "Circle",
+          asciiSymbol: settings.asciiSymbol || "*",
+          dotsVisible: settings.dotsVisible !== false,
+          background: settings.background,
+          transparent: settings.transparent,
+          selectedDots: new Set(),
+          mode: settings.renderMode,
+          shaderSettings: settings.shaderSettings,
+          sizeVary: settings.sizeVary || false,
+          crop: true,
+          label: "Globestudio dotted map",
+        }).svg;
+      } catch (svgErr) {
+        // eslint-disable-next-line no-console
+        console.warn("[globestudio] SVG generation failed; sending PNG only:", svgErr);
+        svg = null;
+      }
       const preset = lookPresets.find((p) => p.id === params.look);
       window.parent.postMessage(
         {
           type: "globestudio-insert",
           bytes,
+          svg,
           width: canvas.width,
           height: canvas.height,
           presetName: preset ? `Globestudio — ${preset.name}` : "Globestudio",
@@ -179,7 +209,7 @@ export const EmbedView = () => {
     } finally {
       setInserting(false);
     }
-  }, [params.look]);
+  }, [params.look, mapData, settings]);
 
   // Probe for WebGL 2 support up-front so we can show a graceful fallback
   // instead of a blank canvas. The probe happens once, after mount.
