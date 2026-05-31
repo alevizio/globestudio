@@ -387,6 +387,12 @@ export const createDottedSvg = ({
   const backgroundRect = transparent
     ? ""
     : `<rect x="${viewX}" y="${viewY}" width="${viewWidth}" height="${viewHeight}" fill="${background}" />`;
+  // Named group so the SVG imports into Figma/Illustrator as an editable,
+  // labelled layer (both surface a <g>'s id as the layer name) rather than a
+  // flat blob. data-layer mirrors the id for non-id-aware tools.
+  const backgroundLayer = backgroundRect
+    ? `<g id="Background" data-layer="background">${backgroundRect}</g>`
+    : "";
   const effectAssets = includeSvgEffects
     ? createShaderEffectAssets({
         shaderSettings,
@@ -402,17 +408,21 @@ export const createDottedSvg = ({
         overlays: "",
       };
 
+  const effectsLayer = effectAssets.overlays
+    ? `<g id="Effects" data-layer="effects">\n${effectAssets.overlays}\n</g>`
+    : "";
+
   return {
     width,
     height,
     dotCount: dotsVisible ? mapData.points.length : 0,
     svg: `<svg xmlns="http://www.w3.org/2000/svg" id="dots" class="dot-map" role="img" aria-label="${label}" width="${width}" height="${height}" viewBox="${viewX} ${viewY} ${viewWidth} ${viewHeight}" style="background-color: ${backgroundColor}">
 ${effectAssets.defs}
-${backgroundRect}
-<g${effectAssets.groupAttributes}>
+${backgroundLayer}
+<g id="Dots" data-layer="dots"${effectAssets.groupAttributes}>
 ${dots}
 </g>
-${effectAssets.overlays}
+${effectsLayer}
 </svg>`,
   };
 };
