@@ -1162,12 +1162,13 @@ export const GlobeBackground = ({
     if (points.length) {
       const layer = createDataMarkers(points, {
         color: globeSettings?.dataMarkerColor || "#7edfff",
+        arcs: !!globeSettings?.dataArcs,
       });
       refs.dataMarkers = layer;
       refs.globeGroup.add(layer);
     }
     return undefined;
-  }, [globeSettings?.dataPoints, globeSettings?.dataMarkerColor]);
+  }, [globeSettings?.dataPoints, globeSettings?.dataMarkerColor, globeSettings?.dataArcs]);
 
   useEffect(() => {
     const refs = threeRef.current;

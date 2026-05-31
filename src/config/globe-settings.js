@@ -17,6 +17,7 @@ export const DEFAULT_GLOBE_SETTINGS = {
   // markers layer (size ∝ value). Set via the panel's Data section.
   dataPoints: [],
   dataMarkerColor: null,
+  dataArcs: false,
   dotLift: 15,
   glow: true,
   glowStrength: 58,

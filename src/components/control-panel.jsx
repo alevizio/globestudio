@@ -626,6 +626,15 @@ export const ControlPanel = ({
                   : "Paste lat,lng,value per line to plot markers on the globe."}
               </p>
             </div>
+            {dataPointCount >= 2 && (
+              <ToggleControl
+                label="Connect with arcs"
+                checked={!!globeSettings?.dataArcs}
+                onChange={(value) =>
+                  setGlobeSettings((settings) => ({ ...settings, dataArcs: value }))
+                }
+              />
+            )}
           </div>
         </OptionRow>
         <OptionRow label="Density" value={density}>
