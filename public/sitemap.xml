@@ -21,6 +21,21 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://globestudio.app/gallery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://globestudio.app/compare/cobe</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://globestudio.app/compare/geolayers</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://globestudio.app/brand</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

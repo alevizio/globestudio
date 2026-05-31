@@ -72,6 +72,9 @@ const TeaserPage = lazy(() =>
 const GalleryPage = lazy(() =>
   import("./components/gallery-page.jsx").then((m) => ({ default: m.GalleryPage })),
 );
+const ComparePage = lazy(() =>
+  import("./components/compare-page.jsx").then((m) => ({ default: m.ComparePage })),
+);
 
 // "Hidden till launch": set VITE_TEASER=1 on the pre-launch deploy and every
 // route serves the coming-soon teaser instead of the app. The team can
@@ -154,6 +157,12 @@ const App = () => {
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
           <GalleryPage />
+        </Suspense>
+      );
+    if (/^\/compare\/[\w-]+$/.test(path))
+      return (
+        <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
+          <ComparePage />
         </Suspense>
       );
     if (path === "/privacy") return <PrivacyPage />;

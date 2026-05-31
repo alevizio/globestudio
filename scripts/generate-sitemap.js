@@ -13,6 +13,7 @@ import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { lookPresets } from "../src/data/look-presets.js";
+import { comparisonSlugs } from "../src/data/comparisons.js";
 
 const SITE_URL = "https://globestudio.app";
 
@@ -38,6 +39,16 @@ const buildSitemap = () => {
       changefreq: "monthly",
       priority: "0.7",
     },
+    {
+      loc: `${SITE_URL}/gallery`,
+      changefreq: "weekly",
+      priority: "0.7",
+    },
+    ...comparisonSlugs.map((slug) => ({
+      loc: `${SITE_URL}/compare/${slug}`,
+      changefreq: "monthly",
+      priority: "0.7",
+    })),
     {
       loc: `${SITE_URL}/brand`,
       changefreq: "monthly",
