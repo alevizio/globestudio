@@ -155,6 +155,27 @@ export const TeaserPage = () => {
   const honeypotRef2 = useRef(null);
   const logoRef = useRef(null);
   const appFrameRef = useRef(null);
+  // Defer the heavy app-preview iframe (full app + geo data, ~1MB+) until the
+  // bottom hero is scrolled toward, so it's off the initial payload. iframe
+  // loading="lazy" alone isn't enough here — Chrome's lazy threshold loads it
+  // near-immediately since it's only one scroll-section down.
+  const appWrapRef = useRef(null);
+  const [appVisible, setAppVisible] = useState(false);
+  useEffect(() => {
+    const el = appWrapRef.current;
+    if (!el || appVisible) return undefined;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setAppVisible(true);
+          obs.disconnect();
+        }
+      },
+      { rootMargin: "200px 0px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [appVisible]);
   useBodyScrollable();
 
   // Set up the (same-origin) app preview: hide the panel header (nav + icons)
@@ -379,16 +400,18 @@ export const TeaserPage = () => {
         </div>
         {/* Full app preview (sidebar + globe), big, cropping off the bottom
             edge. Iframes the real app via ?app=1; not functional. */}
-        <div className="teaser-app-frame">
-          <iframe
-            ref={appFrameRef}
-            className="teaser-app-iframe"
-            src="/looks/bloom?app=1"
-            title="Globestudio app — Bloom look"
-            loading="lazy"
-            tabIndex={-1}
-            onLoad={setupAppPreview}
-          />
+        <div className="teaser-app-frame" ref={appWrapRef}>
+          {appVisible && (
+            <iframe
+              ref={appFrameRef}
+              className="teaser-app-iframe"
+              src="/looks/bloom?app=1"
+              title="Globestudio app — Bloom look"
+              loading="lazy"
+              tabIndex={-1}
+              onLoad={setupAppPreview}
+            />
+          )}
         </div>
       </section>
 
