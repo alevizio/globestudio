@@ -37,6 +37,29 @@ describe("share-config", () => {
     expect(parsed).toMatchObject(config);
   });
 
+  it("round-trips data-binding (points + arcs + marker color) and drops invalid points", () => {
+    const config = {
+      selection: "world",
+      globeSettings: {
+        dataPoints: [
+          { lat: 40.7, lng: -74, value: 10 },
+          { lat: 51.5, lng: -0.1, value: 6 },
+          { lat: 999, lng: 0, value: 5 }, // out of range — dropped
+        ],
+        dataArcs: true,
+        dataMarkerColor: "#ff8800",
+      },
+    };
+    const url = buildShareUrl(config, "https://globestudio.app");
+    const parsed = parseShareConfig(`?${url.split("?")[1]}`);
+    expect(parsed.globeSettings.dataPoints).toEqual([
+      { lat: 40.7, lng: -74, value: 10 },
+      { lat: 51.5, lng: -0.1, value: 6 },
+    ]);
+    expect(parsed.globeSettings.dataArcs).toBe(true);
+    expect(parsed.globeSettings.dataMarkerColor).toBe("#ff8800");
+  });
+
   it("strips the version marker so importConfig doesn't see it", () => {
     const url = buildShareUrl({ selection: "world" }, "https://globestudio.app");
     const parsed = parseShareConfig(`?${url.split("?")[1]}`);

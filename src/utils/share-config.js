@@ -107,6 +107,24 @@ const normalizeCustomShape = (value) => {
   };
 };
 
+// Validate user-supplied data points for sharing/embedding: finite, in-range
+// lat/lng + numeric value, capped so the `?c=` URL stays a sane size.
+const normalizeDataPoints = (value) => {
+  if (!Array.isArray(value)) return undefined;
+  const points = [];
+  for (const p of value) {
+    if (!p || typeof p !== "object") continue;
+    const lat = Number(p.lat);
+    const lng = Number(p.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
+    const v = Number(p.value);
+    points.push({ lat, lng, value: Number.isFinite(v) ? v : 1 });
+    if (points.length >= 250) break;
+  }
+  return points;
+};
+
 const normalizeSettings = (value, defaults, rules) => {
   if (!value || typeof value !== "object") return undefined;
   const next = {};
@@ -199,6 +217,9 @@ export const normalizeConfig = (config) => {
     surfaceStrength: percent,
     surfaceColor: normalizeHex,
     surfaceGradient: normalizeGradient,
+    dataPoints: normalizeDataPoints,
+    dataArcs: normalizeBoolean,
+    dataMarkerColor: hexOrNull,
   }));
 
   apply(next, "spaceSettings", normalizeSettings(config.spaceSettings, DEFAULT_SPACE_SETTINGS, {
