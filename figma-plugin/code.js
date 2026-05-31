@@ -36,7 +36,10 @@ figma.ui.onmessage = async function (msg) {
       // Effects groups) instead of a flat raster. Falls back to the PNG path
       // below if no SVG. NOTE: very dense maps become many vector nodes and
       // can lag Figma; a "rasterize if huge" guard is a future refinement.
-      if (msg.svg) {
+      // Guard: a very dense map = thousands of vector nodes, which lags Figma.
+      // Above the threshold, fall through to the PNG path (one image node).
+      const dotCount = msg.svg ? (msg.svg.match(/data-dot-id=/g) || []).length : 0;
+      if (msg.svg && dotCount <= 2500) {
         const node = figma.createNodeFromSvg(msg.svg);
         node.name = msg.presetName || "Globestudio";
         node.x = Math.round(figma.viewport.center.x - node.width / 2);
