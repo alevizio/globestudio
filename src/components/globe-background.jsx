@@ -813,9 +813,16 @@ export const GlobeBackground = ({
       updateBorderlessNetworkMotion(threeRef.current.borderlessNetwork, reducedMotionRef.current ? 0 : now);
       updateGlobeNetwork(threeRef.current.globeNetwork, ambientTime);
       if (threeRef.current?.dataMarkers) {
-        // Markers are anchored on the sphere; hide them as the globe morphs
-        // flat (where they'd float). Flat-map positioning is a later increment.
-        threeRef.current.dataMarkers.visible = morph.progress > 0.5;
+        // Morph each marker between its flat-plane position and its sphere
+        // position in lock-step with the dots; arcs are a globe-only flourish.
+        const p = morph.progress;
+        for (const child of threeRef.current.dataMarkers.children) {
+          if (child.userData.isArc) {
+            child.visible = p > 0.85;
+          } else if (child.userData.flatPos && child.userData.spherePos) {
+            child.position.copy(child.userData.flatPos).lerp(child.userData.spherePos, p);
+          }
+        }
       }
 
       if (threeRef.current?.atmosphereMaterial?.uniforms?.uTime) {
@@ -1163,12 +1170,13 @@ export const GlobeBackground = ({
       const layer = createDataMarkers(points, {
         color: globeSettings?.dataMarkerColor || "#7edfff",
         arcs: !!globeSettings?.dataArcs,
+        image: mapData?.image,
       });
       refs.dataMarkers = layer;
       refs.globeGroup.add(layer);
     }
     return undefined;
-  }, [globeSettings?.dataPoints, globeSettings?.dataMarkerColor, globeSettings?.dataArcs]);
+  }, [globeSettings?.dataPoints, globeSettings?.dataMarkerColor, globeSettings?.dataArcs, mapData]);
 
   useEffect(() => {
     const refs = threeRef.current;

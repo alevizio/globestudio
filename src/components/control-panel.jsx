@@ -633,7 +633,7 @@ export const ControlPanel = ({
               />
               <p className="data-points-hint">
                 {dataPointCount > 0
-                  ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted — markers sized by value (globe view).`
+                  ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted — markers sized by value (globe + flat).`
                   : "Paste lat,lng,value per line to plot markers on the globe."}
               </p>
             </div>

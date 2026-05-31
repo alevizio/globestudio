@@ -1,7 +1,8 @@
 import * as THREE from "three";
-import { latLngToVector3 } from "./coordinates.js";
+import { latLngToVector3, pointToFlatVector3 } from "./coordinates.js";
 import { GLOBE_RADIUS } from "../config/globe-settings.js";
 import { valueToRadius } from "../utils/data-points.js";
+import { latLngToImagePoint } from "../utils/projection.js";
 
 const ARC_SEGMENTS = 48;
 
@@ -21,18 +22,17 @@ const buildArcPoints = (start, end, lift) => {
 };
 
 // Additive layer of glowing spheres anchored at lat/lng, sized by value.
-// Purely additive — separate from the dot field and the curated network, so
-// it never affects existing rendering. Mirrors the network's anchor style
-// (additive MeshBasicMaterial spheres lifted just off the surface).
-export const createDataMarkers = (points = [], { color = "#7edfff", arcs = false } = {}) => {
+// Purely additive — separate from the dot field + curated network. Each marker
+// stashes BOTH its sphere position and its flat-plane position on userData so
+// the per-frame loop can morph it flat↔globe in lock-step with the dots (the
+// flat position uses the same Mercator projection as the dot field). Arc lines
+// are tagged isArc so the loop can show them in globe view only.
+export const createDataMarkers = (points = [], { color = "#7edfff", arcs = false, image = null } = {}) => {
   const group = new THREE.Group();
   group.name = "data-markers";
   if (!points.length) return group;
 
   const tintColor = new THREE.Color(color);
-  // Connection arcs between consecutive points (flow-map style). Additive,
-  // drawn under the markers. Lift scales with hop distance so long arcs bow
-  // higher and don't clip the surface.
   if (arcs && points.length >= 2) {
     for (let i = 0; i < points.length - 1; i += 1) {
       const a = latLngToVector3(points[i].lat, points[i].lng, GLOBE_RADIUS);
@@ -46,7 +46,9 @@ export const createDataMarkers = (points = [], { color = "#7edfff", arcs = false
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
-      group.add(new THREE.Line(geometry, material));
+      const line = new THREE.Line(geometry, material);
+      line.userData.isArc = true;
+      group.add(line);
     }
   }
 
@@ -64,7 +66,14 @@ export const createDataMarkers = (points = [], { color = "#7edfff", arcs = false
       depthWrite: false,
     });
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 16, 12), material);
-    mesh.position.copy(latLngToVector3(point.lat, point.lng, GLOBE_RADIUS + 0.02));
+    const spherePos = latLngToVector3(point.lat, point.lng, GLOBE_RADIUS + 0.02);
+    mesh.userData.spherePos = spherePos;
+    // Flat-plane position (matches the dots' Mercator layout) — only when we
+    // have the map image to project against.
+    mesh.userData.flatPos = image
+      ? pointToFlatVector3(latLngToImagePoint(point.lat, point.lng, image), image, 0.02)
+      : spherePos.clone();
+    mesh.position.copy(spherePos);
     group.add(mesh);
   }
   return group;
