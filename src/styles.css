@@ -6544,6 +6544,49 @@ select:hover {
   color: var(--muted);
 }
 
+/* Logo → palette: upload button + extracted swatch chips. */
+.logo-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.logo-palette-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--field);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 180ms var(--ease), background 180ms var(--ease);
+}
+.logo-palette-upload:hover {
+  border-color: var(--accent, var(--text));
+}
+.logo-palette-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.logo-palette-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 120ms var(--ease);
+}
+.logo-palette-swatch:hover {
+  transform: scale(1.1);
+}
+
 .custom-shape-thumb {
   width: 28px;
   height: 28px;

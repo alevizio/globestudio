@@ -24,6 +24,7 @@ import { areaOptions } from "../data/geography.js";
 import { FLAT_PROJECTION_OPTIONS } from "../three/world-texture.js";
 import { formatSvgNumber } from "../utils/math.js";
 import { ColorSwatch } from "./ui/color-swatch.jsx";
+import { extractPaletteFromImage, darkestColor } from "../utils/palette.js";
 import { DepthControl } from "./ui/depth-control.jsx";
 import { OptionRow } from "./ui/option-row.jsx";
 import { PanelSection } from "./ui/panel-section.jsx";
@@ -218,6 +219,30 @@ export const ControlPanel = ({
     } catch (error) {
       setCustomShapeError(error?.message || "Couldn’t parse that SVG.");
     }
+  };
+  // Logo → palette: rasterize an uploaded logo, pull its brand colors, and
+  // auto-apply (most vibrant → dots, darkest → background). The full palette
+  // is shown as swatches the user can click to reassign the dot color.
+  const [logoSwatches, setLogoSwatches] = useState([]);
+  const handleLogoFile = (file) => {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const palette = extractPaletteFromImage(img, 5);
+      if (!palette.length) return;
+      setLogoSwatches(palette);
+      setDotGradient?.(null);
+      setDotColor?.(palette[0]);
+      const bg = darkestColor(palette);
+      if (bg) {
+        setBackground?.(bg);
+        setBackgroundStyle?.("solid");
+      }
+    };
+    img.onerror = () => URL.revokeObjectURL(url);
+    img.src = url;
   };
 
   return (
@@ -526,6 +551,42 @@ export const ControlPanel = ({
             gradient={dotGradient}
             onGradientChange={setDotGradient}
           />
+        </OptionRow>
+        <OptionRow label="Match a logo" stacked>
+          <div className="logo-palette">
+            <label className="logo-palette-upload">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                aria-label="Upload a logo to match its colors"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) handleLogoFile(file);
+                  event.target.value = "";
+                }}
+                hidden
+              />
+              <span>Upload a logo →</span>
+            </label>
+            {logoSwatches.length > 0 && (
+              <div className="logo-palette-swatches">
+                {logoSwatches.map((hex) => (
+                  <button
+                    key={hex}
+                    type="button"
+                    className="logo-palette-swatch"
+                    style={{ background: hex }}
+                    title={`Use ${hex} for dots`}
+                    aria-label={`Use ${hex} for dots`}
+                    onClick={() => {
+                      setDotGradient?.(null);
+                      setDotColor?.(hex);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </OptionRow>
         <OptionRow label="Density" value={density}>
           {/* Capped at 90 — beyond that the dot count climbs into the
