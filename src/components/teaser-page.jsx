@@ -177,6 +177,32 @@ export const TeaserPage = () => {
     obs.observe(el);
     return () => obs.disconnect();
   }, [appVisible]);
+  // Defer the entire showcase stack (its own globes + a 1.7MB retro-tv.png)
+  // until the user scrolls past the hero. Otherwise it loads eagerly on first
+  // paint and steals bandwidth from the hero globe — which is what makes the
+  // globe take a few seconds. Off the critical path, the hero globe loads fast.
+  const showcasesRef = useRef(null);
+  const [showcasesVisible, setShowcasesVisible] = useState(false);
+  useEffect(() => {
+    const el = showcasesRef.current;
+    if (!el || showcasesVisible) return undefined;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShowcasesVisible(true);
+          obs.disconnect();
+        }
+      },
+      // The sentinel sits right at the fold (just below the 100svh hero), so a
+      // positive rootMargin would fire at load and defeat the defer. A small
+      // NEGATIVE bottom margin means it only fires once the user has actually
+      // scrolled ~half a screen toward the showcases — by then the hero globe
+      // has loaded on a clean critical path.
+      { rootMargin: "0px 0px -40% 0px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [showcasesVisible]);
   useBodyScrollable();
 
   // Set up the (same-origin) app preview: hide the panel header (nav + icons)
@@ -400,7 +426,9 @@ export const TeaserPage = () => {
       </section>
       </section>
 
-      <ShowcaseStack />
+      <div ref={showcasesRef} aria-hidden={!showcasesVisible || undefined}>
+        {showcasesVisible && <ShowcaseStack />}
+      </div>
 
       {/* Bottom hero: mini landing block — logo on top, a clean spinning
           globe in a rounded pixel-corner frame with an on/off toggle, then
