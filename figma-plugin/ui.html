@@ -13,9 +13,34 @@
       display: block;
       color-scheme: dark;
     }
+    /* "Use my Figma colors" — a thin strip of the file's color variables.
+       Hidden until variables arrive. Clicking one recolors the globe dots. */
+    #brandbar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      display: none;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 7px 10px;
+      background: rgba(10, 10, 12, 0.92);
+      font: 11px ui-sans-serif, system-ui, sans-serif;
+      color: #aab4c8;
+      z-index: 2;
+    }
+    #brandbar.show { display: flex; }
+    #brandbar .bswatch {
+      width: 20px; height: 20px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 0;
+      cursor: pointer;
+    }
+    #brandbar .bswatch:hover { transform: scale(1.12); }
   </style>
 </head>
 <body>
+  <div id="brandbar" aria-label="Your Figma colors"></div>
   <iframe
     id="embed"
     title="Globestudio embed"
@@ -28,8 +53,42 @@
     // on disk across restarts, which once pinned a stale Content-Security-
     // Policy. A unique query param guarantees a fresh fetch each open; the
     // server sends no-store, so this never bloats the cache.
-    document.getElementById("embed").src =
-      "https://globestudio.app/embed?plugin=figma&autoSpin=true&cb=" + Date.now();
+    var embedEl = document.getElementById("embed");
+    // Current dot-color override (from a clicked Figma variable), if any.
+    var dotColorOverride = null;
+    function buildEmbedSrc() {
+      var url = "https://globestudio.app/embed?plugin=figma&autoSpin=true";
+      if (dotColorOverride) url += "&dotColor=" + dotColorOverride.replace(/^#/, "");
+      return url + "&cb=" + Date.now();
+    }
+    embedEl.src = buildEmbedSrc();
+
+    // Ask the sandbox for the file's local color variables.
+    parent.postMessage({ pluginMessage: { type: "get-variables" } }, "*");
+
+    function renderVariables(variables) {
+      var bar = document.getElementById("brandbar");
+      bar.innerHTML = "";
+      if (!variables || !variables.length) {
+        bar.classList.remove("show");
+        return;
+      }
+      var label = document.createElement("span");
+      label.textContent = "Your colors:";
+      bar.appendChild(label);
+      variables.slice(0, 24).forEach(function (v) {
+        var b = document.createElement("button");
+        b.className = "bswatch";
+        b.style.background = v.hex;
+        b.title = v.name + " — apply to dots";
+        b.onclick = function () {
+          dotColorOverride = v.hex;
+          embedEl.src = buildEmbedSrc(); // reload the globe with this dot color
+        };
+        bar.appendChild(b);
+      });
+      bar.classList.add("show");
+    }
 
     // Bridge between the embed iframe (globestudio.app) and the Figma
     // plugin sandbox (code.js).
@@ -48,6 +107,12 @@
       // event.origin is the empty string for the parent (Figma), and the
       // embed URL for messages from the iframe.
       if (event.origin && event.origin !== "https://globestudio.app") return;
+
+      // Color variables pushed from the plugin sandbox (origin is empty).
+      if (data.pluginMessage && data.pluginMessage.type === "variables") {
+        renderVariables(data.pluginMessage.variables);
+        return;
+      }
 
       if (data.type === "globestudio-insert") {
         // bytes is a Uint8Array transferred from the embed; structured clone

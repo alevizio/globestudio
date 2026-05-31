@@ -16,6 +16,42 @@
 
 figma.showUI(__html__, { width: 380, height: 620, themeColors: true });
 
+// "Use my Figma colors": read the file's local COLOR variables and send them
+// to the UI as { name, hex } so the user can apply one as the globe's dot
+// color (the embed accepts ?dotColor=). Direct color values only — aliases
+// are skipped in this first version.
+const channelHex = function (v) {
+  return Math.max(0, Math.min(255, Math.round(v * 255)))
+    .toString(16)
+    .padStart(2, "0");
+};
+const sendColorVariables = async function () {
+  try {
+    if (!figma.variables || !figma.variables.getLocalVariablesAsync) return;
+    const vars = await figma.variables.getLocalVariablesAsync("COLOR");
+    const collections = await figma.variables.getLocalVariableCollectionsAsync();
+    const defaultMode = {};
+    collections.forEach(function (c) {
+      defaultMode[c.id] = c.defaultModeId;
+    });
+    const out = [];
+    for (const v of vars) {
+      const value = v.valuesByMode[defaultMode[v.variableCollectionId]];
+      if (value && typeof value === "object" && typeof value.r === "number") {
+        out.push({
+          name: v.name,
+          hex: "#" + channelHex(value.r) + channelHex(value.g) + channelHex(value.b),
+        });
+      }
+      if (out.length >= 24) break;
+    }
+    figma.ui.postMessage({ type: "variables", variables: out });
+  } catch (err) {
+    // No variables / unsupported — leave the UI's variable row empty.
+  }
+};
+sendColorVariables();
+
 // On launch, if there's exactly one selection AND it's a rectangle with
 // a Globestudio plugin-data marker, we'll update that one in place when
 // the user inserts. Otherwise we create new.
@@ -99,6 +135,8 @@ figma.ui.onmessage = async function (msg) {
     // explode the panel.
     const height = Math.max(320, Math.min(900, Math.round(msg.height) || 620));
     figma.ui.resize(380, height);
+  } else if (msg.type === "get-variables") {
+    sendColorVariables();
   } else if (msg.type === "close") {
     figma.closePlugin();
   }
