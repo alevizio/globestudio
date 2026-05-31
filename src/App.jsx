@@ -67,6 +67,9 @@ const ExamplesPage = lazy(() =>
 const TeaserPage = lazy(() =>
   import("./components/teaser-page.jsx").then((m) => ({ default: m.TeaserPage })),
 );
+const GalleryPage = lazy(() =>
+  import("./components/gallery-page.jsx").then((m) => ({ default: m.GalleryPage })),
+);
 
 // "Hidden till launch": set VITE_TEASER=1 on the pre-launch deploy and every
 // route serves the coming-soon teaser instead of the app. The team can
@@ -143,6 +146,12 @@ const App = () => {
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh", background: "#0b0b0c" }} />}>
           <ExamplesPage />
+        </Suspense>
+      );
+    if (path === "/gallery")
+      return (
+        <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
+          <GalleryPage />
         </Suspense>
       );
     if (path === "/privacy") return <PrivacyPage />;

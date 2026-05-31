@@ -1,0 +1,88 @@
+/* Looks gallery — a static grid of look thumbnails. Lazy-loaded route, so
+   styles are co-located here (kept out of the initial CSS budget). */
+.gallery-page {
+  min-height: 100vh; /* fallback */
+  min-height: 100svh;
+  background: #06070d;
+  color: #eef3fb;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  padding: clamp(28px, 5vw, 72px);
+}
+
+.gallery-header {
+  max-width: 1200px;
+  margin: 0 auto clamp(28px, 4vw, 48px);
+}
+.gallery-back {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #aab4c8;
+  font-size: 14px;
+  text-decoration: none;
+}
+.gallery-back:hover {
+  color: #fff;
+}
+.gallery-title {
+  margin: 0 0 8px;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.gallery-sub {
+  margin: 0;
+  max-width: 56ch;
+  color: #b7c3da;
+  font-size: clamp(15px, 1.5vw, 17px);
+  line-height: 1.55;
+}
+
+.gallery-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: clamp(14px, 1.6vw, 22px);
+}
+
+.gallery-card-link {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+.gallery-card-frame {
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #01010a;
+  aspect-ratio: 600 / 315;
+}
+.gallery-card-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.gallery-card-link:hover .gallery-card-thumb {
+  transform: scale(1.04);
+}
+.gallery-card-link:hover .gallery-card-frame {
+  border-color: rgba(255, 255, 255, 0.32);
+}
+.gallery-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-card-thumb {
+    transition: none;
+  }
+}
