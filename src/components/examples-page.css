@@ -14,7 +14,7 @@
   aspect-ratio: 1672 / 941;
   width: min(100%, calc(100svh * 1.7768));
   max-height: 100%;
-  background: url("/retro-tv.png") center center / cover no-repeat;
+  background: url("/retro-tv.jpg") center center / cover no-repeat;
   /* Fade all four edges of the photo into the black section background.
      The CRT sits at ~27–71% x and ~17–69% y, so the edge fades never
      touch it. Two gradients intersected = fade on any edge. */

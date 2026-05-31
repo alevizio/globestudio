@@ -177,10 +177,10 @@ export const TeaserPage = () => {
     obs.observe(el);
     return () => obs.disconnect();
   }, [appVisible]);
-  // Defer the entire showcase stack (its own globes + a 1.7MB retro-tv.png)
-  // until the user scrolls past the hero. Otherwise it loads eagerly on first
-  // paint and steals bandwidth from the hero globe — which is what makes the
-  // globe take a few seconds. Off the critical path, the hero globe loads fast.
+  // Defer the entire showcase stack (its own globe iframes + imagery) until the
+  // user scrolls past the hero. Otherwise it loads eagerly on first paint and
+  // steals bandwidth from the hero globe — which is what makes the globe take a
+  // few seconds. Off the critical path, the hero globe loads fast.
   const showcasesRef = useRef(null);
   const [showcasesVisible, setShowcasesVisible] = useState(false);
   useEffect(() => {
