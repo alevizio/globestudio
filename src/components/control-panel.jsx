@@ -25,6 +25,7 @@ import { FLAT_PROJECTION_OPTIONS } from "../three/world-texture.js";
 import { formatSvgNumber } from "../utils/math.js";
 import { ColorSwatch } from "./ui/color-swatch.jsx";
 import { extractPaletteFromImage, darkestColor } from "../utils/palette.js";
+import { parseDataPoints } from "../utils/data-points.js";
 import { DepthControl } from "./ui/depth-control.jsx";
 import { OptionRow } from "./ui/option-row.jsx";
 import { PanelSection } from "./ui/panel-section.jsx";
@@ -243,6 +244,18 @@ export const ControlPanel = ({
     };
     img.onerror = () => URL.revokeObjectURL(url);
     img.src = url;
+  };
+  // Data-binding: paste lat,lng[,value] → additive markers on the globe.
+  const [dataText, setDataText] = useState(() =>
+    (globeSettings?.dataPoints || [])
+      .map((p) => [p.lat, p.lng, p.value].join(","))
+      .join("\n"),
+  );
+  const dataPointCount = (globeSettings?.dataPoints || []).length;
+  const handleDataText = (text) => {
+    setDataText(text);
+    const points = parseDataPoints(text);
+    setGlobeSettings((settings) => ({ ...settings, dataPoints: points }));
   };
 
   return (
@@ -586,6 +599,24 @@ export const ControlPanel = ({
                 ))}
               </div>
             )}
+          </div>
+        </OptionRow>
+        <OptionRow label="Data points" stacked>
+          <div className="data-points-control">
+            <textarea
+              className="data-points-input"
+              rows={4}
+              value={dataText}
+              onChange={(event) => handleDataText(event.target.value)}
+              placeholder={"lat,lng,value\n40.7,-74,10\n51.5,-0.1,6\n35.7,139.7,8"}
+              aria-label="Data points — lat, lng, value per line"
+              spellCheck={false}
+            />
+            <p className="data-points-hint">
+              {dataPointCount > 0
+                ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted — markers sized by value (globe view).`
+                : "Paste lat,lng,value per line to plot markers on the globe."}
+            </p>
           </div>
         </OptionRow>
         <OptionRow label="Density" value={density}>

@@ -13,6 +13,10 @@ export const DEFAULT_GLOBE_SETTINGS = {
   // false on an incoming config the renderer treats it as speed = 0.
   autoSpin: true,
   autoSpinSpeed: 35,
+  // Data-binding: optional [{ lat, lng, value }] rendered as an additive
+  // markers layer (size ∝ value). Set via the panel's Data section.
+  dataPoints: [],
+  dataMarkerColor: null,
   dotLift: 15,
   glow: true,
   glowStrength: 58,
