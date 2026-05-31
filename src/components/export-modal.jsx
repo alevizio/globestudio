@@ -195,6 +195,7 @@ export const ExportModal = ({
   copySvg,
   copyStatus,
   exportVideo,
+  mp4Supported = false,
   videoStatus,
   videoProgress,
   videoDurationMs,
@@ -407,6 +408,7 @@ export const ExportModal = ({
                 label="Format"
                 options={[
                   { id: "webm", label: "WebM" },
+                  ...(mp4Supported ? [{ id: "mp4", label: "MP4" }] : []),
                   { id: "gif", label: "GIF" },
                 ]}
                 value={videoFormat}
@@ -415,6 +417,11 @@ export const ExportModal = ({
               {videoFormat === "gif" && (
                 <p className="export-modal-caption">
                   GIF plays everywhere (Slack, X, Keynote, iOS) — capped to ~20fps and 640px so the file stays light.
+                </p>
+              )}
+              {videoFormat === "mp4" && (
+                <p className="export-modal-caption">
+                  MP4 (H.264) plays everywhere WebM can't — Safari/iOS, social, Keynote. Capped to 1024px.
                 </p>
               )}
               <PillRow label="Aspect" options={ASPECT_OPTIONS} value={aspect} onChange={setAspect} />
@@ -469,7 +476,7 @@ export const ExportModal = ({
                 <span>
                   {isRecording
                     ? `Recording… ${recordingPct}%`
-                    : `Export ${videoFormat === "gif" ? "GIF" : "WebM"}`}
+                    : `Export ${{ webm: "WebM", mp4: "MP4", gif: "GIF" }[videoFormat]}`}
                 </span>
               </button>
             </>

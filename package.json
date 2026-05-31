@@ -26,6 +26,7 @@
     "d3-geo-projection": "^4.0.0",
     "dotted-map": "^3.1.0",
     "gifenc": "^1.0.3",
+    "mp4-muxer": "^5.2.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "three": "^0.184.0",
