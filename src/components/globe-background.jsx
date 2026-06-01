@@ -438,8 +438,23 @@ export const GlobeBackground = ({
     renderer.info.autoReset = false;
     // Cap initial DPR — phones and high-DPI laptops are the perf cliff. The
     // adaptive loop below can step it down further if FPS slips.
+    //
+    // GPU render-target memory (composer ping-pong buffers + bloom mip chain +
+    // bg target) grows with the render buffer's physical pixel count —
+    // cssW·cssH·dpr² — so it balloons on large viewports at high DPR, which is
+    // what trips Chrome's Memory Saver. Rather than a flat DPR cap (which would
+    // needlessly soften small windows too), we hold the buffer under a
+    // physical-pixel BUDGET: small windows keep full DPR for maximum crispness,
+    // and DPR scales down toward a floor only as the viewport grows past the
+    // budget. This affects ONLY the on-screen preview — PNG/MP4 export renders
+    // at its own scale via captureAtScale, so deliverable quality is untouched.
     const isCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches;
-    const dprCap = isCoarsePointer ? 1.5 : 2;
+    const PIXEL_BUDGET = 4_500_000; // physical px ceiling for the live buffer
+    const hardCap = isCoarsePointer ? 1.5 : 2;
+    const dprFloor = isCoarsePointer ? 1 : 1.5;
+    const viewportArea = Math.max(1, window.innerWidth * window.innerHeight);
+    const areaCap = Math.sqrt(PIXEL_BUDGET / viewportArea);
+    const dprCap = Math.max(dprFloor, Math.min(hardCap, areaCap));
     const initialDpr = Math.min(window.devicePixelRatio || 1, dprCap);
     renderer.setPixelRatio(initialDpr);
     mount.appendChild(renderer.domElement);
@@ -547,7 +562,12 @@ export const GlobeBackground = ({
     scene.add(rimLight);
     scene.add(new THREE.AmbientLight(0xffffff, 0.68));
 
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    // Match the composer + bg target to the renderer's *capped* DPR (set
+    // above via dprCap), not the raw device ratio. Otherwise coarse-pointer
+    // devices, where the renderer runs at 1.5, would still allocate the
+    // offscreen render targets at 2 — ~44% more GPU memory than is ever
+    // sampled. Desktop is unchanged (both resolve to the same cap).
+    const pixelRatio = renderer.getPixelRatio();
     const initialRect = mount.getBoundingClientRect();
     const initialWidth = Math.max(1, Math.floor(initialRect.width));
     const initialHeight = Math.max(1, Math.floor(initialRect.height));
@@ -992,14 +1012,51 @@ export const GlobeBackground = ({
     // Pause the render loop when the tab is hidden. Saves CPU/GPU/battery and
     // prevents the requestAnimationFrame throttling from causing a backlog of
     // catch-up frames when the user returns. Resume cleanly on visibility change.
+    //
+    // Beyond pausing, a tab that stays hidden for a while releases its heavy
+    // GPU render targets (the EffectComposer ping-pong buffers, the bloom mip
+    // chain, and the bg target — ~150 MB at DPR 2 on a large display). Those
+    // buffers are useless while nothing is being drawn, and holding them is
+    // precisely what makes the tab a target for Chrome's Memory Saver. We
+    // shrink them to 1×1 (which disposes the GL textures) after a grace period,
+    // then rebuild at full size via resize() the moment the tab is shown again.
+    // Debounced so a quick alt-tab doesn't pay the realloc cost.
+    const HIDDEN_RELEASE_MS = 12_000;
+    let releaseTimer = 0;
+    let buffersReleased = false;
+    const releaseBuffers = () => {
+      renderer.setSize(1, 1, false);
+      postHandle.setSize(1, 1);
+      bgTarget.setSize(1, 1);
+      buffersReleased = true;
+    };
     const handleVisibility = () => {
       if (document.hidden) {
         window.cancelAnimationFrame(frame);
         frame = 0;
-      } else if (!frame) {
-        // Reset lastTime so the first delta after resume isn't a giant jump.
-        lastTime = window.performance.now();
-        frame = window.requestAnimationFrame(animate);
+        if (!releaseTimer) {
+          releaseTimer = window.setTimeout(() => {
+            releaseTimer = 0;
+            if (document.hidden) releaseBuffers();
+          }, HIDDEN_RELEASE_MS);
+        }
+      } else {
+        if (releaseTimer) {
+          window.clearTimeout(releaseTimer);
+          releaseTimer = 0;
+        }
+        // Reallocate the render targets at the real size before the first
+        // visible frame, so we never flash the shrunk 1×1 buffer. resize()
+        // reads the live layout rect and resizes renderer + composer + bg.
+        if (buffersReleased) {
+          resize();
+          buffersReleased = false;
+        }
+        if (!frame) {
+          // Reset lastTime so the first delta after resume isn't a giant jump.
+          lastTime = window.performance.now();
+          frame = window.requestAnimationFrame(animate);
+        }
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
@@ -1075,6 +1132,7 @@ export const GlobeBackground = ({
 
     return () => {
       window.cancelAnimationFrame(frame);
+      if (releaseTimer) window.clearTimeout(releaseTimer);
       document.removeEventListener("visibilitychange", handleVisibility);
       renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
       renderer.domElement.removeEventListener("webglcontextrestored", handleContextRestored);
