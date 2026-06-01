@@ -11,6 +11,20 @@ export const downloadBlob = (blob, filename) => {
   URL.revokeObjectURL(url);
 };
 
+// Decode a data: URL into a Blob. Used for the PNG export fallback: the async
+// canvas.toBlob callback can be starved by the render loop under software
+// WebGL and never fire, so we encode synchronously via toDataURL (which always
+// returns) and rebuild a Blob here for a uniform download path.
+export const dataUrlToBlob = (dataUrl) => {
+  const [header, data] = String(dataUrl).split(",");
+  if (!data) return null;
+  const mime = header.match(/data:([^;]+)/)?.[1] ?? "image/png";
+  const binary = atob(data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+};
+
 export const copyTextToClipboard = async (text) => {
   try {
     if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable");

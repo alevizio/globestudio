@@ -1097,49 +1097,54 @@ export const GlobeBackground = ({
         const displayH = Math.max(1, Math.floor(rect.height));
         const targetPR = Math.max(1, scale);
 
+        const setResolutionUniforms = (w, h) => {
+          if (refs.spaceBackground?.material?.uniforms?.uResolution) {
+            refs.spaceBackground.material.uniforms.uResolution.value.set(w, h);
+          }
+          if (refs.flowBackground?.material?.uniforms?.uResolution) {
+            refs.flowBackground.material.uniforms.uResolution.value.set(w, h);
+          }
+        };
+
+        // Restore the live render size and resume the loop. Idempotent so it's
+        // safe to call from the toBlob callback, the catch, and the watchdog —
+        // whichever fires first wins and the rest are no-ops.
+        let restored = false;
+        let watchdog = 0;
+        const restore = () => {
+          if (restored) return;
+          restored = true;
+          window.clearTimeout(watchdog);
+          renderer.setPixelRatio(originalPixelRatio);
+          renderer.setSize(displayW, displayH, false);
+          refs.postHandle.setSize(displayW * originalPixelRatio, displayH * originalPixelRatio);
+          setResolutionUniforms(displayW * originalPixelRatio, displayH * originalPixelRatio);
+          frame = window.requestAnimationFrame(animate);
+        };
+
+        // Under software WebGL the async toBlob callback can be starved by the
+        // render loop and never fire — which would leave the renderer pinned at
+        // N× resolution with the loop dead, corrupting every later frame and
+        // the caller's Canvas2D fallback. Bail and restore after a grace
+        // period so the caller falls back against a healthy canvas.
+        watchdog = window.setTimeout(() => {
+          restore();
+          reject(new Error("captureAtScale toBlob timed out"));
+        }, 8000);
+
         try {
           renderer.setPixelRatio(targetPR);
           renderer.setSize(displayW, displayH, false);
           refs.postHandle.setSize(displayW * targetPR, displayH * targetPR);
-          if (refs.spaceBackground?.material?.uniforms?.uResolution) {
-            refs.spaceBackground.material.uniforms.uResolution.value.set(
-              displayW * targetPR,
-              displayH * targetPR,
-            );
-          }
-          if (refs.flowBackground?.material?.uniforms?.uResolution) {
-            refs.flowBackground.material.uniforms.uResolution.value.set(
-              displayW * targetPR,
-              displayH * targetPR,
-            );
-          }
+          setResolutionUniforms(displayW * targetPR, displayH * targetPR);
           refs.postHandle.composer.render();
           renderer.domElement.toBlob((blob) => {
-            // Restore original render size regardless of toBlob outcome.
-            renderer.setPixelRatio(originalPixelRatio);
-            renderer.setSize(displayW, displayH, false);
-            refs.postHandle.setSize(displayW * originalPixelRatio, displayH * originalPixelRatio);
-            if (refs.spaceBackground?.material?.uniforms?.uResolution) {
-              refs.spaceBackground.material.uniforms.uResolution.value.set(
-                displayW * originalPixelRatio,
-                displayH * originalPixelRatio,
-              );
-            }
-            if (refs.flowBackground?.material?.uniforms?.uResolution) {
-              refs.flowBackground.material.uniforms.uResolution.value.set(
-                displayW * originalPixelRatio,
-                displayH * originalPixelRatio,
-              );
-            }
-            frame = window.requestAnimationFrame(animate);
+            restore();
             if (blob) resolve(blob);
             else reject(new Error("toBlob returned null"));
           }, "image/png");
         } catch (error) {
-          renderer.setPixelRatio(originalPixelRatio);
-          renderer.setSize(displayW, displayH, false);
-          refs.postHandle.setSize(displayW * originalPixelRatio, displayH * originalPixelRatio);
-          frame = window.requestAnimationFrame(animate);
+          restore();
           reject(error);
         }
       });
