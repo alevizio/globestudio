@@ -35,6 +35,7 @@ export const shaderEffectOptions = [
   { value: "newsprint", label: "Newsprint" },
   { value: "aurora", label: "Aurora" },
   { value: "atkinson", label: "Atkinson dither" },
+  { value: "ascii", label: "ASCII" },
 ];
 
 // Risograph uses split for the misregistration distance between pink + cyan inks.
@@ -44,7 +45,7 @@ export const effectsWithScanlines = new Set(["crt", "pixel", "halftone", "glitch
 // not in effectsWithMotion intentionally so the slider hides for it.
 // Iridescent reuses cellSize for sparkle frequency and is motion-aware (hue cycle).
 // Risograph reuses cellSize for paper grain frequency.
-export const effectsWithCellSize = new Set(["pixel", "halftone", "crt", "stripes", "corrupt", "bayer", "iridescent", "risograph", "newsprint", "aurora", "atkinson"]);
+export const effectsWithCellSize = new Set(["pixel", "halftone", "crt", "stripes", "corrupt", "bayer", "iridescent", "risograph", "newsprint", "aurora", "atkinson", "ascii"]);
 export const effectsWithWarp = new Set(["bloom", "chromatic", "crt", "threshold", "wave"]);
 export const effectsWithMotion = new Set(["bloom", "chromatic", "crt", "halftone", "threshold", "glitch", "wave", "metal", "stripes", "badtv", "rgb", "chroma", "corrupt", "iridescent", "aurora"]);
 export const effectsWithThreshold = new Set(["threshold", "edge"]);
@@ -85,6 +86,9 @@ export const effectPresets = {
   newsprint: { ...baseDefaults, intensity: 85, cellSize: 7, grain: 8, scanlines: 0, motion: 0 },
   aurora: { ...baseDefaults, intensity: 70, cellSize: 14, grain: 0, scanlines: 0, motion: 45 },
   atkinson: { ...baseDefaults, intensity: 88, cellSize: 6, grain: 0, scanlines: 0, motion: 0 },
+  // Lower intensity = gentler contrast so mid-tones still pick up glyphs;
+  // cellSize is the character grid density. Mono ink-on-paper by design.
+  ascii: { ...baseDefaults, intensity: 30, cellSize: 9, grain: 0, scanlines: 0, motion: 0 },
 };
 
 export const presetForEffect = (effect) => effectPresets[effect] ?? effectPresets.none;
