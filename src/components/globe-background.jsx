@@ -452,10 +452,16 @@ export const GlobeBackground = ({
     const PIXEL_BUDGET = 4_500_000; // physical px ceiling for the live buffer
     const hardCap = isCoarsePointer ? 1.5 : 2;
     const dprFloor = isCoarsePointer ? 1 : 1.5;
-    const viewportArea = Math.max(1, window.innerWidth * window.innerHeight);
-    const areaCap = Math.sqrt(PIXEL_BUDGET / viewportArea);
-    const dprCap = Math.max(dprFloor, Math.min(hardCap, areaCap));
-    const initialDpr = Math.min(window.devicePixelRatio || 1, dprCap);
+    // Recomputed on resize (see resize()) so a window maximized onto a larger
+    // display re-tightens the cap instead of letting render-target memory grow
+    // unbounded with the viewport.
+    const computeDprCeiling = () => {
+      const viewportArea = Math.max(1, window.innerWidth * window.innerHeight);
+      const areaCap = Math.sqrt(PIXEL_BUDGET / viewportArea);
+      const dprCap = Math.max(dprFloor, Math.min(hardCap, areaCap));
+      return Math.min(window.devicePixelRatio || 1, dprCap);
+    };
+    let initialDpr = computeDprCeiling();
     renderer.setPixelRatio(initialDpr);
     mount.appendChild(renderer.domElement);
 
@@ -645,6 +651,18 @@ export const GlobeBackground = ({
       // any time the mount node actually changes size, so this stays fresh.
       threeRef.current.canvasWidth = rect.width;
       threeRef.current.canvasHeight = rect.height;
+      // Re-tighten the area-aware DPR ceiling for the new viewport. Always
+      // refresh the ceiling so the adaptive-FPS loop recovers to the right cap
+      // for the current size; additionally clamp the live pixel ratio down if
+      // the window grew past budget (e.g. maximized onto a large display),
+      // keeping renderer + composer in sync so the composer's offscreen targets
+      // shrink too — not just the default framebuffer + bg target. Only clamps
+      // down, so it never fights the adaptive loop's perf-driven downscale.
+      initialDpr = computeDprCeiling();
+      if (renderer.getPixelRatio() > initialDpr) {
+        renderer.setPixelRatio(initialDpr);
+        postHandle.composer.setPixelRatio(initialDpr);
+      }
       renderer.setSize(width, height, false);
       postHandle.setSize(width, height);
       // Bg-only target uses the device-pixel size so it samples 1:1
