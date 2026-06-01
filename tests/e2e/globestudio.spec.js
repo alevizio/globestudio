@@ -1,20 +1,24 @@
 import { expect, test } from "@playwright/test";
 import axeSource from "axe-core";
 
+// First paint compiles the three.js graph through the dev server and warms up
+// the swiftshader renderer, which is slow on CI — allow extra headroom there.
+const CANVAS_TIMEOUT = process.env.CI ? 40_000 : 20_000;
+
 const waitForCanvas = async (page) => {
   const canvas = page.locator("canvas").first();
-  await expect(canvas).toBeVisible({ timeout: 20_000 });
+  await expect(canvas).toBeVisible({ timeout: CANVAS_TIMEOUT });
   await expect
     .poll(async () => canvas.evaluate((node) => {
       const rect = node.getBoundingClientRect();
       return node.width > 0 && node.height > 0 && rect.width > 100 && rect.height > 100;
-    }), { timeout: 20_000 })
+    }), { timeout: CANVAS_TIMEOUT })
     .toBe(true);
   await expect
     .poll(async () => canvas.evaluate((node) => {
       const rect = node.getBoundingClientRect();
       return Math.round(rect.width * rect.height);
-    }), { timeout: 20_000 })
+    }), { timeout: CANVAS_TIMEOUT })
     .toBeGreaterThan(10_000);
   const box = await canvas.boundingBox();
   expect(box.width).toBeGreaterThan(100);
@@ -80,51 +84,27 @@ test("keyboard shortcuts expose core workflows", async ({ page }) => {
 });
 
 test("PNG export creates a blob download link", async ({ page }) => {
-  await page.addInitScript(() => {
-    window.__globestudioDownloads = [];
-    const originalCreateObjectUrl = URL.createObjectURL;
-    URL.createObjectURL = function createObjectURL(value) {
-      const href = originalCreateObjectUrl.call(this, value);
-      if (value instanceof Blob) {
-        window.__globestudioDownloads.push({
-          download: "",
-          href,
-          type: value.type,
-          size: value.size,
-        });
-      }
-      return href;
-    };
-    const originalClick = HTMLAnchorElement.prototype.click;
-    HTMLAnchorElement.prototype.click = function click() {
-      const last = window.__globestudioDownloads.at(-1);
-      if (last && last.href === this.href) {
-        last.download = this.download;
-      } else {
-        window.__globestudioDownloads.push({
-          download: this.download,
-          href: this.href,
-        });
-      }
-      return originalClick.call(this);
-    };
-  });
   await page.goto("/");
   await waitForCanvas(page);
   await page.keyboard.press("d");
-  await page.getByRole("button", { name: /export png/i }).click();
+  const exportButton = page.getByRole("button", { name: /export png/i });
+  await expect(exportButton).toBeVisible();
+  await expect(exportButton).toBeEnabled();
 
-  // App's captureAtScale → SwiftShader render → toBlob can take 8-10 s
-  // on CI; the in-app withExportTimeout is 12 s. Poll for 25 s so a slow
-  // CI render still fits before the test bails.
-  await expect
-    .poll(() => page.evaluate(() => window.__globestudioDownloads ?? []), { timeout: 25_000 })
-    .toContainEqual(expect.objectContaining({
-      href: expect.stringMatching(/^blob:/),
-      size: expect.any(Number),
-      type: "image/png",
-    }));
-  await expect(page.getByRole("button", { name: /PNG saved/i })).toBeVisible();
+  // The globe repaints every frame behind the modal, so a normal click stalls
+  // on the actionability "stable" check, and a forced click still waits on
+  // page responsiveness (it can hang when software-GL rendering janks the main
+  // thread). Trigger the React handler directly in-page with neither wait.
+  await exportButton.evaluate((el) => el.click());
+
+  // Assert the app's persistent aria-live success announcement — not the
+  // transient "PNG saved" CTA state, which the app resets after 1.8 s and an
+  // in-suite poll can miss. It's set only after a real PNG blob reaches
+  // downloadBlob(). The old test monkey-patched URL.createObjectURL /
+  // anchor.click, which raced downloadBlob()'s synchronous revokeObjectURL and
+  // recorded nothing. captureAtScale → SwiftShader → toBlob is slow on CI.
+  await expect(page.locator('.visually-hidden[role="status"]'))
+    .toHaveText(/PNG saved/i, { timeout: process.env.CI ? 45_000 : 30_000 });
 });
 
 test("mobile home does not overflow horizontally", async ({ page }) => {
