@@ -67,6 +67,54 @@ emails before launch (don't go silent then surprise them). Launch-day email:
 plain subject, one platform-matched ask ("we're live on PH — a comment about
 what you'd build means more than an upvote"), link PH (designers) + repo (devs).
 
+## Partnerships — GlobeKit handoff (warm, orphaned audience)
+
+[GlobeKit](https://rallyinteractive.com/case-studies/globekit/) (Rally
+Interactive, 2017→~2020) was a **paid WebAssembly + WebGL globe SDK** — used by
+PayPal, GitHub, Hertz; Awwwards/FWA honored — now **discontinued**. It's the
+commercial, code-SDK ancestor of Globestudio; Globestudio is the *free, OSS,
+designer-accessible* successor. A discontinued tool = an **orphaned audience of
+exactly our users**. Asymmetric bet: ~15 min to write, near-zero downside.
+
+Prizes, ranked:
+| # | Ask | Value |
+|---|---|---|
+| 1 | **"Recommended successor" line / redirect on the GlobeKit page** | Years of backlinks (Awwwards, FWA, Comm Arts, Dribbble, One Page Love) + ranks for "interactive globe" → warm targeted traffic + link equity. *The big one.* |
+| 2 | **Their war stories — why it didn't sustain commercially** | Priceless GTM intel, esp. before betting on any paid tier. The sunset itself signals a paid globe SDK is hard to keep alive. |
+| 3 | **Endorsement / nod from the GlobeKit team** | Launch-day social proof with the design crowd. |
+| 4 | **@GlobeKit handle / domain** (if truly dead) | Bigger ask — save for later. |
+
+Approach (it's a design studio — they judge on taste):
+- Lead with **specific admiration**, frame around **their users, not our growth**. First ask tiny (feedback), not the big one (redirect).
+- Show the **real app** (shareable preview link), not the teaser.
+- Find a **founder/principal**, not a generic inbox.
+- Time it **with launch** — link is live + impressive; open with "you'd be among the first to see it."
+- **Honesty:** Globestudio is free/OSS, *not* a supported commercial SDK (some GlobeKit customers paid for SLAs) — lean into "free, open, designer-first" as the *different* thing. Don't imply a fork; it's our own Three.js build, parallel evolution.
+
+Draft email (designer-to-designer, ~150 words):
+> **Subject: A spiritual successor to GlobeKit (and a thank-you)**
+>
+> Hi [name] — GlobeKit was one of my favorite tools. The six-globe showcase,
+> the Founders Grotesk anchor, the NatGeo origin story — it set the bar for what
+> a data globe could feel like.
+>
+> I was sad to see it wind down, so I built something in its spirit:
+> **Globestudio** — a free, open-source globe editor for designers. No-code
+> styling, PNG/SVG/MP4 export, embeddable, even a Figma plugin. It's the
+> successor I wished existed when GlobeKit went away. Early look: [link]
+>
+> Two things, no pressure: (1) I'd genuinely value your honest read — you know
+> this space better than anyone. (2) If you ever get GlobeKit refugees asking for
+> an alternative, I'd be honored to be where you point them.
+>
+> Either way — thank you for GlobeKit. It mattered.
+>
+> [you]
+
+The frictionless one-liner to *offer* them for the GlobeKit page: *"GlobeKit is
+no longer maintained — for a free, open-source alternative, we recommend
+[Globestudio](https://globestudio.app)."*
+
 ## SEO — keyword clusters → pages
 
 | Cluster | Intent | Terms | Page |
