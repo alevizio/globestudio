@@ -113,6 +113,35 @@ export const createAsciiCanvasTexture = (symbol) => {
   return texture;
 };
 
+// Build a horizontal glyph-ramp atlas for the ASCII post-effect: N monospace
+// characters from darkest→brightest, each rendered white in its own square
+// cell. The shader picks a cell by source luminance and stamps it in ink.
+// flipY=false so the shader can map cell-local UV straight into the atlas.
+export const createAsciiRampTexture = (chars = " .:-=+*#%@") => {
+  const list = Array.from(chars);
+  const cell = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = cell * list.length;
+  canvas.height = cell;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return { texture: null, count: list.length };
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `700 ${Math.round(cell * 0.78)}px ui-monospace, SFMono-Regular, Menlo, monospace`;
+  list.forEach((ch, i) => {
+    ctx.fillText(ch, i * cell + cell / 2, cell / 2 + 2);
+  });
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.flipY = false;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
+  texture.needsUpdate = true;
+  return { texture, count: list.length };
+};
+
 export const createAsciiPlaneGeometry = () => {
   const geometry = new THREE.PlaneGeometry(2.6, 2.6);
   geometry.rotateX(-Math.PI / 2);

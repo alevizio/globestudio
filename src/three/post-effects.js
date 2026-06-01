@@ -3,6 +3,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { createAsciiRampTexture } from "./geometry.js";
 
 export const EFFECT_INDEX = {
   none: 0,
@@ -29,6 +30,7 @@ export const EFFECT_INDEX = {
   newsprint: 21,
   aurora: 22,
   atkinson: 23,
+  ascii: 24,
 };
 
 const VERTEX_SHADER = /* glsl */ `
@@ -61,6 +63,9 @@ const FRAGMENT_SHADER = /* glsl */ `
   // pattern shaders (halftone etc.) mark only the globe while the
   // starfield bg shows cleanly in the gaps.
   uniform sampler2D uBgTexture;
+  // ASCII glyph-ramp atlas (N monospace chars, dark→bright) + its glyph count.
+  uniform sampler2D uAsciiAtlas;
+  uniform float uAsciiCount;
 
   varying vec2 vUv;
 
@@ -1063,6 +1068,27 @@ const FRAGMENT_SHADER = /* glsl */ `
     return vec4(vec3(r.r, src.g, b.b), src.a);
   }
 
+  // True ASCII-art: quantize the frame into monospace cells, read each cell's
+  // source luminance, pick a glyph from the brightness ramp (dark→bright), and
+  // stamp it in ink. uCellSize = cell edge in px; uIntensity boosts contrast so
+  // the continents read as dense glyphs. Returns ink colour with the glyph's
+  // coverage as alpha, so the bg composite at the end of main() shows the page
+  // (paper) colour through the gaps between characters.
+  vec4 asciiPass(vec2 uv) {
+    float cell = max(4.0, uCellSize);
+    vec2 fragPx = uv * uResolution;
+    vec2 cellOrigin = floor(fragPx / cell) * cell;
+    vec2 cellCenter = (cellOrigin + cell * 0.5) / uResolution;
+    vec4 src = sampleTex(cellCenter);
+    float lum = dot(src.rgb, vec3(0.299, 0.587, 0.114)) * src.a;
+    lum = clamp((lum - 0.5) * (1.0 + uIntensity * 2.5) + 0.5, 0.0, 1.0);
+    float gi = floor(clamp(lum, 0.0, 0.9999) * uAsciiCount);
+    vec2 local = fract(fragPx / cell);
+    vec2 atlasUv = vec2((gi + local.x) / uAsciiCount, 1.0 - local.y);
+    float glyph = texture2D(uAsciiAtlas, atlasUv).r;
+    return vec4(uInk, glyph);
+  }
+
   void main() {
     vec4 color = sampleTex(vUv);
 
@@ -1112,6 +1138,8 @@ const FRAGMENT_SHADER = /* glsl */ `
       color = auroraPass(vUv);
     } else if (uEffect > 22.5 && uEffect < 23.5) {
       color = atkinsonPass(vUv);
+    } else if (uEffect > 23.5 && uEffect < 24.5) {
+      color = asciiPass(vUv);
     }
 
     if (uEffect > 0.5 && uGrain > 0.0) {
@@ -1145,6 +1173,9 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
   bloomPass.enabled = false;
   composer.addPass(bloomPass);
 
+  // Glyph-ramp atlas for the ASCII effect, built once and reused.
+  const asciiRamp = createAsciiRampTexture();
+
   const customPass = new ShaderPass({
     uniforms: {
       tDiffuse: { value: null },
@@ -1172,6 +1203,8 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
       // globe while the bg (stars + nebula) shows cleanly behind in the
       // gaps. Set by the render loop; the bgTarget is updated each frame.
       uBgTexture: { value: bgTexture ?? null },
+      uAsciiAtlas: { value: asciiRamp.texture },
+      uAsciiCount: { value: asciiRamp.count },
     },
     vertexShader: VERTEX_SHADER,
     fragmentShader: FRAGMENT_SHADER,
@@ -1190,6 +1223,7 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
     dispose() {
       bloomPass.dispose?.();
       composer.dispose?.();
+      asciiRamp.texture?.dispose?.();
     },
   };
 };
