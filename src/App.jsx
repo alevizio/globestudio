@@ -33,6 +33,7 @@ import { createDottedSvg } from "./utils/svg-markup.js";
 import {
   buildExportFilename,
   copyTextToClipboard,
+  dataUrlToBlob,
   downloadBlob,
   exportScaleValue,
   pickVideoMimeType,
@@ -1057,12 +1058,15 @@ const App = () => {
       context.imageSmoothingEnabled = true;
       context.imageSmoothingQuality = "high";
       context.drawImage(activeGlobeCanvas, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((pngBlob) => {
-        if (pngBlob) {
-          downloadBlob(pngBlob, filename);
-          flashPngSaved();
-        }
-      }, "image/png");
+      // Encode synchronously via toDataURL rather than the async canvas.toBlob:
+      // under software WebGL the toBlob callback can be starved by the running
+      // render loop and never fire, leaving the export silently hung. toDataURL
+      // blocks until it returns, so the export always completes.
+      const pngBlob = dataUrlToBlob(canvas.toDataURL("image/png"));
+      if (pngBlob) {
+        downloadBlob(pngBlob, filename);
+        flashPngSaved();
+      }
       return;
     }
 
