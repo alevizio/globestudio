@@ -333,6 +333,9 @@ export const EmbedView = () => {
       <Suspense fallback={<div className="embed-view-placeholder" aria-hidden="true" />}>
         <GlobeBackground
           mapData={mapData}
+          // Only the Figma-plugin embed reads the canvas back (Insert flow);
+          // plain showcase/teaser iframes can skip the preserved buffer.
+          exportable={params.plugin === "figma"}
           selectedDots={new Set()}
           dotColor={settings.dotColor}
           dotSize={settings.dotSize}

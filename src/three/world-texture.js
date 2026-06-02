@@ -328,7 +328,9 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 8;
+  // 4 matches the other globe textures (three/geometry.js) and halves the
+  // anisotropic sampling work versus 8 — imperceptible on the solid-mode limb.
+  texture.anisotropy = 4;
   texture.needsUpdate = true;
   return texture;
 };

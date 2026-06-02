@@ -107,6 +107,12 @@ export const GlobeBackground = ({
   dotsVisible,
   background,
   interactive = true,
+  // Whether this instance's canvas is ever read back (PNG download / Figma
+  // Insert). When false we let the WebGL renderer page-flip instead of keeping
+  // a preserved drawing buffer — cheaper VRAM + one fewer copy per frame, which
+  // adds up on the multi-globe showcase/teaser pages. The main app and the
+  // Figma-plugin embed pass true so their capture paths keep working.
+  exportable = true,
   morphMode = "globe",
   morphTransition = null,
   transparent,
@@ -424,7 +430,9 @@ export const GlobeBackground = ({
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
-      preserveDrawingBuffer: true,
+      // Only the export-capable instances (main app download, Figma Insert)
+      // need the buffer preserved for read-back; plain embeds page-flip.
+      preserveDrawingBuffer: exportable,
     });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
