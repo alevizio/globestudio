@@ -1872,6 +1872,11 @@ const StripeShowcase = () => {
         gap: 0,
       }}
     >
+      {/* Mobile-only white veil over the globe, spanning nav-bottom → logo
+          strip (inset:0 in the inner). z-index:-1 keeps it under the copy, but
+          since the inner is its own z2 layer it still sits above the globe
+          (z1). Lifts the centered text off the busy globe. */}
+      <div className="stripe-hero-scrim" aria-hidden="true" />
       {/* Center the copy block in the flow rectangle — this wrapper grows to
           fill the space above the marquee and centers the copy on both axes. */}
       <div style={{ flex: "1 1 auto", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100%" }}>

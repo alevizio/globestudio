@@ -390,6 +390,13 @@
   color: #4a4031;
 }
 
+/* Mobile-only decorations: hidden on desktop so they never affect that layout.
+   The hamburger is a flex child of every company nav (would otherwise claim a
+   gap slot); the Stripe scrim is a hero overlay. Both flip to visible only in
+   the phone media query below. */
+.showcase-nav-burger { display: none; }
+.stripe-hero-scrim { display: none; }
+
 @media (max-width: 760px) {
   .newsroom .news-body { grid-template-columns: 1fr; }
   /* Lead the mobile front page with "The World, Rendered" right under the
@@ -465,5 +472,22 @@
     background: #fff;
     position: relative;
     z-index: 3;
+  }
+  /* Soft white veil over the globe across the hero (nav-bottom → logo strip),
+     so the centered copy reads cleanly. Strongest behind the text, fading to
+     let the globe show near the top + bottom edges. */
+  .showcase--stripe .stripe-hero-scrim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.2) 0%,
+      rgba(255, 255, 255, 0.58) 22%,
+      rgba(255, 255, 255, 0.58) 74%,
+      rgba(255, 255, 255, 0.18) 100%
+    );
   }
 }
