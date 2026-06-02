@@ -232,24 +232,33 @@ export const EmbedView = () => {
     if (!settings.transparent) return undefined;
     const html = document.documentElement;
     const body = document.body;
+    const meta = document.querySelector('meta[name="color-scheme"]');
     const prevHtml = html.style.background;
     const prevBody = body.style.background;
     const prevColorScheme = html.style.colorScheme;
+    const prevMeta = meta ? meta.getAttribute("content") : null;
     html.style.background = "transparent";
     body.style.background = "transparent";
-    // The app declares color-scheme: dark (meta + :root), which makes
-    // Chromium paint an opaque UA backdrop behind the (otherwise fully
-    // transparent) embed document. Drop to the neutral scheme so the
-    // embed doesn't impose its own opaque backdrop. NOTE: the decisive
-    // fix lives on the EMBEDDER side — Chromium ties an iframe's backdrop
-    // opacity to the *embedder's* color-scheme, so a transparent host
-    // must also set color-scheme on the iframe element (see examples-page
-    // LazyGlobe). This line keeps the embed itself neutral regardless.
-    html.style.colorScheme = "normal";
+    // The app declares color-scheme: dark (meta + :root), which makes Chromium
+    // paint an OPAQUE dark UA backdrop behind the iframe *document* — even though
+    // the WebGL canvas clears at alpha 0 and every wrapper background is
+    // transparent. A host page CANNOT override a cross-origin iframe document's
+    // used color-scheme (setting color-scheme on the iframe element or the host
+    // <meta> does nothing across origins), so the only way to drop that backdrop
+    // is to force a light used-scheme from INSIDE the embed. "normal" is not
+    // enough — the dark <meta name="color-scheme"> still wins — so we set
+    // "only light" on the root AND override the meta. The backdrop then becomes
+    // transparent and the host page shows through the glyph gaps on any
+    // light / cream / brand-colored page. (color-scheme only affects the UA
+    // backdrop + form chrome, never the WebGL render, so dark-theme globes still
+    // composite correctly over whatever background the host provides.)
+    html.style.colorScheme = "only light";
+    if (meta) meta.setAttribute("content", "only light");
     return () => {
       html.style.background = prevHtml;
       body.style.background = prevBody;
       html.style.colorScheme = prevColorScheme;
+      if (meta && prevMeta !== null) meta.setAttribute("content", prevMeta);
     };
   }, [settings.transparent]);
 
