@@ -1198,10 +1198,15 @@ const NewsShowcase = () => {
             <div className="news-photo-frame">
               <div className="news-globe" style={globeStyle}>
                 <LazyGlobe
-                src={brandEmbedUrl("default", "news", "examples-news", {
+                src={brandEmbedUrl("halftone", "news", "examples-news", {
                   theme: "light",
                   config: {
                     selection: "world",
+                    // Transparent so the newspaper-cream page shows THROUGH the
+                    // iframe and the halftone globe reads as dark-ink press photo
+                    // on paper. Same-origin embeds skip the `only light` UA scheme
+                    // (see embed-view.jsx + index.html) that used to paint a white
+                    // box over the cream.
                     transparent: true,
                     background: "#f1e8d4",
                     density: 90,
