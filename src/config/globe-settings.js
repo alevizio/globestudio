@@ -4,7 +4,12 @@ export const GLOBE_FLAT_FIT_ASPECT = 0.96;
 export const GLOBE_ROUND_FIT_ASPECT = 1.45;
 export const GLOBE_INITIAL_ROTATION = { x: -0.14, y: -0.9 };
 export const GLOBE_MORPH_DURATION = 1700;
-export const GLOBE_DEFAULT_GLOW = "#e9e4d8";
+// Default atmosphere glow for white-dot looks (the hero). Cool blue, in the
+// same family as the WebGL halo (#4c8bff) and the cyan canvas drop-shadow —
+// the previous warm near-white (#e9e4d8) read as an off-palette white wash
+// on the hero globe. Looks that pick their own dot color drive the glow from
+// that color instead, so this only affects the default white-dot looks.
+export const GLOBE_DEFAULT_GLOW = "#8bb4ff";
 
 export const DEFAULT_GLOBE_SETTINGS = {
   // Auto spin is exposed as a single 0–100 slider: 0 = no spin, 100 =

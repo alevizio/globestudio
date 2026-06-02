@@ -3217,9 +3217,12 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* Cool cyan core → blue bleed, matching the WebGL halo (#4c8bff) and the
+     cyan canvas drop-shadow. No white/cream layer — a near-white radial
+     here read as an off-palette "white glow" wash behind the hero globe. */
   background:
-    radial-gradient(circle at 50% 48%, rgba(219, 232, 181, 0.028), transparent calc(var(--globe-glow-spread, 50%) * 0.7)),
-    radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.042), transparent var(--globe-glow-spread, 50%));
+    radial-gradient(circle at 50% 48%, rgba(124, 210, 255, 0.05), transparent calc(var(--globe-glow-spread, 50%) * 0.7)),
+    radial-gradient(circle at 50% 48%, rgba(76, 139, 255, 0.055), transparent var(--globe-glow-spread, 50%));
   opacity: var(--globe-bg-glow-opacity, 0.54);
   filter: blur(var(--globe-glow-blur, 0px));
 }
@@ -3228,7 +3231,7 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   background:
     radial-gradient(circle at 56% 42%, rgba(119, 222, 255, 0.16), transparent calc(var(--globe-glow-spread, 50%) * 0.55)),
     radial-gradient(circle at 46% 56%, rgba(168, 133, 255, 0.13), transparent calc(var(--globe-glow-spread, 50%) * 0.75)),
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.055), transparent calc(var(--globe-glow-spread, 50%) * 1.05));
+    radial-gradient(circle at 50% 50%, rgba(119, 222, 255, 0.05), transparent calc(var(--globe-glow-spread, 50%) * 1.05));
   mix-blend-mode: screen;
 }
 
