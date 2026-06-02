@@ -72,6 +72,10 @@ const slimCountriesPlugin = () => {
 
 export default defineConfig({
   base: "/",
+  // The teaser is the default index and its LiquidMetal logo pulls in this
+  // shader lib through a lazy chunk. Pre-bundle it so the first teaser load
+  // doesn't 504 on an on-demand optimize-dep re-run.
+  optimizeDeps: { include: ["@paper-design/shaders-react"] },
   plugins: [react(), slimCountriesPlugin(), teaserNoindexPlugin()],
   test: {
     environment: "jsdom",

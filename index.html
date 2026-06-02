@@ -34,9 +34,21 @@
           var de = document.documentElement;
           de.setAttribute("data-embed-transparent", "");
           de.style.background = "transparent";
-          de.style.colorScheme = "only light";
-          var meta = document.querySelector('meta[name="color-scheme"]');
-          if (meta) meta.setAttribute("content", "only light");
+          // Same-origin embeds (our teaser/showcase iframes) are made see-through
+          // by the host setting the iframe element's color-scheme: normal, so the
+          // host background shows through — forcing "only light" here would paint a
+          // white box over it. Only cross-origin / top-level embeds need the forced
+          // light scheme to drop Chromium's opaque dark backdrop on a light host.
+          var sameOrigin = false;
+          try {
+            sameOrigin = window.top !== window.self &&
+              window.parent.location.origin === location.origin;
+          } catch (e) {}
+          if (!sameOrigin) {
+            de.style.colorScheme = "only light";
+            var meta = document.querySelector('meta[name="color-scheme"]');
+            if (meta) meta.setAttribute("content", "only light");
+          }
         } catch (e) {}
       })();
     </script>

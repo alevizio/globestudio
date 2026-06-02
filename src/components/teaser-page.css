@@ -83,6 +83,10 @@
   height: 100%;
   border: 0;
   background: transparent;
+  /* color-scheme: normal drops Chromium's opaque UA backdrop on this
+     same-origin iframe so the dark teaser shows through cleanly (the embed
+     itself no longer forces a scheme — see embed-view.jsx / index.html). */
+  color-scheme: normal;
 }
 
 /* Legibility veil so the copy reads over the globe. */

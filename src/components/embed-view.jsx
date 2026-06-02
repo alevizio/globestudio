@@ -240,20 +240,33 @@ export const EmbedView = () => {
     html.style.background = "transparent";
     body.style.background = "transparent";
     // The app declares color-scheme: dark (meta + :root), which makes Chromium
-    // paint an OPAQUE dark UA backdrop behind the iframe *document* — even though
-    // the WebGL canvas clears at alpha 0 and every wrapper background is
-    // transparent. A host page CANNOT override a cross-origin iframe document's
-    // used color-scheme (setting color-scheme on the iframe element or the host
-    // <meta> does nothing across origins), so the only way to drop that backdrop
-    // is to force a light used-scheme from INSIDE the embed. "normal" is not
-    // enough — the dark <meta name="color-scheme"> still wins — so we set
-    // "only light" on the root AND override the meta. The backdrop then becomes
-    // transparent and the host page shows through the glyph gaps on any
-    // light / cream / brand-colored page. (color-scheme only affects the UA
-    // backdrop + form chrome, never the WebGL render, so dark-theme globes still
-    // composite correctly over whatever background the host provides.)
-    html.style.colorScheme = "only light";
-    if (meta) meta.setAttribute("content", "only light");
+    // paint an OPAQUE UA backdrop behind the iframe *document* even though the
+    // WebGL canvas clears at alpha 0 and every wrapper background is transparent.
+    //
+    // For SAME-ORIGIN embeds (our own teaser hero + showcase iframes) the HOST
+    // drops that backdrop by setting the iframe element's `color-scheme: normal`
+    // (see LazyGlobe / teaser-page.css) — so the host's own background (dark
+    // teaser, cream newspaper, …) shows through. We must NOT force a scheme here
+    // in that case: forcing "only light" paints a WHITE box over the host, and
+    // forcing "only dark" a dark one. Leave the document's scheme alone and let
+    // the host composite it.
+    //
+    // CROSS-ORIGIN / top-level embeds can't have their iframe color-scheme set by
+    // the host, so the only way to drop the opaque dark backdrop on a light host
+    // page is to force a light used-scheme from inside the embed. "normal" isn't
+    // enough (the dark <meta> still wins), so set "only light" + override the meta.
+    let sameOriginFrame = false;
+    try {
+      sameOriginFrame =
+        window.top !== window.self &&
+        window.parent.location.origin === window.location.origin;
+    } catch {
+      sameOriginFrame = false; // cross-origin parent access throws
+    }
+    if (!sameOriginFrame) {
+      html.style.colorScheme = "only light";
+      if (meta) meta.setAttribute("content", "only light");
+    }
     return () => {
       html.style.background = prevHtml;
       body.style.background = prevBody;
