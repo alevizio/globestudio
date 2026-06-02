@@ -24,6 +24,27 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { Resvg } from "@resvg/resvg-js";
 import { lookPresets } from "../src/data/look-presets.js";
+import { buildShareUrl } from "../src/utils/share-config.js";
+
+// The teaser hero globe — mirrors TEASER_GLOBE in src/components/teaser-page.jsx
+// (CRT phosphor + ASCII block dots + network arcs), but rendered on its solid
+// dark background (transparent:false) so the OG card reads as a dark scene like
+// the preset cards instead of compositing over nothing.
+const TEASER_GLOBE = {
+  selection: "world",
+  transparent: false,
+  background: "#020a10",
+  density: 70,
+  dotSize: 14,
+  dotColor: "#ffffff",
+  shape: "ASCII",
+  asciiSymbol: "█",
+  renderMode: "dots",
+  worldFill: "#5a5a64",
+  worldStroke: "#f6f2ea",
+  shaderSettings: { intensity: 65, split: 8, grain: 10, scanlines: 78, cellSize: 9, threshold: 50, warp: 30, motion: 30, effect: "crt" },
+  globeSettings: { autoSpin: true, autoSpinSpeed: 35, dotLift: 15, glow: true, glowStrength: 65, glowSpread: 50, grid: true, gridColor: "#ffffff", gridSize: 30, gridStrength: 45, network: true, networkStrength: 70, networkArcs: 60, networkPulses: 50, networkMono: true, routes: true, routesStrength: 82, surface: true, surfaceStrength: 30, surfaceColor: "#18191d" },
+};
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
@@ -248,8 +269,52 @@ const main = async () => {
     console.log(`  wrote ${outPath} (${composedPng.length} bytes)`);
   }
 
+  // --- Teaser OG card: the hero CRT globe + teaser copy, same chrome/layout as
+  //     the preset cards. Run `node scripts/capture-og-canvas.js teaser` to
+  //     (re)build just this one. ---
+  const wantTeaser = argFilter.length === 0 || argFilter.includes("teaser");
+  if (wantTeaser) {
+    const teaserUrl = buildShareUrl(TEASER_GLOBE, DEV, "/embed");
+    console.log(`→ teaser (${teaserUrl})`);
+    await page.goto(teaserUrl, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForSelector("canvas", { timeout: 10000 });
+    await page.addStyleTag({
+      content: `.perf-monitor, .keyboard-hint, .onboarding-hint { display: none !important; }`,
+    });
+    await page.waitForTimeout(4000);
+    const canvasPng = await page.screenshot({
+      type: "png",
+      clip: { x: CROP_X, y: CROP_Y, width: W, height: H },
+    });
+    const accent = "#52d8ff";
+    const headlines = [
+      { text: "Something worldly", color: "#f6f2ea" },
+      { text: "is coming.", color: accent },
+    ];
+    const overlaySvg = buildOverlay({ headlines, accent, url: "globestudio.app" });
+    const overlayPng = new Resvg(overlaySvg, {
+      fitTo: { mode: "width", value: W },
+      font: { loadSystemFonts: true },
+      background: "rgba(0,0,0,0)",
+    })
+      .render()
+      .asPng();
+    const composedSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+      <image href="data:image/png;base64,${canvasPng.toString("base64")}" width="${W}" height="${H}"/>
+      <image href="data:image/png;base64,${overlayPng.toString("base64")}" width="${W}" height="${H}"/>
+    </svg>`;
+    const composedPng = new Resvg(composedSvg, {
+      fitTo: { mode: "width", value: W },
+    })
+      .render()
+      .asPng();
+    const outPath = resolve(outputDir, "teaser.png");
+    writeFileSync(outPath, composedPng);
+    console.log(`  wrote ${outPath} (${composedPng.length} bytes)`);
+  }
+
   await browser.close();
-  console.log(`Done. ${presets.length} OG cards captured.`);
+  console.log(`Done.`);
 };
 
 main().catch((err) => {

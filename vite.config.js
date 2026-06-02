@@ -47,9 +47,18 @@ const teaserNoindexPlugin = () => ({
   name: "teaser-noindex",
   transformIndexHtml(html) {
     if (process.env.VITE_TEASER !== "1") return html;
-    return html.replace(
-      "</head>",
-      '    <meta name="robots" content="noindex, nofollow" />\n  </head>',
+    return (
+      html
+        // Hide the pre-launch teaser from search engines.
+        .replace(
+          "</head>",
+          '    <meta name="robots" content="noindex, nofollow" />\n  </head>',
+        )
+        // While in teaser mode the index IS the coming-soon teaser, so the
+        // share card should be the teaser OG (the hero CRT globe), not the
+        // default preset card. Swaps og:image + twitter:image; reverts
+        // automatically once VITE_TEASER is unset.
+        .replace(/og\/default\.png/g, "og/teaser.png")
     );
   },
 });
