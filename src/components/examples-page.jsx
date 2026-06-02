@@ -1875,7 +1875,7 @@ const StripeShowcase = () => {
       {/* Center the copy block in the flow rectangle — this wrapper grows to
           fill the space above the marquee and centers the copy on both axes. */}
       <div style={{ flex: "1 1 auto", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100%" }}>
-      <div style={{ maxWidth: 1180, transform: "translate(64px, -48px)" }}>
+      <div className="stripe-hero-copy" style={{ maxWidth: 1180, transform: "translate(64px, -48px)" }}>
         <div
           style={{
             fontSize: 14,
