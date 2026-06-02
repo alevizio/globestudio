@@ -22,7 +22,7 @@ import { useTrackpadZoom } from "./hooks/use-trackpad-zoom.js";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts.js";
 import { usePrefetchHeavyChunks } from "./hooks/use-prefetch-heavy-chunks.js";
 import { clampNumber } from "./utils/math.js";
-import { hexToRgb, invertGradient, invertHex } from "./utils/color.js";
+import { hexToRgb, invertHex } from "./utils/color.js";
 import { buildShareUrl, normalizeConfig } from "./utils/share-config.js";
 import {
   createCountryMapData,
@@ -599,26 +599,25 @@ const App = () => {
 
   const applyLook = useCallback((preset) => {
     const s = preset.settings;
-    // Look presets are authored against the dark canvas. When the user is
-    // in light theme, invert every color (RGB complement) so the preset
-    // still reads "right" — light dots stay visible against a cream bg,
-    // dark world-fills invert to light, gradients flip per stop. The
-    // shader-driven visual identity (Risograph ink, Aurora bands, dither
-    // patterns) is preserved because shaders use the base colors as inputs.
-    const themeColor = (c) => (uiTheme === "light" ? invertHex(c) : c);
-    const themeGradient = (g) => (uiTheme === "light" ? invertGradient(g) : g);
+    // Presets apply exactly as authored, in BOTH UI themes. Each look owns
+    // its canvas background + dot/fill/stroke colors — the same values that
+    // baked its OG card and gallery thumbnail. We deliberately do NOT
+    // theme-invert the canvas: RGB-complementing a hand-tuned dark
+    // background flashed a white canvas in light theme (e.g. Halftone's
+    // #0a0a0c → near-white) when a look loaded. The UI theme styles the
+    // panel chrome only; the globe is a theme-independent artifact.
     if (s.selection !== undefined) setSelection(s.selection);
     if (s.stateSelection !== undefined) setStateSelection(s.stateSelection);
-    if (s.background !== undefined) setBackground(themeColor(s.background));
+    if (s.background !== undefined) setBackground(s.background);
     if (s.transparent !== undefined) setTransparent(s.transparent);
     if (s.backgroundStyle !== undefined) setBackgroundStyle(s.backgroundStyle);
     if (s.spaceSettings) setSpaceSettings((current) => ({ ...current, ...s.spaceSettings }));
     if (s.flowSettings) setFlowSettings((current) => ({ ...current, ...s.flowSettings }));
     if (s.density !== undefined) setDensity(s.density);
     if (s.dotSize !== undefined) setDotSize(s.dotSize);
-    if (s.dotColor !== undefined) setDotColor(themeColor(s.dotColor));
+    if (s.dotColor !== undefined) setDotColor(s.dotColor);
     if (s.dotColorAlpha !== undefined) setDotColorAlpha(s.dotColorAlpha);
-    if (s.dotGradient !== undefined) setDotGradient(themeGradient(s.dotGradient));
+    if (s.dotGradient !== undefined) setDotGradient(s.dotGradient);
     if (s.dotsVisible !== undefined) setDotsVisible(s.dotsVisible);
     if (s.shape !== undefined) setShape(s.shape);
     if (s.dotRotation !== undefined) setDotRotation(s.dotRotation);
@@ -632,13 +631,13 @@ const App = () => {
     if (s.customShape !== undefined) setCustomShape(s.customShape);
     if (s.asciiSymbol !== undefined) setAsciiSymbol(s.asciiSymbol);
     if (s.renderMode !== undefined) setRenderMode(s.renderMode);
-    if (s.worldFill !== undefined) setWorldFill(themeColor(s.worldFill));
+    if (s.worldFill !== undefined) setWorldFill(s.worldFill);
     if (s.worldFillAlpha !== undefined) setWorldFillAlpha(s.worldFillAlpha);
-    if (s.worldFillGradient !== undefined) setWorldFillGradient(themeGradient(s.worldFillGradient));
+    if (s.worldFillGradient !== undefined) setWorldFillGradient(s.worldFillGradient);
     if (s.worldFillVisible !== undefined) setWorldFillVisible(s.worldFillVisible);
-    if (s.worldStroke !== undefined) setWorldStroke(themeColor(s.worldStroke));
+    if (s.worldStroke !== undefined) setWorldStroke(s.worldStroke);
     if (s.worldStrokeAlpha !== undefined) setWorldStrokeAlpha(s.worldStrokeAlpha);
-    if (s.worldStrokeGradient !== undefined) setWorldStrokeGradient(themeGradient(s.worldStrokeGradient));
+    if (s.worldStrokeGradient !== undefined) setWorldStrokeGradient(s.worldStrokeGradient);
     if (s.worldStrokeVisible !== undefined) setWorldStrokeVisible(s.worldStrokeVisible);
     if (s.worldStrokeWidth !== undefined) setWorldStrokeWidth(s.worldStrokeWidth);
     if (s.shaderSettings) setShaderSettings(s.shaderSettings);
@@ -658,7 +657,9 @@ const App = () => {
     // Privacy-respecting analytics: no PII, just which preset was
     // applied. See src/components/analytics.jsx for opt-out logic.
     track("preset_applied", { preset: preset.id });
-  }, [uiTheme]);
+    // Stable identity: applyLook reads nothing from render scope but the
+    // preset arg + stable setters, so it never needs to be re-created.
+  }, []);
 
   // Declared here (not at the top of the component body) so the
   // `applyLook` const above is already initialized — calling
@@ -1105,7 +1106,15 @@ const App = () => {
   const isSpaceBackground = backgroundStyle === "space";
   const isFlowBackground = backgroundStyle === "flow";
   const isTransparentBackground = backgroundStyle === "transparent" || transparent;
-  const effectiveTransparent = isTransparentBackground || isSpaceBackground || isFlowBackground;
+  // In light UI theme, a solid-background look renders see-through so the
+  // light page shows behind it — Halftone reads as ink on paper, not a stark
+  // white box (the old theme-invert) or a low-contrast dark fill. The canvas
+  // composites over the light page color, so this is a clean light surface,
+  // NOT the export-transparency checkerboard (that stays gated to a user-
+  // chosen transparent background). Space / flow looks keep their generative
+  // backgrounds in both themes.
+  const isLightCanvas = uiTheme === "light" && !isSpaceBackground && !isFlowBackground;
+  const effectiveTransparent = isTransparentBackground || isSpaceBackground || isFlowBackground || isLightCanvas;
 
   // Command-palette actions. Built fresh on every render — cheap, and
   // it means the closures always capture the latest values (current
@@ -1203,7 +1212,9 @@ const App = () => {
             ? FLOW_BACKGROUND_BASE
             : isTransparentBackground
               ? "#f4f4f4"
-              : background,
+              : isLightCanvas
+                ? "#f4f1ea"
+                : background,
         "--map-offset-x": `${mapOffset.x}px`,
         "--map-offset-y": `${mapOffset.y}px`,
         "--map-perspective": `${1800 - mapDepth * 14}px`,
