@@ -83,7 +83,7 @@ test("keyboard shortcuts expose core workflows", async ({ page }) => {
   await expect(page.getByText(/Shuffled to/i)).toBeVisible();
 });
 
-test("PNG export creates a blob download link", async ({ page }) => {
+test("PNG export announces 'PNG saved' via the aria-live status region", async ({ page }) => {
   await page.goto("/");
   await waitForCanvas(page);
   await page.keyboard.press("d");
@@ -97,12 +97,15 @@ test("PNG export creates a blob download link", async ({ page }) => {
   // thread). Trigger the React handler directly in-page with neither wait.
   await exportButton.evaluate((el) => el.click());
 
-  // Assert the app's persistent aria-live success announcement — not the
-  // transient "PNG saved" CTA state, which the app resets after 1.8 s and an
-  // in-suite poll can miss. It's set only after a real PNG blob reaches
-  // downloadBlob(). The old test monkey-patched URL.createObjectURL /
-  // anchor.click, which raced downloadBlob()'s synchronous revokeObjectURL and
-  // recorded nothing. captureAtScale → SwiftShader → toBlob is slow on CI.
+  // Assert the aria-live status region (bound to `statusMessage` in App.jsx),
+  // which flashPngSaved() sets to "PNG saved" after a real PNG blob reaches
+  // downloadBlob(). This text is NEVER cleared by a timer — only the button's
+  // separate `pngStatus` CTA resets to "idle" after 1.8 s — so it's stable to
+  // assert here even under slow CI software-GL captures. (Contract: if a future
+  // change adds a timer that clears `statusMessage`, this assertion will start
+  // flaking.) The old test monkey-patched URL.createObjectURL / anchor.click,
+  // which raced downloadBlob()'s synchronous revokeObjectURL and recorded
+  // nothing. captureAtScale → SwiftShader → toBlob is slow on CI.
   await expect(page.locator('.visually-hidden[role="status"]'))
     .toHaveText(/PNG saved/i, { timeout: process.env.CI ? 45_000 : 30_000 });
 });
