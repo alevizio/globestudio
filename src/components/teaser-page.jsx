@@ -164,19 +164,19 @@ export const TeaserPage = () => {
   const [appVisible, setAppVisible] = useState(false);
   useEffect(() => {
     const el = appWrapRef.current;
-    if (!el || appVisible) return undefined;
+    if (!el) return undefined;
+    // Bidirectional: mount the app-preview iframe (a full WebGL2 context + ~1MB
+    // of app code) when it nears the viewport, and UNMOUNT it once scrolled
+    // away — freeing the context so it doesn't sit live behind the hero +
+    // showcases and starve the browser's WebGL context cap (worst on mobile,
+    // ~8). The iframe re-mounts cheaply on scroll-back.
     const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setAppVisible(true);
-          obs.disconnect();
-        }
-      },
+      ([entry]) => setAppVisible(entry.isIntersecting),
       { rootMargin: "200px 0px" },
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [appVisible]);
+  }, []);
   // Defer the entire showcase stack (its own globe iframes + imagery) until the
   // user scrolls past the hero. Otherwise it loads eagerly on first paint and
   // steals bandwidth from the hero globe — which is what makes the globe take a

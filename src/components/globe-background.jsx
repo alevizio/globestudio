@@ -681,6 +681,10 @@ export const GlobeBackground = ({
 
     let frame = 0;
     let lastTime = window.performance.now();
+    // The loop runs only when the canvas is BOTH on-screen and the tab is
+    // visible. isOnScreen is driven by the IntersectionObserver set up after
+    // the loop starts; the tab side is handled by visibilitychange below.
+    let isOnScreen = true;
     const animate = (now) => {
       const delta = Math.min(48, now - lastTime);
       lastTime = now;
@@ -1027,6 +1031,25 @@ export const GlobeBackground = ({
     const perfState = { frames: 0, accum: 0, lastAdjustAt: 0 };
     frame = window.requestAnimationFrame(animate);
 
+    // Pause the loop while the canvas is scrolled out of view — a globe nobody
+    // can see shouldn't burn frames. Mirrors the tab-visibility pause below; the
+    // two combine via isOnScreen so the loop resumes only when on-screen AND the
+    // tab is visible.
+    const screenObserver = new IntersectionObserver(
+      ([entry]) => {
+        isOnScreen = entry.isIntersecting;
+        if (!isOnScreen) {
+          window.cancelAnimationFrame(frame);
+          frame = 0;
+        } else if (!document.hidden && !frame) {
+          lastTime = window.performance.now();
+          frame = window.requestAnimationFrame(animate);
+        }
+      },
+      { rootMargin: "120px" },
+    );
+    screenObserver.observe(mount);
+
     // Pause the render loop when the tab is hidden. Saves CPU/GPU/battery and
     // prevents the requestAnimationFrame throttling from causing a backlog of
     // catch-up frames when the user returns. Resume cleanly on visibility change.
@@ -1070,7 +1093,7 @@ export const GlobeBackground = ({
           resize();
           buffersReleased = false;
         }
-        if (!frame) {
+        if (!frame && isOnScreen) {
           // Reset lastTime so the first delta after resume isn't a giant jump.
           lastTime = window.performance.now();
           frame = window.requestAnimationFrame(animate);
@@ -1160,6 +1183,7 @@ export const GlobeBackground = ({
       renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
       renderer.domElement.removeEventListener("webglcontextrestored", handleContextRestored);
       observer.disconnect();
+      screenObserver.disconnect();
       if (canvasHandleRef) {
         canvasHandleRef.current = null;
       }
