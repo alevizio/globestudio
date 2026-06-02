@@ -120,28 +120,40 @@ const TeaserSkeleton = () => (
   </div>
 );
 
-// "Hidden till launch": set VITE_TEASER=1 on the pre-launch deploy and every
-// route serves the coming-soon teaser instead of the app. The team can
-// bypass by visiting any URL with ?preview (stored in localStorage); remove
-// the env var at launch to reveal the app.
-const TEASER_MODE = import.meta.env.VITE_TEASER === "1";
+// The pre-launch teaser is the index EVERYWHERE (dev + deploy) by default.
+// The app is reached only via the secret unlock path below (or ?preview) —
+// visiting it flips a persisted `gs_preview` flag that reveals the app from
+// then on, and drops the token from the URL. `?teaser` re-locks (handy for
+// previewing the teaser again). At launch, set VITE_TEASER=0 on the deploy to
+// retire the teaser and serve the app to everyone.
+const APP_UNLOCK_PATH = "/studio-d74dea52";
+const TEASER_MODE = import.meta.env.VITE_TEASER !== "0";
+
+// Run once at module load: if the URL is the secret unlock path, persist the
+// bypass and rewrite to "/" so the app boots at home with the token hidden.
+if (typeof window !== "undefined") {
+  try {
+    if (window.location.pathname === APP_UNLOCK_PATH) {
+      localStorage.setItem("gs_preview", "1");
+      window.history.replaceState(null, "", "/");
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 const isTeaserActive = () => {
+  // Prerender / SSR renders the real app so the static HTML carries app
+  // content + meta (the teaser takeover is a client-only decision).
   if (typeof window === "undefined") return false;
   try {
     const sp = new URLSearchParams(window.location.search);
-    // Non-persisting bypass for embedded app previews (the teaser's bottom
-    // showcase iframes the real app via /looks/:id?app=1). Doesn't touch
-    // localStorage, so it never leaks the bypass to the parent page.
+    // Non-persisting bypass for the teaser's embedded app-preview iframes
+    // (/looks/:id?app=1). Doesn't touch localStorage, so it never leaks.
     if (sp.has("app")) return false;
     if (sp.has("preview")) localStorage.setItem("gs_preview", "1");
-    // Dev-only quick preview: visit /?teaser to see the teaser without
-    // setting VITE_TEASER + rebuilding. /?preview turns it back off.
-    if (import.meta.env.DEV && sp.has("teaser")) {
-      localStorage.setItem("gs_teaser", "1");
-      localStorage.removeItem("gs_preview");
-    }
+    if (sp.has("teaser")) localStorage.removeItem("gs_preview"); // re-lock
     if (localStorage.getItem("gs_preview") === "1") return false;
-    if (import.meta.env.DEV && localStorage.getItem("gs_teaser") === "1") return true;
     return TEASER_MODE;
   } catch {
     return TEASER_MODE;
