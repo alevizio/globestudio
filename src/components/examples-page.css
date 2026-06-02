@@ -427,12 +427,41 @@
     max-width: 100%;
     overflow-wrap: break-word;
   }
-  /* Stripe mobile: pull the company nav flush to the very top (the section's
-     mobile 64px top padding floated the menu down), drop the desktop copy
-     transform that shoved the column right + up (it ran the headline off the
-     edge), and shrink the headline so it wraps cleanly. */
-  .showcase--stripe { overflow-x: clip; padding-top: 0; }
-  .showcase--stripe .showcase-inner { padding-left: 22px; padding-right: 22px; }
-  .showcase--stripe .stripe-hero-copy { transform: none !important; max-width: 100% !important; }
+  /* Stripe mobile: a centered single-column hero (desktop keeps its
+     left-anchored split, untouched). Nav flush to the very top, copy +
+     countries line + buttons centered, customer logos seated at the bottom on
+     a solid white strip. */
+  .showcase--stripe { overflow-x: clip; padding-top: 0; padding-bottom: 0; }
+  /* !important: the inner's bottom padding is an inline shorthand
+     (padding: 0 24px 34px), so a plain longhand wouldn't win — seat the logo
+     strip flush against the section bottom. */
+  .showcase--stripe .showcase-inner { padding-bottom: 0 !important; }
+  /* Drop the desktop copy transform (shoved the column right + up, ran the
+     headline off the edge) and center everything. */
+  .showcase--stripe .stripe-hero-copy {
+    transform: none !important;
+    max-width: 100% !important;
+    text-align: center;
+  }
+  .showcase--stripe .stripe-eyebrow { justify-content: center; }
   .showcase--stripe h2 { font-size: clamp(22px, 6.2vw, 30px) !important; }
+  /* Buttons: stacked, equal width, centered. */
+  .showcase--stripe .showcase-ctas {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center !important;
+    width: 100%;
+  }
+  .showcase--stripe .showcase-cta {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+  /* Customer logos: solid white strip flush to the section bottom (was a
+     transparent band floating over the globe). */
+  .showcase--stripe .stripe-logo-strip {
+    background: #fff;
+    position: relative;
+    z-index: 3;
+  }
 }

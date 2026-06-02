@@ -1877,6 +1877,7 @@ const StripeShowcase = () => {
       <div style={{ flex: "1 1 auto", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100%" }}>
       <div className="stripe-hero-copy" style={{ maxWidth: 1180, transform: "translate(64px, -48px)" }}>
         <div
+          className="stripe-eyebrow"
           style={{
             fontSize: 14,
             color: "#0d253d",
@@ -1961,7 +1962,7 @@ const StripeShowcase = () => {
           width (line to line, bleeding to the vertical rules) with a
           hairline above. Infinite scroll; the track holds the list twice
           for a seamless -50% loop. */}
-      <div style={{ width: "100vw", marginLeft: "calc(50% - 50vw)", borderTop: "1px solid rgba(10,37,64,0.1)", borderBottom: "1px solid rgba(10,37,64,0.1)", paddingTop: 24, paddingBottom: 24 }}>
+      <div className="stripe-logo-strip" style={{ width: "100vw", marginLeft: "calc(50% - 50vw)", borderTop: "1px solid rgba(10,37,64,0.1)", borderBottom: "1px solid rgba(10,37,64,0.1)", paddingTop: 24, paddingBottom: 24 }}>
         {/* Lines stay full-bleed; the logo track is clipped to the 1262
             container (the vertical rules) — no gutters, so logos crop exactly
             at the lines. */}
