@@ -428,10 +428,12 @@
     overflow-wrap: break-word;
   }
   /* Stripe mobile: a centered single-column hero (desktop keeps its
-     left-anchored split, untouched). Nav flush to the very top, copy +
-     countries line + buttons centered, customer logos seated at the bottom on
-     a solid white strip. */
-  .showcase--stripe { overflow-x: clip; padding-top: 0; padding-bottom: 0; }
+     left-anchored split, untouched). Full-bleed the section (padding:0) so the
+     company nav's frosted bar + bottom hairline reach the screen edges and the
+     logo strip spans edge to edge; the nav-inner + copy keep their own insets.
+     Nav flush to the top, copy + countries + buttons centered, logos on a white
+     strip at the bottom. */
+  .showcase--stripe { overflow-x: clip; padding: 0; }
   /* !important: the inner's bottom padding is an inline shorthand
      (padding: 0 24px 34px), so a plain longhand wouldn't win — seat the logo
      strip flush against the section bottom. */
