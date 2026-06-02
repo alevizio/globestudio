@@ -1080,9 +1080,18 @@ const FRAGMENT_SHADER = /* glsl */ `
     vec2 cellOrigin = floor(fragPx / cell) * cell;
     vec2 cellCenter = (cellOrigin + cell * 0.5) / uResolution;
     vec4 src = sampleTex(cellCenter);
-    float lum = dot(src.rgb, vec3(0.299, 0.587, 0.114)) * src.a;
+    // Outside the globe disc the scene is transparent — leave it bare so the
+    // host page shows through; only the sphere itself gets characters.
+    if (src.a < 0.06) return vec4(uInk, 0.0);
+    // Un-premultiply the luminance: the sphere body renders at low alpha, so
+    // multiplying by src.a would crush the ocean to the empty glyph. Dividing
+    // it back out lets the surface colour drive the ocean's glyph density, so
+    // the whole sphere fills (denser on land) instead of floating continents.
+    float lum = dot(src.rgb, vec3(0.299, 0.587, 0.114)) / max(src.a, 0.001);
     lum = clamp((lum - 0.5) * (1.0 + uIntensity * 2.5) + 0.5, 0.0, 1.0);
-    float gi = floor(clamp(lum, 0.0, 0.9999) * uAsciiCount);
+    // Floor inside-sphere cells to at least the first non-empty glyph so the
+    // body reads as a solid ball rather than scattered marks.
+    float gi = floor(mix(1.0, uAsciiCount - 0.001, lum));
     vec2 local = fract(fragPx / cell);
     vec2 atlasUv = vec2((gi + local.x) / uAsciiCount, 1.0 - local.y);
     float glyph = texture2D(uAsciiAtlas, atlasUv).r;
