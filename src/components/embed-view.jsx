@@ -252,15 +252,23 @@ export const EmbedView = () => {
     // light / cream / brand-colored page. (color-scheme only affects the UA
     // backdrop + form chrome, never the WebGL render, so dark-theme globes still
     // composite correctly over whatever background the host provides.)
-    html.style.colorScheme = "only light";
-    if (meta) meta.setAttribute("content", "only light");
+    //
+    // BUT this only holds for LIGHT hosts. Forcing "only light" on a DARK host
+    // (e.g. the same-origin teaser) paints a WHITE UA backdrop behind the
+    // transparent document — which, masked into a circle and scaled up, reads
+    // as a big white wash. So match the forced scheme to the embed's own theme:
+    // dark-theme embeds (theme=dark, the dark-host case) force "only dark" so the
+    // backdrop stays dark and blends with the dark host instead of flashing white.
+    const usedScheme = params.theme === "light" ? "only light" : "only dark";
+    html.style.colorScheme = usedScheme;
+    if (meta) meta.setAttribute("content", usedScheme);
     return () => {
       html.style.background = prevHtml;
       body.style.background = prevBody;
       html.style.colorScheme = prevColorScheme;
       if (meta && prevMeta !== null) meta.setAttribute("content", prevMeta);
     };
-  }, [settings.transparent]);
+  }, [settings.transparent, params.theme]);
 
   // Resize-aware postMessage protocol for parent iframes. Whenever the
   // viewport changes, we tell the parent "my content height is N pixels"
