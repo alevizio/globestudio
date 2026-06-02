@@ -392,6 +392,44 @@
 
 @media (max-width: 760px) {
   .newsroom .news-body { grid-template-columns: 1fr; }
-  .newsroom .news-main { border-left: 0; padding-left: 0; }
+  /* Lead the mobile front page with "The World, Rendered" right under the
+     masthead, instead of the wire/index sidebar. */
+  .newsroom .news-main { border-left: 0; padding-left: 0; order: -1; }
   .newsroom .news-text { column-count: 1; }
+
+  /* Mobile company navs: the cramped link row + CTAs collapse to a
+     (decorative) hamburger so the hero reads cleanly on a phone. */
+  .showcase-nav-items,
+  .showcase-nav-right { display: none; }
+  .showcase-nav-burger {
+    display: block;
+    margin-left: auto;
+    width: 24px;
+    height: 16px;
+    opacity: 0.82;
+    background:
+      linear-gradient(currentColor 0 0) top / 100% 2px,
+      linear-gradient(currentColor 0 0) center / 100% 2px,
+      linear-gradient(currentColor 0 0) bottom / 100% 2px;
+    background-repeat: no-repeat;
+  }
+
+  /* Game Over: crop into the TV so the dark room around it isn't dead space. */
+  .showcase--gameover { overflow: hidden; }
+  .signal-lost .tv-stage {
+    transform: scale(1.9);
+    transform-origin: 49.5% 43%;
+  }
+
+  /* Keep long hero copy from running off the right edge on narrow screens. */
+  .showcase h1,
+  .showcase h2 {
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+  /* Stripe hero overflowed: clip the full-bleed globe to the viewport, pad the
+     column, and shrink the oversized headline so it wraps on a phone. */
+  .showcase--stripe { overflow-x: clip; }
+  .showcase--stripe .showcase-inner { padding-left: 22px; padding-right: 22px; }
+  .showcase--stripe h2 { font-size: clamp(22px, 6.2vw, 30px) !important; }
 }

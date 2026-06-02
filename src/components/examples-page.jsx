@@ -373,6 +373,9 @@ const CompanyNav = ({ brand, items, right, style }) => (
         ))}
       </div>
       <div className="showcase-nav-right">{right}</div>
+      {/* Decorative mobile hamburger — on phones the cramped link row + CTAs
+          collapse to this (non-interactive, like the rest of the mock nav). */}
+      <span className="showcase-nav-burger" aria-hidden="true" />
     </div>
   </div>
 );
