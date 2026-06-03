@@ -570,9 +570,12 @@
     flex: 1 1 auto;
     justify-content: center;
   }
+  /* Match the old flex-grow band height (~55vh) so the globe shows its bright
+     continents and reads as the prominent foreground element again, not a dim
+     cropped sliver. The copy still flex-grows + centers in the space above. */
   .showcase--vercel .vercel-band {
     flex: 0 0 auto !important;
-    min-height: 48vh !important;
+    min-height: 55vh !important;
   }
   /* Shorter event copy on phones (full version hidden) + a roomier, less-tight
      pill now that it has less to hold. First copy element also carries the
