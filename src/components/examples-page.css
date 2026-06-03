@@ -575,14 +575,15 @@
   /* Match the old flex-grow band height (~55vh) so the globe shows its bright
      continents and reads as the prominent foreground element again, not a dim
      cropped sliver. The copy still flex-grows + centers in the space above. */
-  /* A tall band + the globe at its original position keeps the dense equator on
-     screen, so the globe always reads as the bright front element. Do NOT push
-     the globe down (more-negative bottom drops the equator off-screen and it
-     goes sparse/"in the back"). */
+  /* A tall band keeps the globe's dense band on screen so it reads as the bright
+     front element. */
   .showcase--vercel .vercel-band {
     flex: 0 0 auto !important;
     min-height: 55vh !important;
   }
+  /* Nudge the globe down only slightly. KEEP it small (~25px): a big push drops
+     the dense band off the bottom and the globe goes sparse / "in the back". */
+  .showcase--vercel .vercel-globe-box { bottom: -785px !important; }
   /* Shorter event copy on phones (full version hidden) + a roomier, less-tight
      pill now that it has less to hold. First copy element also carries the
      balancing margin-top:auto for the centering above. */
