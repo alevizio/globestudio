@@ -513,24 +513,24 @@
   /* --- Vercel mobile --- */
   /* Nav flush to the very top (full-bleed section, like Stripe). */
   .showcase--vercel { padding: 0; }
-  /* The two bottom gradients (bg-wash + globe-glow) pile into a muddy, intense
-     band on the narrow phone layout. Calm them: lower opacity + pull the glow
-     down behind the globe so it reads as an atmospheric base, not a color stripe
-     across the copy. */
-  .showcase--vercel .vercel-bg-wash { opacity: 0.24 !important; }
+  /* Push the gradient back so the (transparent) globe reads as the front
+     element: the colorful bg-wash + globe-glow show THROUGH the globe's dot
+     gaps, so calming them lets the planet sit forward. Glow pulled down behind
+     the globe as a low atmospheric base. */
+  .showcase--vercel .vercel-bg-wash { opacity: 0.16 !important; }
   .showcase--vercel .vercel-globe-glow::after {
-    opacity: 0.5 !important;
-    -webkit-mask-image: radial-gradient(ellipse 78% 36% at 50% 96%, #000 6%, transparent 70%) !important;
-    mask-image: radial-gradient(ellipse 78% 36% at 50% 96%, #000 6%, transparent 70%) !important;
+    opacity: 0.38 !important;
+    -webkit-mask-image: radial-gradient(ellipse 78% 34% at 50% 97%, #000 6%, transparent 70%) !important;
+    mask-image: radial-gradient(ellipse 78% 34% at 50% 97%, #000 6%, transparent 70%) !important;
   }
-  /* Make the blueprint grid actually read on a phone: stronger lines, tighter
-     cells, and a wider mask so the graph-paper texture is visible behind the
-     copy instead of a barely-there hint. */
+  /* Blueprint grid: keep the desktop 64px cell size (it was wrongly shrunk),
+     just make the lines read on the dark phone bg and widen the mask. Sits in
+     the back behind the globe. */
   .showcase--vercel .vercel-grid {
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px) !important;
-    background-size: 38px 38px !important;
+      linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px) !important;
+    background-size: 64px 64px !important;
     -webkit-mask-image: radial-gradient(ellipse 100% 58% at 50% 32%, #000 52%, transparent 90%) !important;
     mask-image: radial-gradient(ellipse 100% 58% at 50% 32%, #000 52%, transparent 90%) !important;
   }
