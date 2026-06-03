@@ -473,9 +473,10 @@
     position: relative;
     z-index: 3;
   }
-  /* Soft white veil over the globe across the hero (nav-bottom → logo strip),
-     so the centered copy reads cleanly. Strongest behind the text, fading to
-     let the globe show near the top + bottom edges. */
+  /* Clean top-to-bottom veil over the globe: strong white behind the copy at
+     the top (keeps the centered text legible), easing down to reveal the globe
+     toward the bottom where the dots are densest, then into the white logo
+     strip. A single vertical flow instead of the old symmetric mid-band. */
   .showcase--stripe .stripe-hero-scrim {
     display: block;
     position: absolute;
@@ -484,10 +485,25 @@
     pointer-events: none;
     background: linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.2) 0%,
-      rgba(255, 255, 255, 0.58) 22%,
-      rgba(255, 255, 255, 0.58) 74%,
-      rgba(255, 255, 255, 0.18) 100%
+      rgba(255, 255, 255, 0.72) 0%,
+      rgba(255, 255, 255, 0.66) 48%,
+      rgba(255, 255, 255, 0.32) 80%,
+      rgba(255, 255, 255, 0.08) 100%
     );
+  }
+  /* The desktop washes are horizontal (90deg, tuned for the left-copy /
+     right-globe split) which reads weird on the centered phone layout. Drop
+     the globe-side wash and flip the other to a clean top-to-bottom gradient
+     spanning the full hero, so the tint flows vertically into the white logo
+     strip at the bottom. */
+  .showcase--stripe .stripe-wash-b { display: none; }
+  .showcase--stripe .stripe-wash-a {
+    top: 0 !important;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0) 42%,
+      rgba(255, 255, 255, 0.82) 100%
+    ) !important;
   }
 }

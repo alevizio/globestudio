@@ -1818,6 +1818,7 @@ const StripeShowcase = () => {
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.22 }}
         />
         <div
+          className="stripe-wash stripe-wash-a"
           style={{
             position: "absolute",
             // Start below the nav so the shader stays visible (and blurrable)
@@ -1834,6 +1835,7 @@ const StripeShowcase = () => {
             ramping to fully white near the right (~88%) where the globe sits,
             so the shader fades to clean white under the globe. */}
         <div
+          className="stripe-wash stripe-wash-b"
           style={{
             position: "absolute",
             top: 77,
