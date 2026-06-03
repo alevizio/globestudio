@@ -387,3 +387,11 @@
   /* The globe's own autoSpin already respects reduced-motion via the
      embed; nothing else here animates. */
 }
+
+@media (max-width: 600px) {
+  /* Bigger CRT globe on phones — render it larger natively (the width drives the
+     iframe size, so it stays crisp; the inline --tg-scale still multiplies). */
+  .teaser-globe {
+    width: min(860px, 168vmin);
+  }
+}
