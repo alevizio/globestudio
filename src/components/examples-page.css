@@ -537,6 +537,19 @@
     pointer-events: none;
     background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0) 100%);
   }
+  /* Surface just the animated "Ask AI" link next to the hamburger on phones
+     (the rest of the nav-right stays collapsed). */
+  .showcase--vercel .showcase-nav-right {
+    display: inline-flex !important;
+    margin-left: auto;
+    gap: 0;
+  }
+  .showcase--vercel .showcase-nav-right > * { display: none; }
+  .showcase--vercel .showcase-nav-right > .ai-gradient {
+    display: inline-block;
+    font-size: 13px;
+  }
+  .showcase--vercel .showcase-nav-burger { margin-left: 13px; }
   /* Push the gradient back so the (transparent) globe reads as the front
      element: the colorful bg-wash + globe-glow show THROUGH the globe's dot
      gaps, so calming them lets the planet sit forward. Glow pulled down behind
