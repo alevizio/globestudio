@@ -597,6 +597,7 @@ const VercelShowcase = () => {
     {/* Blueprint dot/line grid — Vercel's hero sits on a faint technical
         graph-paper backdrop that fades out toward the edges. */}
     <div
+      className="vercel-grid"
       aria-hidden="true"
       style={{
         position: "absolute",
