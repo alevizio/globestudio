@@ -575,10 +575,15 @@
   /* Match the old flex-grow band height (~55vh) so the globe shows its bright
      continents and reads as the prominent foreground element again, not a dim
      cropped sliver. The copy still flex-grows + centers in the space above. */
+  /* Band height ~= where the globe dots actually start, so the copy (centered
+     in the space above) reads as balanced between the nav and the globe rather
+     than floating above a tall empty band. */
   .showcase--vercel .vercel-band {
     flex: 0 0 auto !important;
-    min-height: 55vh !important;
+    min-height: 42vh !important;
   }
+  /* Move the globe down (more negative bottom) so it sits lower in the band. */
+  .showcase--vercel .vercel-globe-box { bottom: -840px !important; }
   /* Shorter event copy on phones (full version hidden) + a roomier, less-tight
      pill now that it has less to hold. First copy element also carries the
      balancing margin-top:auto for the centering above. */
