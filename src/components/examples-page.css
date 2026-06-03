@@ -432,11 +432,12 @@
     background-repeat: no-repeat;
   }
 
-  /* Game Over: crop into the TV so the dark room around it isn't dead space. */
+  /* Game Over: zoom into the CRT screen (origin = screen center) so the globe
+     fills the viewport, not the whole TV + dark room. */
   .showcase--gameover { overflow: hidden; }
   .signal-lost .tv-stage {
-    transform: scale(1.9);
-    transform-origin: 49.5% 43%;
+    transform: scale(6.5);
+    transform-origin: 49.2% 43.2%;
   }
 
   /* Keep long hero copy from running off the right edge on narrow screens. */
