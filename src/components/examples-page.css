@@ -411,13 +411,13 @@
   .showcase-nav-burger {
     display: block;
     margin-left: auto;
-    width: 24px;
-    height: 16px;
+    width: 18px;
+    height: 12px;
     opacity: 0.82;
     background:
-      linear-gradient(currentColor 0 0) top / 100% 2px,
-      linear-gradient(currentColor 0 0) center / 100% 2px,
-      linear-gradient(currentColor 0 0) bottom / 100% 2px;
+      linear-gradient(currentColor 0 0) top / 100% 1.5px,
+      linear-gradient(currentColor 0 0) center / 100% 1.5px,
+      linear-gradient(currentColor 0 0) bottom / 100% 1.5px;
     background-repeat: no-repeat;
   }
 
@@ -483,12 +483,15 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    /* A gentle cool-tinted veil that carries the whole way down over the globe
+       (instead of fading off and letting it poke through bare): top-to-bottom
+       flow, but never fully transparent, so the globe stays integrated under
+       the wash across the entire hero. */
     background: linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.72) 0%,
-      rgba(255, 255, 255, 0.66) 48%,
-      rgba(255, 255, 255, 0.32) 80%,
-      rgba(255, 255, 255, 0.08) 100%
+      rgba(244, 244, 250, 0.68) 0%,
+      rgba(244, 244, 250, 0.58) 50%,
+      rgba(244, 244, 250, 0.46) 100%
     );
   }
   /* The desktop washes are horizontal (90deg, tuned for the left-copy /
