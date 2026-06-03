@@ -534,4 +534,31 @@
     -webkit-mask-image: radial-gradient(ellipse 100% 58% at 50% 32%, #000 52%, transparent 90%) !important;
     mask-image: radial-gradient(ellipse 100% 58% at 50% 32%, #000 52%, transparent 90%) !important;
   }
+  /* Bring the globe forward like desktop. It's a fixed ~1600px on both widths,
+     which is ~4x the phone viewport — only a cropped sliver shows. Scale it to
+     the viewport (vw) so the whole sphere reads, centered, with the lower part
+     bleeding off the bottom of the band. */
+  .showcase--vercel .vercel-globe-box {
+    width: 138vw !important;
+    bottom: -22vw !important;
+    transform: translateX(-50%) !important;
+  }
+  /* Push the copy up + tighten the stack so the globe owns the lower half. */
+  .showcase--vercel .showcase-inner {
+    padding-top: 8px !important;
+    gap: 12px !important;
+  }
+  /* The event pill was cramped + wrapping — shrink it to a neat single row that
+     fits the phone width. */
+  .showcase--vercel .vercel-announce {
+    font-size: 11px !important;
+    gap: 5px !important;
+    padding: 3px 4px 3px 6px !important;
+    max-width: 100%;
+    white-space: nowrap;
+  }
+  .showcase--vercel .vercel-announce > .vercel-pill {
+    font-size: 10px !important;
+    padding: 2px 7px !important;
+  }
 }

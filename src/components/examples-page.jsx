@@ -648,7 +648,7 @@ const VercelShowcase = () => {
     <div className="showcase-inner" style={{ position: "relative", zIndex: 1, gap: 20, justifyContent: "flex-start", paddingBottom: 0 }}>
       {/* Announcement pill: [Events] tag · message · dark ticket button */}
       <span
-        className="vercel-pill"
+        className="vercel-pill vercel-announce"
         style={{
           display: "inline-flex",
           alignItems: "center",
@@ -722,6 +722,7 @@ const VercelShowcase = () => {
         {/* Mesh gradient + contour rings removed. Glow lives at the section
             level (below) so the band's hard edge doesn't crop it. */}
         <div
+          className="vercel-globe-box"
           style={{
             position: "absolute",
             left: "50%",
