@@ -534,15 +534,6 @@
     -webkit-mask-image: radial-gradient(ellipse 100% 58% at 50% 32%, #000 52%, transparent 90%) !important;
     mask-image: radial-gradient(ellipse 100% 58% at 50% 32%, #000 52%, transparent 90%) !important;
   }
-  /* Bring the globe forward like desktop. It's a fixed ~1600px on both widths,
-     which is ~4x the phone viewport — only a cropped sliver shows. Scale it to
-     the viewport (vw) so the whole sphere reads, centered, with the lower part
-     bleeding off the bottom of the band. */
-  .showcase--vercel .vercel-globe-box {
-    width: 138vw !important;
-    bottom: -22vw !important;
-    transform: translateX(-50%) !important;
-  }
   /* Push the copy up + tighten the stack so the globe owns the lower half. */
   .showcase--vercel .showcase-inner {
     padding-top: 8px !important;
