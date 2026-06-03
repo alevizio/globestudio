@@ -1233,7 +1233,13 @@ const NewsShowcase = () => {
                       autoSpinSpeed: 22,
                       glow: false,
                       grid: false,
-                      surface: false,
+                      // Tinted sphere so the globe reads as a full halftone disc
+                      // — the oceans/body pick up a faint dark-ink wash (and the
+                      // halftone screen) instead of the continents floating on
+                      // bare paper.
+                      surface: true,
+                      surfaceColor: "#1a1610",
+                      surfaceStrength: 24,
                     },
                   },
                 })}
