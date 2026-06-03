@@ -396,6 +396,17 @@
    the phone media query below. */
 .showcase-nav-burger { display: none; }
 .stripe-hero-scrim { display: none; }
+/* Desktop shows the full event copy; the phone short version is hidden here. */
+.vercel-evt-short { display: none; }
+/* Copy wrapper: inherits the inner's gap + centering so desktop is unchanged;
+   on phones it flex-grows and centers the copy between nav and globe band. */
+.vercel-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: inherit;
+  width: 100%;
+}
 
 @media (max-width: 760px) {
   .newsroom .news-body { grid-template-columns: 1fr; }
@@ -513,6 +524,19 @@
   /* --- Vercel mobile --- */
   /* Nav flush to the very top (full-bleed section, like Stripe). */
   .showcase--vercel { padding: 0; }
+  /* Tiny black→transparent gradient under the nav so the blueprint grid fades
+     out cleanly behind it (black at the very top, gone by ~120px). */
+  .showcase--vercel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0) 100%);
+  }
   /* Push the gradient back so the (transparent) globe reads as the front
      element: the colorful bg-wash + globe-glow show THROUGH the globe's dot
      gaps, so calming them lets the planet sit forward. Glow pulled down behind
@@ -534,22 +558,35 @@
     -webkit-mask-image: radial-gradient(ellipse 100% 58% at 50% 32%, #000 52%, transparent 90%) !important;
     mask-image: radial-gradient(ellipse 100% 58% at 50% 32%, #000 52%, transparent 90%) !important;
   }
-  /* Push the copy up + tighten the stack so the globe owns the lower half. */
+  /* Center the copy in the space between the nav and the globe band. Pin the
+     band to a fixed height at the bottom, then give the first copy element
+     (event pill) AND the band balancing `margin-top:auto` so the leftover space
+     splits evenly above + below the copy — vertically centering it. */
   .showcase--vercel .showcase-inner {
-    padding-top: 8px !important;
-    gap: 12px !important;
+    padding-top: 10px !important;
+    gap: 13px !important;
   }
-  /* The event pill was cramped + wrapping — shrink it to a neat single row that
-     fits the phone width. */
+  .showcase--vercel .vercel-copy {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .showcase--vercel .vercel-band {
+    flex: 0 0 auto !important;
+    min-height: 48vh !important;
+  }
+  /* Shorter event copy on phones (full version hidden) + a roomier, less-tight
+     pill now that it has less to hold. First copy element also carries the
+     balancing margin-top:auto for the centering above. */
+  .showcase--vercel .vercel-evt-full { display: none; }
+  .showcase--vercel .vercel-evt-short { display: inline; }
   .showcase--vercel .vercel-announce {
-    font-size: 11px !important;
-    gap: 5px !important;
-    padding: 3px 4px 3px 6px !important;
+    font-size: 12.5px !important;
+    gap: 6px !important;
+    padding: 4px 5px 4px 7px !important;
     max-width: 100%;
-    white-space: nowrap;
   }
   .showcase--vercel .vercel-announce > .vercel-pill {
-    font-size: 10px !important;
-    padding: 2px 7px !important;
+    font-size: 11px !important;
+    padding: 2px 8px !important;
   }
 }

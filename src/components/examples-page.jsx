@@ -646,6 +646,7 @@ const VercelShowcase = () => {
       style={{ color: "#ededed", position: "relative", zIndex: 2 }}
     />
     <div className="showcase-inner" style={{ position: "relative", zIndex: 1, gap: 20, justifyContent: "flex-start", paddingBottom: 0 }}>
+      <div className="vercel-copy">
       {/* Announcement pill: [Events] tag · message · dark ticket button */}
       <span
         className="vercel-pill vercel-announce"
@@ -665,7 +666,9 @@ const VercelShowcase = () => {
         <span className="vercel-pill" style={{ background: "rgba(0,112,243,0.22)", color: "#6cb2ff", borderRadius: 999, padding: "2px 9px", fontSize: 12, fontWeight: 500 }}>
           Events
         </span>
-        Ship 26 is coming to 5 cities
+        {/* Shorter copy on phones so the pill isn't cramped (CSS toggles). */}
+        <span className="vercel-evt-full">Ship 26 is coming to 5 cities</span>
+        <span className="vercel-evt-short">Ship 26 is coming</span>
         <span className="vercel-pill" style={{ background: "#fff", color: "#000", borderRadius: 999, padding: "4px 11px", fontSize: 13, fontWeight: 500 }}>
           Get your ticket →
         </span>
@@ -694,11 +697,13 @@ const VercelShowcase = () => {
           Get a Demo
         </span>
       </div>
+      </div>
       {/* Vercel's signature contour-mesh gradient band — full-bleed and
           grown to fill the whole viewport below the hero copy, fading up
           into the white page where the headline sits. The 3D mark sits
           dead-centre on the real site — our globe takes that slot. */}
       <div
+        className="vercel-band"
         style={{
           position: "relative",
           width: "100vw",
