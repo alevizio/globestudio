@@ -1825,8 +1825,10 @@ const StripeShowcase = () => {
           }}
         />
         {/* White wash toward the globe — horizontal, transparent on the left
-            ramping to fully white near the right (~88%) where the globe sits,
-            so the shader fades to clean white under the globe. */}
+            ramping toward white near the right where the globe sits. Stops at
+            0.78 (not full white) AT the right frame rule so the tinted panel
+            reaches the rule line-to-line instead of dying ~150px short and
+            leaving the rule stranded in bare white. */}
         <div
           style={{
             position: "absolute",
@@ -1835,7 +1837,7 @@ const StripeShowcase = () => {
             right: 0,
             bottom: 0,
             background:
-              "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 88%)",
+              "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.78) 100%)",
           }}
         />
       </div>
