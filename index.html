@@ -75,14 +75,16 @@
       content="Designer-first tool for dotted maps and animated 3D globes. Gradients, shader effects, presets, and clean exports for landing pages, decks, and launches. Open source."
     />
     <meta property="og:url" content="https://globestudio.app/" />
-    <!-- Pre-launch teaser share card: the wordmark, the "Something worldly is
-         coming." copy, and the live CRT/corrupt globe — matches the teaser
-         landing page so the link previews as the teaser itself. -->
-    <meta property="og:image" content="https://globestudio.app/og/teaser.png" />
+    <!-- Default product share card (the dotted-globe card). During pre-launch
+         the build swaps og/default.png → og/teaser.png (teaserNoindexPlugin in
+         vite.config.js), so links preview as the teaser; at launch it reverts
+         to this product card automatically. Keeping default.png here also keeps
+         the JSON-LD/Twitter image consistent through the same swap. -->
+    <meta property="og:image" content="https://globestudio.app/og/default.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Globestudio teaser card — the wordmark, the headline Something worldly is coming, and a glitchy CRT dotted globe." />
+    <meta property="og:image:alt" content="Globestudio — open-source dotted maps and 3D globes for designers." />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -91,8 +93,8 @@
       name="twitter:description"
       content="Designer-first dotted maps and animated 3D globes. Gradients, shaders, presets, PNG / SVG / WebM exports. Open source."
     />
-    <meta name="twitter:image" content="https://globestudio.app/og/teaser.png" />
-    <meta name="twitter:image:alt" content="Globestudio teaser card — the wordmark, the headline Something worldly is coming, and a glitchy CRT dotted globe." />
+    <meta name="twitter:image" content="https://globestudio.app/og/default.png" />
+    <meta name="twitter:image:alt" content="Globestudio — open-source dotted maps and 3D globes for designers." />
     <meta name="twitter:creator" content="@alevizio" />
     <meta name="twitter:site" content="@alevizio" />
 
