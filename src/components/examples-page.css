@@ -646,7 +646,7 @@
   }
   /* Nudge the globe down only slightly. KEEP it small (~25px): a big push drops
      the dense band off the bottom and the globe goes sparse / "in the back". */
-  .showcase--vercel .vercel-globe-box { bottom: -810px !important; }
+  .showcase--vercel .vercel-globe-box { bottom: -845px !important; }
   /* Copy floats above the globe and centers between the nav and where the globe
      dots start (~54vh down). z-index keeps the text above the globe's faint
      upper edge it overlaps. */
@@ -655,6 +655,8 @@
     inset: 0 0 46vh 0;
     z-index: 2;
     justify-content: center;
+    /* Keep the headline + subhead off the screen edges on phones. */
+    padding-inline: 22px;
   }
   /* Shorter event copy on phones (full version hidden) + a roomier, less-tight
      pill now that it has less to hold. First copy element also carries the
