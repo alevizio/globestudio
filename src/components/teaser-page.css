@@ -311,6 +311,15 @@
   border: 0;
   display: block;
   pointer-events: none; /* preview, not functional */
+  /* Held invisible until the app has painted its globe (JS adds .is-loaded
+     ~550ms after onLoad), so the white loading UI — sidebar labels + look
+     list rendered before the WebGL globe — never flashes in then flicks
+     away. The dark .teaser-app-frame background (#01010a) shows meanwhile. */
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+.teaser-app-iframe.is-loaded {
+  opacity: 1;
 }
 
 /* Real chrome/prismatic shader canvas — sized to the globe aspect. */

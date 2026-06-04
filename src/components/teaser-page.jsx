@@ -162,6 +162,10 @@ export const TeaserPage = () => {
   // near-immediately since it's only one scroll-section down.
   const appWrapRef = useRef(null);
   const [appVisible, setAppVisible] = useState(false);
+  // Held false until the app inside the preview iframe has painted its globe,
+  // so its white loading UI never flashes in then flicks away (see the
+  // .teaser-app-iframe fade rule).
+  const [appLoaded, setAppLoaded] = useState(false);
   useEffect(() => {
     const el = appWrapRef.current;
     if (!el) return undefined;
@@ -171,7 +175,11 @@ export const TeaserPage = () => {
     // showcases and starve the browser's WebGL context cap (worst on mobile,
     // ~8). The iframe re-mounts cheaply on scroll-back.
     const obs = new IntersectionObserver(
-      ([entry]) => setAppVisible(entry.isIntersecting),
+      ([entry]) => {
+        setAppVisible(entry.isIntersecting);
+        // Re-arm the fade-in for the next mount once scrolled away.
+        if (!entry.isIntersecting) setAppLoaded(false);
+      },
       { rootMargin: "200px 0px" },
     );
     obs.observe(el);
@@ -487,12 +495,18 @@ export const TeaserPage = () => {
           {appVisible && (
             <iframe
               ref={appFrameRef}
-              className="teaser-app-iframe"
+              className={`teaser-app-iframe ${appLoaded ? "is-loaded" : ""}`}
               src="/looks/bloom?app=1"
               title="Globestudio app — Bloom look"
               loading="lazy"
               tabIndex={-1}
-              onLoad={setupAppPreview}
+              // Trim the chrome immediately, then wait out the WebGL globe's
+              // first paint before fading the iframe in — same trick as the
+              // hero globe, so the white loading UI never flashes through.
+              onLoad={() => {
+                setupAppPreview();
+                window.setTimeout(() => setAppLoaded(true), 550);
+              }}
             />
           )}
         </div>
