@@ -457,7 +457,7 @@ export const GlobeBackground = ({
     // budget. This affects ONLY the on-screen preview — PNG/MP4 export renders
     // at its own scale via captureAtScale, so deliverable quality is untouched.
     const isCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches;
-    const PIXEL_BUDGET = 4_500_000; // physical px ceiling for the live buffer
+    const PIXEL_BUDGET = 3_500_000; // physical px ceiling for the live buffer
     const hardCap = isCoarsePointer ? 1.5 : 2;
     const dprFloor = isCoarsePointer ? 1 : 1.5;
     // Recomputed on resize (see resize()) so a window maximized onto a larger
@@ -472,6 +472,19 @@ export const GlobeBackground = ({
     let initialDpr = computeDprCeiling();
     renderer.setPixelRatio(initialDpr);
     mount.appendChild(renderer.domElement);
+
+    // Frame-rate governor state (consumed in animate): the render loop runs at
+    // ~30fps while idle and ramps to the display's full refresh rate for a
+    // beat after any direct interaction. Listeners live on the canvas, so they
+    // are disposed with it on teardown.
+    let lastRender = 0;
+    let lastInteraction = 0;
+    const markInteraction = () => {
+      lastInteraction = window.performance.now();
+    };
+    renderer.domElement.addEventListener("wheel", markInteraction, { passive: true });
+    renderer.domElement.addEventListener("keydown", markInteraction);
+    renderer.domElement.addEventListener("pointerdown", markInteraction);
 
     // Make the canvas keyboard-focusable so arrow keys can rotate the globe.
     // The aria-label + role announce intent to screen readers; users who don't
@@ -694,6 +707,19 @@ export const GlobeBackground = ({
     // the loop starts; the tab side is handled by visibilitychange below.
     let isOnScreen = true;
     const animate = (now) => {
+      frame = window.requestAnimationFrame(animate);
+      // Frame-rate governor: render at the display's full refresh rate while
+      // the user is interacting (dragging, mid-morph, or just after a
+      // wheel/key), otherwise throttle to ~30fps. A spinning background globe
+      // doesn't need 60fps, and halving the render rate roughly halves the
+      // GPU/CPU it burns. Every rendered frame is delta-timed, so the spin
+      // speed is identical at either rate.
+      const interactive =
+        stateRef.current.active ||
+        morphRef.current.active ||
+        now - lastInteraction < 700;
+      if (!interactive && now - lastRender < 31) return;
+      lastRender = now;
       const delta = Math.min(48, now - lastTime);
       lastTime = now;
       const state = stateRef.current;
@@ -1022,7 +1048,14 @@ export const GlobeBackground = ({
       // 2.5s between adjustments so we don't oscillate.
       perfState.frames++;
       perfState.accum += delta;
-      if (perfState.frames >= 60) {
+      if (!interactive) {
+        // Throttled idle frames are intentionally ~30fps, not GPU struggle —
+        // keep them out of the adaptive-DPR window so it doesn't read the cap
+        // as a low frame rate and thrash the costly composer-chain setSize. It
+        // only acts during real interaction (the full-rate path) now.
+        perfState.frames = 0;
+        perfState.accum = 0;
+      } else if (perfState.frames >= 60) {
         const fps = (perfState.frames * 1000) / Math.max(perfState.accum, 1);
         if (now - perfState.lastAdjustAt > 2500) {
           const currentPR = renderer.getPixelRatio();
@@ -1047,8 +1080,6 @@ export const GlobeBackground = ({
         perfState.frames = 0;
         perfState.accum = 0;
       }
-
-      frame = window.requestAnimationFrame(animate);
     };
     let firstFramePainted = false;
     const perfState = { frames: 0, accum: 0, lastAdjustAt: 0 };
