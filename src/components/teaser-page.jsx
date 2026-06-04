@@ -218,7 +218,15 @@ export const TeaserPage = () => {
         style.id = "gs-teaser-trim";
         (doc.head || doc.documentElement).appendChild(style);
       }
-      style.textContent = ".panel-header, .looks-bar { display: none !important; }";
+      // Keep the nav/icons header hidden, but SHOW the look-chips bar so the
+      // preset options (Default / Halftone / Risograph / …) read in the card.
+      // Also kill the scrollbar — the app overflows the fixed-height iframe.
+      style.textContent =
+        ".panel-header { display: none !important; }" +
+        // No bottom-sheet drag grabber in the static preview.
+        ".mobile-drag-handle { display: none !important; }" +
+        "html { scrollbar-width: none !important; overflow: hidden !important; }" +
+        "::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }";
     } catch {
       /* cross-origin / not ready — ignore */
     }

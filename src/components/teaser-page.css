@@ -286,7 +286,7 @@
   flex: 1 1 auto;
   width: min(1240px, 100%);
   min-height: 0;
-  margin-top: clamp(20px, 5vh, 60px);
+  margin-top: clamp(8px, 2vh, 28px);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-bottom: 0;
