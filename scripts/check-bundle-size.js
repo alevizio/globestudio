@@ -53,7 +53,9 @@ const BUDGETS = [
   // embeds) is lazy-loaded, so it no longer weighs on first paint. Its
   // deps (flow shader, math) split out alongside it.
   { prefix: "examples-page-",    ext: ".js",  raw:  40_000,  gzip:  13_000, lazy: true },
-  { prefix: "examples-page-",    ext: ".css", raw:  13_000,  gzip:   4_000, lazy: true },
+  // Grew with the per-showcase inline-style CSS (Stripe/Vercel/Game Over/News +
+  // their mobile overrides). Lazy chunk, so it doesn't touch first paint.
+  { prefix: "examples-page-",    ext: ".css", raw:  24_000,  gzip:   7_500, lazy: true },
   { prefix: "flow-background-shader-", ext: ".js", raw: 5_000, gzip: 2_000, lazy: true },
   { prefix: "math-",             ext: ".js",  raw:   4_000,  gzip:   2_500, lazy: true },
   // gifenc / mp4-muxer — only fetched when a GIF / MP4 export is requested.
