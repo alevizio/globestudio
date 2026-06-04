@@ -1142,6 +1142,17 @@ button {
   .docs-section-links {
     grid-template-columns: 1fr;
   }
+
+  /* The 160px key column is sized for desktop; on a ~345px-wide phone it
+     leaves a big void between the badges and the descriptions and squeezes
+     the labels into 2-line wraps. Narrow it to just past the widest badge
+     group (the three-key "+ − 0" ≈ 86px) so the descriptions pull left and
+     most fit on one line. Two-class selector so it outweighs the base
+     `.docs-shortcut-row` rule, which is defined *later* in the file. */
+  .docs-shortcuts .docs-shortcut-row {
+    grid-template-columns: 100px 1fr;
+    gap: 12px;
+  }
 }
 
 /* /docs styling. */
