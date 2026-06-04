@@ -985,6 +985,20 @@ export const GlobeBackground = ({
       const refsNow = threeRef.current;
       if (refsNow) {
         refsNow.postHandle?.composer.render();
+        // First painted frame — let a parent iframe (the teaser's app-preview)
+        // know the globe is on screen, so it can reveal the embed only now
+        // instead of flashing the white app UI that mounts before the globe.
+        if (!firstFramePainted) {
+          firstFramePainted = true;
+          try {
+            document.documentElement.setAttribute("data-globe-painted", "1");
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({ type: "gs-globe-painted" }, "*");
+            }
+          } catch {
+            /* non-fatal */
+          }
+        }
       }
 
       // Dev-only perf HUD feed. Cheap: a few field writes per frame, no
@@ -1036,6 +1050,7 @@ export const GlobeBackground = ({
 
       frame = window.requestAnimationFrame(animate);
     };
+    let firstFramePainted = false;
     const perfState = { frames: 0, accum: 0, lastAdjustAt: 0 };
     frame = window.requestAnimationFrame(animate);
 

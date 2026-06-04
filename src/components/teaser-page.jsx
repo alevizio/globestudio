@@ -505,7 +505,34 @@ export const TeaserPage = () => {
               // hero globe, so the white loading UI never flashes through.
               onLoad={() => {
                 setupAppPreview();
-                window.setTimeout(() => setAppLoaded(true), 550);
+                // Reveal only once the globe inside has actually painted its
+                // first frame — it posts "gs-globe-painted" (and sets a
+                // data-globe-painted attribute). A fixed timer was unreliable:
+                // in the teaser the globe competes with the hero + showcases
+                // and paints later, so the white app UI flashed through. 4s
+                // fallback in case the signal is ever missed.
+                const frame = appFrameRef.current;
+                const win = frame?.contentWindow;
+                const reveal = () => setAppLoaded(true);
+                const onMsg = (e) => {
+                  if (e.source === win && e.data?.type === "gs-globe-painted") {
+                    window.removeEventListener("message", onMsg);
+                    reveal();
+                  }
+                };
+                window.addEventListener("message", onMsg);
+                try {
+                  if (frame?.contentDocument?.documentElement?.hasAttribute("data-globe-painted")) {
+                    window.removeEventListener("message", onMsg);
+                    reveal();
+                  }
+                } catch {
+                  /* ignore */
+                }
+                window.setTimeout(() => {
+                  window.removeEventListener("message", onMsg);
+                  reveal();
+                }, 4000);
               }}
             />
           )}
