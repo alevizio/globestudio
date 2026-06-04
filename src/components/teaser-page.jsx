@@ -223,8 +223,9 @@ export const TeaserPage = () => {
       // Also kill the scrollbar — the app overflows the fixed-height iframe.
       style.textContent =
         ".panel-header { display: none !important; }" +
-        // No bottom-sheet drag grabber in the static preview.
-        ".mobile-drag-handle { display: none !important; }" +
+        // No bottom-sheet drag grabber, keyboard-shortcut hint, or perf HUD in
+        // the static preview — they read as stray "code" and the FPS counter flickers.
+        ".mobile-drag-handle, .onboarding-hint, .perf-monitor { display: none !important; }" +
         "html { scrollbar-width: none !important; overflow: hidden !important; }" +
         "::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }";
     } catch {
