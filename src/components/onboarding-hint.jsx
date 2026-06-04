@@ -17,6 +17,9 @@ export const OnboardingHint = () => {
 
   useEffect(() => {
     if (seen) return undefined;
+    // The hint is purely keyboard shortcuts — meaningless on touch devices
+    // (no physical keys), so don't surface it on coarse-pointer phones/tablets.
+    if (window.matchMedia?.("(pointer: coarse)")?.matches) return undefined;
     // Wait for the globe entrance to settle before nudging the user.
     const showTimer = window.setTimeout(() => setVisible(true), 1400);
     return () => window.clearTimeout(showTimer);
