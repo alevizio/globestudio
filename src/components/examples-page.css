@@ -436,8 +436,51 @@
      fills the viewport, not the whole TV + dark room. */
   .showcase--gameover { overflow: hidden; }
   .signal-lost .tv-stage {
-    transform: scale(6.5);
-    transform-origin: 49.2% 43.2%;
+    transform: scale(5.5);
+    transform-origin: 51% 49%;
+  }
+  /* Enlarge just the globe + "Signal lost" copy (not the whole zoom, which
+     would push the Panasonic off-screen). Overrides the inline cqh sizes. */
+  .signal-lost .crt > div:first-child { width: 95cqh !important; margin-top: -36cqh !important; }
+  .signal-lost .signal-glitch { font-size: 16cqh !important; }
+  /* Crash-dump block below "Signal lost" — bump to match. Container size feeds
+     the "reboot world?" + YES/NO lines; the FATAL block has its own size. */
+  .signal-lost .signal-glitch + div { font-size: 5.4cqh !important; }
+  .signal-lost .signal-glitch + div > div:first-child { font-size: 4.3cqh !important; }
+  /* The YES arrow is a fixed-cqh CSS triangle; scale it with the enlarged
+     text (×2.16) so it stays proportional and centered against the caps. */
+  .signal-lost .signal-yes > span:first-child {
+    border-top-width: 2.4cqh !important;
+    border-bottom-width: 2.4cqh !important;
+    border-left-width: 3.9cqh !important;
+    /* nudge up to the caps' optical centre (caps sit high in the 1.7 line-box) */
+    transform: translateY(-1.8cqh);
+  }
+  /* High-res globe so the corrupt shader matches desktop's fine grain instead
+     of pixel-mush. The CRT is CSS-scaled 6.5×, which would upscale the tiny
+     ~109px iframe buffer 4.3×. Instead we render the iframe LARGE (so the embed
+     produces a big buffer) and scale it back into the slot — the outer 6.5×
+     then has a high-res bitmap to work with. (Embed caps DPR at 1.5 on touch,
+     so we oversize the layout to compensate.) */
+  .signal-lost .crt .showcase-globe {
+    position: relative;
+    overflow: hidden;
+  }
+  .signal-lost .crt .showcase-globe iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 760cqh !important;
+    height: 760cqh !important;
+    transform: scale(0.125);
+    transform-origin: top left;
+  }
+  /* The CRT glass sits slightly left of the TV's horizontal center, so the
+     globe + "Signal lost" copy read left of the centered Panasonic badge.
+     Nudge the whole screen right (~1.7% of the TV) to line them all up.
+     Mobile-only: on desktop the CRT must stay aligned to the photo's glass. */
+  .signal-lost .crt {
+    left: calc(var(--crt-left, 27.4%) + 1.47%);
   }
 
   /* Keep long hero copy from running off the right edge on narrow screens. */
