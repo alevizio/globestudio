@@ -1,7 +1,7 @@
 # Globestudio
 
 > Open-source dotted maps and animated 3D globes for designers,
-> animators, and creative developers. 17 shader looks, 5 projections,
+> animators, and creative developers. 21 shader looks, 5 projections,
 > custom GeoJSON, embed anywhere. React + Three.js. WCAG 2.2 AA. MIT.
 
 Globestudio renders interactive dotted-style world maps and 3D globes
@@ -56,10 +56,10 @@ A JSON Schema for configuration files is at
 - **Selection prefixes** are: `world`, `country:<ISO3>`,
   `continent:<Name>`, `subregion:<Name>`. Country codes are
   3-letter ISO 3166-1 alpha-3 (`USA`, `FRA`, `JPN`).
-- **17 preset IDs**: `default`, `halftone`, `risograph`, `newsprint`,
+- **21 preset IDs**: `default`, `halftone`, `risograph`, `newsprint`,
   `aurora`, `pixel`, `bayer`, `atkinson`, `wireframe`, `crt`,
   `glitch`, `badtv`, `bloom`, `metal`, `iridescent`, `pencil`,
-  `corrupt`.
+  `corrupt`, `toon`, `threshold`, `vapor`, `topographic`.
 - **Embed route is `/embed`** (canvas only). **`/looks/:id` is the
   marketing landing page** with the full app chrome — use it for
   share links, not iframes.

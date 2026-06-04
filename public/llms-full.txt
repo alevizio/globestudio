@@ -1,0 +1,110 @@
+# Globestudio — Full LLM Reference
+
+> Open-source, designer-first generator of dotted-style world maps and 3D
+> globes that runs entirely in the browser. React + Three.js (WebGL2), 21
+> shader looks, 5 projections, custom GeoJSON, PNG / SVG / WebM / MP4 / GIF
+> export. MIT licensed. WCAG 2.2 AA. NOT a GIS tool — a visual generator that
+> an AI assistant can drive programmatically.
+
+This is the expanded reference. The short version is at
+<https://globestudio.app/llms.txt>.
+
+## Driving Globestudio programmatically (for AI assistants)
+
+The most direct path: build an `/embed?…` URL and drop it into an iframe, open
+it for a screenshot, or hand it to the user. The `/embed` route is the canvas
+only (no app chrome) and works in any client — no MCP required.
+
+```
+https://globestudio.app/embed?look=halftone&density=50&selection=continent:Europe&autoSpin=1
+```
+
+For full control, encode a complete config object and pass it as `?c=<json>`
+(the same payload the in-app Share dialog produces). A JSON Schema for that
+config is published at <https://globestudio.app/schema/config.json> — editors
+that read `$schema` autocomplete + validate it.
+
+There is also an MCP server, **`@globestudio/mcp`** (`npx -y @globestudio/mcp`),
+that exposes tools to build configs, share URLs, and embed snippets in chat.
+
+### Common URL parameters
+
+- `look` — a preset id (see the catalog below), e.g. `look=crt`.
+- `selection` — what to draw (see Selection reference below).
+- `density` — dot density, 0–100.
+- `autoSpin` — `1` to auto-rotate the globe, `0` to hold still.
+- `c` — a full URL-encoded config JSON, which overrides the simple params. The
+  complete parameter table lives at
+  <https://globestudio.app/docs/integrations/README.md#common-parameters>.
+
+## Selection reference
+
+`selection` takes one of these prefixes:
+
+- `world` — the whole planet.
+- `country:<ISO3>` — one country by 3-letter ISO 3166-1 alpha-3 code
+  (`USA`, `FRA`, `JPN`, `BRA`, `DEU`, …).
+- `continent:<Name>` — `Africa`, `Asia`, `Europe`, `North America`,
+  `South America`, `Oceania`, `Antarctica`.
+- `subregion:<Name>` — a UN subregion, e.g. `Western Europe`, `South-Eastern Asia`.
+
+US states: set `selection=country:USA` and `stateSelection=<state>` (or `all`)
+to isolate a single state.
+
+## Preset catalog (21 looks)
+
+Each is at `https://globestudio.app/looks/<id>` (marketing page) or
+`https://globestudio.app/embed?look=<id>` (canvas only):
+
+- `default` — Default: clean cartography.
+- `halftone` — Halftone: newspaper print, browser-rendered.
+- `risograph` — Risograph: pink + cyan ink, misregistered on purpose.
+- `newsprint` — Newsprint: CMYK, four plates, rotated like the pros.
+- `aurora` — Aurora: northern-lights bands across the planet.
+- `pixel` — Pixel: an 8-bit world atlas.
+- `bayer` — Bayer: classic-Mac threshold dither.
+- `atkinson` — Atkinson: Atkinson dither, sparser than Bayer.
+- `wireframe` — Wireframe: edge-traced, like a hand-pulled print.
+- `crt` — CRT: cathode-ray phosphor glow.
+- `glitch` — Glitch: signal break, RGB split.
+- `badtv` — Bad TV: analog tape decay.
+- `bloom` — Bloom: atmosphere on fire.
+- `metal` — Metal: liquid chrome, soft reflections.
+- `iridescent` — Iridescent: holographic foil sticker.
+- `pencil` — Pencil: pencil-traced continents.
+- `corrupt` — Corrupt: datamosh corruption, on purpose.
+- `toon` — Toon: cel-shaded pop-art world.
+- `threshold` — Threshold: pure two-tone binary.
+- `vapor` — Vapor: synthwave horizon, pastel split.
+- `topographic` — Topographic: contour rings, only rings.
+
+## Exports
+
+From the in-app export dialog: PNG (high-res, rendered at its own scale — not
+the on-screen DPR), SVG, WebM and MP4 video, GIF, and a JSON config (the same
+payload as `?c=`). Rendering is client-side; there is no server-side image
+endpoint (yet) — for a screenshot, point a headless browser at an `/embed?…`
+URL.
+
+## Docs + code
+
+- README: <https://github.com/alevizio/globestudio/blob/main/README.md>
+- Integrations index (every embed surface + parameter table):
+  <https://github.com/alevizio/globestudio/blob/main/docs/integrations/README.md>
+- Embed (plain HTML / Notion): <https://github.com/alevizio/globestudio/blob/main/docs/integrations/embed.md>
+- Webflow / Framer / Figma / Notion guides live under docs/integrations/.
+- JSON Schema: <https://globestudio.app/schema/config.json>
+- React drop-in component: <https://github.com/alevizio/globestudio/blob/main/examples/react-component/Globestudio.tsx>
+- Script-tag loader: <https://globestudio.app/embed.js>
+
+## Constraints to remember
+
+- 3-letter ISO 3166-1 alpha-3 country codes only.
+- `/embed` = canvas only (use for iframes); `/looks/:id` = full marketing page
+  (use for share links, not iframes).
+- WebGL2 required; the embed falls back gracefully when GL is unavailable, but
+  functionality is degraded.
+- Rendering is client-side; there is no server-side render endpoint yet.
+- MIT licensed. The visuals you export are yours; redistributing the source or
+  built bundle requires keeping the LICENSE + NOTICE files (NOTICE credits
+  Pixelarticons and the open atlases the tool relies on).

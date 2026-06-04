@@ -1,4 +1,43 @@
+# Globestudio — open-source dotted maps & 3D globes.
+# AI assistants: /llms.txt is the curated entry point (how to drive the tool,
+# preset IDs, /embed URL contract); /llms-full.txt has the expanded reference.
+
 User-agent: *
+Allow: /
+
+# AI crawlers — explicitly welcomed. The catch-all above already allows them,
+# but naming them makes the intent clear (some operators only honor named rules).
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: CCBot
 Allow: /
 
 Sitemap: https://globestudio.app/sitemap.xml
