@@ -17,8 +17,10 @@ import { comparisonSlugs } from "../src/data/comparisons.js";
 
 const SITE_URL = "https://globestudio.app";
 
+const TEASER = process.env.VITE_TEASER === "1";
+
 const buildSitemap = () => {
-  const entries = [
+  const allEntries = [
     {
       loc: `${SITE_URL}/`,
       changefreq: "weekly",
@@ -70,6 +72,11 @@ const buildSitemap = () => {
       priority: "0.8",
     })),
   ];
+
+  // Pre-launch teaser: only the homepage is indexable (the rest are noindexed
+  // at prerender, or canonical to "/"), so ship a single-URL sitemap and don't
+  // feed Search Console ~31 noindexed URLs. Reverts to the full list at launch.
+  const entries = TEASER ? allEntries.slice(0, 1) : allEntries;
 
   const urlBlocks = entries
     .map(

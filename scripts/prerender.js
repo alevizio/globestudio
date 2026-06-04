@@ -69,8 +69,21 @@ const buildHead = (html, { title, description, url, image }) => {
   return [html, misses];
 };
 
+// Pre-launch teaser mode: every route renders the same coming-soon page, and
+// these prerendered routes (looks/compare/gallery) self-canonical — so without
+// this they'd be ~24 indexable duplicates of the teaser. Only "/" is indexable
+// during pre-launch, so noindex them here (not in the shared index.html, which
+// keeps the homepage crawlable). Auto-reverts when VITE_TEASER is unset.
+const TEASER = process.env.VITE_TEASER === "1";
+
 const writeRoute = (routePath, meta) => {
-  const [html, misses] = buildHead(template, meta);
+  let [html, misses] = buildHead(template, meta);
+  if (TEASER) {
+    html = html.replace(
+      "</head>",
+      '    <meta name="robots" content="noindex, nofollow" />\n  </head>',
+    );
+  }
   const outDir = resolve(distDir, routePath);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(resolve(outDir, "index.html"), html);

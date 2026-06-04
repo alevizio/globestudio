@@ -40,26 +40,26 @@ const slimCountries = JSON.parse(
 });
 
 // Pre-launch teaser builds (VITE_TEASER=1) replace every route with the
-// coming-soon takeover. Inject a static robots noindex so crawlers don't
-// index 28 near-duplicate teaser pages; it self-removes at launch when the
-// flag is unset. Static (not JS-injected) so non-rendering crawlers see it.
+// coming-soon takeover. We DO want the homepage "/" indexed during pre-launch
+// (so search engines + AI crawlers find globestudio + the waitlist), so this
+// no longer blanket-noindexes the shared index.html. The near-duplicate teaser
+// routes are kept out of the index where it matters instead:
+//   • /looks/:id, /compare/:slug, /gallery get a noindex injected at prerender
+//     time (scripts/prerender.js) — those self-canonical, so they'd otherwise
+//     be ~24 indexable duplicates of the teaser.
+//   • the SPA-fallback routes (/docs, /integrations, /examples, /brand,
+//     /changelog, /privacy) all carry canonical "/" so search consolidates
+//     them onto the homepage.
+//   • the sitemap ships a single "/" URL in teaser mode (generate-sitemap.js).
+// This plugin now only swaps the share card to the teaser OG.
 const teaserNoindexPlugin = () => ({
   name: "teaser-noindex",
   transformIndexHtml(html) {
     if (process.env.VITE_TEASER !== "1") return html;
-    return (
-      html
-        // Hide the pre-launch teaser from search engines.
-        .replace(
-          "</head>",
-          '    <meta name="robots" content="noindex, nofollow" />\n  </head>',
-        )
-        // While in teaser mode the index IS the coming-soon teaser, so the
-        // share card should be the teaser OG (the hero CRT globe), not the
-        // default preset card. Swaps og:image + twitter:image; reverts
-        // automatically once VITE_TEASER is unset.
-        .replace(/og\/default\.png/g, "og/teaser.png")
-    );
+    // The index IS the coming-soon teaser, so the share card should be the
+    // teaser OG (the hero CRT globe), not the default preset card. Swaps
+    // og:image + twitter:image; reverts automatically once VITE_TEASER unset.
+    return html.replace(/og\/default\.png/g, "og/teaser.png");
   },
 });
 
