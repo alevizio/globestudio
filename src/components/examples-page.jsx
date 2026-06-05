@@ -162,7 +162,10 @@ const SHOWCASES = [
   { id: "vercel", name: "Vercel" },
   { id: "gameover", name: "Game Over" },
   { id: "news", name: "Dispatch" },
-  // Temporarily focused on Vercel + Stripe; others hidden for now.
+  // Parked, NOT dead code: Pachama / Profound / Linear / Earthscale are
+  // fully-built showcases kept hidden while the gallery focuses on Vercel
+  // + Stripe. Intentional WIP — this set is being expanded over time;
+  // un-comment an entry (and mount it in ShowcaseStack) to restore one.
   // { id: "pachama", name: "Pachama" },
   // { id: "profound", name: "Profound" },
   // { id: "linear", name: "Linear" },
