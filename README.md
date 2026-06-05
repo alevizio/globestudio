@@ -4,6 +4,8 @@
 
 **Open-source dotted maps and animated 3D globes for designers, animators, and creative developers.**
 
+<a href="https://globestudio.app"><img src="public/og/default.gif" alt="Globestudio — animated dotted 3D globe with 21 shader looks" width="640" /></a>
+
 Pick a country or the whole world, customize dots and shapes, apply shader effects, and export PNG, SVG, or animated WebM. Built on React + Three.js.
 
 [**globestudio.app**](https://globestudio.app/) · [Live demos](https://globestudio.app/) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/alevizio/globestudio/discussions)
@@ -34,13 +36,14 @@ yours to remix.
 - 🎨 **12 dot shapes + custom upload** — Circle · Hexagon · Triangle · Pentagon ·
   Square · Diamond · Star · Plus · Ring · Voxel · Particle Grid · ASCII glyphs ·
   your own SVG/PNG
-- 🪄 **17 shader looks** — Halftone, Risograph, Newsprint, Aurora, Pixel,
+- 🪄 **21 shader looks** — Halftone, Risograph, Newsprint, Aurora, Pixel,
   Bayer, Atkinson, Wireframe, CRT, Glitch, Bad TV, Bloom, Metal, Iridescent,
-  Pencil, Corrupt — plus the base Default. Stackable on any preset.
+  Pencil, Corrupt, Toon, Threshold, Vapor, Topographic — plus the base
+  Default. Stackable on any preset.
 - 🌈 **Gradients + alpha** on dot color, land fill, and country stroke
 - ✨ **Live animations** — rotation, twinkle, size jitter, network arcs,
   motion-aware (respects `prefers-reduced-motion`)
-- 🎛️ **17 curated presets** — every shader look is a one-click preset with
+- 🎛️ **21 curated presets** — every shader look is a one-click preset with
   matching backgrounds, density, dot size, and globe chrome. Shareable
   URLs at `/looks/:id`.
 - 💾 **Real exports** — PNG (high-res via WebGL re-render), SVG (with shader
@@ -136,6 +139,18 @@ iframe to match. WebGL required; falls back to a still preview + a
 [How to make a dotted world map in 2026](docs/blog/2026-05-how-to-make-a-dotted-world-map.md) ·
 [All articles →](docs/blog/)
 
+## Use it from AI tools (MCP)
+
+Globestudio ships a [Model Context Protocol](https://modelcontextprotocol.io)
+server, so Claude, Cursor, and any MCP-compatible assistant can generate
+globes, build share URLs, and grab embed snippets straight from a chat:
+
+```bash
+claude mcp add globestudio -- npx -y @globestudio/mcp
+```
+
+Full tool list and setup in [`packages/mcp/README.md`](packages/mcp/README.md).
+
 ## What you can build with it
 
 | Use case | What it gives you |
@@ -184,7 +199,7 @@ launch teaser. Different tools for different jobs:
 |---|---|---|---|---|---|
 | **3D globe out of box** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Dotted maps** | ✅ 12 shapes | partial | ❌ | ❌ | ❌ |
-| **Shader aesthetic looks** | ✅ **17** | ❌ | custom WebGL only | ❌ | ❌ |
+| **Shader aesthetic looks** | ✅ **21** | ❌ | custom WebGL only | ❌ | ❌ |
 | **Multiple projections** | 5 | sphere only | many | many | n/a |
 | **No-code GUI** | ✅ | ❌ library | ✅ | ✅ | ✅ |
 | **PNG / SVG / WebM export** | ✅ | manual | print / PDF | ✅ | PNG / SVG |
