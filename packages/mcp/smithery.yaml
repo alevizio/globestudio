@@ -1,0 +1,6 @@
+runtime: typescript
+
+# Globestudio needs no per-session configuration (the preset catalog ships
+# embedded, zero external API calls), so there is no startCommand/configSchema
+# block. The TypeScript runtime reads the default export from the file named by
+# package.json "module" (src/smithery.ts).
