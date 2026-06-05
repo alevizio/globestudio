@@ -540,7 +540,7 @@ const renderCard = ({ headlines, palette, url, presetId = "default" }) => {
     </g>
     <g transform="translate(280 0)">
       <svg x="0" y="-12" width="16" height="16" viewBox="0 0 24 24" color="#a8a39b">${KEYBOARD_ICON}</svg>
-      <text x="24" y="0">19 presets</text>
+      <text x="24" y="0">21 presets</text>
     </g>
   </g>
 

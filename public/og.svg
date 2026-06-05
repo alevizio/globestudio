@@ -73,7 +73,7 @@
     </g>
     <g transform="translate(280 0)">
       <svg x="0" y="-12" width="16" height="16" viewBox="0 0 24 24" color="#a8a39b"><g fill="currentColor"><path d="M2 4h20v2H2zM2 6h2v12H2zM20 6h2v12h-2zM2 18h20v2H2zM6 8h2v2H6zM10 8h2v2h-2zM14 8h2v2h-2zM18 8h2v2h-2zM6 12h2v2H6zM10 12h2v2h-2zM14 12h2v2h-2zM18 12h2v2h-2zM8 16h8v-2H8z"/></g></svg>
-      <text x="24" y="0">19 presets</text>
+      <text x="24" y="0">21 presets</text>
     </g>
   </g>
 
