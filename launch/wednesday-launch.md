@@ -13,7 +13,7 @@ June 8). Wed of a post-Memorial-Day short week is a competitive
 arbitrage — full audience, fewer launches.
 
 What changed since v1:
-17 shader looks (up from 11), embed route, Framer reference component,
+21 shader looks (up from 11), embed route, Framer reference component,
 custom GeoJSON, rivers + cities overlays, WCAG 2.2 AA conformance,
 fully-designed OG share cards, French country search — **and** the
 project is now called Globestudio. The name is the story.
@@ -93,7 +93,7 @@ so threads with multiple preset links all get visual previews:
 
 - [ ] **X / Twitter thread** (4-6 tweets). Use this structure:
       1. Hook tweet: "globestudio got a big upgrade — dotted maps and
-         animated 3D globes, now with 17 looks." + the default OG card.
+         animated 3D globes, now with 21 looks." + the default OG card.
       2. "New look: Halftone — newspaper print pattern" + link to
          `/looks/halftone` (OG card unfurls).
       3. Same for Risograph, Aurora, Atkinson, Iridescent.

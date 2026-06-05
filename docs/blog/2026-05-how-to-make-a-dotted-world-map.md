@@ -232,7 +232,7 @@ When NOT to:
 
 If you want to go further:
 
-- [Browse the preset gallery](https://globestudio.app/) — all 17 looks
+- [Browse the preset gallery](https://globestudio.app/) — all 21 looks
   with one-click apply.
 - [The GitHub repo](https://github.com/alevizio/globestudio) — full
   source, MIT licensed.

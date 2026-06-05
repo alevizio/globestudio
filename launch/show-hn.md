@@ -137,7 +137,7 @@ response matters on HN.
 
 > globe.gl is the engine; Globestudio is the GUI. globe.gl is the OSS gold
 > standard for 3D globe rendering — I considered building on it. But the
-> 17 shader looks (halftone, riso, dither, glitch, CRT, aurora) aren't in
+> 21 shader looks (halftone, riso, dither, glitch, CRT, aurora) aren't in
 > globe.gl — that's net-new WebGL post-processing work most people won't
 > spend a weekend on. And designers (the actual audience) can't `npm
 > install`. The wedge is: presets and sliders for the people who don't
@@ -152,7 +152,7 @@ response matters on HN.
 > genuinely good — 90+ projections, free with their branding link. The
 > differences: (a) no 3D globe, (b) no shader-style looks, (c) older
 > design language, (d) proprietary, paid for the unbranded export.
-> Globestudio is MIT, ships the 3D globe and the 17 shader looks, and
+> Globestudio is MIT, ships the 3D globe and the 21 shader looks, and
 > the GUI is a 2026-era designer tool. Different shelf.
 
 ### "It lags on my machine."

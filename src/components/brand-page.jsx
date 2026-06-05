@@ -169,7 +169,7 @@ export const BrandPage = () => {
         </SectionHeading>
         <ul className="brand-taglines">
           <li>"Designer-first dotted maps and animated 3D globes."</li>
-          <li>"19 shader looks. 5 projections. One free web tool."</li>
+          <li>"21 shader looks. 5 projections. One free web tool."</li>
           <li>
             "Pick any country. Customize. Export as PNG, SVG, WebM, or shareable
             JSON."
