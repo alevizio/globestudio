@@ -1210,8 +1210,11 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
       // Bg-only render target sampled here, composited behind the effect
       // output. Allows pattern shaders (halftone etc.) to mark only the
       // globe while the bg (stars + nebula) shows cleanly behind in the
-      // gaps. Set by the render loop; the bgTarget is updated each frame.
-      uBgTexture: { value: bgTexture ?? null },
+      // gaps. The real texture is assigned after construction (below) —
+      // ShaderPass clones this template via UniformsUtils.clone, which
+      // NULLS render-target textures, so a value placed here never
+      // reaches the shader.
+      uBgTexture: { value: null },
       uAsciiAtlas: { value: asciiRamp.texture },
       uAsciiCount: { value: asciiRamp.count },
     },
@@ -1219,6 +1222,10 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
     fragmentShader: FRAGMENT_SHADER,
   });
   composer.addPass(customPass);
+  // Point the cloned uniform at the live bg target texture. Safe to do
+  // once: the bgTarget is resized via setSize(), which keeps the same
+  // texture object for its lifetime.
+  customPass.uniforms.uBgTexture.value = bgTexture ?? null;
 
   return {
     composer,
@@ -1276,5 +1283,12 @@ export const updatePostEffects = (handle, shaderSettings, time, uiTheme = "dark"
     u.uInk.value.set(1, 1, 1);
   }
 
-  handle.customPass.enabled = effect !== "none";
+  // Stays enabled even with no effect selected: besides the visual
+  // effects, this pass owns the final composite of the bg-only target
+  // (uBgTexture) behind the scene — with "Shader on bg: Skip" the
+  // starfield/flow lives ONLY in that target, so disabling the pass
+  // drops the background entirely. uEffect 0 is a passthrough that
+  // still composites; see the "always go through the composer" note in
+  // globe-background.jsx.
+  handle.customPass.enabled = true;
 };
