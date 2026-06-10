@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildShareUrl,
   clearShareConfigFromUrl,
@@ -7,6 +7,7 @@ import {
 } from "./share-config.js";
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   if (typeof window !== "undefined") {
     window.history.replaceState({}, "", "/");
   }
@@ -58,6 +59,36 @@ describe("share-config", () => {
     ]);
     expect(parsed.globeSettings.dataArcs).toBe(true);
     expect(parsed.globeSettings.dataMarkerColor).toBe("#ff8800");
+  });
+
+  it("round-trips view state + overlay settings", () => {
+    const config = {
+      viewMode: "flat",
+      flatProjection: "equal-earth",
+      riversVisible: true,
+      citiesVisible: true,
+      citiesMinPop: 1000000,
+    };
+    const url = buildShareUrl(config, "https://globestudio.app");
+    const parsed = parseShareConfig(`?${url.split("?")[1]}`);
+    expect(parsed).toMatchObject(config);
+  });
+
+  it("drops invalid view state + overlay values", () => {
+    const normalized = normalizeConfig({
+      density: 50,
+      viewMode: "cube",
+      flatProjection: "bogus",
+      riversVisible: "yes",
+      citiesVisible: 1,
+      citiesMinPop: "not-a-number",
+    });
+    expect(normalized).toEqual({ density: 50 });
+  });
+
+  it("clamps citiesMinPop to the supported range", () => {
+    expect(normalizeConfig({ citiesMinPop: 9999999999 }).citiesMinPop).toBe(50000000);
+    expect(normalizeConfig({ citiesMinPop: -10 }).citiesMinPop).toBe(0);
   });
 
   it("strips the version marker so importConfig doesn't see it", () => {
@@ -132,6 +163,23 @@ describe("share-config", () => {
   it("honors an explicit pathname override", () => {
     const url = buildShareUrl({ selection: "world" }, "https://globestudio.app", "/embed");
     expect(new URL(url).pathname).toBe("/embed");
+  });
+
+  it("appends the ?app=1 teaser bypass while teaser mode is active", () => {
+    // Test env has no VITE_TEASER (≠ "0"), matching teaser-active builds —
+    // without the bypass, recipients land on the coming-soon page and the
+    // share config is discarded.
+    const url = new URL(buildShareUrl({ selection: "world" }, "https://globestudio.app"));
+    expect(url.searchParams.get("app")).toBe("1");
+    // The appended param must not corrupt the config payload.
+    const parsed = parseShareConfig(url.search);
+    expect(parsed).toMatchObject({ selection: "world" });
+  });
+
+  it("omits the teaser bypass once VITE_TEASER=0 retires the teaser", () => {
+    vi.stubEnv("VITE_TEASER", "0");
+    const url = new URL(buildShareUrl({ selection: "world" }, "https://globestudio.app"));
+    expect(url.searchParams.has("app")).toBe(false);
   });
 
   it("strips ?c= from the URL after applying", () => {

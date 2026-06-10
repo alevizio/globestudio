@@ -38,6 +38,7 @@ const SHAPES = enumValues(dotShapeOptions);
 const SHADER_EFFECTS = enumValues(shaderEffectOptions);
 const BACKGROUND_STYLES = new Set(["solid", "space", "flow"]);
 const RENDER_MODES = new Set(["dots", "solid"]);
+const VIEW_MODES = new Set(["globe", "flat"]);
 const GLOBE_LOOKS = new Set(["classic", "borderless"]);
 const FLAT_PROJECTIONS = new Set(["mercator", "equirectangular", "equal-earth", "winkel-tripel", "robinson"]);
 
@@ -173,6 +174,7 @@ export const normalizeConfig = (config) => {
   apply(next, "tiltX", normalizeNumber(config.tiltX, -180, 180));
   apply(next, "tiltY", normalizeNumber(config.tiltY, -180, 180));
   apply(next, "animationsEnabled", normalizeBoolean(config.animationsEnabled));
+  apply(next, "viewMode", normalizeEnum(config.viewMode, VIEW_MODES));
   apply(next, "flatProjection", normalizeEnum(config.flatProjection, FLAT_PROJECTIONS));
   apply(next, "riversVisible", normalizeBoolean(config.riversVisible));
   apply(next, "citiesVisible", normalizeBoolean(config.citiesVisible));
@@ -253,7 +255,16 @@ export const buildShareUrl = (config, origin, pathname = "/") => {
   const json = JSON.stringify(payload);
   const encoded = encodeURIComponent(json);
   const base = (origin || "").replace(/\/+$/, "");
-  return `${base}${pathname}?${PARAM_KEY}=${encoded}`;
+  // While the pre-launch teaser is live the index is the coming-soon page,
+  // which would swallow the share config — recipients never reach the app.
+  // `app=1` is the app's non-persisting teaser bypass (App.jsx
+  // isTeaserActive), so share links land in the app. Mirrors App.jsx's
+  // TEASER_MODE expression — Vite inlines it at build time, so the flag
+  // disappears from links in the same VITE_TEASER=0 build that retires the
+  // teaser. Optional chaining keeps plain-node consumers working
+  // (scripts/capture-og-canvas.js), where import.meta.env is undefined.
+  const teaser = import.meta.env?.VITE_TEASER !== "0" ? "&app=1" : "";
+  return `${base}${pathname}?${PARAM_KEY}=${encoded}${teaser}`;
 };
 
 // Decode the share config from a window.location.search string. Returns

@@ -354,6 +354,20 @@ const App = () => {
     panelCollapsed,
     setPanelCollapsed,
   );
+  // Mirrors the styles.css 620px bottom-sheet breakpoint. Collapsing fully
+  // hides the rail on desktop (so it can go inert), but on mobile the
+  // collapsed rail is a touchable peek — drag handle + looks bar stay live.
+  const [isMobileSheet, setIsMobileSheet] = useState(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia("(max-width: 620px)").matches;
+  });
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return undefined;
+    const mq = window.matchMedia("(max-width: 620px)");
+    const onChange = (event) => setIsMobileSheet(event.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
   const [animationsEnabled, setAnimationsEnabled] = usePersistedState("animationsEnabled", true);
   // UI theme: "dark" (default) or "light". Only swaps the panel/picker tokens —
   // the canvas/globe rendering stays on its dark base because the artwork
@@ -903,6 +917,11 @@ const App = () => {
       mapDepth,
       tiltX,
       tiltY,
+      viewMode,
+      flatProjection,
+      riversVisible,
+      citiesVisible,
+      citiesMinPop,
       shaderSettings,
       globeSettings,
       spaceSettings,
@@ -915,7 +934,8 @@ const App = () => {
       shape, dotRotation, shapeRotationSpeed, sizeVary, asciiSymbol, customShape,
       renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible,
       worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible,
-      worldStrokeWidth, mapDepth, tiltX, tiltY, shaderSettings, globeSettings,
+      worldStrokeWidth, mapDepth, tiltX, tiltY, viewMode, flatProjection,
+      riversVisible, citiesVisible, citiesMinPop, shaderSettings, globeSettings,
       spaceSettings, flowSettings, animationsEnabled,
     ],
   );
@@ -986,6 +1006,11 @@ const App = () => {
     set("mapDepth", setMapDepth);
     set("tiltX", setTiltX);
     set("tiltY", setTiltY);
+    set("viewMode", setViewMode);
+    set("flatProjection", setFlatProjection);
+    set("riversVisible", setRiversVisible);
+    set("citiesVisible", setCitiesVisible);
+    set("citiesMinPop", setCitiesMinPop);
     set("animationsEnabled", setAnimationsEnabled);
     if (safeConfig.shaderSettings) setShaderSettings((current) => ({ ...current, ...safeConfig.shaderSettings }));
     if (safeConfig.globeSettings) setGlobeSettings((current) => ({ ...current, ...safeConfig.globeSettings }));
@@ -1033,11 +1058,52 @@ const App = () => {
       }),
     ]);
 
+  // Shared Canvas2D finishing pass for PNG exports. Two jobs:
+  // 1. Solid background — the renderer is alpha:true, so the page's solid
+  //    background is CSS-only and never reaches the GL buffer; captured
+  //    pixels come back transparent. Re-composite the configured color.
+  //    Space/flow backgrounds render in-canvas and pass through untouched.
+  // 2. Aspect + W/H — when the export dialog requests explicit dimensions,
+  //    draw with cover semantics (scale to fill, center, crop the longer
+  //    dimension — never distort), matching the dialog's advertised
+  //    center-crop math (export-modal computeDimensions).
+  const composePngBlob = (source, sourceW, sourceH, outW, outH) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = outW;
+    canvas.height = outH;
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+    if (!transparent && backgroundStyle === "solid") {
+      context.fillStyle = background;
+      context.fillRect(0, 0, outW, outH);
+    }
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    const cover = Math.max(outW / sourceW, outH / sourceH);
+    const drawW = sourceW * cover;
+    const drawH = sourceH * cover;
+    context.drawImage(source, (outW - drawW) / 2, (outH - drawH) / 2, drawW, drawH);
+    // Encode synchronously via toDataURL rather than the async canvas.toBlob:
+    // under software WebGL the toBlob callback can be starved by the running
+    // render loop and never fire, leaving the export silently hung. toDataURL
+    // blocks until it returns, so the export always completes.
+    return dataUrlToBlob(canvas.toDataURL("image/png"));
+  };
+
+  // Explicit W×H requested by the export dialog, or null for native size.
+  const exportTargetDims = (options) => {
+    const width = Math.round(Number(options.width));
+    const height = Math.round(Number(options.height));
+    return width > 0 && height > 0 ? { width, height } : null;
+  };
+
   const exportPng = async (options = {}) => {
     const activeGlobeCanvas = globeCanvasRef.current;
     if (activeGlobeCanvas?.width && activeGlobeCanvas?.height) {
       const scale = options.scale ?? exportScaleValue(canvasScale);
       const filename = buildExportFilename(selected.label, "png", viewMode);
+      const target = exportTargetDims(options);
+      const needsBackground = !transparent && backgroundStyle === "solid";
 
       // Prefer the true high-res re-render path when available — the WebGL scene
       // is rendered fresh at N× resolution so dots and stars stay crisp.
@@ -1048,7 +1114,17 @@ const App = () => {
             "High-res capture timed out",
           );
           if (blob) {
-            downloadBlob(blob, filename);
+            let finalBlob = blob;
+            if (needsBackground || target) {
+              const bitmap = await createImageBitmap(blob);
+              const outW = target?.width ?? bitmap.width;
+              const outH = target?.height ?? bitmap.height;
+              if (needsBackground || outW !== bitmap.width || outH !== bitmap.height) {
+                finalBlob = composePngBlob(bitmap, bitmap.width, bitmap.height, outW, outH) ?? blob;
+              }
+              bitmap.close();
+            }
+            downloadBlob(finalBlob, filename);
             flashPngSaved();
             return;
           }
@@ -1059,23 +1135,13 @@ const App = () => {
 
       // Fallback: Canvas2D upscale of the current framebuffer. Lower quality at
       // higher scales but always works.
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.round(activeGlobeCanvas.width * scale);
-      canvas.height = Math.round(activeGlobeCanvas.height * scale);
-      const context = canvas.getContext("2d");
-      if (!context) return;
-      if (!transparent) {
-        context.fillStyle = background;
-        context.fillRect(0, 0, canvas.width, canvas.height);
-      }
-      context.imageSmoothingEnabled = true;
-      context.imageSmoothingQuality = "high";
-      context.drawImage(activeGlobeCanvas, 0, 0, canvas.width, canvas.height);
-      // Encode synchronously via toDataURL rather than the async canvas.toBlob:
-      // under software WebGL the toBlob callback can be starved by the running
-      // render loop and never fire, leaving the export silently hung. toDataURL
-      // blocks until it returns, so the export always completes.
-      const pngBlob = dataUrlToBlob(canvas.toDataURL("image/png"));
+      const pngBlob = composePngBlob(
+        activeGlobeCanvas,
+        activeGlobeCanvas.width,
+        activeGlobeCanvas.height,
+        target?.width ?? Math.round(activeGlobeCanvas.width * scale),
+        target?.height ?? Math.round(activeGlobeCanvas.height * scale),
+      );
       if (pngBlob) {
         downloadBlob(pngBlob, filename);
         flashPngSaved();
@@ -1450,6 +1516,10 @@ const App = () => {
         className={`control-rail ${panelCollapsed ? "is-collapsed" : ""} ${isDragging ? "is-dragging" : ""}`}
         style={{ "--drag-offset": `${dragOffset}px` }}
         aria-hidden={panelCollapsed}
+        // aria-hidden alone leaves the rail's ~80 controls in the Tab order
+        // when collapsed; inert removes them from focus + hit-testing too.
+        // Desktop only: the mobile collapsed sheet is an interactive peek.
+        inert={(panelCollapsed && !isMobileSheet) || undefined}
       >
         <button
           type="button"
