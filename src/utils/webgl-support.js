@@ -31,6 +31,10 @@ export const hasWebGL = () => {
       canvas.getContext("webgl") ||
       canvas.getContext("experimental-webgl");
     cached = Boolean(gl && typeof gl.getParameter === "function");
+    // Release the probe's context right away — browsers cap live WebGL
+    // contexts per page. The canvas is detached and never reused, so
+    // losing the context is safe (unlike the flow-backdrop.jsx case).
+    gl?.getExtension?.("WEBGL_lose_context")?.loseContext();
   } catch (_error) {
     cached = false;
   }

@@ -35,6 +35,19 @@ describe("hasWebGL", () => {
     expect(hasWebGL()).toBe(false);
   });
 
+  it("releases the probe context via WEBGL_lose_context", () => {
+    const loseContext = vi.fn();
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation((kind) => {
+      if (kind !== "webgl2") return null;
+      return {
+        getParameter: () => 0,
+        getExtension: (name) => (name === "WEBGL_lose_context" ? { loseContext } : null),
+      };
+    });
+    expect(hasWebGL()).toBe(true);
+    expect(loseContext).toHaveBeenCalledTimes(1);
+  });
+
   it("caches the first probe result", () => {
     const spy = vi
       .spyOn(HTMLCanvasElement.prototype, "getContext")

@@ -13,6 +13,7 @@ import { createCountryMapData } from "../utils/dot-generation.js";
 import { createDottedSvg } from "../utils/svg-markup.js";
 import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
 import { parseShareConfig } from "../utils/share-config.js";
+import { clampNumber } from "../utils/math.js";
 
 // Lazy-load the heavy WebGL component so the initial embed payload is small.
 const GlobeBackground = lazy(() =>
@@ -23,11 +24,26 @@ const GlobeBackground = lazy(() =>
 // native types here so the consumer downstream gets clean typed values.
 const parseParams = (search) => {
   const params = new URLSearchParams(search);
-  const num = (key, fallback) => {
+  // Numeric params clamp to the studio slider ranges so hostile query
+  // strings can't push the renderer outside what the UI can produce.
+  const num = (key, fallback, min, max) => {
     const v = params.get(key);
     if (v == null || v === "") return fallback;
     const n = Number(v);
-    return Number.isFinite(n) ? n : fallback;
+    if (!Number.isFinite(n)) return fallback;
+    return min == null ? n : clampNumber(n, min, max);
+  };
+  // Density / dot size feed the dot generator, which throws on zero or
+  // negative sizes (dotted-map: "height or width is required") and blanks
+  // the page. Non-positive or non-numeric values return null so
+  // buildSettings falls back to the preset default; positive values clamp
+  // to the studio slider range.
+  const sizeNum = (key, fallback, min, max) => {
+    const v = params.get(key);
+    if (v == null || v === "") return fallback;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    return clampNumber(n, min, max);
   };
   const bool = (key, fallback) => {
     const v = params.get(key);
@@ -36,15 +52,15 @@ const parseParams = (search) => {
   };
   return {
     look: params.get("look") || "default",
-    density: num("density", 40),
-    dotSize: num("dotSize", 10),
+    density: sizeNum("density", 40, 1, 90),
+    dotSize: sizeNum("dotSize", 10, 0.1, 25),
     dotColor: params.get("dotColor") ? `#${params.get("dotColor").replace(/^#/, "")}` : null,
     worldFill: params.get("worldFill") ? `#${params.get("worldFill").replace(/^#/, "")}` : null,
     renderMode: params.get("renderMode") || null,
     selection: params.get("selection") || "world",
-    motion: num("motion", 35),
-    tiltX: num("tiltX", 0),
-    tiltY: num("tiltY", 0),
+    motion: num("motion", 35, 0, 100),
+    tiltX: num("tiltX", 0, -45, 45),
+    tiltY: num("tiltY", 0, -45, 45),
     autoSpin: bool("autoSpin", true),
     view: params.get("view") || "globe",
     // `static=1` freezes all motion — used when the embed lives in a Framer
@@ -52,6 +68,11 @@ const parseParams = (search) => {
     staticMode: bool("static", false),
     source: params.get("source") || "embed",
     background: params.get("background") ? `#${params.get("background").replace(/^#/, "")}` : "#0a0a0a",
+    // Whether the host explicitly asked for a page background. The visible
+    // page color comes from the --preview-bg CSS var cascade (not the
+    // GlobeBackground prop), so the embed root only paints it when asked —
+    // see the root div's style below.
+    hasBackground: Boolean(params.get("background")),
     transparent: bool("transparent", false),
     // Render theme. The globe's default palette (glow, grid, surface) is
     // tuned for dark backgrounds; `theme=light` flips it to a graphite-on-
@@ -218,6 +239,11 @@ export const EmbedView = () => {
     const probe = document.createElement("canvas");
     const gl = probe.getContext("webgl2") || probe.getContext("webgl");
     setHasWebGL(Boolean(gl));
+    // Release the probe's context right away — browsers cap live WebGL
+    // contexts per page, and pages with many embed iframes hit the cap.
+    // Safe here because the probe canvas is detached and never reused
+    // (the StrictMode remount caveat in flow-backdrop.jsx doesn't apply).
+    gl?.getExtension("WEBGL_lose_context")?.loseContext();
   }, []);
 
   // When ?c=…&transparent flag is set, make the WHOLE embed document
@@ -329,6 +355,17 @@ export const EmbedView = () => {
       className="embed-view"
       data-source={params.source}
       data-transparent={settings.transparent ? "true" : undefined}
+      // ?background= must paint the page itself: .globe-background reads
+      // var(--preview-bg, var(--bg)), so without the var the dark theme bg
+      // wins and the param is invisible. Mirrors the studio shell
+      // (App.jsx --preview-bg): space/flow looks paint their own WebGL
+      // backdrop and transparent embeds stay see-through, so both leave
+      // the var unset.
+      style={
+        params.hasBackground && !settings.transparent && !isSpaceBackground && !isFlowBackground
+          ? { "--preview-bg": settings.background, backgroundColor: settings.background }
+          : undefined
+      }
     >
       <Suspense fallback={<div className="embed-view-placeholder" aria-hidden="true" />}>
         <GlobeBackground
