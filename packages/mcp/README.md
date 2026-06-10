@@ -35,7 +35,7 @@ Five tools, no external API calls (preset catalog ships embedded):
 |---|---|
 | `list_presets` | Every shipped look — id, name, blurb, vibe tags, thumbnail URL, embed URL. |
 | `find_presets({ vibe })` | Fuzzy-find by aesthetic. `synthwave` → Vapor; `print` → Halftone / Risograph / Newsprint; `glow` → Aurora / Bloom. |
-| `build_share_url({ look, selection?, dotColor?, ... })` | Build a `globestudio.app/?c=<base64>` share URL for a customized globe. |
+| `build_share_url({ look, selection?, dotColor?, ... })` | Build customized globe URLs: a `globestudio.app/looks/<id>?c=…` studio share URL + a `/embed?look=<id>&…` embed URL. |
 | `embed_snippet({ look, framework })` | Paste-ready code: `iframe` HTML, `react` component, or `script-tag` loader. |
 | `preview_url({ look })` | Canonical live `/embed` URL + PNG thumbnail URL for one preset. |
 
