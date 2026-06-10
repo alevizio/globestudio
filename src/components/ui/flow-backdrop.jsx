@@ -94,6 +94,7 @@ export const FlowBackdrop = ({ settings = DEFAULT_FLOW_SETTINGS, className, styl
     };
 
     let raf = 0;
+    let running = false;
     const start = performance.now();
     const drawStatic = () => {
       resize();
@@ -107,13 +108,39 @@ export const FlowBackdrop = ({ settings = DEFAULT_FLOW_SETTINGS, className, styl
       raf = requestAnimationFrame(drawFrame);
     };
 
+    const startLoop = () => {
+      if (running) return;
+      running = true;
+      raf = requestAnimationFrame(drawFrame);
+    };
+    const stopLoop = () => {
+      if (!running) return;
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+
     if (reduceMotion) drawStatic();
-    else raf = requestAnimationFrame(drawFrame);
+    else startLoop();
 
     const ro = new ResizeObserver(() => {
       if (reduceMotion) drawStatic();
     });
     ro.observe(canvas);
+
+    // Pause the loop while the canvas is scrolled off-screen — /examples and
+    // the teaser keep the backdrop mounted well below the fold, so without
+    // this the GPU keeps shading pixels nobody can see.
+    let io;
+    if (!reduceMotion && "IntersectionObserver" in window) {
+      io = new IntersectionObserver(
+        (entries) => {
+          if (entries[entries.length - 1].isIntersecting) startLoop();
+          else stopLoop();
+        },
+        { threshold: 0 },
+      );
+      io.observe(canvas);
+    }
 
     // NOTE: deliberately do NOT call WEBGL_lose_context here. Under React
     // StrictMode the effect mounts → cleans up → remounts on the same canvas;
@@ -122,6 +149,7 @@ export const FlowBackdrop = ({ settings = DEFAULT_FLOW_SETTINGS, className, styl
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      if (io) io.disconnect();
     };
   }, [settings, reduceMotion]);
 

@@ -7824,6 +7824,15 @@ input[type="range"]:active::-moz-range-thumb {
     pointer-events: auto;
   }
 
+  /* The desktop full-bleed rule fades the looks bar out when the panel is
+     collapsed, but on mobile the collapsed peek exists precisely to keep
+     the looks bar usable — same selector/specificity, later in source, so
+     this wins and restores it inside the peek. */
+  .app-shell.is-panel-collapsed .looks-bar {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   /* During an active drag we suspend the spring transition so the sheet
      tracks the finger exactly; the transition kicks back in on release
      to handle the snap to the nearest state. */

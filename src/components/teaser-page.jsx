@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./teaser-page.css";
 import { LiquidMetal } from "@paper-design/shaders-react";
+import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
 import { DottedGlobe, ChevronRight, DOTTED_GLOBE_PATH } from "./icons.jsx";
 import { ChromeShader } from "./chrome-shader.jsx";
 import { track } from "./analytics.jsx";
@@ -68,7 +69,7 @@ const LOGO_STYLE_KEY = "globestudio:teaser-logo-v4";
 const LOGO_DEFAULT = "liquid";
 const LOGO_STYLES = ["liquid", "chrome", "prismatic", "flat"];
 
-const renderLogo = (style) => {
+const renderLogo = (style, reduceMotion = false) => {
   if (style === "flat") return <DottedGlobe size={120} />;
   // Real chrome/prismatic shader (chromatic dispersion + iridescence +
   // mouse-tracked specular) rendered into the globe silhouette.
@@ -96,7 +97,10 @@ const renderLogo = (style) => {
       shiftBlue={0.3}
       distortion={0.1}
       contour={1}
-      speed={0.8}
+      // prefers-reduced-motion: freeze the flow on a fully-formed frame —
+      // the ChromeShader variant gates its own loop, but LiquidMetal only
+      // exposes speed.
+      speed={reduceMotion ? 0 : 0.8}
     />
   );
 };
@@ -148,6 +152,7 @@ const TeaserGlobePanel = ({ pos, setPos }) => {
 };
 
 export const TeaserPage = () => {
+  const reduceMotion = usePrefersReducedMotion();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [message, setMessage] = useState("");
@@ -462,7 +467,7 @@ export const TeaserPage = () => {
 
       <section className="teaser-content">
         <span className="teaser-mark" role="img" aria-label="Globestudio" ref={logoRef}>
-          {renderLogo("liquid")}
+          {renderLogo("liquid", reduceMotion)}
         </span>
         <h1 className="teaser-title">Something worldly is coming.</h1>
         <p className="teaser-tagline">
@@ -485,7 +490,7 @@ export const TeaserPage = () => {
       <section className="teaser-look-hero">
         <div className="teaser-look-head">
           <span className="teaser-look-logo" role="img" aria-label="Globestudio">
-            {renderLogo("liquid")}
+            {renderLogo("liquid", reduceMotion)}
           </span>
           {renderSignup(honeypotRef2, "bottom")}
         </div>

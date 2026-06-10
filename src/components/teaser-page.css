@@ -168,7 +168,7 @@
   height: 48px;
   padding: 0 16px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px; /* >= 16px or iOS Safari auto-zooms the page on focus */
   color: #ffffff;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.45);

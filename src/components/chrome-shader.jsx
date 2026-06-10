@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback } from "react";
+import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
 
 // Canvas chrome / prismatic shader (provided by Alejandro; ported from TSX
 // to JS and adapted to render contained + transparent so it works as a logo
@@ -37,6 +38,7 @@ export const ChromeShader = ({
 }) => {
   const canvasRef = useRef(null);
   const rafRef = useRef(0);
+  const reduceMotion = usePrefersReducedMotion();
   const configRef = useRef(config);
   const svgScaleRef = useRef(svgScale);
   const mouseRef = useRef({ x: -9999, y: -9999 });
@@ -587,9 +589,37 @@ export const ChromeShader = ({
       rafRef.current = requestAnimationFrame(animate);
     };
 
+    if (reduceMotion) {
+      // Reduced motion: render one fully-formed frame instead of running the
+      // per-pixel loop. Pin the intro clock so introFade = 1 and draw at a
+      // fixed t = 3s (past the 2s intro); animate self-schedules the next
+      // frame, so cancel it right after. The hook re-runs this effect when
+      // the preference changes, starting/stopping the loop accordingly.
+      const drawStaticFrame = () => {
+        startTimeRef.current = 0;
+        animate(3000);
+        cancelAnimationFrame(rafRef.current);
+      };
+      drawStaticFrame();
+      // init() resizes (and thereby clears) the canvas on resize; with no
+      // loop running, redraw the static frame afterwards. init's observer
+      // was registered first, so it has already rebuilt by the time this
+      // one fires.
+      const parent = canvas.parentElement;
+      let ro;
+      if (parent && "ResizeObserver" in window) {
+        ro = new ResizeObserver(() => drawStaticFrame());
+        ro.observe(parent);
+      }
+      return () => {
+        if (ro) ro.disconnect();
+        cancelAnimationFrame(rafRef.current);
+      };
+    }
+
     rafRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [buildMask]);
+  }, [buildMask, reduceMotion]);
 
   return <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />;
 };
