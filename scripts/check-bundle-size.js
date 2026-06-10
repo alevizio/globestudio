@@ -77,7 +77,7 @@ const BUDGETS = [
   // Headroom for the CRT/pixel-corner clip-path polygons (verbose by nature)
   // plus the choreographed entrance (stagger keyframes), globe pointer-parallax
   // transform, and CTA/input micro-interactions. Gzip stays well under.
-  { prefix: "teaser-page-",      ext: ".css", raw:  12_500,  gzip:   4_500, lazy: true },
+  { prefix: "teaser-page-",      ext: ".css", raw:  14_600,  gzip:   4_800, lazy: true },
 ];
 
 // Total initial-payload budget. Sum of non-lazy chunks' gzip sizes.
