@@ -688,10 +688,10 @@ export const Instagram = ({ size = 22, ...props }) => (
     focusable="false"
     {...props}
   >
-    {/* body */}
-    <path d="M6 3h12v2h2v2h2v12h-2v2h-2v2H6v-2H4v-2H2V7h2V5h2z" />
-    {/* hollow interior */}
-    <path fill="#000" d="M6 5h12v14H6z" />
+    {/* body — interior subpath + evenodd cuts a real hole, so the page
+        bg shows through in both themes (a painted-on dark interior reads
+        as a solid block in light mode) */}
+    <path fillRule="evenodd" d="M6 3h12v2h2v2h2v12h-2v2h-2v2H6v-2H4v-2H2V7h2V5h2zM6 5h12v14H6z" />
     {/* lens ring */}
     <path d="M8 10h2v4H8zm6 0h2v4h-2zm-4-2h4v2h-4zm0 6h4v2h-4z" />
     {/* viewfinder dot */}
