@@ -31,11 +31,15 @@ that exposes tools to build configs, share URLs, and embed snippets in chat.
 
 - `look` — a preset id (see the catalog below), e.g. `look=crt`.
 - `selection` — what to draw (see Selection reference below).
-- `density` — dot density, 0–100.
+- `density` — dot density, 1–90 (invalid values fall back to the preset's).
 - `autoSpin` — `1` to auto-rotate the globe, `0` to hold still.
-- `c` — a full URL-encoded config JSON, which overrides the simple params. The
-  complete parameter table lives at
-  <https://globestudio.app/docs/integrations/README.md#common-parameters>.
+- `theme` — `light` flips the globe chrome (glow, grid, surface) to a
+  graphite-on-cream palette for light host pages; anything else stays dark.
+- `motion` — accepted (0–100) but currently inert: parsed, no effect yet.
+- `c` — the share-config payload: a full URL-encoded config JSON, the same
+  object the in-app Share dialog produces. It overrides the preset and the
+  simple params above. The complete parameter table lives at
+  <https://github.com/alevizio/globestudio/blob/main/README.md#embed-parameters>.
 
 ## Selection reference
 
@@ -47,9 +51,6 @@ that exposes tools to build configs, share URLs, and embed snippets in chat.
 - `continent:<Name>` — `Africa`, `Asia`, `Europe`, `North America`,
   `South America`, `Oceania`, `Antarctica`.
 - `subregion:<Name>` — a UN subregion, e.g. `Western Europe`, `South-Eastern Asia`.
-
-US states: set `selection=country:USA` and `stateSelection=<state>` (or `all`)
-to isolate a single state.
 
 ## Preset catalog (21 looks)
 
@@ -89,10 +90,12 @@ URL.
 ## Docs + code
 
 - README: <https://github.com/alevizio/globestudio/blob/main/README.md>
-- Integrations index (every embed surface + parameter table):
-  <https://github.com/alevizio/globestudio/blob/main/docs/integrations/README.md>
-- Embed (plain HTML / Notion): <https://github.com/alevizio/globestudio/blob/main/docs/integrations/embed.md>
-- Webflow / Framer / Figma / Notion guides live under docs/integrations/.
+- Embed parameters (the canonical table):
+  <https://github.com/alevizio/globestudio/blob/main/README.md#embed-parameters>
+- Integrations (Webflow / Framer / Figma / Notion / WordPress / plain HTML /
+  React, per-tool setup): <https://globestudio.app/integrations>
+- WordPress plugin: <https://github.com/alevizio/globestudio/blob/main/wordpress-plugin/globestudio/README.md>
+- MCP server: <https://github.com/alevizio/globestudio/blob/main/packages/mcp/README.md>
 - JSON Schema: <https://globestudio.app/schema/config.json>
 - React drop-in component: <https://github.com/alevizio/globestudio/blob/main/examples/react-component/Globestudio.tsx>
 - Script-tag loader: <https://globestudio.app/embed.js>

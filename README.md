@@ -82,7 +82,7 @@ Open `http://127.0.0.1:5173/`.
 ```bash
 npm run build      # → dist/
 npm run preview    # serve dist/ locally
-npm test -- --run  # 152 tests across 24 files
+npm test -- --run  # 173 tests across 26 files
 npm run test:e2e   # browser smoke + accessibility checks
 ```
 
@@ -116,24 +116,49 @@ MutationObserver, so SPAs and dynamic content work too.
 ></iframe>
 ```
 
-**Query parameters:** `look`, `density`, `dotSize`, `dotColor`, `worldFill`,
-`renderMode` (dots/solid), `selection` (`world`, `country:USA`,
-`continent:Europe`, `subregion:Western Europe`), `motion`, `tiltX`,
-`tiltY`, `autoSpin`, `view` (flat/globe), `static` (freeze motion for
-static previews), `transparent`, `background`, `source` (analytics tag).
-
 Resize-aware via `postMessage` — listen for
 `{ type: "globestudio-resize", height }` from the embed and resize the
 iframe to match. WebGL required; falls back to a still preview + a
 "how to enable WebGL" panel if the GL context can't be created.
 
-**Per-tool integration guides:**
-[Webflow](docs/integrations/webflow.md) ·
-[Framer](docs/integrations/framer.md) ·
-[Figma](docs/integrations/figma.md) ·
-[Notion](docs/integrations/notion.md) ·
-[Plain HTML](docs/integrations/embed.md) ·
-[All integrations →](docs/integrations/)
+### Embed parameters
+
+The canonical parameter table. Every query param the `/embed` route honors,
+as parsed in [`src/components/embed-view.jsx`](src/components/embed-view.jsx):
+
+| Param | Type / range | Default | What it does |
+|---|---|---|---|
+| `look` | preset id (one of the 21 looks) | `default` | Base look preset — params below override it |
+| `selection` | `world` · `country:<ISO3>` · `continent:<Name>` · `subregion:<Name>` | `world` | What geography to draw |
+| `density` | number, 1–90 | `40` | Dot grid density (invalid values fall back to the preset's) |
+| `dotSize` | number, 0.1–25 | `10` | Dot size (invalid values fall back to the preset's) |
+| `dotColor` | hex, `#` optional | preset's | Dot color |
+| `worldFill` | hex, `#` optional | preset's | Land fill color |
+| `renderMode` | `dots` · `solid` | preset's | Dot field or solid landmass |
+| `motion` | number, 0–100 | `35` | Parsed but currently inert — reserved, no effect yet |
+| `tiltX` | number, −45 to 45 | `0` | Camera tilt, degrees |
+| `tiltY` | number, −45 to 45 | `0` | Camera tilt, degrees |
+| `autoSpin` | `1` · `0` | `1` | Auto-rotate the globe |
+| `static` | `1` · `0` | `0` | Freeze all motion (static previews in design-tool canvases) |
+| `view` | `globe` · `flat` | `globe` | 3D globe or flat map |
+| `background` | hex, `#` optional | unset | Page background behind the canvas (only painted when set) |
+| `theme` | `dark` · `light` | `dark` | Globe chrome palette — `light` reads cleanly on light host pages |
+| `transparent` | `1` · `0` | `0` | See-through document, composites onto the host page |
+| `plugin` | `figma` | unset | Host-plugin shell (the Figma plugin's Insert button) |
+| `source` | string | `embed` | Analytics tag, echoed in resize `postMessage`s |
+| `c` | URL-encoded config JSON | unset | Full share-config payload (what the Share dialog produces) — overrides the preset and the params above |
+
+A JSON Schema for the `c` payload lives at
+[`/schema/config.json`](public/schema/config.json).
+
+**Per-tool integration guides** live at
+[globestudio.app/integrations](https://globestudio.app/integrations) —
+copy-paste setups for Webflow, Framer, Figma, Notion, WordPress, plain
+HTML, and React. In this repo:
+[Figma plugin](figma-plugin/) ·
+[WordPress plugin](wordpress-plugin/globestudio/) ·
+[Framer component](examples/framer-component/) ·
+[embed snippet](examples/embed-snippet/)
 
 **Reading material:**
 [How to make a dotted world map in 2026](docs/blog/2026-05-how-to-make-a-dotted-world-map.md) ·
@@ -164,15 +189,15 @@ Full tool list and setup in [`packages/mcp/README.md`](packages/mcp/README.md).
 
 ### Runnable examples
 
-The [`examples/`](./examples) directory holds 7 reference projects with
-runnable HTML and adaptation guides. Highlights:
+The [`examples/`](./examples) directory holds 9 reference projects —
+runnable HTML, drop-in components, and adaptation guides. Highlights:
 
 - [`embed-snippet`](./examples/embed-snippet) — the minimum-viable iframe
   pattern. Copy into Webflow, Framer, Notion, plain HTML, anywhere.
 - [`hero-globe`](./examples/hero-globe) — full-bleed animated globe behind
   a landing-page hero.
-- [`shader-presets-showcase`](./examples/shader-presets-showcase) — all 16
-  presets in one auto-fit gallery, perfect for picking a look.
+- [`shader-presets-showcase`](./examples/shader-presets-showcase) — the
+  shader presets in one auto-fit gallery, perfect for picking a look.
 
 Share what you make in [Show & Tell](https://github.com/alevizio/globestudio/discussions/categories/show-and-tell).
 
@@ -225,7 +250,7 @@ Built with:
 - **[React 19](https://react.dev)** + **[Vite](https://vite.dev)** for the app shell
 - **[Three.js](https://threejs.org)** for the WebGL globe, instanced dot rendering, shader effects, network arcs
 - **[dotted-map](https://github.com/NTag/dotted-map)** for the source dot field
-- **[d3-geo](https://d3js.org/d3-geo)** + **[d3-geo-projection](https://github.com/d3/d3-geo-projection)** + **[topojson-client](https://github.com/topojson/topojson-client)** for projections (Mercator, Equal Earth, Winkel Tripel, Robinson) and topology decoding
+- **[d3-geo](https://d3js.org/d3-geo)** + **[d3-geo-projection](https://github.com/d3/d3-geo-projection)** + **[topojson-client](https://github.com/topojson/topojson-client)** for projections (Mercator, Equirectangular, Equal Earth, Winkel Tripel, Robinson) and topology decoding
 - **[world-countries](https://github.com/mledoze/countries)** + **[world-atlas](https://github.com/topojson/world-atlas)** + **[us-atlas](https://github.com/topojson/us-atlas)** for source geography
 - **[satori](https://github.com/vercel/satori)** + **[@resvg/resvg-js](https://github.com/yisibl/resvg-js)** for the OG share card pipeline (JSX → SVG → PNG at build time)
 - **[Pixelarticons](https://pixelarticons.com)** by Gerrit Halfmann for the in-app icon set — 24×24 pixel-grid icons with `currentColor` fill so they theme cleanly

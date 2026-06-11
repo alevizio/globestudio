@@ -16,6 +16,52 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 
 const ENTRIES = [
   {
+    label: "Launch hardening",
+    date: "June 2026",
+    items: [
+      "Shader-on-background composite actually paints — it sampled transparent black in every \"Skip\" state",
+      "PNG export matches the canvas — solid background composited in, aspect/size honored via center-crop",
+      "Share links round-trip exactly — view mode, projection, rivers, and cities travel with the URL",
+      "Embed params clamp to studio ranges (a stray density crashed the embed) + ?background= works",
+      "MCP share/embed URLs decode correctly — a contract test runs every URL through the app's own parser",
+      "Mobile: looks bar shows in the collapsed-sheet peek, no more iOS focus auto-zoom",
+      "Off-screen shader backdrops pause; animated chrome respects prefers-reduced-motion",
+    ],
+  },
+  {
+    label: "Search engines & AI assistants",
+    date: "June 2026",
+    items: [
+      "Comparison pages — /compare/cobe and /compare/geolayers, honest decision aids with FAQ JSON-LD",
+      "Per-route <head> prerendering — looks, compare, and gallery get real titles + cards without JS",
+      "robots.txt welcomes AI crawlers; llms.txt + llms-full.txt describe the product for assistants",
+      "Sitemap auto-generated from the preset list so it can never drift again",
+    ],
+  },
+  {
+    label: "Globestudio everywhere",
+    date: "May 2026",
+    items: [
+      "@globestudio/mcp on npm — MCP server so AI assistants can generate globes, share URLs, and embed snippets",
+      "@globestudio/react — drop-in <Globe /> component for React apps, zero deps, SSR-friendly",
+      "@globestudio/element — framework-free web component",
+      "embed.js — one script tag + a div embeds a globe in Webflow, Squarespace, or plain HTML",
+      "WordPress plugin — Gutenberg block + [globestudio] shortcode, wordpress.org submission prepped",
+      "Figma plugin live in the Community — insert globes as editable vectors",
+      "/integrations — copy-paste recipes for every platform",
+    ],
+  },
+  {
+    label: "21 looks + motion exports",
+    date: "May 2026",
+    items: [
+      "Two new presets — Vapor (synthwave) and Topographic (contour rings) — the catalog hits 21 looks",
+      "Animated GIF and MP4 export join WebM",
+      "/gallery — a static index of every built-in look",
+      "/examples — six full-screen brand showcases with copy-paste HTML",
+    ],
+  },
+  {
     label: "Wave 2 polish",
     date: "May 2026",
     items: [

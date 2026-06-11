@@ -10,10 +10,10 @@ export const comparisons = {
     competitor: "cobe",
     title: "Globestudio vs cobe — dotted globe, no-code vs library",
     metaDescription:
-      "cobe is a tiny code-only WebGL globe library. Globestudio is a no-code studio that also exports PNG/SVG/WebM/MP4/GIF and ships a React component, web component, Figma plugin, and MCP server. Honest comparison.",
+      "cobe is a tiny code-only WebGL globe library. Globestudio is a no-code studio that also exports PNG/SVG/WebM/MP4/GIF and offers a React component, iframe embed, WordPress plugin, Figma plugin, and MCP server. Honest comparison.",
     tagline: "A no-code studio with exports vs. a tiny code-only library.",
     summary:
-      "cobe is an excellent ~5 KB, zero-dependency WebGL globe you wire up in JavaScript — it powers the Vercel globe. Globestudio is the layer above: a no-code generator where you design the look in the browser and export it (PNG/SVG/WebM/MP4/GIF or an embed), with a React component, web component, Figma plugin, and MCP server when you do want code. cobe gives you a canvas; Globestudio gives you a deliverable.",
+      "cobe is an excellent ~5 KB, zero-dependency WebGL globe you wire up in JavaScript — it powers the Vercel globe. Globestudio is the layer above: a no-code generator where you design the look in the browser and export it (PNG/SVG/WebM/MP4/GIF or an embed), with a React component, iframe embed, WordPress + Figma plugins, and an MCP server when you do want code. cobe gives you a canvas; Globestudio gives you a deliverable.",
     rows: [
       { dimension: "How you use it", globestudio: "No-code browser studio + optional components", them: "Write JavaScript / React" },
       { dimension: "Output", globestudio: "PNG, SVG, WebM, MP4, GIF, embed, live component", them: "A live canvas in your app" },
@@ -42,13 +42,13 @@ export const comparisons = {
     competitor: "GEOlayers",
     title: "Globestudio vs GEOlayers — animated maps in the browser vs After Effects",
     metaDescription:
-      "GEOlayers is a paid After Effects plugin (~$250 + a maps-data subscription) for animated cartographic maps. Globestudio makes stylized dotted maps and 3D globes free in the browser and exports WebM/MP4/GIF. Honest comparison.",
+      "GEOlayers is a paid After Effects plugin for animated cartographic maps. Globestudio makes stylized dotted maps and 3D globes free in the browser and exports WebM/MP4/GIF. Honest comparison.",
     tagline: "Stylized maps in the browser vs. cartographic maps in After Effects.",
     summary:
-      "GEOlayers 3 is the dominant pro tool for animated maps inside After Effects — real cartographic data, terrain, labels, and a keyframe timeline. It costs ~$250 plus a maps-data subscription (e.g. MapTiler). Globestudio is a free, browser-based, no-code tool for the stylized dotted-map / 3D-globe aesthetic that exports WebM/MP4/GIF — no After Effects, no subscription. Different jobs: production cartographic motion vs. a fast, stylized, exportable globe.",
+      "GEOlayers 3 is the dominant pro tool for animated maps inside After Effects — real cartographic data, terrain, labels, and a keyframe timeline. It's a paid license, with basemap data coming from connected map services (e.g. MapTiler). Globestudio is a free, browser-based, no-code tool for the stylized dotted-map / 3D-globe aesthetic that exports WebM/MP4/GIF — no After Effects, no subscription. Different jobs: production cartographic motion vs. a fast, stylized, exportable globe.",
     rows: [
       { dimension: "Where it runs", globestudio: "Browser, no install", them: "Adobe After Effects plugin" },
-      { dimension: "Price", globestudio: "Free (MIT, open source)", them: "~$250 + maps-data subscription" },
+      { dimension: "Price", globestudio: "Free (MIT, open source)", them: "Paid license + map-data services" },
       { dimension: "Style", globestudio: "Stylized dotted maps + 3D globes, shader looks", them: "Real cartographic basemaps, terrain, labels" },
       { dimension: "Animation control", globestudio: "Rotation, arcs, pulses (no timeline)", them: "Full AE keyframe timeline" },
       { dimension: "Export", globestudio: "WebM/MP4/GIF, PNG/SVG, embed", them: "AE render (ProRes/alpha, broadcast)" },
@@ -63,9 +63,9 @@ export const comparisons = {
       },
       {
         q: "Can I make an animated globe without After Effects?",
-        a: "Yes — Globestudio runs in the browser: pick a look, enable rotation/arcs, and export an MP4, WebM, or GIF. No After Effects or maps-data subscription needed.",
+        a: "Yes — Globestudio runs in the browser: pick a look, enable rotation/arcs, and export an MP4, WebM, or GIF. No After Effects needed.",
       },
-      { q: "Does Globestudio cost anything?", a: "No — it's open source (MIT) and free; GEOlayers is a paid After Effects plugin plus a maps-data subscription." },
+      { q: "Does Globestudio cost anything?", a: "No — it's open source (MIT) and free; GEOlayers is a paid After Effects plugin." },
     ],
   },
 };

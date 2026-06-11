@@ -49,8 +49,11 @@ export const Analytics = () => {
 };
 
 // Programmatic event tracking — guarded by the same opt-out signals.
-// Called from the action sites (applyLook for preset_applied,
-// the export modal for export_completed, etc.).
+// Called from the action sites, always AFTER the action succeeds:
+// applyLook fires preset_applied, the App.jsx export handlers fire
+// export_completed (format + active look, no PII), the export modal's
+// share tab fires share_clicked on copy. The event names here must stay
+// in sync with what /privacy discloses (privacy-page.jsx).
 export const track = (name, properties) => {
   if (isOptedOut()) return;
   // Lazy-load the track helper so importing it doesn't pull the

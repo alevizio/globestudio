@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
 import { Check, Clipboard, Download, Share2, Upload, X } from "./icons.jsx";
+import { track } from "./analytics.jsx";
 
 const ASPECT_OPTIONS = [
   { id: "original", label: "Original", ratio: null },
@@ -225,6 +226,10 @@ export const ExportModal = ({
     try {
       await navigator.clipboard.writeText(url);
       setLinkStatus("copied");
+      // Only after the clipboard write succeeds — the manual-copy
+      // fallback isn't a share yet. `method` says which button, never
+      // where the link goes (matches what /privacy documents).
+      track("share_clicked", { method: "link" });
       window.setTimeout(() => setLinkStatus("idle"), 1800);
     } catch {
       setLinkStatus("manual");
@@ -250,6 +255,7 @@ export const ExportModal = ({
     try {
       await navigator.clipboard.writeText(snippet);
       setReactStatus("copied");
+      track("share_clicked", { method: "react" });
       window.setTimeout(() => setReactStatus("idle"), 1800);
     } catch {
       setReactStatus("manual");

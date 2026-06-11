@@ -839,6 +839,9 @@ const App = () => {
     setSvgStatus("saved");
     setStatusMessage("SVG saved");
     window.setTimeout(() => setSvgStatus("idle"), 1800);
+    // Export is the activation metric — fired after the download is handed
+    // to the browser, never before. No PII, just format + active preset.
+    track("export_completed", { format: "svg", look: currentPresetId ?? "custom" });
   };
 
   const exportVideo = useCallback(async (options = {}) => {
@@ -872,6 +875,9 @@ const App = () => {
       }
       downloadBlob(blob, buildExportFilename(selected.label, format, viewMode));
       setVideoStatus("ready");
+      // Fired only on success (the catch path skips it) — format is the
+      // actual encoded format, not the requested one.
+      track("export_completed", { format, look: currentPresetId ?? "custom", durationMs });
       window.setTimeout(() => setVideoStatus("idle"), 2200);
     } catch (error) {
       console.error("Video export failed", error);
@@ -879,7 +885,7 @@ const App = () => {
     } finally {
       setVideoProgress(0);
     }
-  }, [selected.label, videoDurationMs, videoStatus, viewMode]);
+  }, [currentPresetId, selected.label, videoDurationMs, videoStatus, viewMode]);
 
   // Snapshot of every user-customizable visual setting. Shared between
   // exportConfig (downloads as .json) and getShareUrl (encodes into a
@@ -1037,10 +1043,20 @@ const App = () => {
     }
   }, [exportSvgData.svg]);
 
-  const flashPngSaved = () => {
+  // Called from every successful exportPng path (and only those), so it
+  // doubles as the single choke point for the export_completed event —
+  // one event per save, fired after the download, never on click.
+  const flashPngSaved = (scale) => {
     setPngStatus("saved");
     setStatusMessage("PNG saved");
     window.setTimeout(() => setPngStatus("idle"), 1800);
+    track("export_completed", {
+      format: "png",
+      look: currentPresetId ?? "custom",
+      // The SVG-rasterize fallback has no scale concept — omit rather
+      // than fake a value.
+      ...(scale ? { scale } : {}),
+    });
   };
 
   // CI runs on Chromium with SwiftShader (software WebGL). The high-res
@@ -1125,7 +1141,7 @@ const App = () => {
               bitmap.close();
             }
             downloadBlob(finalBlob, filename);
-            flashPngSaved();
+            flashPngSaved(scale);
             return;
           }
         } catch (error) {
@@ -1144,7 +1160,7 @@ const App = () => {
       );
       if (pngBlob) {
         downloadBlob(pngBlob, filename);
-        flashPngSaved();
+        flashPngSaved(scale);
       }
       return;
     }

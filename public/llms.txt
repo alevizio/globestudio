@@ -27,20 +27,19 @@ screenshot, or download its export endpoints.
 https://globestudio.app/embed?look=halftone&density=50&selection=continent:Europe&autoSpin=1
 ```
 
-Every embed parameter is documented at
-<https://globestudio.app/docs/integrations/README.md#common-parameters>.
+Every embed parameter is documented in the README's parameter table:
+<https://github.com/alevizio/globestudio/blob/main/README.md#embed-parameters>.
 A JSON Schema for configuration files is at
 <https://globestudio.app/schema/config.json>.
 
 ## Docs
 
 - [README](https://github.com/alevizio/globestudio/blob/main/README.md): project overview, features, quickstart
-- [Integrations index](https://github.com/alevizio/globestudio/blob/main/docs/integrations/README.md): every embed surface + parameter table
-- [Embed (plain HTML / Notion)](https://github.com/alevizio/globestudio/blob/main/docs/integrations/embed.md): script-tag loader + iframe paths
-- [Webflow](https://github.com/alevizio/globestudio/blob/main/docs/integrations/webflow.md): Code Embed block setup
-- [Framer](https://github.com/alevizio/globestudio/blob/main/docs/integrations/framer.md): code component contract
-- [Figma](https://github.com/alevizio/globestudio/blob/main/docs/integrations/figma.md): plugin architecture + Insert flow
-- [Notion](https://github.com/alevizio/globestudio/blob/main/docs/integrations/notion.md): slash-command embed
+- [Embed parameters](https://github.com/alevizio/globestudio/blob/main/README.md#embed-parameters): the canonical parameter table
+- [Integrations](https://globestudio.app/integrations): per-tool setup for Webflow, Framer, Figma, Notion, WordPress, plain HTML, React
+- [Figma plugin](https://github.com/alevizio/globestudio/blob/main/figma-plugin/README.md): plugin architecture + Insert flow
+- [WordPress plugin](https://github.com/alevizio/globestudio/blob/main/wordpress-plugin/globestudio/README.md): Gutenberg block + `[globestudio]` shortcode
+- [MCP server](https://github.com/alevizio/globestudio/blob/main/packages/mcp/README.md): tool list + setup for AI assistants
 - [Accessibility](https://github.com/alevizio/globestudio/blob/main/ACCESSIBILITY.md): WCAG 2.2 AA conformance details
 - [Roadmap](https://github.com/alevizio/globestudio/blob/main/ROADMAP.md): planned features
 - [JSON Schema](https://globestudio.app/schema/config.json): IDE-validated config files

@@ -6,7 +6,61 @@
     <atom:link href="https://globestudio.app/changelog.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped work in Globestudio — new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 01 May 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 01 Jun 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Launch hardening</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#launch-hardening</guid>
+      <pubDate>Mon, 01 Jun 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Shader-on-background composite actually paints — it sampled transparent black in every &quot;Skip&quot; state</li>
+  <li>PNG export matches the canvas — solid background composited in, aspect/size honored via center-crop</li>
+  <li>Share links round-trip exactly — view mode, projection, rivers, and cities travel with the URL</li>
+  <li>Embed params clamp to studio ranges (a stray density crashed the embed) + ?background= works</li>
+  <li>MCP share/embed URLs decode correctly — a contract test runs every URL through the app&apos;s own parser</li>
+  <li>Mobile: looks bar shows in the collapsed-sheet peek, no more iOS focus auto-zoom</li>
+  <li>Off-screen shader backdrops pause; animated chrome respects prefers-reduced-motion</li>
+</ul>]]></description>
+    </item>
+    <item>
+      <title>Search engines &amp; AI assistants</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#search-engines-%26-ai-assistants</guid>
+      <pubDate>Mon, 01 Jun 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Comparison pages — /compare/cobe and /compare/geolayers, honest decision aids with FAQ JSON-LD</li>
+  <li>Per-route &lt;head&gt; prerendering — looks, compare, and gallery get real titles + cards without JS</li>
+  <li>robots.txt welcomes AI crawlers; llms.txt + llms-full.txt describe the product for assistants</li>
+  <li>Sitemap auto-generated from the preset list so it can never drift again</li>
+</ul>]]></description>
+    </item>
+    <item>
+      <title>Globestudio everywhere</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#globestudio-everywhere</guid>
+      <pubDate>Fri, 01 May 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>@globestudio/mcp on npm — MCP server so AI assistants can generate globes, share URLs, and embed snippets</li>
+  <li>@globestudio/react — drop-in &lt;Globe /&gt; component for React apps, zero deps, SSR-friendly</li>
+  <li>@globestudio/element — framework-free web component</li>
+  <li>embed.js — one script tag + a div embeds a globe in Webflow, Squarespace, or plain HTML</li>
+  <li>WordPress plugin — Gutenberg block + [globestudio] shortcode, wordpress.org submission prepped</li>
+  <li>Figma plugin live in the Community — insert globes as editable vectors</li>
+  <li>/integrations — copy-paste recipes for every platform</li>
+</ul>]]></description>
+    </item>
+    <item>
+      <title>21 looks + motion exports</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#21-looks-%2B-motion-exports</guid>
+      <pubDate>Fri, 01 May 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Two new presets — Vapor (synthwave) and Topographic (contour rings) — the catalog hits 21 looks</li>
+  <li>Animated GIF and MP4 export join WebM</li>
+  <li>/gallery — a static index of every built-in look</li>
+  <li>/examples — six full-screen brand showcases with copy-paste HTML</li>
+</ul>]]></description>
+    </item>
     <item>
       <title>Wave 2 polish</title>
       <link>https://globestudio.app/changelog</link>
