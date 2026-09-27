@@ -151,6 +151,26 @@ test.describe("on a phone with the sheet collapsed", () => {
   });
 });
 
+test.describe("on a short phone screen", () => {
+  // iPhone 14's Safari viewport.
+  test.use({ viewport: { width: 390, height: 664 }, isMobile: true, hasTouch: true });
+
+  test("Export PNG is on screen and clickable without scrolling the dialog", async ({ page }) => {
+    await page.goto("/");
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    await expect(page.getByRole("dialog", { name: /export/i })).toBeVisible();
+    const cta = page.getByRole("button", { name: /export png/i });
+    await expect(cta).toBeVisible();
+    const reachable = await cta.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return rect.bottom <= window.innerHeight && Boolean(hit && el.contains(hit));
+    });
+    expect(reachable).toBe(true);
+  });
+});
+
 for (const path of ["/", "/docs", "/brand", "/privacy"]) {
   test(`axe has no serious violations on ${path}`, async ({ page }) => {
     await page.goto(path);

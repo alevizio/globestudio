@@ -397,14 +397,6 @@ export const ExportModal = ({
                 }}
               />
               <p className="export-modal-caption">Uses the current globe frame at export time.</p>
-              <button
-                type="button"
-                className={`export-modal-cta ${pngStatus === "saved" ? "is-success" : ""}`}
-                onClick={handlePng}
-              >
-                {pngStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
-                <span>{pngStatus === "saved" ? "PNG saved" : "Export PNG"}</span>
-              </button>
             </>
           )}
 
@@ -459,24 +451,6 @@ export const ExportModal = ({
                   </div>
                 </div>
               </div>
-              {isRecording && (
-                <div className="export-modal-progress" aria-hidden="true">
-                  <div className="export-modal-progress-fill" style={{ width: `${recordingPct}%` }} />
-                </div>
-              )}
-              <button
-                type="button"
-                className={`export-modal-cta ${isRecording ? "is-recording" : ""}`}
-                onClick={handleVideo}
-                disabled={isRecording}
-              >
-                <Download size={17} />
-                <span>
-                  {isRecording
-                    ? `Recording… ${recordingPct}%`
-                    : `Export ${{ webm: "WebM", mp4: "MP4", gif: "GIF" }[videoFormat]}`}
-                </span>
-              </button>
             </>
           )}
 
@@ -581,6 +555,43 @@ export const ExportModal = ({
           )}
         </div>
         </div>
+
+        {/* The Image and Video CTAs sit below the scrolling body, so they
+            stay on screen when the options overflow a short phone screen. */}
+        {tab === "image" && (
+          <footer className="export-modal-footer">
+            <button
+              type="button"
+              className={`export-modal-cta ${pngStatus === "saved" ? "is-success" : ""}`}
+              onClick={handlePng}
+            >
+              {pngStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
+              <span>{pngStatus === "saved" ? "PNG saved" : "Export PNG"}</span>
+            </button>
+          </footer>
+        )}
+        {tab === "video" && videoSupported && (
+          <footer className="export-modal-footer">
+            {isRecording && (
+              <div className="export-modal-progress" aria-hidden="true">
+                <div className="export-modal-progress-fill" style={{ width: `${recordingPct}%` }} />
+              </div>
+            )}
+            <button
+              type="button"
+              className={`export-modal-cta ${isRecording ? "is-recording" : ""}`}
+              onClick={handleVideo}
+              disabled={isRecording}
+            >
+              <Download size={17} />
+              <span>
+                {isRecording
+                  ? `Recording… ${recordingPct}%`
+                  : `Export ${{ webm: "WebM", mp4: "MP4", gif: "GIF" }[videoFormat]}`}
+              </span>
+            </button>
+          </footer>
+        )}
       </div>
     </div>
   );

@@ -4053,6 +4053,8 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
 .export-modal {
   width: min(640px, 100%);
   max-height: calc(100vh - 48px);
+  /* svh: the height Safari's toolbars leave visible. */
+  max-height: calc(100svh - 48px);
   display: flex;
   flex-direction: column;
   /* Same translucent panel tint the control rail / color picker /
@@ -4938,6 +4940,19 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   overflow: auto;
 }
 
+/* Image and Video CTAs: outside the scrolling body, so Export stays on
+   screen on short phones. 20px + the body's 24px keeps the 44px break. */
+.export-modal-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px 24px;
+}
+
+.export-modal-footer .export-modal-cta {
+  margin-top: 0;
+}
+
 /* Mount-fade on tab content + the real vertical layout for the
    section stack. Keyed re-render per tab swap (see export-modal.jsx
    <div key={tab}>) means the animation fires on each tab change.
@@ -5181,6 +5196,13 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   }
   .export-modal-dimensions {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Phones: opaque, so the control sheet can't show through the text. */
+@media (max-width: 620px) {
+  .export-modal {
+    background: linear-gradient(var(--panel), var(--panel)), var(--bg);
   }
 }
 
