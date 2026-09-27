@@ -570,6 +570,11 @@ export const ExportModal = ({
             stay on screen when the options overflow a short phone screen. */}
         {tab === "image" && (
           <footer className="export-modal-footer">
+            {pngStatus === "error" && (
+              <p className="export-modal-error" role="alert">
+                Export failed. Try again, or pick a lower quality.
+              </p>
+            )}
             <button
               type="button"
               className={`export-modal-cta ${pngStatus === "saved" ? "is-success" : ""}`}

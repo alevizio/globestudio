@@ -110,6 +110,43 @@ test("PNG export announces 'PNG saved' via the aria-live status region", async (
     .toHaveText(/PNG saved/i, { timeout: process.env.CI ? 45_000 : 30_000 });
 });
 
+test("a PNG export that yields no image says so in the dialog", async ({ page }) => {
+  await page.goto("/");
+  await waitForCanvas(page);
+  await page.evaluate(() => {
+    // Hi-res capture fails, then the Canvas2D fallback gets no context, the
+    // way iOS answers a canvas over its area limit at High and Ultra.
+    const globe = [...document.querySelectorAll("canvas")]
+      .find((node) => typeof node.captureAtScale === "function");
+    Object.defineProperty(globe, "captureAtScale", {
+      configurable: true,
+      get: () => () => Promise.reject(new Error("capture failed in test")),
+      set: () => {},
+    });
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
+      if (type === "2d" && !this.isConnected) return null;
+      return getContext.call(this, type, ...rest);
+    };
+  });
+  await page.keyboard.press("d");
+  const dialog = page.getByRole("dialog", { name: /export/i });
+  const exportButton = dialog.getByRole("button", { name: /export png/i });
+  await expect(exportButton).toBeEnabled();
+  // Same in-page click as the test above: the repainting globe stalls a normal click.
+  await exportButton.evaluate((el) => el.click());
+  await expect(dialog.getByRole("alert")).toHaveText(/Export failed/);
+  await expect(page.locator('.visually-hidden[role="status"]')).not.toHaveText(/PNG saved/i);
+  await expect(exportButton).toBeEnabled();
+
+  // Closing the dialog clears the message; it doesn't greet the next visit.
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await page.keyboard.press("d");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("alert")).toHaveCount(0);
+});
+
 test.describe("with reduced motion", () => {
   test.use({ contextOptions: { reducedMotion: "reduce" } });
 

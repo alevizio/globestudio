@@ -76,6 +76,14 @@ describe("ExportModal", () => {
     expect(screen.getByRole("button", { name: /Export WebM/ }).disabled).toBe(false);
   });
 
+  it("says so when a PNG export fails, next to the button that retries it", () => {
+    const exportPng = vi.fn();
+    renderModal({ exportPng, pngStatus: "error" });
+    expect(screen.getByRole("alert").textContent).toMatch(/Export failed/);
+    fireEvent.click(screen.getByRole("button", { name: /Export PNG/ }));
+    expect(exportPng).toHaveBeenCalledTimes(1);
+  });
+
   describe("importing a configuration file", () => {
     const importText = (container, text) => {
       fireEvent.click(screen.getByRole("tab", { name: "Share" }));

@@ -1066,7 +1066,8 @@ const App = () => {
   const flashPngSaved = (scale) => {
     setPngStatus("saved");
     setStatusMessage("PNG saved");
-    window.setTimeout(() => setPngStatus("idle"), 1800);
+    // Only clears the flash: a retry that already failed keeps its message.
+    window.setTimeout(() => setPngStatus((status) => (status === "saved" ? "idle" : status)), 1800);
     track("export_completed", {
       format: "png",
       look: currentPresetId ?? "custom",
@@ -1074,6 +1075,16 @@ const App = () => {
       // than fake a value.
       ...(scale ? { scale } : {}),
     });
+  };
+
+  // Every PNG path that ends without a file lands here (iOS returns no 2D
+  // context over its canvas area limit at High and Ultra, for example). The
+  // Image tab shows the failure until the next attempt or until the dialog
+  // closes, like the Video tab.
+  const failPngExport = (error) => {
+    console.error("PNG export failed", error);
+    setPngStatus("error");
+    trackClientError("export-png", error);
   };
 
   // CI runs on Chromium with SwiftShader (software WebGL). The high-res
@@ -1131,6 +1142,7 @@ const App = () => {
   };
 
   const exportPng = async (options = {}) => {
+    setPngStatus((status) => (status === "error" ? "idle" : status));
     const activeGlobeCanvas = globeCanvasRef.current;
     if (activeGlobeCanvas?.width && activeGlobeCanvas?.height) {
       const scale = options.scale ?? exportScaleValue(canvasScale);
@@ -1168,17 +1180,20 @@ const App = () => {
       }
 
       // Fallback: Canvas2D upscale of the current framebuffer. Lower quality at
-      // higher scales but always works.
-      const pngBlob = composePngBlob(
-        activeGlobeCanvas,
-        activeGlobeCanvas.width,
-        activeGlobeCanvas.height,
-        target?.width ?? Math.round(activeGlobeCanvas.width * scale),
-        target?.height ?? Math.round(activeGlobeCanvas.height * scale),
-      );
-      if (pngBlob) {
+      // higher scales, and it fails when the browser won't allocate the canvas.
+      try {
+        const pngBlob = composePngBlob(
+          activeGlobeCanvas,
+          activeGlobeCanvas.width,
+          activeGlobeCanvas.height,
+          target?.width ?? Math.round(activeGlobeCanvas.width * scale),
+          target?.height ?? Math.round(activeGlobeCanvas.height * scale),
+        );
+        if (!pngBlob) throw new Error("No 2D canvas for the PNG fallback");
         downloadBlob(pngBlob, filename);
         flashPngSaved(scale);
+      } catch (error) {
+        failPngExport(error);
       }
       return;
     }
@@ -1192,6 +1207,11 @@ const App = () => {
       canvas.width = Math.round(exportSvgData.width);
       canvas.height = Math.round(exportSvgData.height);
       const context = canvas.getContext("2d");
+      if (!context) {
+        URL.revokeObjectURL(url);
+        failPngExport(new Error("No 2D canvas for the SVG to PNG export"));
+        return;
+      }
       if (!transparent) {
         context.fillStyle = background;
         context.fillRect(0, 0, canvas.width, canvas.height);
@@ -1201,9 +1221,15 @@ const App = () => {
         if (pngBlob) {
           downloadBlob(pngBlob, buildExportFilename(selected.label, "png", viewMode));
           flashPngSaved();
+        } else {
+          failPngExport(new Error("toBlob returned null"));
         }
         URL.revokeObjectURL(url);
       }, "image/png");
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      failPngExport(new Error("The SVG didn't load as an image"));
     };
 
     image.src = url;
@@ -1743,6 +1769,7 @@ const App = () => {
         onClose={() => {
           setExportModalOpen(false);
           setVideoStatus((status) => (status === "error" ? "idle" : status));
+          setPngStatus((status) => (status === "error" ? "idle" : status));
         }}
         canvasWidth={globeCanvasRef.current?.clientWidth || globeCanvasRef.current?.width || 1920}
         canvasHeight={globeCanvasRef.current?.clientHeight || globeCanvasRef.current?.height || 1080}
