@@ -4,6 +4,7 @@ import {
   exportScaleValue,
   MIN_VIDEO_BYTES,
   probeMp4Support,
+  recordCanvasToMp4Blob,
   recordCanvasToVideoBlob,
 } from "./export.js";
 
@@ -102,5 +103,61 @@ describe("probeMp4Support", () => {
     await withEncoder({ isConfigSupported: async () => { throw new TypeError("bad config"); } }, async () =>
       expect(await probeMp4Support()).toBe(false),
     );
+  });
+});
+
+describe("recordCanvasToMp4Blob", () => {
+  // WebCodecs stand-ins: an encoder whose support answer and output the test
+  // picks, plus the 2D context and VideoFrame that jsdom lacks.
+  const withWebCodecs = (VideoEncoder, run) => {
+    const originals = { VideoEncoder: window.VideoEncoder, VideoFrame: window.VideoFrame };
+    window.VideoEncoder = VideoEncoder;
+    window.VideoFrame = class {
+      close() {}
+    };
+    const getContext = vi
+      .spyOn(HTMLCanvasElement.prototype, "getContext")
+      .mockReturnValue({ clearRect() {}, drawImage() {} });
+    return run().finally(() => {
+      getContext.mockRestore();
+      for (const [name, value] of Object.entries(originals)) {
+        if (value === undefined) delete window[name];
+        else window[name] = value;
+      }
+    });
+  };
+  const fakeEncoder = ({ supported, emitChunks }) => {
+    const Encoder = vi.fn(function Encoder({ output }) {
+      this.configure = () => {};
+      this.encode = () => {
+        if (emitChunks) output({}, {});
+      };
+      this.flush = async () => {};
+      this.close = () => {};
+    });
+    Encoder.isConfigSupported = vi.fn(async () => ({ supported }));
+    return Encoder;
+  };
+  // Wider than the 1024px cap, so the real frame is 1024x768, not the
+  // 1024x1024 the startup probe asked about.
+  const canvas = { width: 1600, height: 1200 };
+
+  it("checks the real frame size again and fails before encoding when H.264 can't do it", async () => {
+    const Encoder = fakeEncoder({ supported: false, emitChunks: true });
+    await withWebCodecs(Encoder, () =>
+      expect(recordCanvasToMp4Blob(canvas, { durationMs: 1000, fps: 1 })).rejects.toThrow(/1024x768/),
+    );
+    expect(Encoder.isConfigSupported).toHaveBeenCalledWith(
+      expect.objectContaining({ codec: "avc1.420028", width: 1024, height: 768 }),
+    );
+    expect(Encoder).not.toHaveBeenCalled();
+  });
+
+  it("rejects when the encoder emits no frames instead of saving an empty MP4", async () => {
+    const Encoder = fakeEncoder({ supported: true, emitChunks: false });
+    await withWebCodecs(Encoder, () =>
+      expect(recordCanvasToMp4Blob(canvas, { durationMs: 1000, fps: 1 })).rejects.toThrow(/no frames/),
+    );
+    expect(Encoder).toHaveBeenCalledTimes(1);
   });
 });
