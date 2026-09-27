@@ -174,7 +174,7 @@ const INTEGRATIONS = [
     bg: "#1e1e22",
     fg: "#ffffff",
     blurb:
-      "Add Globestudio as a Model Context Protocol tool in Claude Code, Claude Desktop, Cursor, Cody or any MCP client. Then ask in chat: \"make me a clean dotted globe of Japan with cyan dots\" and Claude builds the share URL for you.",
+      "Add Globestudio as a Model Context Protocol tool in Claude Code, Claude Desktop, Cursor, Cody or any MCP client. Then ask in chat: \"make me a clean dotted globe with cyan dots\" and Claude builds the share URL for you.",
     snippet: `claude mcp add globestudio -- npx -y @globestudio/mcp`,
     cta: { href: "https://www.npmjs.com/package/@globestudio/mcp", label: "View on npm" },
   },
