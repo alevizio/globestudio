@@ -1,122 +1,110 @@
-# Product Hunt — launch draft
+# Product Hunt: launch draft
 
-> Save this until you're ready to launch. Product Hunt's official guidance says
-> launching is a single 24-hour PT event — pick the date deliberately. Don't
-> launch on a Monday (US holidays) or Friday (low traffic).
+> When: **Thu 1 Oct 2026, 00:01 PT (07:01 UTC)**, per the schedule in
+> [`../LAUNCH.md`](../LAUNCH.md#schedule). Schedule it on Wed 30 Sep. The one
+> waitlist email goes out right after the post is live.
 >
-> **Best windows in 2026**: a Tuesday or Wednesday at 12:01am PT, mid-month.
+> PH field limits and accepted media types were not verified for this draft.
+> Check them in the PH form when scheduling.
 
 ---
 
-## Hard limits (fill these exactly)
+## Fields
 
 | Field | Max | Globestudio value |
 |---|---|---|
 | **Name** | 40 chars | `Globestudio` |
-| **Tagline** | 60 chars | `Open-source dotted maps and 3D globes for designers` |
+| **Tagline** | 60 chars | `Open-source dotted maps and 3D globes for designers` (51) |
 | **Topics** | 4 | `Design Tools`, `Open Source`, `Developer Tools`, `Productivity` |
-| **Gallery** | 6 assets | See gallery plan below |
-| **Pricing** | — | `Free` (Open Source) |
-| **Maker** | — | `@alevizio` |
+| **Gallery** | see below | See gallery plan below |
+| **Pricing** | | `Free` (Open Source) |
+| **Maker** | | `@alevizio` |
+| **Website** | | `https://globestudio.app` |
+
+One tagline, no alternates. It names no other company, on purpose.
 
 ---
 
-## Description (PH "post" body)
+## Description (380 characters)
 
-> **Make a Stripe-style globe (or a riso-printed Mercator) in 30 seconds.**
-> Open source, designer-first, no signup, no API key, no code.
->
-> Globestudio turns the planet into a hero visual. Pick any country, region,
-> or US state, customize dot shapes, gradients, and shader effects, then
-> export PNG, SVG, or animated WebM.
->
-> Built for **designers, animators, and creative developers** who want
-> map-based visuals for landing pages, decks, OG cards, and launch teasers
-> — without needing GIS workflow, npm install, or a $5/1k-loads bill.
->
-> What's inside:
-> - 12 dot shapes + custom SVG/PNG upload + paste
-> - Linear gradients with per-stop opacity on dots, land, and stroke
-> - **21 stackable shader looks** — Halftone, Risograph, Newsprint,
->   Aurora, Pixel, Bayer dither, Atkinson dither, Wireframe, CRT,
->   Glitch, BadTV, Bloom, Metal, Pencil, Iridescent, Corrupt, Toon,
->   Threshold, Vapor (synthwave RGB split), Topographic (contour
->   cartography), and the default
-> - 5 projections: Mercator, Equal Earth, Winkel Tripel, Robinson, sphere
-> - Custom GeoJSON upload, rivers + cities overlays
-> - **`/embed` route** + Framer code component + Webflow integration docs
-> - Shareable preset URLs at `/looks/:id` with hand-designed OG cards
-> - **Cmd+K command palette** with fuzzy search by name or vibe
->   ("synthwave" → Vapor, "retro" → CRT/BadTV/Pixel)
-> - Live animations with `prefers-reduced-motion` support
-> - Full keyboard system (`S` shuffle, `[`/`]` cycle, `D` export, `H` hide…)
-> - Exports: PNG (WebGL re-render at any scale), SVG (shaders baked in),
->   WebM video, JSON config (with `$schema` for editor autocomplete)
-> - Branded `/docs`, `/changelog` (with RSS), `/brand` press kit, `/privacy`
-> - No backend, no accounts, no cookies, no fingerprinting — cookieless
->   analytics that respects Do-Not-Track + GPC by default
->
-> MIT licensed. Built with React + Three.js. WCAG 2.2 AA conformant.
+```text
+Globestudio is a free, open-source studio for dotted maps and 3D globes. Pick the world or any country, choose from 21 shader looks (halftone, risograph, dither, CRT, aurora), tweak dots, gradients and density, then export PNG, SVG, WebM, MP4 or GIF, or embed it live. It also ships as a React component, a web component, a Figma plugin and an MCP server. No signup, MIT licensed.
+```
+
+### Short description (250 characters)
+
+Product Hunt's own pages disagree on the description limit (500 or 260
+characters). If the form stops you at 260, paste this one instead.
+
+```text
+Globestudio is a free, open-source studio for dotted maps and 3D globes. Pick the world or any country, choose from 21 shader looks, tweak dots, gradients and density, then export PNG, SVG, WebM, MP4 or GIF, or embed it live. No signup, MIT licensed.
+```
 
 ---
 
-## Maker's first comment (post this within the first 30 minutes)
+## Maker's first comment (post within the first 30 minutes)
 
-> Hi PH 👋 — Alejandro here.
->
-> Globestudio started as a small experiment called *worlddots* — literally
-> just dotted maps. Over the last few months it grew up: 21 shader looks
-> (halftone, risograph, aurora, dither, foil, synthwave, contour-cartography),
-> a 3D globe, a Cmd+K command palette, an embed route, a Framer reference
-> component, Webflow docs. The name stopped fitting. So I renamed it
-> Globestudio — the proper name for what it actually does.
->
-> I built it because every time I needed a stylized world map or animated
-> globe for a landing page or deck, I'd either reach for a paid design tool,
-> screenshot something off Stripe's homepage, or fight with a generic map
-> library that wasn't built for visuals.
->
-> So I made the designer-first version: presets, sliders, shader effects,
-> and exports that drop straight into Figma, Keynote, or a launch video. The
-> whole thing runs client-side and the source is on GitHub under MIT.
->
-> The new color picker landed last week — gradients with per-stop opacity,
-> live angle preview, HEX/RGB/HSB/HSL — and the solid mode now properly
-> honors country selection (an embarrassing bug I shipped two days ago,
-> already fixed).
->
-> A few things I'd love your help on:
-> - **Performance reports.** It's graphics-heavy. If it lags on your device,
->   please file a [performance report](https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml)
->   with your browser + OS + GPU. I'm treating perf as a launch blocker.
-> - **Preset submissions.** If you build a look you like, the
->   [preset submission template](https://github.com/alevizio/globestudio/issues/new?template=preset-submission.yml)
->   makes it easy to ship it as a built-in.
-> - **Use cases I haven't thought of.** I have hero sections, decks, and
->   launch teasers in mind. What would you use it for?
->
-> Live: https://globestudio.app/
-> GitHub: https://github.com/alevizio/globestudio
->
-> Happy to answer anything in the comments.
+```text
+Hi Product Hunt, Alejandro here. I'm a product designer who codes.
+
+Every time I needed a dotted world map or a spinning globe for a landing page or a deck, I ended up screenshotting someone else's site or fighting a map library built for GIS, not for visuals. Globestudio is the tool I wanted: presets, sliders and real exports.
+
+What you can do today:
+• 21 looks, from clean cartography to halftone, risograph, dither, CRT, aurora and contour lines
+• The world, a continent, a country or a US state, with 12 dot shapes or your own SVG/PNG
+• Gradients with per-stop opacity on dots, land and borders
+• Paste your own data (lat,lng,value or country,value) and plot it as markers, optionally joined by arcs
+• Export PNG up to 4x, SVG, WebM, MP4, GIF or a JSON config
+• Embed it with an iframe or a script tag, or use the React component, the web component, the Figma plugin or the MCP server
+
+It runs in your browser, there's no account, and the code is MIT on GitHub.
+
+Honest limits: SVG export gives you clean vector dots, but most shader looks only show in PNG and video. The five flat projections are for solid maps; dotted maps use Mercator.
+
+What would help most:
+• If it lags, a performance report with your browser, OS and GPU: https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml
+• If you build a look you love, the preset template: https://github.com/alevizio/globestudio/issues/new?template=preset-submission.yml
+• Tell me what you'd make with it. I had heroes, decks and launch teasers in mind.
+
+Live: https://globestudio.app
+GitHub: https://github.com/alevizio/globestudio
+```
+
+---
+
+## Facts for replies
+
+Accurate as of launch. Use these when a comment asks "can it do X?".
+
+- Looks: 21 presets; each is dot and color settings plus at most one of 24 WebGL shader effects. One pass per look, not stackable.
+- Geography: world, continent, subregion, country, US state. Country search works in English, Spanish, French, German, Chinese, Arabic and Portuguese.
+- Dots: 12 shapes plus custom SVG/PNG upload or pasted SVG (200 KB cap).
+- Solid mode: filled land and borders, rivers and cities overlays, pasted GeoJSON lines and points, and five flat projections (Mercator, Equal Earth, Natural Earth, Winkel Tripel, Robinson). Dotted maps use Mercator.
+- Your data: paste `lat,lng,value` or `country,value`; markers are sized by value, with optional arcs.
+- Export: PNG at 1x to 4x, SVG (clean vector dots; six effects approximated with SVG filters), WebM, MP4 (where the browser supports it), GIF, JSON config, and "Copy as React".
+- Embed: `/embed` with URL params or a full `?c=` config, `embed.js` script tag, `@globestudio/react`, `@globestudio/element` web component, Figma plugin, WordPress via a Custom HTML embed, MCP server. Guides: https://globestudio.app/integrations
+- Accessibility: built to WCAG 2.2 AA and self-audited; known gaps in ACCESSIBILITY.md.
+- Privacy: no accounts; cookieless analytics that stay off under Do Not Track or GPC. Details: https://globestudio.app/privacy
 
 ---
 
 ## Gallery plan
 
-Six assets. Prioritize **video first** — Product Hunt's algorithm and humans
-both reward motion in the gallery.
+Six assets. Motion first: people and the algorithm both reward it. Everything
+shown must be exported from, or captured in, the live app after the flip.
 
-| # | Asset | What it shows | Format |
-|---|---|---|---|
-| 1 | **Demo video** (15-25s) | Open tool → pick country → cycle 3 presets → tweak gradient → export PNG | MP4, 1920×1080, no sound or subtle ambient |
-| 2 | **Hero shot** | Default preset, globe with network arcs, panel visible | PNG, 1920×1080 |
-| 3 | **Preset gallery** | Side-by-side: Default, Wireframe, CRT, Glitch, Bloom, Pixel, ASCII | PNG, 1920×1080 |
-| 4 | **Gradient + opacity** | Picker open with gradient editor mid-edit, checkerboard visible | PNG, 1920×1080 |
-| 5 | **Country selection** | Brazil-only view, both globe and flat side-by-side | PNG, 1920×1080 |
-| 6 | **Export modal** | Export modal open on the SVG tab with the preview | PNG, 1920×1080 |
+| # | Asset | What it shows |
+|---|---|---|
+| 1 | **Looping export** (5 to 10 s) | A rotating globe exported by the tool itself (Aurora or Default on dark) |
+| 2 | **The studio** | Editor with the control panel open on a country selection |
+| 3 | **Looks strip** | Six looks side by side: Halftone, Risograph, Aurora, CRT, Topographic, Vapor |
+| 4 | **Your data** | Pasted data points plotted as markers with arcs |
+| 5 | **Export dialog** | Open on the PNG tab with the preview, taken after the launch fixes land |
+| 6 | **Ships everywhere** | The /integrations page: embed, React, web component, Figma, MCP |
 
-**Recording the demo video**: use macOS screen recording at 60fps (Cmd+Shift+5 → Options → Movie). Trim to ~20s. Compress to MP4 with HandBrake or ffmpeg:
+**Recording the demo video**: use macOS screen recording at 60fps
+(Cmd+Shift+5 > Options > Movie). Trim to about 20 s. Compress to MP4 with
+HandBrake or ffmpeg:
 
 ```bash
 ffmpeg -i raw.mov -c:v libx264 -crf 22 -preset slow -movflags +faststart -vf "scale=1920:-2,fps=30" globestudio-demo.mp4
@@ -124,22 +112,20 @@ ffmpeg -i raw.mov -c:v libx264 -crf 22 -preset slow -movflags +faststart -vf "sc
 
 ---
 
-## Pre-launch checklist (T-24h)
+## Pre-launch checklist (Wed 30 Sep)
 
-- [ ] Live site responds 200 and the picker still works
-- [ ] `npm test -- --run` passes locally
-- [ ] All gallery assets uploaded to PH
-- [ ] Maker's first comment drafted in a separate doc, ready to paste
-- [ ] You're available 6am–11pm PT on launch day for replies
+- [ ] The live site shows the studio in an incognito window (flip verified)
+- [ ] All gallery assets uploaded to PH; the launch is scheduled for Thu 1 Oct, 00:01 PT
+- [ ] Maker's first comment ready in a separate doc
+- [ ] You're available from 07:01 UTC and through the US day for replies
+- [ ] The waitlist Broadcast is drafted in Resend (text in [`../LAUNCH.md`](../LAUNCH.md#waitlist-one-email))
 - [ ] Social posts queued (see `social-threads.md`)
-- [ ] Outreach emails sent (see `outreach-email.md`) — 48h before
-- [ ] Backup plan if PH is rate-limited: schedule Show HN for the same morning
 
 ## Launch day rules of engagement
 
-- **Do** ask people to "visit and try it" — PH allows this
-- **Don't** ask anyone to upvote — explicitly against PH rules; can get the
-  post taken down
+- **Do** ask people to visit and try it; PH allows this
+- **Don't** ask anyone to upvote. It's against PH rules and can get the post
+  taken down
 - **Do** reply to every comment in the first 6 hours, even one-word ones
 - **Do** edit the description if a recurring confusion shows up in comments
 - **Do** pin a comment with answers to the top 3 questions once they emerge
@@ -152,12 +138,3 @@ ffmpeg -i raw.mov -c:v libx264 -crf 22 -preset slow -movflags +faststart -vf "sc
 4. Productivity
 
 (You can pick 4 max. Design Tools is the most important.)
-
----
-
-## Alternative tagline options (in case the primary lands wrong)
-
-- `Open-source dotted maps and 3D globes for designers` ← primary (51 chars)
-- `Designer-first dotted maps and 3D globes. Open source.` (54 chars)
-- `Build dotted maps and animated 3D globes in your browser` (56 chars)
-- `Stylized maps and globes for the design half of the stack` (57 chars)

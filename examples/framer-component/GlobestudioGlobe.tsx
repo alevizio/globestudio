@@ -33,6 +33,10 @@ type Look =
   | "metal"
   | "pencil"
   | "corrupt"
+  | "toon"
+  | "threshold"
+  | "vapor"
+  | "topographic"
 
 interface Props {
   look: Look
@@ -134,6 +138,10 @@ addPropertyControls(GlobestudioGlobe, {
       "metal",
       "pencil",
       "corrupt",
+      "toon",
+      "threshold",
+      "vapor",
+      "topographic",
     ],
     optionTitles: [
       "Default",
@@ -153,6 +161,10 @@ addPropertyControls(GlobestudioGlobe, {
       "Metal",
       "Pencil",
       "Corrupt",
+      "Toon",
+      "Threshold",
+      "Vapor",
+      "Topographic",
     ],
   },
   selection: {

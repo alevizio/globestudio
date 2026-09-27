@@ -26,12 +26,12 @@ Open your Framer project, then:
 
 The component panel on the right shows:
 
-- **Look** — 17 preset options (Default, Halftone, Bayer, Iridescent, Aurora, etc.)
+- **Look**: all 21 preset options (Default, Halftone, Bayer, Iridescent, Aurora, Vapor, Topographic, etc.)
 - **Region** — string field for `world`, `country:USA`, `continent:Europe`, etc.
 - **Render mode** — dots vs solid
 - **Density** — 10–90 slider
 - **Dot color** + **World fill** — Framer color pickers
-- **Motion** — 0–100 slider for animation speed
+- **Motion**: reserved; passed to the embed but has no effect yet
 - **Auto-spin** — boolean toggle
 - **Background** + **Transparent BG** — conditional pair
 

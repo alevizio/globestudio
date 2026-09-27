@@ -28,7 +28,7 @@ you can do are:
 
 ## Local setup
 
-Requires **Node 20+** and **npm**.
+Requires **Node 20.19+ (or 22.12+)** and **npm**.
 
 ```bash
 git clone https://github.com/alevizio/globestudio
@@ -44,7 +44,7 @@ Useful scripts:
 | Command | What it does |
 |---|---|
 | `npm run dev` | Vite dev server with HMR |
-| `npm test -- --run` | Run the full Vitest suite (152 tests across 24 files) |
+| `npm test -- --run` | Run the full Vitest suite |
 | `npm run test:e2e` | Run Playwright smoke + accessibility checks |
 | `npm run test:watch` | Vitest watch mode |
 | `npm run build` | Production build to `dist/` |

@@ -28,16 +28,18 @@ That's the manual path for one country. To batch all 250, see below.
 
 ## Batch generation (script-friendly)
 
-Globestudio's URL params + the SVG export keyboard shortcut combine into
-a scriptable batch:
+A share link (`?c=`, URL-encoded JSON) sets the country, and pressing D
+opens the export dialog, where you pick SVG. Together they make a
+scriptable batch:
 
 ```bash
 # Pseudocode — for a real implementation you'd use Playwright or
 # Puppeteer to drive a headless browser
 for code in USA CAN MEX BRA FRA DEU ITA ESP CHN JPN KOR ...; do
-  open "https://globestudio.app/looks/default?country=$code"
+  # ?c= decodes to {"v":1,"selection":"country:$code"}
+  open "https://globestudio.app/looks/default?c=%7B%22v%22%3A1%2C%22selection%22%3A%22country%3A${code}%22%7D"
   # wait for canvas to settle
-  # trigger keyboard "S" to export SVG
+  # press "D" to open the export dialog, then pick SVG
 done
 ```
 

@@ -6,9 +6,9 @@
 
 <a href="https://globestudio.app"><img src="public/og/default.gif" alt="Globestudio — animated dotted 3D globe with 21 shader looks" width="640" /></a>
 
-Pick a country or the whole world, customize dots and shapes, apply shader effects, and export PNG, SVG, or animated WebM. Built on React + Three.js.
+Pick a country or the whole world, customize dots and shapes, apply shader effects, and export PNG, SVG, WebM, MP4, or GIF. Built on React + Three.js.
 
-[**globestudio.app**](https://globestudio.app/) · [Live demos](https://globestudio.app/) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/alevizio/globestudio/discussions)
+[**globestudio.app**](https://globestudio.app/) · [Live demos](https://globestudio.app/gallery) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/alevizio/globestudio/discussions)
 
 [![CI status](https://github.com/alevizio/globestudio/actions/workflows/ci.yml/badge.svg)](https://github.com/alevizio/globestudio/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-f6f2ea.svg)](LICENSE)
@@ -36,23 +36,25 @@ yours to remix.
 - 🎨 **12 dot shapes + custom upload** — Circle · Hexagon · Triangle · Pentagon ·
   Square · Diamond · Star · Plus · Ring · Voxel · Particle Grid · ASCII glyphs ·
   your own SVG/PNG
-- 🪄 **21 shader looks** — Halftone, Risograph, Newsprint, Aurora, Pixel,
+- 🪄 **21 shader looks**: Halftone, Risograph, Newsprint, Aurora, Pixel,
   Bayer, Atkinson, Wireframe, CRT, Glitch, Bad TV, Bloom, Metal, Iridescent,
-  Pencil, Corrupt, Toon, Threshold, Vapor, Topographic — plus the base
-  Default. Stackable on any preset.
+  Pencil, Corrupt, Toon, Threshold, Vapor, Topographic, plus the base
+  Default. Each look applies at most one shader pass and works with any
+  shape, color, or selection.
 - 🌈 **Gradients + alpha** on dot color, land fill, and country stroke
 - ✨ **Live animations** — rotation, twinkle, size jitter, network arcs,
   motion-aware (respects `prefers-reduced-motion`)
 - 🎛️ **21 curated presets** — every shader look is a one-click preset with
   matching backgrounds, density, dot size, and globe chrome. Shareable
   URLs at `/looks/:id`.
-- 💾 **Real exports** — PNG (high-res via WebGL re-render), SVG (with shader
-  effects baked in), WebM video (looped or one-shot), JSON config
+- 💾 **Real exports**: PNG at 1x to 4x (WebGL re-render); SVG with clean
+  vector dots (6 effects approximated with SVG filters; the full shader look
+  needs PNG or video); WebM, MP4, and GIF video; JSON config
 - ⌨️ **Full keyboard system** — `S` shuffle, `[`/`]` cycle presets, `D` export,
   `R` reset, `G` toggle view, `H` toggle panel, `?` help
-- ♿ **Accessibility** — WCAG 2.2 AA conformant. Keyboard-first, screen-
-  reader proxy DOM for canvas state, focus trap on modals, motion
-  preferences honored. See [`ACCESSIBILITY.md`](ACCESSIBILITY.md)
+- ♿ **Accessibility**: built to WCAG 2.2 AA and self-audited. Keyboard-first,
+  a screen-reader proxy DOM for canvas state, reduced-motion support. Known
+  gaps are listed in [`ACCESSIBILITY.md`](ACCESSIBILITY.md)
 
 ## Quickstart
 
@@ -66,7 +68,7 @@ Pick a country, tweak the look, export.
 
 ### Run it locally
 
-Requires Node 20+ and npm.
+Requires Node 20.19+ (or 22.12+) and npm.
 
 ```bash
 git clone https://github.com/alevizio/globestudio
@@ -84,13 +86,13 @@ waitlist teaser instead, run `VITE_TEASER=1 npm run dev`; deploys set
 ```bash
 npm run build      # → dist/
 npm run preview    # serve dist/ locally
-npm test -- --run  # 173 tests across 26 files
+npm test -- --run  # the full Vitest suite
 npm run test:e2e   # browser smoke + accessibility checks
 ```
 
 ## Embed it anywhere
 
-Globestudio ships two embed paths — pick whichever fits the tool:
+Globestudio ships several embed paths; pick whichever fits the tool:
 
 ### One-line script tag (Recommended)
 
@@ -123,6 +125,17 @@ Resize-aware via `postMessage` — listen for
 iframe to match. WebGL required; falls back to a still preview + a
 "how to enable WebGL" panel if the GL context can't be created.
 
+### React component or web component
+
+```bash
+npm install @globestudio/react     # <Globe look="aurora" />
+npm install @globestudio/element   # <globe-studio look="aurora"></globe-studio>
+```
+
+Both are thin wrappers over the same `/embed` route, so every look works in
+both. Setup and props: [`packages/react`](packages/react/) and
+[`packages/web-component`](packages/web-component/).
+
 ### Embed parameters
 
 The canonical parameter table. Every query param the `/embed` route honors,
@@ -154,11 +167,12 @@ A JSON Schema for the `c` payload lives at
 [`/schema/config.json`](public/schema/config.json).
 
 **Per-tool integration guides** live at
-[globestudio.app/integrations](https://globestudio.app/integrations) —
-copy-paste setups for Webflow, Framer, Figma, Notion, WordPress, plain
-HTML, and React. In this repo:
+[globestudio.app/integrations](https://globestudio.app/integrations):
+copy-paste setups for Webflow, Framer, Figma, Notion, plain HTML, React, and
+WordPress, where Globestudio works via a Custom HTML embed. In this repo:
 [Figma plugin](figma-plugin/) ·
-[WordPress plugin](wordpress-plugin/globestudio/) ·
+[WordPress block](wordpress-plugin/globestudio/) (manual install; the
+wordpress.org listing comes after launch) ·
 [Framer component](examples/framer-component/) ·
 [embed snippet](examples/embed-snippet/)
 
@@ -182,8 +196,8 @@ Full tool list and setup in [`packages/mcp/README.md`](packages/mcp/README.md).
 
 | Use case | What it gives you |
 |---|---|
-| **Landing page hero** | A live animated globe behind your headline. Export PNG for static, WebM for video. |
-| **Launch teaser** | Animated dot map of where your users are. WebM ready for X/LinkedIn. |
+| **Landing page hero** | A live animated globe behind your headline. Export PNG for a still, MP4 or WebM for video. |
+| **Launch teaser** | Animated dot map of where your users are. MP4 or GIF ready for X/LinkedIn. |
 | **Deck visuals** | Per-country SVGs that drop straight into Keynote, Figma, or print layouts. |
 | **Data story** | Hand-picked region + dot palette for a feature, blog post, or report. |
 | **Brand system** | A consistent dotted-globe mark across your site, app, and docs. |
@@ -227,11 +241,11 @@ launch teaser. Different tools for different jobs:
 | **3D globe out of box** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Dotted maps** | ✅ 12 shapes | partial | ❌ | ❌ | ❌ |
 | **Shader aesthetic looks** | ✅ **21** | ❌ | custom WebGL only | ❌ | ❌ |
-| **Multiple projections** | 5 | sphere only | many | many | n/a |
+| **Multiple projections** | 5 flat (solid maps; dotted maps use Mercator) | sphere only | many | many | n/a |
 | **No-code GUI** | ✅ | ❌ library | ✅ | ✅ | ✅ |
-| **PNG / SVG / WebM export** | ✅ | manual | print / PDF | ✅ | PNG / SVG |
+| **PNG / SVG / video export** | ✅ PNG, SVG, WebM, MP4, GIF | manual | print / PDF | ✅ | PNG / SVG |
 | **Embed iframe** | ✅ `/embed` | DIY | ✅ | ✅ | DIY |
-| **Framer / Webflow components** | ✅ | ❌ | plugins | ❌ | ❌ |
+| **Framer / Webflow** | ✅ Framer code component (copy-paste), Webflow embed | ❌ | plugins | ❌ | ❌ |
 | **No signup / no API key** | ✅ | n/a | ❌ | ❌ | ✅ |
 | **Free + MIT** | ✅ | ✅ (library) | freemium | paid | free, closed |
 
@@ -252,11 +266,11 @@ Built with:
 - **[React 19](https://react.dev)** + **[Vite](https://vite.dev)** for the app shell
 - **[Three.js](https://threejs.org)** for the WebGL globe, instanced dot rendering, shader effects, network arcs
 - **[dotted-map](https://github.com/NTag/dotted-map)** for the source dot field
-- **[d3-geo](https://d3js.org/d3-geo)** + **[d3-geo-projection](https://github.com/d3/d3-geo-projection)** + **[topojson-client](https://github.com/topojson/topojson-client)** for projections (Mercator, Equirectangular, Equal Earth, Winkel Tripel, Robinson) and topology decoding
+- **[d3-geo](https://d3js.org/d3-geo)** + **[d3-geo-projection](https://github.com/d3/d3-geo-projection)** + **[topojson-client](https://github.com/topojson/topojson-client)** for the 5 flat projections of solid maps (Mercator, Equal Earth, Natural Earth, Winkel Tripel, Robinson; dotted maps use Mercator) and topology decoding
 - **[world-countries](https://github.com/mledoze/countries)** + **[world-atlas](https://github.com/topojson/world-atlas)** + **[us-atlas](https://github.com/topojson/us-atlas)** for source geography
 - **[satori](https://github.com/vercel/satori)** + **[@resvg/resvg-js](https://github.com/yisibl/resvg-js)** for the OG share card pipeline (JSX → SVG → PNG at build time)
 - **[Pixelarticons](https://pixelarticons.com)** by Gerrit Halfmann for the in-app icon set — 24×24 pixel-grid icons with `currentColor` fill so they theme cleanly
-- **[Vitest](https://vitest.dev)** + **[Testing Library](https://testing-library.com)** + **[axe-core](https://github.com/dequelabs/axe-core)** for tests and the WCAG 2.2 AA accessibility guard
+- **[Vitest](https://vitest.dev)** + **[Testing Library](https://testing-library.com)** + **[axe-core](https://github.com/dequelabs/axe-core)** for tests and automated accessibility checks
 
 No backend and no accounts. Privacy-respecting Vercel Analytics and Speed
 Insights honor Do Not Track, Global Privacy Control, and the local opt-out in

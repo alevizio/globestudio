@@ -65,17 +65,14 @@ pattern.
 
 ## URL params reference
 
-Globestudio's URL state covers:
+The `/embed` route takes the look and the selection as URL params, which
+is all this example needs:
 
-- `/looks/:id` — picks the preset (look)
-- _Selection (country/region/state)_ is currently driven by the
-  in-app UI; URL-based selection is on the roadmap as part of the
-  `/embed` route work (Phase 0 of integrations-rollout).
+- `look=aurora` picks the look
+- `selection=country:FRA` picks the geography (also `continent:<Name>` or
+  `subregion:<Name>`)
 
-Until URL-driven selection ships, this example uses a pre-baked
-preset URL (`/looks/aurora`) and lets the user pick the country
-via the panel inside the iframe. The HTML demo is intentionally
-sized so the panel sits adjacent and visible.
+The full list is the [embed parameters table](../../README.md#embed-parameters).
 
 ## See also
 

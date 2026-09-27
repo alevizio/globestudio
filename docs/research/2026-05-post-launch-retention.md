@@ -278,7 +278,7 @@ The minimum viable retention surface to set up *before* launch day:
    PR →" CTA.
 
 ### Set up by Wed May 27 (launch day, alongside the
-[wednesday-launch.md](../../launch/wednesday-launch.md) plan)
+[wednesday-launch.md](../../launch/archive/wednesday-launch.md) plan)
 
 6. **First Twitter thread = changelog of launch.** Use it to set the
    precedent: "Every release gets a thread."
@@ -475,4 +475,4 @@ hating their life.
 - [2026-05-community-building.md](2026-05-community-building.md) — GitHub Discussions / Discord decision
 - [2026-05-seo-playbook.md](2026-05-seo-playbook.md) — SEO-as-retention loop
 - [2026-05-examples-directory.md](2026-05-examples-directory.md) — examples gallery (related to "Made with" showcase)
-- [launch/wednesday-launch.md](../../launch/wednesday-launch.md) — launch-day plan
+- [launch/wednesday-launch.md](../../launch/archive/wednesday-launch.md) — launch-day plan

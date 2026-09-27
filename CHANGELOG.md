@@ -6,6 +6,70 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [1.0.0] - 2026-09-29
+
+The first public release. This section sums up everything that ships in
+1.0.0; the detailed May 2026 notes further down are part of it too.
+
+### Added
+
+- **21 looks**: Default, Halftone, Risograph, Newsprint, Aurora, Pixel,
+  Bayer, Atkinson, Wireframe, CRT, Glitch, Bad TV, Bloom, Metal, Iridescent,
+  Pencil, Corrupt, Toon, Threshold, Vapor, Topographic. Each applies at most
+  one of 24 WebGL shader effects.
+- **Exports**: PNG at 1x to 4x, SVG with clean vector dots (6 effects
+  approximated with SVG filters), WebM, MP4 (where the browser supports it),
+  GIF, JSON config with `$schema`, and "Copy as React".
+- **Your own data**: paste `lat,lng,value` or `country,value` lines to plot
+  markers sized by value, optionally joined by arcs.
+- **Solid mode**: rivers and cities overlays, pasted GeoJSON lines and
+  points, and 5 flat projections (Mercator, Equal Earth, Natural Earth,
+  Winkel Tripel, Robinson). Dotted maps use Mercator.
+- Country search in English, Spanish, French, German, Chinese, Arabic, and
+  Portuguese.
+- **Globestudio everywhere**: the `/embed` route and `embed.js` script tag,
+  `@globestudio/react`, the `@globestudio/element` web component, the Figma
+  plugin, a WordPress block and `[globestudio]` shortcode (manual install),
+  the `@globestudio/mcp` MCP server, and `/integrations` with copy-paste
+  recipes per platform.
+- **Site**: `/gallery`, `/examples`, `/compare/cobe`, `/compare/geolayers`,
+  per-route prerendered `<head>` tags, a sitemap generated from the preset
+  list, `llms.txt` and `llms-full.txt`, and a robots.txt that welcomes AI
+  crawlers.
+- A root error boundary with a visible fallback, and a `client_error`
+  analytics event for render crashes and lost WebGL contexts (disclosed on
+  `/privacy`).
+- A tab that loads a chunk from an older deploy reloads once instead of
+  breaking.
+
+### Changed
+
+- The pre-launch teaser is on only when `VITE_TEASER` is `"1"`; unset and
+  `"0"` both serve the studio.
+- `/embed` sends an `X-Robots-Tag: noindex` header, hashed `/assets/` files
+  are cached for a year, and missing chunks return a real 404 instead of the
+  app shell.
+- CI builds and tests the npm packages, and Lighthouse CI audits the studio
+  instead of the teaser.
+- README, ROADMAP, and launch docs rewritten to match what ships.
+
+### Fixed
+
+- Shader-on-background composite paints instead of sampling transparent
+  black in every "Skip" state.
+- PNG export composites the solid background and honors aspect and size.
+- Share links carry view mode, rivers, and cities.
+- Embed params clamp to the studio's ranges, and `?background=` works.
+- MCP share and embed URLs decode in the app, checked by a contract test.
+- Mobile: the looks bar shows in the collapsed-sheet peek, and iOS no
+  longer zooms on focus.
+- Off-screen shader backdrops pause, and animated chrome respects
+  `prefers-reduced-motion`.
+
+## Pre-1.0 detail (May 2026, part of 1.0.0)
+
 ### Added
 
 - Open-source community files: `LICENSE` (MIT), `CONTRIBUTING.md`,
@@ -178,5 +242,5 @@ inferred — earlier work didn't carry version tags.
 
 ---
 
-Releases tagged on GitHub will populate this file going forward. Until then,
-treat the **Unreleased** section as the source of truth.
+Releases are tagged on GitHub starting with `v1.0.0`. New work goes under
+**Unreleased** until the next tag.

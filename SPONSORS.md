@@ -1,9 +1,9 @@
 # Sponsors
 
 Globestudio is MIT-licensed and free forever. If it saves you time on a
-project — a deck, a hero animation, an annual report — and you have
-the means, [GitHub Sponsors](https://github.com/sponsors/alevizio)
-keeps the lights on.
+project (a deck, a hero animation, an annual report) and you have the
+means, sponsorship keeps the lights on. GitHub Sponsors is coming soon;
+enrollment starts after the launch.
 
 This file is the running list of supporters. Updated quarterly.
 

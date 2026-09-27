@@ -1,213 +1,144 @@
-# Social launch threads
+# Social launch posts
 
-Three channels, three voices. Schedule all three for the same 6-hour window
-on launch day (start with X 30 minutes after Product Hunt goes live, then
-Mastodon, then LinkedIn an hour later).
+One draft per channel. Dates and times are in the schedule in
+[`../LAUNCH.md`](../LAUNCH.md#schedule): X and Mastodon on Tue 29 Sep once
+Show HN has traction, the three.js forum and r/threejs on Wed 30 Sep, LinkedIn
+on Thu 1 Oct with Product Hunt, Lobsters and the remaining subreddits on Fri 2
+Oct. r/SideProject gets the soft launch on Mon 28 Sep after the flip.
 
----
-
-## X (Twitter) — main thread
-
-Post one tweet every ~15 seconds. Each tweet should stand alone if quoted in
-isolation. Attach the visual asset described in `[asset: …]` to that tweet.
+Add a UTM tag to every link you post, for example
+`https://globestudio.app/?utm_source=reddit&utm_medium=social&utm_campaign=launch`.
 
 ---
 
-**1/9** (hook — pin this if you can)
+## X thread (6 posts)
 
-> remember worlddots? i renamed it.
->
-> meet globestudio — open-source dotted maps and animated 3D globes for
-> designers, animators, and creative developers. v1 was just dots. v2 is
-> 21 shader looks, a 3D globe, a cmd+k palette, embed anywhere.
->
-> built with three.js + react. MIT.
->
-> live: https://globestudio.app
-> source: https://github.com/alevizio/globestudio
->
-> here's what changed 🧵
->
-> *[asset: 20s demo video — pick country → cycle presets → tweak gradient → export]*
+Attach the asset in `[asset: …]` to its post. The link goes in a reply to post
+1, since X throttles posts with links.
 
-**2/9** (the gap it fills)
+**1/6** (hook, pin it)
 
-> most open-source map tools are built for engineers — tile servers, vector
-> tiles, big data
->
-> globestudio is built for the design half of the stack:
-> – the landing page hero
-> – the deck slide
-> – the launch teaser
-> – the explainer scroll
->
-> *[asset: side-by-side: "what other tools give you" (developer-y) vs "what globestudio gives you" (stylized)]*
+```text
+I made a free, open-source tool for dotted maps and 3D globes.
 
-**3/9** (12 shapes + custom upload)
-
-> 12 dot shapes built in — circle, hexagon, triangle, pentagon, square,
-> diamond, star, plus, ring, voxel, particle grid, ASCII glyphs
->
-> + upload your own SVG/PNG or paste raw SVG markup. the dot is whatever
-> you want it to be
->
-> *[asset: grid screenshot of all 12 shapes + a custom logo as a dot]*
-
-**4/9** (gradients + alpha)
-
-> every color (dots, land, country stroke) supports linear gradients with
-> per-stop opacity
->
-> the angle slider is a live preview — the gradient bar rotates as you
-> drag it. wysiwyg
->
-> *[asset: gradient picker, gif of the angle sweeping 0 → 360]*
-
-**5/9** (shaders)
-
-> 24 webgl shader effects baked in: halftone, riso, newsprint, aurora,
-> pixel, bayer, atkinson, edge, crt, glitch, badtv, bloom, metal, pencil,
-> iridescent, corrupt, toon, threshold, chromatic, wave, stripes, +more
->
-> stack them with 21 presets. my favorites: vapor (synthwave RGB split) and
-> topographic (warped contour cartography). both new this week.
->
-> *[asset: 6 presets side by side, animated]*
-
-**6/9** (real exports)
-
-> export goes 3 ways:
->
-> – PNG: high-res webgl re-render at N× resolution
-> – SVG: vector with shader effects baked in
-> – WebM: video for launch teasers and stream backgrounds
->
-> drops straight into figma, keynote, premiere, your landing page
->
-> *[asset: export modal screenshot with the SVG tab open]*
-
-**6.5/9** (cmd+k palette — fits well anywhere)
-
-> hit ⌘K. type "synthwave" → vapor. type "retro" → crt, badtv, pixel.
-> type "print" → halftone, risograph, newsprint. natural-language search
-> over all 21 presets + every action (shuffle, export, switch view…)
->
-> no api key. no LLM. just tags + fuzzy match
->
-> *[asset: cmd+k palette open, with "synthwave" typed showing Vapor at top]*
-
-**7/9** (motion that respects motion preferences)
-
-> live animations are on by default — twinkle, network arcs, optional rotation
->
-> all of it respects `prefers-reduced-motion`. if your OS asks for less
-> motion, the tool listens. accessibility is in the design, not added later
->
-> *[asset: gif of the network arcs animating, then a still where they freeze]*
-
-**8/9** (the why)
-
-> i kept hitting the same problem: needed a stylized map for a landing or a
-> deck, ended up screenshotting stripe's homepage or fighting a library not
-> made for visuals
->
-> so i made the version i wanted. presets, sliders, exports. nothing more
-> nothing less
-
-**9/9** (call to action)
-
-> if you build something with it — please share it.
-> if it lags on your device — please file a bug.
-> if you want to add a preset — there's a template for that.
->
-> 🌐 https://globestudio.app
-> ⭐ https://github.com/alevizio/globestudio
->
-> proud of this one 🤍
-
----
-
-### Follow-up tweets (post a few hours later, separately, not in the thread)
-
-These keep the post in feed without spamming the thread.
-
-> tip: in globestudio you can share a look as a URL — every preset has its own
-> /looks/:id route
->
-> https://globestudio.app/looks/glitch
-> https://globestudio.app/looks/crt
-> https://globestudio.app/looks/wireframe
->
-> drop the link in a slack and your team sees the exact same scene
-
-> nerd corner: the per-dot gradient color is computed at instance-buffer build
-> time using sin/-cos projection onto the image's corner-to-corner span.
-> means the SVG export and the webgl render produce pixel-identical colors
-> for the same look. /pleased emoji
-
-> (also btw the color picker is draggable — header has a grip handle. drag
-> it wherever feels good. i didn't want yet another modal that anchors to the
-> wrong corner of the screen)
-
----
-
-## Mastodon (post on `fosstodon.org` or `mastodon.design`)
-
-Single longer post. Mastodon is chronological — no algorithmic boost, so a
-thread isn't as helpful as one substantial post.
-
+Pick a look, tweak it in the browser, export PNG, SVG, MP4 or GIF. No signup.
 ```
-🌐 Shipped Globestudio — an open-source tool for making dotted maps and
-animated 3D globes in the browser.
 
-Built for the design half of the stack: landing page heroes, deck slides,
-launch teasers, explainer scrolls. The kind of thing where you don't need
-a full mapping library, you need a stylized visual you can export and ship.
+[asset: looping export of a rotating globe, made in the tool]
 
-What's inside:
-- Maps for any country, region, or US state
-- 12 dot shapes + custom SVG/PNG upload + paste
-- Linear gradients with per-stop opacity
-- 21 WebGL shader looks (halftone, risograph, aurora, vapor, topographic, …)
-- 21 presets with shareable URLs at /looks/:id
-- Cmd+K command palette with fuzzy search by name or vibe
-- Exports: PNG (high-res), SVG, WebM video
-- Full keyboard shortcuts + reduced-motion respect
+Reply to 1/6: `https://globestudio.app` and `https://github.com/alevizio/globestudio`
 
-No backend, no accounts, no cookies, no fingerprinting. Source on GitHub
-under MIT.
+**2/6**
 
-Built with React + Three.js. Honored to share it with this community.
+```text
+21 looks: halftone, risograph, dither, CRT, aurora, contour lines and more.
+
+Most are a WebGL shader pass over the dots, and you can tweak them live.
+```
+
+[asset: six looks cycling, as a GIF]
+
+**3/6**
+
+```text
+Bring your own data: paste lat,lng,value or country,value and get markers sized by value, joined by arcs if you want.
+```
+
+[asset: data points with arcs on the flat map]
+
+**4/6**
+
+```text
+Exports: PNG up to 4x, SVG with clean vector dots, WebM, MP4 and GIF loops, and a JSON config.
+
+The clip in the first post came straight out of the tool.
+```
+
+[asset: export dialog on the PNG tab]
+
+**5/6**
+
+```text
+It lives where you work: an iframe or one script tag, a React component, a web component, a Figma plugin, and an MCP server your AI assistant can call.
+```
+
+**6/6**
+
+```text
+MIT on GitHub, and it runs in your browser.
+
+Tell me which look you want next.
+```
+
+### Follow-up posts (a few hours later, separately, not in the thread)
+
+```text
+tip: every look in Globestudio has its own URL
+
+https://globestudio.app/looks/glitch
+https://globestudio.app/looks/crt
+https://globestudio.app/looks/wireframe
+
+drop one in a Slack and your team opens the same scene
+```
+
+```text
+nerd corner: a gradient on the dots is computed per instance by projecting each dot onto the gradient angle, and the SVG export runs the same math, so a gradient reads the same in WebGL and in the vector file
+```
+
+```text
+also: the color picker is a card you can drag anywhere by its grip handle. I didn't want yet another popover anchored to the wrong corner of the screen
+```
+
+---
+
+## Mastodon (fosstodon.org or mastodon.design)
+
+Single longer post. Mastodon is chronological, so one substantial post beats a
+thread.
+
+```text
+Globestudio is live: a free, open-source tool for making dotted maps and 3D globes in the browser.
+
+It's built for the design half of the stack: landing page heroes, deck slides, launch teasers. You don't need a mapping library, you need a stylized visual you can export and ship.
+
+What's in it:
+• Any country, continent or US state, or the whole world
+• 12 dot shapes plus your own SVG/PNG
+• Gradients with per-stop opacity
+• 21 looks built on WebGL shaders (halftone, risograph, aurora, CRT, contour lines…)
+• Your own data as markers and arcs
+• Export PNG, SVG, WebM, MP4, GIF or a JSON config, or embed it live
+• A React component, a web component, a Figma plugin and an MCP server
+
+No accounts. Cookieless analytics that stay off under Do Not Track or GPC. MIT.
 
 Live: https://globestudio.app
 Source: https://github.com/alevizio/globestudio
 
 #WebDev #OpenSource #ThreeJS #DataViz #Maps #DesignTools #CreativeCoding
-
-[attach: 20s demo video]
 ```
+
+[attach: 20 s demo video]
 
 ### Mastodon follow-ups (separate posts, hours later)
 
-```
+```text
 Mastodon, what use case for a designer-first map tool am I missing?
 
-So far the obvious ones I had in mind:
-- landing page hero visuals
-- launch teaser videos
-- decks + reports with a regional focus
-- per-country SVGs for brand systems
+The ones I had in mind:
+• landing page hero visuals
+• launch teaser videos
+• decks and reports with a regional focus
+• per-country SVGs for brand systems
 
 What else would you reach for it for?
 ```
 
-```
+```text
 Tech detail for the curious:
 
-Globestudio uses a single Three.js InstancedMesh that morphs between flat 2D
-and 3D globe positions. The per-instance buffer holds both target positions
-and a per-vertex morph lerps between them, so switching views is free —
-no rebuild, no allocation.
+Globestudio draws every dot with one Three.js InstancedMesh. Switching between the flat map and the globe re-bakes the instance matrices on the CPU along a flat, cylinder, sphere path, and uploads them to the GPU in chunks with updateRanges. The mesh is never rebuilt.
 
 Was fun to write.
 
@@ -218,127 +149,108 @@ Was fun to write.
 
 ## LinkedIn
 
-More professional voice. Single longer post — LinkedIn rewards depth over
-threads.
+More professional voice. One longer post.
 
-```
-I just open-sourced Globestudio — a designer-first tool for creating dotted
-maps and animated 3D globes in the browser.
+```text
+Globestudio is live: a free, open-source tool for making dotted maps and 3D globes in the browser.
 
-The gap I wanted to fill: most open-source map tooling is built for
-engineers — tile servers, vector tiles, large datasets. There wasn't a
-mature open-source tool for the *other* common need: a stylized map visual
-that drops into a landing page, deck, or launch video.
+The gap I wanted to fill: most open-source map tooling is built for engineers, with tile servers, vector tiles and large datasets. There wasn't a mature open-source tool for the other common need: a stylized map visual that drops into a landing page, a deck or a launch video.
 
 Globestudio is built around that workflow:
-• Maps for world, country, region, or US state
-• 12 dot shapes (plus custom SVG/PNG upload)
-• Linear gradients with per-stop opacity on dots, land, and stroke
-• 24 WebGL shader effects — bloom, chromatic, CRT, halftone, glitch, edge, +18 more
-• 21 named presets with shareable URLs (/looks/:id) and per-preset OG cards
-• Cmd+K command palette with fuzzy search by name or vibe
-• Real exports: PNG (high-res), SVG (with effects baked in), WebM video
-• Full keyboard shortcuts and accessibility (reduced-motion respect, WCAG 2.2 AA)
+• Maps of the world, a continent, a country or a US state
+• 12 dot shapes, plus your own SVG or PNG
+• Gradients with per-stop opacity on dots, land and borders
+• 21 looks built on 24 WebGL shader effects: halftone, risograph, CRT, aurora, contour lines and more
+• Your own data plotted as markers and arcs
+• Exports: PNG up to 4x, SVG with clean vector dots, WebM, MP4, GIF
+• Embeds, a React component, a web component, a Figma plugin and an MCP server
+• Keyboard first, built to WCAG 2.2 AA (self-audited)
 
-It's MIT-licensed, runs entirely client-side, and is built with React +
-Three.js. No backend, no accounts, no cookies, no fingerprinting.
+It's MIT licensed, runs in your browser, and needs no account.
 
-If you build landing pages, brand systems, design decks, or motion content
-that touches geography — I'd love your feedback. And if you build something
-with it, please share. The repo has a Show & Tell discussion specifically
-for this.
+We're also on Product Hunt today: {Product Hunt link}
 
-🌐 https://globestudio.app
-📦 https://github.com/alevizio/globestudio
+If you build landing pages, brand systems, decks or motion content that touches geography, I'd love your feedback. And if you make something with it, please share it in the repo's Show and tell discussions.
 
-#OpenSource #DesignTools #WebDevelopment #DataVisualization #ThreeJS #CreativeTechnology
+https://globestudio.app
+https://github.com/alevizio/globestudio
+
+#OpenSource #DesignTools #WebDevelopment #DataVisualization #ThreeJS
 ```
 
 ---
 
-## Reddit posts (separate, post one per community per day)
+## Reddit (one community per day)
 
-### `r/web_design` — "I open-sourced a designer-first tool for dotted maps and 3D globes"
+### r/SideProject (Mon 28 Sep, after the flip)
 
-> Hi r/web_design — sharing something I built and just open-sourced.
->
-> Globestudio: dotted maps and animated 3D globes designed for landing pages,
-> decks, and launches rather than for GIS workflows. Pick a country, tweak
-> dot shapes / gradients / shaders, export PNG, SVG, or WebM.
->
-> Live: https://globestudio.app
-> Source: https://github.com/alevizio/globestudio — MIT
->
-> It's react + three.js, runs entirely in the browser, and has 21 presets,
-> a Cmd+K command palette, per-stop opacity gradients, and a full keyboard
-> system. The thing I'm most curious about: what use cases am I missing?
-> I had hero shots, deck visuals, and country-specific brand assets in
-> mind — what else would you reach for it for?
->
-> Genuine feedback welcome, performance bugs especially.
+Title: `I built a free, open-source tool for dotted maps and 3D globes`
 
-### `r/javascript` — focus on the tech
+```text
+Hi r/SideProject. I'm a product designer who codes, and I kept needing dotted world maps and spinning globes for landing pages and decks. Every time, I ended up screenshotting someone else's site or fighting a map library built for GIS.
 
-> Show /r/js: Globestudio — open-source dotted maps and 3D globes built with
-> three.js
->
-> Source: https://github.com/alevizio/globestudio
-> Live: https://globestudio.app
->
-> A couple of implementation notes:
-> - Single InstancedMesh morphs between flat 2D and 3D globe positions
->   (per-vertex lerp on a morphProgress uniform). View switch is free.
-> - Per-instance gradient color via Three's instanceColor attribute. The
->   angle projection math (sin/-cos onto the image corner-to-corner span)
->   is shared between WebGL and SVG export so they agree exactly.
-> - Adaptive DPR — 60-frame FPS window, steps pixel ratio down by 0.25
->   when below 50fps for ~2.5s. Recovers cleanly.
-> - Custom shape upload: SVG sanitized (strip script tags + on*= handlers),
->   rasterized to a CanvasTexture at 256², applied via MeshBasicMaterial
->   onBeforeCompile.
->
-> MIT. PRs welcome.
+So I built Globestudio: pick the world or a country, choose one of 21 looks (halftone, risograph, CRT, aurora…), tweak it in the browser, and export PNG, SVG, WebM, MP4 or GIF, or embed it live. No signup, MIT licensed.
 
-### `r/dataisbeautiful` — angle: open tool
+Live: {UTM link to https://globestudio.app}
+Source: https://github.com/alevizio/globestudio
 
-> [OC] I built an open-source tool for dotted-style maps and animated
-> globes — Globestudio
->
-> Live: https://globestudio.app
-> Source: https://github.com/alevizio/globestudio
->
-> The aesthetic is similar to Stripe's homepage globe but you can pick any
-> country/region, tweak the dot style and density, layer shader effects,
-> and export PNG/SVG/WebM. MIT licensed. I'd love to see what people make
-> with it.
+It launches on Show HN tomorrow. I'd love feedback before then, especially on performance on your device and on what you'd use it for.
+```
 
----
+### r/threejs (Wed 30 Sep) and three.js forum Showcase
 
-## Designer News
+The same text works for both. On the forum, post in Showcase and lead with a
+screenshot.
 
-Subject: `Globestudio — open-source dotted maps and 3D globes for designers`
-URL: `https://globestudio.app/`
-Description:
+Title: `Globestudio: open-source dotted maps and 3D globes built on Three.js`
 
-> A designer-first open-source tool for making dotted maps and animated 3D
-> globes. Custom shapes, gradients with per-stop opacity, WebGL shader
-> effects, and exports to PNG, SVG, and WebM. Built with React + Three.js,
-> MIT licensed.
+```text
+Globestudio is an open-source studio for dotted maps and 3D globes, built with React and Three.js. You style a map in the browser and export PNG, SVG, video or an embed.
+
+Live: https://globestudio.app
+Source: https://github.com/alevizio/globestudio (MIT)
+
+A few implementation notes:
+
+1. Every dot is an instance of one InstancedMesh. Switching between the flat map and the globe re-bakes the instance matrices on the CPU along a flat, cylinder, sphere path and uploads them in chunks through updateRanges, so the morph never rebuilds the mesh.
+
+2. Per-instance gradient color goes through instanceColor. The gradient math is mirrored in the SVG export path, so dot colors line up in both. InstancedMesh has no per-instance alpha, so stop opacity on the canvas is approximated (folded into the RGB, plus one averaged material opacity), while the SVG gets real per-dot fill-opacity.
+
+3. Looks are post-processing: each look applies at most one pass from 24 fragment shader effects (halftone, riso, Bayer and Atkinson dither, CRT, aurora and more).
+
+4. Adaptive DPR: the loop averages FPS over 60 frames and steps the pixel ratio down by 0.25 below 50 fps, then back up when it recovers.
+
+5. Custom dot shapes: uploaded SVGs are sanitized, then rasterized to a CanvasTexture.
+
+Happy to go deeper on any of it. Feedback on performance with your GPU is especially welcome.
+```
+
+### r/web_design (Fri 2 Oct)
+
+Title: `I made an open-source tool for designing dotted maps and 3D globes`
+
+```text
+Hi r/web_design. Globestudio makes dotted maps and animated 3D globes for landing pages, decks and launches rather than GIS work. Pick a country, tweak dot shapes, gradients and one of 21 looks, then export PNG, SVG, WebM, MP4 or GIF, or embed it with an iframe or a script tag.
+
+Live: {UTM link to https://globestudio.app}
+Source: https://github.com/alevizio/globestudio (MIT)
+
+It runs in the browser, needs no account, and has a Cmd+K palette and a full keyboard system. What I'm most curious about: what would you use it for that I haven't thought of?
+```
+
+### r/InternetIsBeautiful (Fri 2 Oct)
+
+Title only, link post. Read the subreddit rules the same day; they change.
+
+Title: `A free tool for making dotted maps and 3D globes in your browser`
+
+Link: `{UTM link to https://globestudio.app}`
 
 ---
 
-## Timing reminder
+## Lobsters (Fri 2 Oct, only if you have an invite)
 
-Best launch sequence (single day, all times PT):
-
-| Time | Channel | Why |
-|---|---|---|
-| 12:01am | Product Hunt | PH launches run 24h from midnight PT |
-| 6:00am | Show HN | HN morning shift, high engagement |
-| 8:30am | X (thread) | Wake-up for US East coast |
-| 9:30am | LinkedIn | Office-hours engagement |
-| 10:00am | Mastodon | Less time-sensitive, but mornings are decent |
-| 11:00am | Designer News | DN has steady weekday traffic |
-| Afternoon | Reddit | Stagger one per day to avoid spam-trap |
-
-Don't try to do all of these in 60 minutes. Pace yourself for the day.
+- Title: `Globestudio: open-source dotted maps and 3D globes (React, Three.js)`
+- URL: `https://globestudio.app/`
+- Tags: `show`, and check the "I am the author" box
+- If you add text, reuse the r/threejs implementation notes above.

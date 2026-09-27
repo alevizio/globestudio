@@ -22,11 +22,12 @@ Each example is in one of these states:
 | 🧩 | [`embed-snippet`](./embed-snippet) | The minimum-viable iframe embed pattern — paste into any site | 🟢 Ready |
 | 🌍 | [`hero-globe`](./hero-globe) | Animated globe behind a landing page hero | 🟢 Ready |
 | 📊 | [`funding-map-story`](./funding-map-story) | Scroll-driven annual-report data story | 🟢 Ready |
-| 🎨 | [`shader-presets-showcase`](./shader-presets-showcase) | All 16 presets in one auto-fit gallery | 🟢 Ready |
+| 🎨 | [`shader-presets-showcase`](./shader-presets-showcase) | All 21 looks in one auto-fit gallery | 🟢 Ready |
 | 🏷️ | [`conference-badge`](./conference-badge) | Single-country PNG for print artwork | 🟢 Ready |
 | 🗺️ | [`country-highlight`](./country-highlight) | Single-country profile page template | 🟢 Ready |
 | 🎯 | [`svg-country-pack`](./svg-country-pack) | Vector country shapes for Illustrator / Figma | 🟢 Ready (workflow docs) |
 | 🅵 | [`framer-component`](./framer-component) | Framer code component — designer-panel props, iframe-bridged | 🟢 Ready (paste-into-Framer) |
+| ⚛️ | [`react-component`](./react-component) | Zero-install React wrapper; prefer the `@globestudio/react` package | 🟢 Ready (copy-paste) |
 
 ## Run an example locally
 
@@ -80,8 +81,6 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full guide.
 Community examples we'd put on the front page if someone built them:
 
 - Webflow showcase template
-- Framer code component (gated on integrations Phase 2)
-- Figma plugin (gated on integrations Phase 3)
 - Astro starter with Globestudio embedded
 - After Effects template — animated tag-along map for video projects
 - Notion embed cookbook
