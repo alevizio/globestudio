@@ -18,6 +18,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lookPresets } from "../src/data/look-presets.js";
 import { comparisons } from "../src/data/comparisons.js";
+import { PRODUCT_CARD_ALT, lookCardAlt } from "../src/data/share-cards.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const distDir = resolve(dir, "../dist");
@@ -76,8 +77,9 @@ const buildHead = (html, { title, description, url, image, imageAlt }) => {
     inject(/(<meta\s+property="og:image"\s+content=")[^"]*(")/, image);
     inject(/(<meta\s+name="twitter:image"\s+content=")[^"]*(")/, image);
   }
-  // Alt text follows the image. Routes that reuse the home product card
-  // (compare, gallery, static pages, /looks/default) keep the template's alt.
+  // Alt text follows the image: set whenever the image is. Routes that keep
+  // the template's image (gallery, static pages, every teaser-mode fallback)
+  // keep its alt too, which the teaser build swaps along with the image.
   if (imageAlt) {
     inject(/(<meta\s+property="og:image:alt"\s+content=")[^"]*(")/, esc(imageAlt));
     inject(/(<meta\s+name="twitter:image:alt"\s+content=")[^"]*(")/, esc(imageAlt));
@@ -124,11 +126,10 @@ for (const preset of lookPresets) {
     description: `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free and open source.`,
     url: `${SITE}/looks/${id}`,
     image,
-    // og/default.png is the home product card, not a Default-look card.
-    imageAlt:
-      image && id !== "default"
-        ? `A dotted globe in the Globestudio ${name} look, captioned: ${preset.blurb}.`
-        : null,
+    // og/default.png is the home product card, not a Default-look card, so
+    // lookCardAlt describes it as such. Set even in teaser mode, where the
+    // template alt describes the teaser card instead.
+    imageAlt: image ? lookCardAlt(preset) : null,
   });
   count += 1;
 }
@@ -147,6 +148,7 @@ for (const c of Object.values(comparisons)) {
     description: c.metaDescription,
     url: `${SITE}/compare/${c.slug}`,
     image: productCard,
+    imageAlt: productCard ? PRODUCT_CARD_ALT : null,
   });
   count += 1;
 }

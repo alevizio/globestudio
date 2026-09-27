@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { injectSiteFacts } from "../scripts/site-facts.js";
 import { lookPresets } from "./data/look-presets.js";
+import { PRODUCT_CARD_ALT, TEASER_CARD_ALT, swapInTeaserCard } from "./data/share-cards.js";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(resolve(repoRoot, path), "utf8");
@@ -15,8 +16,9 @@ const jsonLd = JSON.parse(
   html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1],
 );
 const graphNode = (type) => jsonLd["@graph"].find((node) => node["@type"] === type);
-const metaContent = (attr, name) =>
-  html.match(new RegExp(`<meta\\s+${attr}="${name}"\\s+content="([^"]*)"`))[1];
+const metaIn = (source, attr, name) =>
+  source.match(new RegExp(`<meta\\s+${attr}="${name}"\\s+content="([^"]*)"`))[1];
+const metaContent = (attr, name) => metaIn(html, attr, name);
 const noscriptText = html.match(/<noscript>([\s\S]*?)<\/noscript>/)[1].replace(/\s+/g, " ");
 const manifest = JSON.parse(read("public/manifest.webmanifest"));
 
@@ -100,6 +102,22 @@ describe("share cards", () => {
     expect(metaContent("property", "og:image")).toBe(card);
     expect(metaContent("name", "twitter:image")).toBe(card);
     expect(graphNode("SoftwareApplication").image).toBe(card);
+  });
+
+  it("describes the product card in both alt tags", () => {
+    expect(metaContent("property", "og:image:alt")).toBe(PRODUCT_CARD_ALT);
+    expect(metaContent("name", "twitter:image:alt")).toBe(PRODUCT_CARD_ALT);
+  });
+
+  it("swaps the alt text along with the image in teaser builds", () => {
+    const teaser = swapInTeaserCard(html);
+    const card = "https://globestudio.app/og/teaser.png?v=2";
+    expect(metaIn(teaser, "property", "og:image")).toBe(card);
+    expect(metaIn(teaser, "name", "twitter:image")).toBe(card);
+    expect(metaIn(teaser, "property", "og:image:alt")).toBe(TEASER_CARD_ALT);
+    expect(metaIn(teaser, "name", "twitter:image:alt")).toBe(TEASER_CARD_ALT);
+    expect(teaser).not.toContain("og/default.png");
+    expect(teaser).not.toContain(PRODUCT_CARD_ALT);
   });
 });
 
