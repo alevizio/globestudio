@@ -37,7 +37,7 @@ a scriptable batch:
 for code in USA CAN MEX BRA FRA DEU ITA ESP CHN JPN KOR ...; do
   open "https://globestudio.app/looks/default?country=$code"
   # wait for canvas to settle
-  # trigger keyboard "S" to export SVG
+  # press "D" to open the export dialog, then pick SVG
 done
 ```
 

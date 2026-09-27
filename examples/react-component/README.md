@@ -10,7 +10,9 @@ access at render time).
 
 ## Install
 
-There's no npm package — just copy the single file:
+Prefer the npm package, which covers all 21 looks:
+`npm install @globestudio/react` (see [`packages/react`](../../packages/react/)).
+This file is the zero-install alternative; copy it in:
 
 ```bash
 curl -O https://raw.githubusercontent.com/alevizio/globestudio/main/examples/react-component/Globestudio.tsx
@@ -39,10 +41,10 @@ export function Hero() {
 ### Embed a custom share config
 
 If someone shared a custom look with you (a URL like
-`globestudio.app/?c=…`), use the token after `?c=`:
+`globestudio.app/?c=…`), use the token after `?c=`. It's URL-encoded JSON:
 
 ```tsx
-<Globestudio shareToken="eyJ2IjoxLCJzZWxlY3Rpb24iOiJjb3VudHJ5OkZSQSJ9…" />
+<Globestudio shareToken="%7B%22v%22%3A1%2C%22selection%22%3A%22country%3AFRA%22%7D" />
 ```
 
 Props on the component **override** matching fields in the shared
@@ -90,12 +92,12 @@ config — so you can take someone else's config and pin one parameter
 | Tool you're using | Preferred path |
 |---|---|
 | **Next.js / Vite / Remix / Astro (React)** | This component |
-| **Plain HTML / Webflow / Squarespace** | [embed.js script tag](../../docs/integrations/embed.md) |
+| **Plain HTML / Webflow / Squarespace** | [embed.js script tag](../../README.md#one-line-script-tag-recommended) |
 | **Framer** | [Framer code component](../framer-component/) |
 | **Figma** | [Figma plugin](../../figma-plugin/) |
-| **No JS at all** | [Plain `<iframe>`](../../docs/integrations/embed.md#method-2--plain-iframe) |
+| **No JS at all** | [Plain `<iframe>`](../../README.md#plain-iframe) |
 
 ## See also
 
-- [`docs/integrations/embed.md`](../../docs/integrations/embed.md) — full embed parameter reference
-- [`docs/integrations/README.md`](../../docs/integrations/README.md) — index of all integration paths
+- [Embed parameters](../../README.md#embed-parameters): the full embed parameter reference
+- [globestudio.app/integrations](https://globestudio.app/integrations): every integration path, with copy-paste setups

@@ -51,9 +51,11 @@ Open `index.html` directly in your browser too — no server required.
 Every Globestudio preset has its own shareable URL:
 
 `/looks/default`, `/looks/halftone`, `/looks/risograph`, `/looks/newsprint`,
-`/looks/aurora`, `/looks/pixel`, `/looks/bayer`, `/looks/iridescent`,
-`/looks/wireframe`, `/looks/crt`, `/looks/glitch`, `/looks/badtv`,
-`/looks/bloom`, `/looks/metal`, `/looks/pencil`, `/looks/corrupt`.
+`/looks/aurora`, `/looks/pixel`, `/looks/bayer`, `/looks/atkinson`,
+`/looks/iridescent`, `/looks/wireframe`, `/looks/crt`, `/looks/glitch`,
+`/looks/badtv`, `/looks/bloom`, `/looks/metal`, `/looks/pencil`,
+`/looks/corrupt`, `/looks/toon`, `/looks/threshold`, `/looks/vapor`,
+`/looks/topographic`. The same ids work as `/embed?look=:id`.
 
 ## Why iframe
 
