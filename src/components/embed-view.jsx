@@ -14,6 +14,7 @@ import { createDottedSvg } from "../utils/svg-markup.js";
 import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
 import { parseShareConfig } from "../utils/share-config.js";
 import { clampNumber } from "../utils/math.js";
+import { FigmaPluginPickers } from "./figma-plugin-pickers.jsx";
 
 // Lazy-load the heavy WebGL component so the initial embed payload is small.
 const GlobeBackground = lazy(() =>
@@ -141,12 +142,25 @@ export const EmbedView = () => {
   // customizations layered on top of preset defaults. See
   // src/utils/share-config.js for the encoding contract.
   const shareConfig = useMemo(() => parseShareConfig(search), [search]);
+  // In the Figma plugin shell the look, region and density pickers replace
+  // the matching query params, so the panel renders (and Insert captures)
+  // exactly what /embed?look=…&selection=…&density=… would. Every other
+  // embed reads the URL alone.
+  const [picks, setPicks] = useState(() => ({
+    look: params.look,
+    selection: params.selection,
+    density: params.density,
+  }));
+  const raw = useMemo(
+    () => (params.plugin === "figma" ? { ...params, ...picks } : params),
+    [params, picks],
+  );
   const settings = useMemo(
-    () => buildSettings(params, shareConfig),
-    [params, shareConfig],
+    () => buildSettings(raw, shareConfig),
+    [raw, shareConfig],
   );
   // The share config's selection (if any) overrides the URL params' one.
-  const effectiveSelection = shareConfig?.selection || params.selection;
+  const effectiveSelection = shareConfig?.selection || raw.selection;
   const ids = useMemo(() => findAreaIds(effectiveSelection), [effectiveSelection]);
   const mapData = useMemo(() => createCountryMapData(ids, settings.density), [ids, settings.density]);
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -210,7 +224,7 @@ export const EmbedView = () => {
         console.warn("[globestudio] SVG generation failed; sending PNG only:", svgErr);
         svg = null;
       }
-      const preset = lookPresets.find((p) => p.id === params.look);
+      const preset = lookPresets.find((p) => p.id === raw.look);
       window.parent.postMessage(
         {
           type: "globestudio-insert",
@@ -230,7 +244,7 @@ export const EmbedView = () => {
     } finally {
       setInserting(false);
     }
-  }, [params.look, mapData, settings]);
+  }, [raw.look, mapData, settings]);
 
   // Probe for WebGL 2 support up-front so we can show a graceful fallback
   // instead of a blank canvas. The probe happens once, after mount.
@@ -427,6 +441,12 @@ export const EmbedView = () => {
       </Suspense>
       {params.plugin === "figma" && (
         <div className="embed-plugin-bar" data-plugin="figma">
+          <FigmaPluginPickers
+            look={raw.look}
+            selection={effectiveSelection}
+            density={settings.density}
+            onChange={(patch) => setPicks((current) => ({ ...current, ...patch }))}
+          />
           <button
             type="button"
             className="embed-plugin-insert"
