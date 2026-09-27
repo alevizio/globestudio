@@ -81,7 +81,7 @@ export const presetSeo = {
   pixel: {
     targetKeyword: "pixel art dotted globe",
     metaDescription:
-      "Pixel-art dotted globe generator — 8-bit blocky pixelation with chunky square dots. Indie game aesthetic, exportable as PNG or animated WebM, MP4 or GIF.",
+      "Pixel-art dotted globe generator: 8-bit blocky pixelation with chunky square dots. Indie game aesthetic, exportable as PNG or animated WebM, MP4 or GIF.",
     longDescription:
       "Pixel is the 8-bit treatment — chunky square dots arranged at a coarse grid, evoking the look of early arcade games, indie pixel-art studios, and early-90s software UI. Density and dotSize together control the pixelation scale: lower density with larger dotSize produces the iconic NES-style chunky map, while higher density approaches a Game Boy resolution. Square dot shape is locked in to maintain the aesthetic. Pair Pixel with the country selection to build per-market splash screens for indie games, retro-themed marketing pages, or any product that wants to lean into 8-bit nostalgia without committing to a full pixel-art design system.",
     useCases: [
