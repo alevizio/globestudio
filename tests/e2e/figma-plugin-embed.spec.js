@@ -135,6 +135,15 @@ test("figma plugin picks survive the Your colors reload", async ({ page }) => {
   await page.getByRole("button", { name: /^Country or region/ }).click();
   const filter = page.getByLabel("Filter Country or region");
   await expect(filter).toBeFocused();
+  // The list spans the bar, so no region name is cut short in the panel.
+  const list = await page.locator(".searchable-select-popover").evaluate((node) => ({
+    left: node.getBoundingClientRect().left,
+    right: node.getBoundingClientRect().right,
+    cut: [...node.querySelectorAll("[role=option]")].filter((option) => option.scrollWidth > option.clientWidth + 1).length,
+  }));
+  expect(list.left).toBeGreaterThanOrEqual(0);
+  expect(list.right).toBeLessThanOrEqual(PANEL.width);
+  expect(list.cut).toBe(0);
   await filter.pressSequentially("brazil");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: /^Country or region: Brazil/ })).toBeVisible();

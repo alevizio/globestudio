@@ -2849,6 +2849,14 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   min-width: 0;
 }
 
+/* The region list portals to <body> at its half-width trigger's size, which
+   cut long country names short. In the plugin shell it spans the bar. */
+body:has(.embed-plugin-pickers) .searchable-select-popover {
+  left: 16px !important;
+  right: 16px;
+  width: auto !important;
+}
+
 .embed-plugin-insert {
   pointer-events: auto;
   appearance: none;
