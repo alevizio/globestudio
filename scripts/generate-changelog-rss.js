@@ -43,10 +43,12 @@ const isoDate = (dateLabel) => {
     May: "05", June: "06", July: "07", August: "08",
     September: "09", October: "10", November: "11", December: "12",
   };
-  const m = dateLabel.match(/^(\w+)\s+(\d{4})$/);
+  // "29 September 2026" → that day; "May 2026" → the first of the month.
+  const m = dateLabel.match(/^(?:(\d{1,2})\s+)?(\w+)\s+(\d{4})$/);
   if (!m) return new Date().toUTCString();
-  const month = months[m[1]] ?? "01";
-  return new Date(`${m[2]}-${month}-01T12:00:00Z`).toUTCString();
+  const month = months[m[2]] ?? "01";
+  const day = (m[1] ?? "1").padStart(2, "0");
+  return new Date(`${m[3]}-${month}-${day}T12:00:00Z`).toUTCString();
 };
 
 const items = entries
