@@ -58,9 +58,9 @@ The first public release. This section sums up everything that ships in
   app shell.
 - CI builds and tests the npm packages, and Lighthouse CI audits the studio
   instead of the teaser.
-- Head tags, structured data, the web manifest and `llms.txt` name every
-  export format (PNG, SVG, WebM, MP4, GIF, JSON, embed) and all 21 looks,
-  and the home page's list of looks is built from the presets.
+- The home descriptions, structured data, the web manifest and `llms.txt`
+  name every export format (PNG, SVG, WebM, MP4, GIF, JSON, embed) and all
+  21 looks, and the home page's list of looks is built from the presets.
 - New share cards for every look, each under 300 KB and served with
   `?v=2`. Every prerendered route has its own `twitter:description` and
   image alt text.
@@ -92,8 +92,8 @@ The first public release. This section sums up everything that ships in
   globe.
 - Keyboard and screen readers: faded-out controls leave the Tab order,
   region picks are announced by name, focus returns to the country picker
-  after a pick, and the compare table has a name and scrolls with the
-  keyboard.
+  after a keyboard pick, and the compare table has a name and scrolls with
+  the keyboard.
 - Exports: hi-res PNGs keep the preview's pattern size. A failed PNG or
   video export shows a message and sends `client_error`, an empty WebM or
   MP4 no longer downloads, and MP4 is offered only where H.264 encoding
