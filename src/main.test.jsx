@@ -1,6 +1,7 @@
 // @vitest-environment-options {"url": "https://globestudio.app/"}
 // (analytics is off on localhost, jsdom's default host)
 import { act } from "react";
+import { waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // main.jsx is the one place <Analytics /> mounts. The Vercel components are
@@ -32,6 +33,8 @@ vi.mock("./utils/console-greeting.js", () => ({ consoleGreeting: () => {} }));
 vi.mock("./components/teaser-page.jsx", () => ({ TeaserPage: () => <h1>Waitlist teaser</h1> }));
 
 // main.jsx isn't rendered through Testing Library, so opt in to act().
+// Waits use Testing Library's waitFor, which leaves act while it polls, so a
+// lazy chunk (Gallery) resolving mid wait doesn't log an act() warning.
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 // App's first render reads media queries and observes sizes (see
@@ -95,7 +98,7 @@ describe("main.jsx analytics mount", () => {
     "mounts analytics and Speed Insights once on the static route %s",
     async (path, title) => {
       await boot(path);
-      await vi.waitFor(() => expect(heading()).toBe(title));
+      await waitFor(() => expect(heading()).toBe(title));
       expect(count("vercel-analytics")).toBe(1);
       expect(count("speed-insights")).toBe(1);
       expect(crashed()).toBe(false);
@@ -106,7 +109,7 @@ describe("main.jsx analytics mount", () => {
   it("mounts analytics and Speed Insights once on the app route", async () => {
     await boot("/");
     expect(document.querySelector("main.app-shell")).not.toBeNull();
-    await vi.waitFor(() => expect(count("vercel-analytics")).toBe(1));
+    await waitFor(() => expect(count("vercel-analytics")).toBe(1));
     expect(count("speed-insights")).toBe(1);
     expect(crashed()).toBe(false);
   }, 20000);
@@ -114,7 +117,7 @@ describe("main.jsx analytics mount", () => {
   it("mounts analytics once on the teaser", async () => {
     vi.stubEnv("VITE_TEASER", "1");
     await boot("/");
-    await vi.waitFor(() => expect(heading()).toBe("Waitlist teaser"));
+    await waitFor(() => expect(heading()).toBe("Waitlist teaser"));
     expect(count("vercel-analytics")).toBe(1);
     expect(count("speed-insights")).toBe(1);
     expect(crashed()).toBe(false);
@@ -129,6 +132,7 @@ describe("main.jsx analytics mount", () => {
   }, 20000);
 
   it("still mounts nothing for a visitor who opted out", async () => {
+    // src/test-setup.js clears localStorage after every test.
     window.localStorage.setItem("gs_optout", "true");
     await boot("/docs");
     expect(heading()).toBe("Docs");
