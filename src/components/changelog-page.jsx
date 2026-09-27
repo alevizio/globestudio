@@ -66,7 +66,7 @@ const ENTRIES = [
       "Two new presets — Vapor (synthwave) and Topographic (contour rings) — the catalog hits 21 looks",
       "Animated GIF and MP4 export join WebM",
       "/gallery — a static index of every built-in look",
-      "/examples — six full-screen brand showcases with copy-paste HTML",
+      "/examples: four full-screen hero showcases",
     ],
   },
   {

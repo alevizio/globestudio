@@ -182,7 +182,7 @@ const staticRoutes = [
     route: "examples",
     title: "Examples — Globestudio",
     description:
-      "Real-world examples of Globestudio in product marketing — Pachama, Vercel, Profound, Linear, Stripe, Earthscale. Six full-screen hero showcases plus card and stat patterns. Copy-paste HTML.",
+      "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style product heroes to a retro game screen and a newspaper front page.",
   },
   {
     route: "brand",
