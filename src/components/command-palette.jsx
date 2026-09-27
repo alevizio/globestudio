@@ -137,7 +137,7 @@ export const CommandPalette = ({ open, onClose, actions }) => {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Search presets, vibes, actions — try “synthwave”…"
+            placeholder="Search presets, vibes, actions. Try “synthwave”…"
             aria-label="Search commands"
             spellCheck="false"
             autoComplete="off"

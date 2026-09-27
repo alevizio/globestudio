@@ -1618,10 +1618,10 @@ const App = () => {
             <span
               className={`panel-meta-icon ${appliedLookId ? "is-rippling" : ""}`}
               role="img"
-              aria-label={`${selected.label} — ${
+              aria-label={`${selected.label}: ${
                 dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
               }`}
-              title={`${selected.label} — ${
+              title={`${selected.label}: ${
                 dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
               }`}
             >
