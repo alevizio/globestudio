@@ -5528,8 +5528,11 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
 .app-shell.is-panel-collapsed .social-link {
   opacity: 0;
   pointer-events: none;
+  /* Also out of the Tab order and AX tree, once the fade ends. */
+  visibility: hidden;
   transition: opacity 260ms cubic-bezier(0.4, 0, 0.2, 1),
-    transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 260ms;
 }
 
 /* Perf HUD is visible in normal (paneled) mode for dev introspection,
@@ -7831,6 +7834,7 @@ input[type="range"]:active::-moz-range-thumb {
   .app-shell.is-panel-collapsed .looks-bar {
     opacity: 1;
     pointer-events: auto;
+    visibility: visible;
   }
 
   /* During an active drag we suspend the spring transition so the sheet

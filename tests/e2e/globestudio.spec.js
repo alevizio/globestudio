@@ -130,6 +130,25 @@ test.describe("on a phone with the sheet collapsed", () => {
     await expect(page.getByRole("button", { name: "Expand options panel" })).toBeVisible();
     await expectNoSeriousAxeViolations(page);
   });
+
+  test("chrome faded out with the panel takes no keyboard focus", async ({ page }) => {
+    await page.goto("/");
+    await waitForCanvas(page);
+    const invisibleStops = [];
+    for (let i = 0; i < 12; i += 1) {
+      await page.keyboard.press("Tab");
+      const stop = await page.evaluate(() => {
+        const el = document.activeElement;
+        let opacity = 1;
+        for (let node = el; node && node.nodeType === 1; node = node.parentElement) {
+          opacity *= Number(getComputedStyle(node).opacity);
+        }
+        return { label: el?.getAttribute("aria-label") || el?.textContent?.trim().slice(0, 30), opacity };
+      });
+      if (stop.opacity < 0.1) invisibleStops.push(stop.label);
+    }
+    expect(invisibleStops).toEqual([]);
+  });
 });
 
 for (const path of ["/", "/docs", "/brand", "/privacy"]) {
