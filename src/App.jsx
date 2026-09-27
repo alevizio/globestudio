@@ -45,6 +45,7 @@ import {
 import { clearPersistedState, usePersistedState } from "./hooks/use-persisted-state.js";
 import { usePrefersReducedMotion } from "./hooks/use-prefers-reduced-motion.js";
 import { hasWebGL } from "./utils/webgl-support.js";
+import { formatSelectionStatus } from "./utils/a11y-status.js";
 import { CanvasA11yProxy } from "./components/canvas-a11y-proxy.jsx";
 import { ControlPanel } from "./components/control-panel.jsx";
 import { ErrorBoundary } from "./components/error-boundary.jsx";
@@ -802,12 +803,10 @@ const App = () => {
   const handleSelectionChange = useCallback((next) => {
     setSelection(next);
     // Selection values are namespaced ("country:USA", "continent:Europe", etc.)
-    // — only announce a friendly label for known shapes; skip the raw value
-    // for "world" since the visual update is obvious.
+    // — announce the picker's name for them; skip "world" since the visual
+    // update is obvious.
     if (typeof next === "string" && next !== "world") {
-      const [type, id] = next.split(":");
-      const friendly = id?.replace(/-/g, " ") ?? next;
-      setStatusMessage(`Selection: ${friendly} (${type})`);
+      setStatusMessage(formatSelectionStatus(next));
     }
   }, [setSelection]);
 

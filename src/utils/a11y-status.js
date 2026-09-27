@@ -11,6 +11,8 @@
 // Both are computed from the same App state that drives the canvas, so
 // they stay in sync automatically.
 
+import { areaOptionByValue } from "../data/geography.js";
+
 const LOOK_PRESET_DESCRIPTIONS = {
   default: "Default — clean dotted globe",
   halftone: "Halftone — newspaper print pattern",
@@ -84,4 +86,12 @@ export const formatGlobeStatus = (state) => {
   if (citiesVisible) details.push(["Cities", "Visible"]);
 
   return { summary, details };
+};
+
+// Status line for a region pick: the name the picker shows ("Brazil",
+// "Europe (Continent)"), not the raw value, which a screen reader read out
+// as "Selection: BRA (country)".
+export const formatSelectionStatus = (value) => {
+  const label = areaOptionByValue.get(value)?.label ?? String(value).split(":").pop().replace(/-/g, " ");
+  return `Selection: ${label}`;
 };
