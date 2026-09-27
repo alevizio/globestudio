@@ -277,14 +277,14 @@ import { Globe } from "@globestudio/react";
 export const IntegrationsPage = () => {
   useBodyScrollable();
   useEffect(() => {
-    document.title = "Integrations — Globestudio";
+    document.title = "Integrations · Globestudio";
     const setMeta = (selector, content) => {
       const el = document.querySelector(selector);
       if (el) el.setAttribute("content", content);
     };
     setMeta(
       'meta[name="description"]',
-      "Drop Globestudio into Webflow, Framer, Figma, Notion, WordPress, plain HTML, or React — copy-paste snippets, no install.",
+      "Drop Globestudio into Webflow, Framer, Figma, Notion, WordPress, plain HTML, or React. Copy-paste snippets, no install.",
     );
   }, []);
 

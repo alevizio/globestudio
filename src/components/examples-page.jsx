@@ -2509,7 +2509,7 @@ export const ShowcaseStack = () => {
 export const ExamplesPage = () => {
   useBodyScrollable();
   useEffect(() => {
-    document.title = "Examples — Globestudio";
+    document.title = "Examples · Globestudio";
     const setMeta = (selector, content) => {
       const el = document.querySelector(selector);
       if (el) el.setAttribute("content", content);

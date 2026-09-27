@@ -63,14 +63,14 @@ const TOC = [
 export const DocsPage = () => {
   useBodyScrollable();
   useEffect(() => {
-    document.title = "Docs — Globestudio";
+    document.title = "Docs · Globestudio";
     const setMeta = (selector, content) => {
       const el = document.querySelector(selector);
       if (el) el.setAttribute("content", content);
     };
     setMeta(
       'meta[name="description"]',
-      "Globestudio documentation — embed snippet, shareable config URLs, keyboard shortcuts, preset catalog, JSON schema.",
+      "Globestudio documentation: embed snippet, shareable config URLs, keyboard shortcuts, preset catalog, JSON schema.",
     );
   }, []);
 

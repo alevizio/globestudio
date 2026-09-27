@@ -118,7 +118,7 @@ for (const preset of lookPresets) {
     ? shareCardUrl(id)
     : null; // fall back to the default og:image already in the template
   totalMisses += writeRoute(`looks/${id}`, {
-    title: `${name} — dotted map & 3D globe look · Globestudio`,
+    title: `${name}: dotted map & 3D globe look · Globestudio`,
     description: `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free and open source.`,
     url: `${SITE}/looks/${id}`,
     image,
@@ -150,7 +150,7 @@ for (const c of Object.values(comparisons)) {
 }
 
 totalMisses += writeRoute("gallery", {
-  title: "Looks gallery — dotted map & 3D globe styles · Globestudio",
+  title: "Looks gallery: dotted map & 3D globe styles · Globestudio",
   description:
     "Browse every built-in Globestudio look. Open one to generate a dotted map or animated 3D globe and export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free, open source.",
   url: `${SITE}/gallery`,
@@ -166,37 +166,37 @@ count += 1;
 const staticRoutes = [
   {
     route: "docs",
-    title: "Docs — Globestudio",
+    title: "Docs · Globestudio",
     description:
-      "Globestudio documentation — embed snippet, shareable config URLs, keyboard shortcuts, preset catalog, JSON schema.",
+      "Globestudio documentation: embed snippet, shareable config URLs, keyboard shortcuts, preset catalog, JSON schema.",
   },
   {
     route: "integrations",
-    title: "Integrations — Globestudio",
+    title: "Integrations · Globestudio",
     description:
-      "Drop Globestudio into Webflow, Framer, Figma, Notion, WordPress, plain HTML, or React — copy-paste snippets, no install.",
+      "Drop Globestudio into Webflow, Framer, Figma, Notion, WordPress, plain HTML, or React. Copy-paste snippets, no install.",
   },
   {
     route: "examples",
-    title: "Examples — Globestudio",
+    title: "Examples · Globestudio",
     description:
       "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style product heroes to a retro game screen and a newspaper front page.",
   },
   {
     route: "brand",
-    title: "Brand — Globestudio",
+    title: "Brand · Globestudio",
     description:
-      "Globestudio press kit — logo, OG cards, color palette, taglines. Free to use for editorial coverage.",
+      "Globestudio press kit: logo, OG cards, color palette, taglines. Free to use for editorial coverage.",
   },
   {
     route: "changelog",
-    title: "Changelog — Globestudio",
+    title: "Changelog · Globestudio",
     description:
-      "Recent shipped work in Globestudio — new presets, polish, infrastructure, and first-visit experience.",
+      "Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.",
   },
   {
     route: "privacy",
-    title: "Privacy — Globestudio",
+    title: "Privacy · Globestudio",
     description:
       "What Globestudio does and doesn't collect. Cookieless analytics, no fingerprinting, no third-party advertisers.",
   },

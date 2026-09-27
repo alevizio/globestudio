@@ -113,14 +113,14 @@ const ENTRIES = [
 export const ChangelogPage = () => {
   useBodyScrollable();
   useEffect(() => {
-    document.title = "Changelog — Globestudio";
+    document.title = "Changelog · Globestudio";
     const setMeta = (selector, content) => {
       const el = document.querySelector(selector);
       if (el) el.setAttribute("content", content);
     };
     setMeta(
       'meta[name="description"]',
-      "Recent shipped work in Globestudio — new presets, polish, infrastructure, and first-visit experience.",
+      "Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.",
     );
   }, []);
 

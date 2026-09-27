@@ -8,7 +8,7 @@ export const comparisons = {
   cobe: {
     slug: "cobe",
     competitor: "cobe",
-    title: "Globestudio vs cobe — dotted globe, no-code vs library",
+    title: "Globestudio vs cobe: dotted globe, no-code vs library",
     metaDescription:
       "cobe is a tiny code-only WebGL globe library. Globestudio is a no-code studio that also exports PNG, SVG, WebM, MP4, GIF, JSON or an embed, with a React component, Figma plugin and MCP server. Honest comparison.",
     tagline: "A no-code studio with exports vs. a tiny code-only library.",
@@ -40,7 +40,7 @@ export const comparisons = {
   geolayers: {
     slug: "geolayers",
     competitor: "GEOlayers",
-    title: "Globestudio vs GEOlayers — animated maps in the browser vs After Effects",
+    title: "Globestudio vs GEOlayers: animated maps in the browser vs After Effects",
     metaDescription:
       "GEOlayers is a paid After Effects plugin for animated cartographic maps. Globestudio makes stylized dotted maps and 3D globes free in the browser and exports WebM/MP4/GIF. Honest comparison.",
     tagline: "Stylized maps in the browser vs. cartographic maps in After Effects.",

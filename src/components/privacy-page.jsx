@@ -38,7 +38,7 @@ const getOptOut = () => {
 export const PrivacyPage = () => {
   useBodyScrollable();
   useEffect(() => {
-    document.title = "Privacy — Globestudio";
+    document.title = "Privacy · Globestudio";
     const setMeta = (selector, content) => {
       const el = document.querySelector(selector);
       if (el) el.setAttribute("content", content);
