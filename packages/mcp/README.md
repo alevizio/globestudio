@@ -43,7 +43,7 @@ Five tools, no external API calls (preset catalog ships embedded):
 
 > "Show me every Globestudio preset with a retro vibe."
 > 
-> "Make me a halftone globe of Japan with cyan dots — give me a share URL."
+> "Make me a clean dotted globe of Japan with cyan dots and give me a share URL."
 > 
 > "Generate the React component for the Vapor preset at 1200×600."
 
