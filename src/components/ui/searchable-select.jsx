@@ -13,6 +13,7 @@ export const SearchableSelect = ({ value, onChange, options, label, placeholder 
   const containerRef = useRef(null);
   const listRef = useRef(null);
   const inputRef = useRef(null);
+  const triggerRef = useRef(null);
 
   const current = options.find((option) => option.value === value);
   const currentLabel = current?.label ?? placeholder;
@@ -131,16 +132,23 @@ export const SearchableSelect = ({ value, onChange, options, label, placeholder 
     } else if (event.key === "Enter") {
       event.preventDefault();
       const option = filtered[activeIndex];
-      if (option) pickOption(option);
+      if (option) {
+        pickOption(option);
+        // The search input unmounts with the popover; hand focus back to
+        // the trigger so the keyboard user keeps their place.
+        triggerRef.current?.focus();
+      }
     } else if (event.key === "Escape") {
       event.preventDefault();
       setOpen(false);
+      triggerRef.current?.focus();
     }
   };
 
   return (
     <div className={`searchable-select ${open ? "is-open" : ""}`} ref={containerRef}>
       <button
+        ref={triggerRef}
         type="button"
         className="searchable-select-trigger"
         aria-label={`${label}: ${currentLabel}`}

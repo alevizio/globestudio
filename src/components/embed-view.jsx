@@ -14,10 +14,16 @@ import { createDottedSvg } from "../utils/svg-markup.js";
 import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
 import { parseShareConfig } from "../utils/share-config.js";
 import { clampNumber } from "../utils/math.js";
+import { restoreFigmaPicks, saveFigmaPicks } from "../utils/figma-picks.js";
 
 // Lazy-load the heavy WebGL component so the initial embed payload is small.
 const GlobeBackground = lazy(() =>
   import("./globe-background.jsx").then((m) => ({ default: m.GlobeBackground })),
+);
+// Only the Figma plugin shell shows the pickers, so they stay out of the
+// initial payload every studio and embed visitor downloads.
+const FigmaPluginPickers = lazy(() =>
+  import("./figma-plugin-pickers.jsx").then((m) => ({ default: m.FigmaPluginPickers })),
 );
 
 // Parameters the embed honors via query string. Strings get parsed to their
@@ -141,12 +147,30 @@ export const EmbedView = () => {
   // customizations layered on top of preset defaults. See
   // src/utils/share-config.js for the encoding contract.
   const shareConfig = useMemo(() => parseShareConfig(search), [search]);
+  // In the Figma plugin shell the look, region and density pickers replace
+  // the matching query params, so the panel renders what
+  // /embed?look=…&selection=…&density=… would. Insert sends a PNG of that
+  // preview plus an SVG of the same settings as a flat dotted map, and the
+  // plugin (figma-plugin/code.js) inserts the SVG when it has up to 2,500
+  // dots, so a sparse map lands flat even while the panel shows a globe.
+  // Every other embed reads the URL alone.
+  const [picks, setPicks] = useState(() => {
+    const fromUrl = { look: params.look, selection: params.selection, density: params.density };
+    return params.plugin === "figma" ? restoreFigmaPicks(fromUrl) : fromUrl;
+  });
+  useEffect(() => {
+    if (params.plugin === "figma") saveFigmaPicks(picks);
+  }, [params.plugin, picks]);
+  const raw = useMemo(
+    () => (params.plugin === "figma" ? { ...params, ...picks } : params),
+    [params, picks],
+  );
   const settings = useMemo(
-    () => buildSettings(params, shareConfig),
-    [params, shareConfig],
+    () => buildSettings(raw, shareConfig),
+    [raw, shareConfig],
   );
   // The share config's selection (if any) overrides the URL params' one.
-  const effectiveSelection = shareConfig?.selection || params.selection;
+  const effectiveSelection = shareConfig?.selection || raw.selection;
   const ids = useMemo(() => findAreaIds(effectiveSelection), [effectiveSelection]);
   const mapData = useMemo(() => createCountryMapData(ids, settings.density), [ids, settings.density]);
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -210,7 +234,7 @@ export const EmbedView = () => {
         console.warn("[globestudio] SVG generation failed; sending PNG only:", svgErr);
         svg = null;
       }
-      const preset = lookPresets.find((p) => p.id === params.look);
+      const preset = lookPresets.find((p) => p.id === raw.look);
       window.parent.postMessage(
         {
           type: "globestudio-insert",
@@ -230,7 +254,7 @@ export const EmbedView = () => {
     } finally {
       setInserting(false);
     }
-  }, [params.look, mapData, settings]);
+  }, [raw.look, mapData, settings]);
 
   // Probe for WebGL 2 support up-front so we can show a graceful fallback
   // instead of a blank canvas. The probe happens once, after mount.
@@ -427,6 +451,14 @@ export const EmbedView = () => {
       </Suspense>
       {params.plugin === "figma" && (
         <div className="embed-plugin-bar" data-plugin="figma">
+          <Suspense fallback={null}>
+            <FigmaPluginPickers
+              look={raw.look}
+              selection={effectiveSelection}
+              density={settings.density}
+              onChange={(patch) => setPicks((current) => ({ ...current, ...patch }))}
+            />
+          </Suspense>
           <button
             type="button"
             className="embed-plugin-insert"

@@ -38,6 +38,10 @@ const BUDGETS = [
   // Its bytes then count toward the index budget and the initial total, so
   // a missing file here is not a regression.
   { prefix: "preload-helper-",   ext: ".js",  raw:   2_000,  gzip:   1_000, lazy: false, optional: true },
+  // icons.jsx. Rolldown splits it out of index-*.js once the Figma plugin
+  // pickers are a lazy chunk; it is still preloaded on first paint, so it
+  // counts as initial.
+  { prefix: "icons-",            ext: ".js",  raw:  22_000,  gzip:   5_000, lazy: false },
   // CSS is unminified — the build pipeline drops -webkit-backdrop-filter
   // / backdrop-filter pairs when minified, breaking modal frosted-glass
   // across browsers (see vite.config.js#cssMinify: false). Budget bumped
@@ -71,6 +75,8 @@ const BUDGETS = [
   // Comparison pages — lazy /compare/:slug route + co-located CSS.
   { prefix: "compare-page-",     ext: ".js",  raw:  10_000,  gzip:   3_500, lazy: true },
   { prefix: "compare-page-",     ext: ".css", raw:   3_500,  gzip:   1_500, lazy: true },
+  // Look, region and density pickers, fetched only by /embed?plugin=figma.
+  { prefix: "figma-plugin-pickers-", ext: ".js", raw: 2_000, gzip: 1_000, lazy: true },
   // Config defaults split into shared chunks once look-presets is imported by
   // a lazy route (gallery) as well as the main app.
   { prefix: "globe-settings-",   ext: ".js",  raw:   3_000,  gzip:   1_500, lazy: false },
