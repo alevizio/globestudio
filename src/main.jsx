@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import { EmbedView } from "./components/embed-view.jsx";
+import { RootErrorBoundary } from "./components/root-error-boundary.jsx";
 import { consoleGreeting } from "./utils/console-greeting.js";
 import { reloadOnceOnPreloadError } from "./utils/preload-recovery.js";
 import "./styles.css";
@@ -24,6 +25,8 @@ if (!isEmbed) consoleGreeting();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    {isEmbed ? <EmbedView /> : <App />}
+    <RootErrorBoundary>
+      {isEmbed ? <EmbedView /> : <App />}
+    </RootErrorBoundary>
   </StrictMode>,
 );
