@@ -55,7 +55,7 @@
   <li>@globestudio/react: drop-in &lt;Globe /&gt; component for React apps, zero deps, SSR-friendly</li>
   <li>embed.js: one script tag + a div embeds a globe in Webflow, Squarespace, or plain HTML</li>
   <li>WordPress plugin: Gutenberg block + [globestudio] shortcode, wordpress.org submission prepped</li>
-  <li>Figma plugin live in the Community: insert globes as editable vectors</li>
+  <li>Figma plugin live in the Community: insert a globe or a dotted map into your file</li>
   <li>/integrations: copy-paste recipes for every platform</li>
 </ul>]]></description>
     </item>

@@ -55,7 +55,7 @@ const ENTRIES = [
       "@globestudio/react: drop-in <Globe /> component for React apps, zero deps, SSR-friendly",
       "embed.js: one script tag + a div embeds a globe in Webflow, Squarespace, or plain HTML",
       "WordPress plugin: Gutenberg block + [globestudio] shortcode, wordpress.org submission prepped",
-      "Figma plugin live in the Community: insert globes as editable vectors",
+      "Figma plugin live in the Community: insert a globe or a dotted map into your file",
       "/integrations: copy-paste recipes for every platform",
     ],
   },
