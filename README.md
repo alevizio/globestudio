@@ -209,7 +209,7 @@ The [`examples/`](./examples) directory holds 9 reference projects —
 runnable HTML, drop-in components, and adaptation guides. Highlights:
 
 - [`embed-snippet`](./examples/embed-snippet) — the minimum-viable iframe
-  pattern. Copy into Webflow, Framer, Notion, plain HTML, anywhere.
+  pattern. Copy into Webflow, Framer, plain HTML, anywhere.
 - [`hero-globe`](./examples/hero-globe) — full-bleed animated globe behind
   a landing-page hero.
 - [`shader-presets-showcase`](./examples/shader-presets-showcase) — the

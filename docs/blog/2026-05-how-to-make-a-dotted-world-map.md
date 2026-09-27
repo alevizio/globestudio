@@ -236,8 +236,8 @@ If you want to go further:
   with one-click apply.
 - [The GitHub repo](https://github.com/alevizio/globestudio) — full
   source, MIT licensed.
-- [Integration guides](https://github.com/alevizio/globestudio/tree/main/docs/integrations)
-  — Webflow, Framer, Notion, plain HTML.
+- [Integration guides](https://globestudio.app/integrations):
+  Webflow, Framer, Notion, plain HTML.
 
 The tool is open source and welcomes contributions. If you build
 something interesting with it,
