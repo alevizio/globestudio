@@ -11,8 +11,9 @@ const LOOK_OPTIONS = lookPresets.map((preset) => ({ value: preset.id, label: pre
 // (/embed?plugin=figma). Each one stands in for the embed's own look /
 // selection / density query param, so the panel renders exactly what
 // /embed?look=…&selection=…&density=… renders, and Insert captures that.
-// Imported statically (about 0.5 kB gzip with its styles.css rules): as a
-// lazy chunk it made Rolldown split icons.jsx into a new initial chunk.
+// embed-view.jsx lazy-loads this file: that takes about 0.6 kB gzip off the
+// initial payload, counting the icons.jsx chunk Rolldown then splits out
+// (both budgeted in scripts/check-bundle-size.js).
 export const FigmaPluginPickers = ({ look, selection, density, onChange }) => (
   <div className="embed-plugin-pickers" role="group" aria-label="Globe settings">
     <OptionRow label="Look" stacked>

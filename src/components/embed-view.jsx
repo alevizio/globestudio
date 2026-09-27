@@ -15,11 +15,15 @@ import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js"
 import { parseShareConfig } from "../utils/share-config.js";
 import { clampNumber } from "../utils/math.js";
 import { restoreFigmaPicks, saveFigmaPicks } from "../utils/figma-picks.js";
-import { FigmaPluginPickers } from "./figma-plugin-pickers.jsx";
 
 // Lazy-load the heavy WebGL component so the initial embed payload is small.
 const GlobeBackground = lazy(() =>
   import("./globe-background.jsx").then((m) => ({ default: m.GlobeBackground })),
+);
+// Only the Figma plugin shell shows the pickers, so they stay out of the
+// initial payload every studio and embed visitor downloads.
+const FigmaPluginPickers = lazy(() =>
+  import("./figma-plugin-pickers.jsx").then((m) => ({ default: m.FigmaPluginPickers })),
 );
 
 // Parameters the embed honors via query string. Strings get parsed to their
@@ -444,12 +448,14 @@ export const EmbedView = () => {
       </Suspense>
       {params.plugin === "figma" && (
         <div className="embed-plugin-bar" data-plugin="figma">
-          <FigmaPluginPickers
-            look={raw.look}
-            selection={effectiveSelection}
-            density={settings.density}
-            onChange={(patch) => setPicks((current) => ({ ...current, ...patch }))}
-          />
+          <Suspense fallback={null}>
+            <FigmaPluginPickers
+              look={raw.look}
+              selection={effectiveSelection}
+              density={settings.density}
+              onChange={(patch) => setPicks((current) => ({ ...current, ...patch }))}
+            />
+          </Suspense>
           <button
             type="button"
             className="embed-plugin-insert"
