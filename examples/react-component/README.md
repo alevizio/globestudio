@@ -55,7 +55,7 @@ config — so you can take someone else's config and pin one parameter
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
-| `look` | `GlobestudioLook` | `"default"` | One of the 17 preset IDs |
+| `look` | `GlobestudioLook` | `"default"` | One of the 17 preset IDs (the npm package has all 21) |
 | `density` | `number` | preset's | 1–100 |
 | `dotSize` | `number` | preset's | Dot radius |
 | `dotColor` | `string` | preset's | Hex (with or without `#`) |

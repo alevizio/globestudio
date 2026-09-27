@@ -31,7 +31,7 @@ The component panel on the right shows:
 - **Render mode** — dots vs solid
 - **Density** — 10–90 slider
 - **Dot color** + **World fill** — Framer color pickers
-- **Motion** — 0–100 slider for animation speed
+- **Motion**: reserved; passed to the embed but has no effect yet
 - **Auto-spin** — boolean toggle
 - **Background** + **Transparent BG** — conditional pair
 
