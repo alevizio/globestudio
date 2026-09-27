@@ -103,7 +103,7 @@ export const DocsPage = () => {
           <p>
             Pick any preset by id (<code>halftone</code>, <code>aurora</code>,{" "}
             <code>risograph</code>…) or pass a full config via{" "}
-            <code>?c=&lt;base64&gt;</code> for a customized embed.
+            <code>?c=&lt;URL-encoded JSON&gt;</code> for a customized embed.
           </p>
 
           <SectionHeading
@@ -132,31 +132,9 @@ export const DocsPage = () => {
           <CodeBlock language="html">{SCRIPT_SNIPPET}</CodeBlock>
 
           <p>
-            Detailed recipes for{" "}
-            <a
-              href="https://github.com/alevizio/globestudio/blob/main/docs/integrations/webflow.md"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              Webflow
-            </a>
-            ,{" "}
-            <a
-              href="https://github.com/alevizio/globestudio/blob/main/docs/integrations/framer.md"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              Framer
-            </a>
-            , and{" "}
-            <a
-              href="https://github.com/alevizio/globestudio/blob/main/docs/integrations/figma.md"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              Figma
-            </a>{" "}
-            live in <code>docs/integrations/</code>.
+            Step-by-step setup for Webflow, Framer, Figma, Notion, WordPress
+            and more lives on the <a href="/integrations">Integrations</a>{" "}
+            page.
           </p>
         </section>
 
