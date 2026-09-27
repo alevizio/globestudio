@@ -66,6 +66,26 @@ describe("SearchableSelect", () => {
     expect(onChange).toHaveBeenCalledWith("fr");
   });
 
+  it("returns focus to the trigger after a keyboard pick", async () => {
+    const user = userEvent.setup();
+    render(<SearchableSelect label="Country" value="us" onChange={() => {}} options={options} />);
+
+    await user.click(screen.getByRole("button", { name: /^Country/ }));
+    await user.type(screen.getByLabelText("Filter Country"), "fra");
+    await user.keyboard("{Enter}");
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: /^Country/ }));
+  });
+
+  it("returns focus to the trigger on Escape", async () => {
+    const user = userEvent.setup();
+    render(<SearchableSelect label="Country" value="us" onChange={() => {}} options={options} />);
+
+    await user.click(screen.getByRole("button", { name: /^Country/ }));
+    await user.click(screen.getByLabelText("Filter Country"));
+    await user.keyboard("{Escape}");
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: /^Country/ }));
+  });
+
   it("closes on Escape without firing onChange", async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();

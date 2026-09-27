@@ -113,7 +113,7 @@ test("figma plugin pickers change the render and Insert sends what is shown", as
   await expect(filter).toBeFocused();
   await filter.pressSequentially("japan");
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("button", { name: /^Country or region: Japan/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Country or region: Japan/ })).toBeFocused();
 
   const density = page.getByRole("slider", { name: "Density" });
   await density.focus();
