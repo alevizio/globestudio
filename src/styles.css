@@ -27,6 +27,7 @@
      accent backgrounds (primary buttons, current-look chip). Dark in
      dark mode (because --accent is light), light in light mode. */
   --on-accent: #0b0b0c;
+  --danger: #ff9ea0;
   /* Shadow tokens — set to `none` in light theme so the UI reads as
      flat in light mode and only the dark canvas gets the lift cards. */
   --shadow-sm: 0 6px 14px rgba(0, 0, 0, 0.32);
@@ -97,6 +98,7 @@
   --accent-soft: rgba(24, 23, 26, 0.16);
   --accent-softer: rgba(24, 23, 26, 0.06);
   --on-accent: #f6f2ea;
+  --danger: #b3261e;
   /* Canvas/body background — warm cream, lighter than --panel so panels
      still float visibly on top of the canvas in light mode. */
   --bg: #f4f1ea;
@@ -5139,6 +5141,13 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
 
 .export-modal-cta.is-recording {
   background: rgba(246, 242, 234, 0.04);
+}
+
+.export-modal-error {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--danger);
 }
 
 .export-modal-progress {

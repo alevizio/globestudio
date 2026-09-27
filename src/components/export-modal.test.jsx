@@ -52,4 +52,27 @@ describe("ExportModal", () => {
     fireEvent.click(screen.getByRole("button", { name: /Export WebM/ }));
     expect(exportVideo).toHaveBeenCalledWith({ fps: 60, durationMs: 5000, format: "webm" });
   });
+
+  it("says so when a video export fails, instead of resetting silently", () => {
+    const { rerender } = renderModal();
+    fireEvent.click(screen.getByRole("tab", { name: "Video" }));
+    expect(screen.queryByRole("alert")).toBeNull();
+    rerender(
+      <ExportModal
+        open
+        onClose={vi.fn()}
+        canvasWidth={1200}
+        canvasHeight={800}
+        exportVideo={vi.fn()}
+        videoSupported
+        videoStatus="error"
+        videoProgress={0}
+        videoDurationMs={5000}
+        setVideoDurationMs={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("alert").textContent).toMatch(/Export failed/);
+    // The button stays usable so the user can retry.
+    expect(screen.getByRole("button", { name: /Export WebM/ }).disabled).toBe(false);
+  });
 });

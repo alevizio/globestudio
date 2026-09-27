@@ -37,10 +37,10 @@ import {
   downloadBlob,
   exportScaleValue,
   pickVideoMimeType,
+  probeMp4Support,
   recordCanvasToGifBlob,
   recordCanvasToMp4Blob,
   recordCanvasToVideoBlob,
-  supportsMp4Export,
 } from "./utils/export.js";
 import { clearPersistedState, usePersistedState } from "./hooks/use-persisted-state.js";
 import { usePrefersReducedMotion } from "./hooks/use-prefers-reduced-motion.js";
@@ -421,7 +421,17 @@ const App = () => {
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoDurationMs, setVideoDurationMs] = useState(5000);
   const videoSupported = useMemo(() => Boolean(pickVideoMimeType()), []);
-  const mp4Supported = useMemo(() => supportsMp4Export(), []);
+  // MP4 shows up only once the browser confirms it can encode H.264.
+  const [mp4Supported, setMp4Supported] = useState(false);
+  useEffect(() => {
+    let active = true;
+    probeMp4Support().then((supported) => {
+      if (active) setMp4Supported(supported);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   // Brief acknowledgments after destructive/successful actions. Each is a
   // single-shot flag that auto-clears so the button can be re-pressed.
   const [resetFlash, setResetFlash] = useState(false);
@@ -883,7 +893,10 @@ const App = () => {
       window.setTimeout(() => setVideoStatus("idle"), 2200);
     } catch (error) {
       console.error("Video export failed", error);
-      setVideoStatus("idle");
+      // "error" shows the failure in the dialog until the next attempt or
+      // until the dialog closes.
+      setVideoStatus("error");
+      trackClientError(`export-${format}`, error);
     } finally {
       setVideoProgress(0);
     }
@@ -1148,6 +1161,7 @@ const App = () => {
           }
         } catch (error) {
           console.warn("High-res capture failed, falling back to upscale", error);
+          trackClientError("export-png", error);
         }
       }
 
@@ -1714,7 +1728,10 @@ const App = () => {
 
       <ExportModal
         open={exportModalOpen}
-        onClose={() => setExportModalOpen(false)}
+        onClose={() => {
+          setExportModalOpen(false);
+          setVideoStatus((status) => (status === "error" ? "idle" : status));
+        }}
         canvasWidth={globeCanvasRef.current?.clientWidth || globeCanvasRef.current?.width || 1920}
         canvasHeight={globeCanvasRef.current?.clientHeight || globeCanvasRef.current?.height || 1080}
         exportPng={exportPng}

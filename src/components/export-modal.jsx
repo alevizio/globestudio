@@ -577,6 +577,11 @@ export const ExportModal = ({
                 <div className="export-modal-progress-fill" style={{ width: `${recordingPct}%` }} />
               </div>
             )}
+            {videoStatus === "error" && (
+              <p className="export-modal-error" role="alert">
+                Export failed. Try again, or pick another format.
+              </p>
+            )}
             <button
               type="button"
               className={`export-modal-cta ${isRecording ? "is-recording" : ""}`}
