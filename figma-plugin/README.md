@@ -4,23 +4,27 @@
 
 Drops a customized Globestudio dotted map into your Figma file. The plugin
 UI is a thin iframe over `globestudio.app/embed?plugin=figma`, which shows
-a live globe with three pickers under it:
+a live preview with four controls under it:
 
 - **Look**: one of the 21 looks.
 - **Country or region**: World, a continent, a subregion or one country,
   with search.
 - **Density**: dot density from 1 to 90.
+- **View**: Globe or Flat. Globe previews the 3D globe and inserts a PNG
+  of it. Flat previews the flat dotted map and inserts it as editable
+  vectors, or as a PNG of the flat map when it has more than 2,500 dots.
 
-If the file has local color variables, a **Your colors** strip at the top
+A line above the Insert button says which of those Insert will add. If
+the file has local color variables, a **Your colors** strip at the top
 recolors the dots with one of them. **Insert into Figma** adds the map
-with those settings, as vectors or a PNG (see below).
+with those settings (see below).
 
-The panel remembers the last look, region and density in the browser's
-sessionStorage (`src/utils/figma-picks.js`). That keeps them through a
-**Your colors** reload, and it also carries them into the next plugin
-open in the same Figma tab. The remembered picks win over any `look`,
-`selection` or `density` in the embed URL, so a `ui.html` release that
-starts passing those params needs a matching change to
+The panel remembers the last look, region, density and view in the
+browser's sessionStorage (`src/utils/figma-picks.js`). That keeps them
+through a **Your colors** reload, and it also carries them into the next
+plugin open in the same Figma tab. The remembered picks win over any
+`look`, `selection`, `density` or `view` in the embed URL, so a `ui.html`
+release that starts passing those params needs a matching change to
 `figma-picks.js`. If storage is blocked, the pickers start from the URL
 each time.
 
@@ -44,19 +48,20 @@ Works in **Figma design files** and **FigJam**.
 │  │  │  │  <iframe src=globestudio.app/embed   │  │  │  │
 │  │  │  │   ?plugin=figma>                     │  │  │  │
 │  │  │  │                                       │  │  │  │
-│  │  │  │  Live globe plus Look, Country or    │  │  │  │
-│  │  │  │  region and Density pickers.         │  │  │  │
+│  │  │  │  Live preview plus Look, Country or  │  │  │  │
+│  │  │  │  region, Density and View pickers.   │  │  │  │
 │  │  │  │  "Insert into Figma" button at the   │  │  │  │
-│  │  │  │  bottom sends a canvas PNG and a     │  │  │  │
-│  │  │  │  map SVG via postMessage ────────────┼──┼─►│  │
+│  │  │  │  bottom sends a canvas PNG, plus a   │  │  │  │
+│  │  │  │  map SVG in the Flat view, via       │  │  │  │
+│  │  │  │  postMessage ────────────────────────┼──┼─►│  │
 │  │  │  └──────────────────────────────────────┘  │  │  │
 │  │  └────────────────────────────────────────────┘  │  │
 │  │                       │                            │  │
 │  │  ui.html receives bytes, forwards to ─────────────┼──►│
 │  │  code.js sandbox                                   │  │
 │  │  ┌────────────────────────────────────────────┐  │  │
-│  │  │  figma.createNodeFromSvg(svg) when the     │  │  │
-│  │  │  map has up to 2,500 dots, otherwise       │  │  │
+│  │  │  figma.createNodeFromSvg(svg) when an SVG  │  │  │
+│  │  │  came with up to 2,500 dots, otherwise     │  │  │
 │  │  │  figma.createImage(bytes) as a             │  │  │
 │  │  │  rectangle image fill                      │  │  │
 │  │  │  Insert at viewport center                 │  │  │
@@ -73,9 +78,9 @@ Works in **Figma design files** and **FigJam**.
 2. Top-left menu → **Plugins → Development → Import plugin from manifest…**
 3. Pick this folder's `manifest.json`.
 4. **Plugins → Development → Globestudio** — the panel opens with a live globe.
-5. Pick a look, a country or region and a density, then press **Insert into Figma**.
+5. Pick a look, a country or region, a density and Globe or Flat, then press **Insert into Figma**.
 
-Insert lands at the viewport center. A map with up to 2,500 dots arrives as editable vectors of the flat dotted map, in named layers (Background, Dots and, for looks with overlays, Effects). A denser map arrives as a PNG of the globe preview, at the panel canvas size, on a rectangle. Press Insert again with that PNG rectangle selected and it updates in place instead of adding a new one.
+Insert lands at the viewport center. The Globe view sends no SVG, so the map arrives as a PNG of the globe preview, at the panel canvas size, on a rectangle. The Flat view also sends an SVG of the flat dotted map: with up to 2,500 dots it arrives as editable vectors, in named layers (Background, Dots and, for looks with overlays, Effects). A denser flat map arrives as a PNG of the flat preview on a rectangle, as the line above the Insert button says. Press Insert again with a PNG rectangle selected and it updates in place instead of adding a new one.
 
 ## Files
 
@@ -83,7 +88,7 @@ Insert lands at the viewport center. A map with up to 2,500 dots arrives as edit
 |---|---|
 | `manifest.json` | Plugin metadata + network allowlist for `globestudio.app` |
 | `ui.html` | UI iframe + postMessage bridge to the sandbox |
-| `code.js` | Sandbox: receives the SVG and PNG bytes, creates vectors or the Figma image, handles selection update-in-place |
+| `code.js` | Sandbox: receives the PNG bytes and, from the Flat view, the SVG; creates vectors or the Figma image, handles selection update-in-place |
 | `SUBMISSION.md` | Marketing copy + step-by-step Figma Community submission guide |
 
 ## Roadmap
