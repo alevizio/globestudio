@@ -536,11 +536,11 @@ const renderCard = ({ headlines, palette, url, presetId = "default" }) => {
   <g transform="translate(72 480)" font-family="'Press Start 2P', ui-monospace, Menlo, monospace" font-size="12" fill="#a8a39b">
     <g transform="translate(0 0)">
       <svg x="0" y="-12" width="16" height="16" viewBox="0 0 24 24" color="#a8a39b">${DOWNLOAD_ICON}</svg>
-      <text x="24" y="0">PNG / SVG / WebM</text>
+      <text x="24" y="0">PNG / SVG / WebM / MP4 / GIF</text>
     </g>
     <g transform="translate(280 0)">
       <svg x="0" y="-12" width="16" height="16" viewBox="0 0 24 24" color="#a8a39b">${KEYBOARD_ICON}</svg>
-      <text x="24" y="0">21 presets</text>
+      <text x="24" y="0">${lookPresets.length} looks</text>
     </g>
   </g>
 
