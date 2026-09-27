@@ -31,6 +31,15 @@ One tagline, no alternates. It names no other company, on purpose.
 Globestudio is a free, open-source studio for dotted maps and 3D globes. Pick the world or any country, choose from 21 shader looks (halftone, risograph, dither, CRT, aurora), tweak dots, gradients and density, then export PNG, SVG, WebM, MP4 or GIF, or embed it live. It also ships as a React component, a web component, a Figma plugin and an MCP server. No signup, MIT licensed.
 ```
 
+### Short description (250 characters)
+
+Product Hunt's own pages disagree on the description limit (500 or 260
+characters). If the form stops you at 260, paste this one instead.
+
+```text
+Globestudio is a free, open-source studio for dotted maps and 3D globes. Pick the world or any country, choose from 21 shader looks, tweak dots, gradients and density, then export PNG, SVG, WebM, MP4 or GIF, or embed it live. No signup, MIT licensed.
+```
+
 ---
 
 ## Maker's first comment (post within the first 30 minutes)
