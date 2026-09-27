@@ -122,6 +122,10 @@ for (const path of ["/", "/docs", "/brand", "/privacy"]) {
   test(`axe has no serious violations on ${path}`, async ({ page }) => {
     await page.goto(path);
     if (path === "/") await waitForCanvas(page);
+    // /privacy is a lazy route: audit the policy, not the Suspense fallback.
+    if (path === "/privacy") {
+      await expect(page.getByRole("heading", { level: 1, name: "Privacy" })).toBeVisible();
+    }
     await expectNoSeriousAxeViolations(page);
   });
 }

@@ -161,7 +161,11 @@ const isTeaserActive = () => {
     return TEASER_MODE;
   }
 };
-import { PrivacyPage } from "./components/privacy-page.jsx";
+// Lazy like /examples, /gallery and /compare: the policy copy is only read on
+// /privacy, so it stays out of the initial payload every visitor downloads.
+const PrivacyPage = lazy(() =>
+  import("./components/privacy-page.jsx").then((m) => ({ default: m.PrivacyPage })),
+);
 import { NotFoundPage } from "./components/not-found-page.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
@@ -223,7 +227,12 @@ const App = () => {
           <ComparePage />
         </Suspense>
       );
-    if (path === "/privacy") return <PrivacyPage />;
+    if (path === "/privacy")
+      return (
+        <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
+          <PrivacyPage />
+        </Suspense>
+      );
     const isHome = path === "/";
     const isPresetRoute = /^\/looks\/[\w-]+$/.test(path);
     const isEmbed = path === "/embed";
