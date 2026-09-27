@@ -315,7 +315,7 @@ export const ExportModal = ({
 
   const handleVideo = () => {
     setVideoDurationMs?.(videoSeconds * 1000);
-    exportVideo?.({ scale, fps, durationMs: videoSeconds * 1000, format: videoFormat });
+    exportVideo?.({ fps, durationMs: videoSeconds * 1000, format: videoFormat });
   };
 
   const handleFileImport = (event) => {
@@ -430,20 +430,12 @@ export const ExportModal = ({
                   MP4 (H.264) plays everywhere WebM can't — Safari/iOS, social, Keynote. Capped to 1024px.
                 </p>
               )}
-              <PillRow label="Aspect" options={ASPECT_OPTIONS} value={aspect} onChange={setAspect} />
-              <PillRow label="Quality" options={QUALITY_OPTIONS} value={quality} onChange={setQuality} />
-              <DimensionInputs
-                width={width}
-                height={height}
-                onWidth={(value) => {
-                  setManualDims(true);
-                  setWidth(value);
-                }}
-                onHeight={(value) => {
-                  setManualDims(true);
-                  setHeight(value);
-                }}
-              />
+              {/* No Aspect, Quality or size controls here: every video
+                  format records the live canvas frame (MP4 and GIF then cap
+                  its size), so those controls would do nothing. */}
+              {videoFormat === "webm" && (
+                <p className="export-modal-caption">Records the globe at its size on screen.</p>
+              )}
               <div className="export-modal-row">
                 <PillRow
                   label="FPS"
