@@ -580,6 +580,22 @@ const splitBlurb = (text, maxLen = 22) => {
     .asPng();
   writeFileSync(resolve(outputDir, "default.png"), png);
   console.log(`default → ${png.length} bytes`);
+
+  // GitHub's repo social preview wants 2:1 at 1280×640. Same card, scaled
+  // up with 15px cropped off the top and bottom. Not served by the site:
+  // upload it in the repo's Settings → General → Social preview.
+  const socialSvg = svg.replace(
+    `viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"`,
+    `viewBox="0 ${(H - W / 2) / 2} ${W} ${W / 2}" width="1280" height="640"`,
+  );
+  const socialPng = new Resvg(socialSvg, {
+    fitTo: { mode: "width", value: 1280 },
+    font: { loadSystemFonts: true },
+  })
+    .render()
+    .asPng();
+  writeFileSync(resolve(projectRoot, "docs/github-social-preview.png"), socialPng);
+  console.log(`github-social-preview → ${socialPng.length} bytes`);
 }
 
 // ----- Render every per-preset card -----
