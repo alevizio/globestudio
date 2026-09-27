@@ -15,11 +15,12 @@
 // criteria this guard backs up.
 
 import { describe, expect, it } from "vitest";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import axe from "axe-core";
 import { ShortcutsOverlay } from "../components/shortcuts-overlay.jsx";
 import { ColorSwatch } from "../components/ui/color-swatch.jsx";
 import { CanvasA11yProxy } from "../components/canvas-a11y-proxy.jsx";
+import { ComparePage } from "../components/compare-page.jsx";
 
 // Rules we explicitly *don't* care about for a designer-tool canvas:
 // - canvas image-alt: the canvas IS aria-labeled but axe still warns. The
@@ -82,5 +83,23 @@ describe("Accessibility (axe-core)", () => {
       console.error("axe violations:", JSON.stringify(violations, null, 2));
     }
     expect(violations).toHaveLength(0);
+  });
+
+  it("ComparePage table has a caption, header text and a focusable scroll region", async () => {
+    window.history.replaceState({}, "", "/compare/cobe");
+    try {
+      const { container } = render(<ComparePage />);
+      const region = screen.getByRole("region", { name: /Globestudio vs .+, feature by feature/ });
+      expect(region.tabIndex).toBe(0);
+      expect(screen.getByRole("table", { name: /feature by feature/ })).toBeTruthy();
+      expect(screen.getByRole("columnheader", { name: "Feature" })).toBeTruthy();
+      const violations = await runAxe(container);
+      if (violations.length > 0) {
+        console.error("axe violations:", JSON.stringify(violations, null, 2));
+      }
+      expect(violations).toHaveLength(0);
+    } finally {
+      window.history.replaceState({}, "", "/");
+    }
   });
 });

@@ -42,11 +42,16 @@ export const ComparePage = () => {
         <a className="compare-cta" href="/">Open Globestudio — free →</a>
       </header>
 
-      <div className="compare-table-wrap">
+      {/* The wrapper scrolls sideways on phones, so it takes focus (arrow
+          keys scroll it) and is named after the table it holds. */}
+      <div className="compare-table-wrap" tabIndex={0} role="region" aria-labelledby="compare-table-caption">
         <table className="compare-table">
+          <caption id="compare-table-caption" className="visually-hidden">
+            Globestudio vs {data.competitor}, feature by feature
+          </caption>
           <thead>
             <tr>
-              <th scope="col"></th>
+              <th scope="col"><span className="visually-hidden">Feature</span></th>
               <th scope="col">Globestudio</th>
               <th scope="col">{data.competitor}</th>
             </tr>
