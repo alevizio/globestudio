@@ -94,9 +94,7 @@ describe("FigmaPluginPickers", () => {
     rerender(<FigmaPluginPickers {...props} view="flat" dots={2500} />);
     expect(screen.getByText("Inserts the flat map as editable vectors.")).toBeTruthy();
     rerender(<FigmaPluginPickers {...props} view="flat" dots={2501} />);
-    expect(
-      screen.getByText("Over 2,500 dots, so this inserts a PNG of the flat map. Lower the density for vectors."),
-    ).toBeTruthy();
+    expect(screen.getByText("Inserts a PNG. Lower the density for vectors.")).toBeTruthy();
   });
 
   it("shows the current region label", () => {

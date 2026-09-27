@@ -52,6 +52,12 @@ const recordInserts = (page) =>
 // an <output>, also a status, so match on the text.
 const insertNote = (page) => page.getByRole("status").filter({ hasText: /insert/i });
 
+// Before the View toggle the bar was 242px tall in this panel (top at 378px)
+// and the globe sat fully above the picker labels. View and the note must fit
+// in that height; the slack only absorbs font metrics on other machines.
+const BAR_MAX_HEIGHT = 242 + 4;
+const barTop = (page) => page.locator(".embed-plugin-bar").evaluate((node) => node.getBoundingClientRect().top);
+
 const insertAndRead = async (page) => {
   const count = await page.evaluate(() => window.__inserts.length);
   await page.getByRole("button", { name: "Insert into Figma" }).click();
@@ -75,6 +81,7 @@ test("figma plugin embed shows look, region, density and view pickers plus Inser
   await expect(page.getByRole("button", { name: "Flat", pressed: false })).toBeVisible();
   await expect(insertNote(page)).toHaveText("Inserts a PNG of the globe.");
   await expect(page.getByRole("button", { name: "Insert into Figma" })).toBeVisible();
+  expect(await barTop(page)).toBeGreaterThanOrEqual(PANEL.height - BAR_MAX_HEIGHT);
 
   const overflows = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   expect(overflows).toBe(false);
@@ -159,6 +166,9 @@ test("figma plugin Globe and Flat toggle changes the preview and only Flat sends
     .toBe(true);
   await expect(globe).toHaveAttribute("aria-pressed", "true");
   await expect(insertNote(page)).toHaveText("Inserts a PNG of the globe.");
+  // Every note is one line, so the bar never moves when the outcome changes.
+  const globeBarTop = await barTop(page);
+  expect(globeBarTop).toBeGreaterThanOrEqual(PANEL.height - BAR_MAX_HEIGHT);
   const globeInsert = await insertAndRead(page);
   expect(globeInsert.bytes).toBeGreaterThan(0);
   expect(globeInsert.svg).toBe(false);
@@ -169,6 +179,7 @@ test("figma plugin Globe and Flat toggle changes the preview and only Flat sends
   await expect(flat).toHaveAttribute("aria-pressed", "true");
   await expect(globe).toHaveAttribute("aria-pressed", "false");
   await expect(insertNote(page)).toHaveText("Inserts the flat map as editable vectors.");
+  expect(await barTop(page)).toBe(globeBarTop);
   await expect.poll(() => frameSignature(canvas), { timeout: CANVAS_TIMEOUT }).not.toBe(globeFrame);
   const flatInsert = await insertAndRead(page);
   expect(flatInsert.bytes).toBeGreaterThan(0);
@@ -184,9 +195,8 @@ test("figma plugin Globe and Flat toggle changes the preview and only Flat sends
   await density.focus();
   await page.keyboard.press("End");
   await expect(density).toHaveValue("90");
-  await expect(insertNote(page)).toHaveText(
-    "Over 2,500 dots, so this inserts a PNG of the flat map. Lower the density for vectors.",
-  );
+  await expect(insertNote(page)).toHaveText("Inserts a PNG. Lower the density for vectors.");
+  expect(await barTop(page)).toBe(globeBarTop);
   const denseInsert = await insertAndRead(page);
   expect(denseInsert.svg).toBe(true);
   expect(denseInsert.dots).toBeGreaterThan(2500);

@@ -2826,27 +2826,45 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   justify-content: center;
   padding: 12px 16px 16px;
   background: linear-gradient(180deg, transparent 0%, rgba(10, 10, 12, 0.86) 60%);
   pointer-events: none;
 }
 
-/* Look and region, then density and view. */
+/* Look and region, then density and view, then the note. The rows' own
+   padding spaces them, so the bar keeps the 242px it had before View and
+   the note: the globe stays clear of the labels in the 380x620 panel. */
 .embed-plugin-pickers {
   pointer-events: auto;
   align-self: stretch;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 10px 12px;
+  gap: 0 12px;
 }
 
 .embed-plugin-note {
+  grid-column: 1 / -1;
   margin: 0;
   color: var(--muted);
   font-size: 11px;
   text-align: center;
+}
+
+/* The studio toggle, cut to the density slider's height (25px buttons). */
+.embed-plugin-pickers .segmented-toggle {
+  margin: 0;
+  padding: 2px;
+}
+
+.embed-plugin-pickers .segmented-toggle-indicator {
+  inset: 2px auto 2px 2px;
+  width: calc(50% - 4px);
+}
+
+.embed-plugin-pickers .segmented-toggle-button {
+  min-height: 25px;
 }
 
 /* Drop the studio rail's 180px floor so two columns fit the 380px panel. */

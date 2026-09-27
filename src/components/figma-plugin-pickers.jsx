@@ -18,11 +18,13 @@ const VECTOR_DOT_LIMIT = 2500;
 
 // What Insert will put on the Figma canvas, so the choice is never a
 // surprise. The text changes only when the outcome does, not on every
-// density step, so the status region stays quiet while sliding.
+// density step, so the status region stays quiet while sliding. Each line
+// fits one row of the 380px panel, even in the monospace fallback font, so
+// crossing the dot limit never grows the bar under a dragged slider.
 const insertNote = (view, dots) => {
   if (view !== "flat") return "Inserts a PNG of the globe.";
   if (dots <= VECTOR_DOT_LIMIT) return "Inserts the flat map as editable vectors.";
-  return "Over 2,500 dots, so this inserts a PNG of the flat map. Lower the density for vectors.";
+  return "Inserts a PNG. Lower the density for vectors.";
 };
 
 // Look, region, density and view pickers for the Figma plugin shell
@@ -37,49 +39,48 @@ export const FigmaPluginPickers = ({ look, selection, density, view, dots, onCha
   // The embed treats any view other than "flat" as the globe.
   const currentView = view === "flat" ? "flat" : "globe";
   return (
-    <>
-      <div className="embed-plugin-pickers" role="group" aria-label="Globe settings">
-        <OptionRow label="Look" stacked>
-          <SelectControl
-            label="Look"
-            value={look}
-            options={LOOK_OPTIONS}
-            onChange={(value) => onChange({ look: value })}
-          />
-        </OptionRow>
-        <OptionRow label="Country or region" stacked>
-          <SearchableSelect
-            label="Country or region"
-            value={selection}
-            options={areaOptions}
-            placeholder="Search countries…"
-            onChange={(value) => onChange({ selection: value })}
-          />
-        </OptionRow>
-        <OptionRow label="Density" value={density}>
-          {/* Same 1 to 90 range as the studio slider and the ?density= clamp. */}
-          <RangeControl
-            label="Density"
-            min={1}
-            max={90}
-            value={density}
-            onChange={(value) => onChange({ density: value })}
-          />
-        </OptionRow>
-        {/* SegmentedToggle already ships with the studio panel, so this
-            adds no code to the initial payload (SegmentedControl would). */}
-        <OptionRow label="View" stacked>
-          <SegmentedToggle
-            ariaLabel="View"
-            value={currentView}
-            options={VIEW_OPTIONS}
-            onChange={(value) => onChange({ view: value })}
-          />
-        </OptionRow>
-      </div>
+    <div className="embed-plugin-pickers" role="group" aria-label="Globe settings">
+      <OptionRow label="Look" stacked>
+        <SelectControl
+          label="Look"
+          value={look}
+          options={LOOK_OPTIONS}
+          onChange={(value) => onChange({ look: value })}
+        />
+      </OptionRow>
+      <OptionRow label="Country or region" stacked>
+        <SearchableSelect
+          label="Country or region"
+          value={selection}
+          options={areaOptions}
+          placeholder="Search countries…"
+          onChange={(value) => onChange({ selection: value })}
+        />
+      </OptionRow>
+      <OptionRow label="Density" value={density}>
+        {/* Same 1 to 90 range as the studio slider and the ?density= clamp. */}
+        <RangeControl
+          label="Density"
+          min={1}
+          max={90}
+          value={density}
+          onChange={(value) => onChange({ density: value })}
+        />
+      </OptionRow>
+      {/* SegmentedToggle already ships with the studio panel, so this
+          adds no code to the initial payload (SegmentedControl would). */}
+      <OptionRow label="View" stacked>
+        <SegmentedToggle
+          ariaLabel="View"
+          value={currentView}
+          options={VIEW_OPTIONS}
+          onChange={(value) => onChange({ view: value })}
+        />
+      </OptionRow>
+      {/* In the grid, under Density and View, so it adds no gap of its own. */}
       <p className="embed-plugin-note" role="status">
         {insertNote(currentView, dots)}
       </p>
-    </>
+    </div>
   );
 };
