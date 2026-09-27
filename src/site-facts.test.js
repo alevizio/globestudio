@@ -82,3 +82,23 @@ describe.each(["public/llms.txt", "public/llms-full.txt"])("%s", (path) => {
     expect(text).toContain("npm i @globestudio/react");
   });
 });
+
+describe("share cards", () => {
+  // Width and height sit in the PNG IHDR chunk, right after the signature.
+  const dimensions = (png) => ({ width: png.readUInt32BE(16), height: png.readUInt32BE(20) });
+
+  // WhatsApp and some other unfurlers are reported to drop og:images over
+  // ~300 KB. og/default.png doubles as the Default look's card.
+  it.each(lookPresets.map((preset) => preset.id))("og/%s.png is 1200x630 and under 300 KB", (id) => {
+    const png = readFileSync(resolve(repoRoot, "public/og", `${id}.png`));
+    expect(dimensions(png)).toEqual({ width: 1200, height: 630 });
+    expect(png.length).toBeLessThan(300_000);
+  });
+
+  it("points the home card at the cache-busted URL", () => {
+    const card = "https://globestudio.app/og/default.png?v=2";
+    expect(metaContent("property", "og:image")).toBe(card);
+    expect(metaContent("name", "twitter:image")).toBe(card);
+    expect(graphNode("SoftwareApplication").image).toBe(card);
+  });
+});
