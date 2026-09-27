@@ -1,4 +1,5 @@
 import { lookPresets } from "../data/look-presets.js";
+import { TakeoverFooter } from "./takeover-footer.jsx";
 import "./gallery-page.css";
 
 // Static gallery of every built-in look. Uses the pre-rendered /looks/{id}.png
@@ -37,5 +38,6 @@ export const GalleryPage = () => (
         </li>
       ))}
     </ul>
+    <TakeoverFooter />
   </main>
 );

@@ -1,4 +1,5 @@
 import { comparisons } from "../data/comparisons.js";
+import { TakeoverFooter } from "./takeover-footer.jsx";
 import "./compare-page.css";
 
 // Lazy takeover route for /compare/:slug — a factual decision-aid comparison.
@@ -81,6 +82,7 @@ export const ComparePage = () => {
       </section>
 
       <a className="compare-cta" href="/">Try Globestudio — free, no signup →</a>
+      <TakeoverFooter />
     </main>
   );
 };
