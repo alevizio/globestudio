@@ -15,6 +15,15 @@ If the file has local color variables, a **Your colors** strip at the top
 recolors the dots with one of them. **Insert into Figma** adds the map
 with those settings, as vectors or a PNG (see below).
 
+The panel remembers the last look, region and density in the browser's
+sessionStorage (`src/utils/figma-picks.js`). That keeps them through a
+**Your colors** reload, and it also carries them into the next plugin
+open in the same Figma tab. The remembered picks win over any `look`,
+`selection` or `density` in the embed URL, so a `ui.html` release that
+starts passing those params needs a matching change to
+`figma-picks.js`. If storage is blocked, the pickers start from the URL
+each time.
+
 The pickers are part of the embed, so every installed copy gets them as
 soon as globestudio.app deploys. Changes to `ui.html`, `code.js` or
 `manifest.json` reach designers only through a new plugin release, which
