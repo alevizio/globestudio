@@ -1,12 +1,26 @@
 // @vitest-environment-options {"url": "https://globestudio.app/"}
 // (analytics is off on localhost, jsdom's default host)
-import { describe, expect, it, vi } from "vitest";
-import { track as vercelTrack } from "@vercel/analytics";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { inject, track as vercelTrack } from "@vercel/analytics";
 import { trackClientError } from "./analytics.jsx";
 
-vi.mock("@vercel/analytics", () => ({ track: vi.fn() }));
+// inject() stands up the window.va queue like the real one does.
+vi.mock("@vercel/analytics", () => ({
+  track: vi.fn(),
+  inject: vi.fn(() => {
+    window.va = () => {};
+  }),
+}));
+
+const settle = () => new Promise((resolve) => setTimeout(resolve, 10));
 
 describe("trackClientError", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    delete window.va;
+    window.history.replaceState(null, "", "/");
+  });
+
   it("sends a client_error event with where and a message capped at 200 characters", async () => {
     trackClientError("root", new Error("x".repeat(500)));
     await vi.waitFor(() => expect(vercelTrack).toHaveBeenCalledTimes(1));
@@ -17,11 +31,39 @@ describe("trackClientError", () => {
     expect(properties.msg).toBe("x".repeat(200));
   });
 
+  it("injects the analytics script before tracking when <Analytics /> never mounted", async () => {
+    // A static route (/gallery) or a first-render crash: no window.va yet,
+    // so a bare track() would drop the event.
+    window.history.replaceState(null, "", "/gallery");
+    trackClientError("root", new Error("Failed to fetch dynamically imported module"));
+    await vi.waitFor(() => expect(vercelTrack).toHaveBeenCalledTimes(1));
+    expect(inject).toHaveBeenCalledTimes(1);
+    expect(inject).toHaveBeenCalledWith({ framework: "react" });
+    expect(inject.mock.invocationCallOrder[0]).toBeLessThan(vercelTrack.mock.invocationCallOrder[0]);
+  });
+
+  it("does not inject a second script when analytics is already loaded", async () => {
+    window.va = vi.fn();
+    trackClientError("globe", new Error("boom"));
+    await vi.waitFor(() => expect(vercelTrack).toHaveBeenCalledTimes(1));
+    expect(inject).not.toHaveBeenCalled();
+  });
+
+  it("sends nothing and injects nothing on /embed", async () => {
+    window.history.replaceState(null, "", "/embed?look=halftone");
+    trackClientError("webgl", "context lost");
+    trackClientError("embed", new Error("boom"));
+    await settle();
+    expect(inject).not.toHaveBeenCalled();
+    expect(vercelTrack).not.toHaveBeenCalled();
+    expect(window.va).toBeUndefined();
+  });
+
   it("sends nothing when the visitor opted out", async () => {
-    vercelTrack.mockClear();
     window.localStorage.setItem("gs_optout", "true");
     trackClientError("webgl", "context lost");
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await settle();
+    expect(inject).not.toHaveBeenCalled();
     expect(vercelTrack).not.toHaveBeenCalled();
   });
 });

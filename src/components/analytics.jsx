@@ -66,8 +66,20 @@ export const track = (name, properties) => {
 // Client errors (a render crash an ErrorBoundary caught, a lost WebGL
 // context) as a custom event, so launch-week failures aren't invisible.
 // Two properties, the Pro plan's per-event limit; msg is cut to 200
-// characters (Vercel caps values at 255). Sent only where the analytics
-// script is loaded, so /embed errors stay local.
+// characters (Vercel caps values at 255). Unlike track(), this can't wait
+// for <Analytics />: the root boundary catches crashes on static routes,
+// which never mount it, and first-render crashes, which unmount it before
+// its effect runs. Without window.va, @vercel/analytics' track() is a no-op,
+// so inject the script (it queues the event until it loads). Never on
+// /embed: a customer's iframe gets no analytics script, so its errors stay
+// local.
 export const trackClientError = (where, error) => {
-  track("client_error", { where, msg: String(error?.message || error || "unknown").slice(0, 200) });
+  if (isOptedOut() || window.location.pathname.startsWith("/embed")) return;
+  const msg = String(error?.message || error || "unknown").slice(0, 200);
+  import("@vercel/analytics")
+    .then((mod) => {
+      if (!window.va) mod.inject({ framework: "react" });
+      mod.track("client_error", { where, msg });
+    })
+    .catch(() => {});
 };
