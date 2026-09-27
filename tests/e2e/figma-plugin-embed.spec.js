@@ -44,6 +44,17 @@ const recordInserts = (page) =>
         svg: typeof event.data.svg === "string",
         // Counted the way figma-plugin/code.js counts before its 2,500 limit.
         dots: (event.data.svg?.match(/data-dot-id=/g) || []).length,
+        // The PNG hashed like frameSignature, to compare with a canvas frame.
+        frame: (() => {
+          let binary = "";
+          for (let index = 0; index < event.data.bytes.length; index += 0x8000) {
+            binary += String.fromCharCode(...event.data.bytes.subarray(index, index + 0x8000));
+          }
+          const url = `data:image/png;base64,${btoa(binary)}`;
+          let hash = 0;
+          for (let index = 0; index < url.length; index += 1) hash = (hash * 31 + url.charCodeAt(index)) | 0;
+          return `${url.length}:${hash}`;
+        })(),
       });
     });
   });
@@ -201,6 +212,9 @@ test("figma plugin Globe and Flat toggle changes the preview and only Flat sends
   expect(denseInsert.svg).toBe(true);
   expect(denseInsert.dots).toBeGreaterThan(2500);
 
+  // Insert straight after the switch, well inside the 1.7s morph back to
+  // the globe. It has to wait the morph out and capture the settled globe,
+  // not the flat map or a frame on the way.
   await globe.focus();
   await page.keyboard.press("Enter");
   await expect(globe).toHaveAttribute("aria-pressed", "true");
@@ -208,6 +222,16 @@ test("figma plugin Globe and Flat toggle changes the preview and only Flat sends
   const backInsert = await insertAndRead(page);
   expect(backInsert.svg).toBe(false);
   expect(backInsert.dots).toBe(0);
+  let settledFrame = "";
+  await expect
+    .poll(async () => {
+      const previous = settledFrame;
+      await page.waitForTimeout(400);
+      settledFrame = await frameSignature(canvas);
+      return settledFrame === previous;
+    }, { timeout: CANVAS_TIMEOUT })
+    .toBe(true);
+  expect(backInsert.frame).toBe(settledFrame);
 });
 
 test("figma plugin picks survive the Your colors reload", async ({ page }) => {

@@ -6,7 +6,7 @@ import {
   FLOW_BACKGROUND_BASE,
   SPACE_BACKGROUND_BASE,
 } from "../config/backgrounds.js";
-import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
+import { DEFAULT_GLOBE_SETTINGS, GLOBE_MORPH_DURATION } from "../config/globe-settings.js";
 import { effectPresets, DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { areaOptions } from "../data/geography.js";
 import { createCountryMapData } from "../utils/dot-generation.js";
@@ -182,6 +182,15 @@ export const EmbedView = () => {
   const [inserting, setInserting] = useState(false);
   const isSpaceBackground = settings.backgroundStyle === "space";
   const isFlowBackground = settings.backgroundStyle === "flow";
+  // The latest picks for Insert, which reads them after it waits (below),
+  // and when the view last changed, which starts a GLOBE_MORPH_DURATION
+  // morph in GlobeBackground.
+  const insertInputs = useRef(null);
+  const viewChange = useRef({ view: raw.view, at: -Infinity });
+  useEffect(() => {
+    insertInputs.current = { look: raw.look, view: raw.view, mapData, settings };
+    if (viewChange.current.view !== raw.view) viewChange.current = { view: raw.view, at: performance.now() };
+  });
 
   // Figma plugin Insert: capture the live canvas at native resolution,
   // package the PNG bytes, and postMessage them to window.parent (the
@@ -189,6 +198,15 @@ export const EmbedView = () => {
   const handleFigmaInsert = useCallback(async () => {
     setInserting(true);
     try {
+      // Wait out a view morph, plus 80ms for its last frames as App.jsx
+      // allows, so Insert never captures a half-morphed frame or the
+      // previous view (the button reads "Inserting…" meanwhile). The loop
+      // starts over if the view changes again while it waits, and the
+      // picks below shadow the render's so the SVG matches the capture.
+      for (let wait; (wait = viewChange.current.at + GLOBE_MORPH_DURATION + 80 - performance.now()) > 0; ) {
+        await new Promise((resolve) => setTimeout(resolve, wait));
+      }
+      const { look, view, mapData, settings } = insertInputs.current;
       // Wait one frame so the latest render is committed to the canvas.
       // WebGLRenderer uses preserveDrawingBuffer: true so toBlob/toDataURL
       // return the most recent frame after this beat.
@@ -212,7 +230,7 @@ export const EmbedView = () => {
       // inserts the globe PNG. Best-effort: if it throws, the plugin falls
       // back to the PNG bytes.
       let svg = null;
-      if (raw.view === "flat") {
+      if (view === "flat") {
         try {
           svg = createDottedSvg({
             mapData,
@@ -238,7 +256,7 @@ export const EmbedView = () => {
           svg = null;
         }
       }
-      const preset = lookPresets.find((p) => p.id === raw.look);
+      const preset = lookPresets.find((p) => p.id === look);
       window.parent.postMessage(
         {
           type: "globestudio-insert",
@@ -258,7 +276,7 @@ export const EmbedView = () => {
     } finally {
       setInserting(false);
     }
-  }, [raw.look, raw.view, mapData, settings]);
+  }, []);
 
   // Probe for WebGL 2 support up-front so we can show a graceful fallback
   // instead of a blank canvas. The probe happens once, after mount.
