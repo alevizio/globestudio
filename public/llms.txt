@@ -1,14 +1,15 @@
 # Globestudio
 
 > Open-source dotted maps and animated 3D globes for designers,
-> animators, and creative developers. 21 shader looks, 5 projections,
-> custom GeoJSON, embed anywhere. React + Three.js. WCAG 2.2 AA. MIT.
+> animators, and creative developers. 21 shader looks, 5 flat projections
+> for solid maps (dotted maps use Mercator), custom GeoJSON, embed anywhere.
+> React + Three.js. Targets WCAG 2.2 AA. MIT.
 
 Globestudio renders interactive dotted-style world maps and 3D globes
 in the browser. It is **not** a GIS tool — it's a designer-first
 visual generator that an AI assistant can drive programmatically to
 produce: hero-image embeds, country-highlighted brand artwork,
-animated launch teasers, exported PNG / SVG / WebM / MP4 / GIF, and
+animated launch teasers, exported PNG / SVG / WebM / MP4 / GIF, JSON configs, and
 data-driven globes (plot lat,lng,value or country-code data as
 proportional markers, optionally connected by arcs).
 
@@ -38,15 +39,15 @@ A JSON Schema for configuration files is at
 - [Embed parameters](https://github.com/alevizio/globestudio/blob/main/README.md#embed-parameters): the canonical parameter table
 - [Integrations](https://globestudio.app/integrations): per-tool setup for Webflow, Framer, Figma, Notion, WordPress, plain HTML, React
 - [Figma plugin](https://github.com/alevizio/globestudio/blob/main/figma-plugin/README.md): plugin architecture + Insert flow
-- [WordPress plugin](https://github.com/alevizio/globestudio/blob/main/wordpress-plugin/globestudio/README.md): Gutenberg block + `[globestudio]` shortcode
+- [WordPress](https://globestudio.app/integrations): works in WordPress via a Custom HTML embed. A Gutenberg block + `[globestudio]` shortcode plugin is [in the repo](https://github.com/alevizio/globestudio/blob/main/wordpress-plugin/globestudio/README.md), not yet on wordpress.org
 - [MCP server](https://github.com/alevizio/globestudio/blob/main/packages/mcp/README.md): tool list + setup for AI assistants
-- [Accessibility](https://github.com/alevizio/globestudio/blob/main/ACCESSIBILITY.md): WCAG 2.2 AA conformance details
+- [Accessibility](https://github.com/alevizio/globestudio/blob/main/ACCESSIBILITY.md): what ships toward WCAG 2.2 AA, and the known gaps
 - [Roadmap](https://github.com/alevizio/globestudio/blob/main/ROADMAP.md): planned features
 - [JSON Schema](https://globestudio.app/schema/config.json): IDE-validated config files
 
 ## Reference code components
 
-- [React component](https://github.com/alevizio/globestudio/blob/main/examples/react-component/Globestudio.tsx): drop-in `<Globestudio>` for Next.js / Vite / Remix
+- [React component](https://www.npmjs.com/package/@globestudio/react): `npm i @globestudio/react`, a drop-in `<Globe>` for Next.js / Vite / Remix
 - [Framer code component](https://github.com/alevizio/globestudio/blob/main/examples/framer-component/GlobestudioGlobe.tsx): for Framer Code Components
 - [Script-tag loader](https://github.com/alevizio/globestudio/blob/main/public/embed.js): vanilla JS for plain HTML
 

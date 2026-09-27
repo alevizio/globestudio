@@ -63,3 +63,22 @@ describe("index.html site facts", () => {
     }
   });
 });
+
+describe.each(["public/llms.txt", "public/llms-full.txt"])("%s", (path) => {
+  // Unwrap the blockquote lines so a phrase can span a line break.
+  const text = read(path).replace(/\n>?\s*/g, " ");
+
+  it("states the look count and scopes the projections claim", () => {
+    expect(text).toContain(`${lookPresets.length} shader looks`);
+    expect(text).toContain("5 flat projections for solid maps (dotted maps use Mercator)");
+    expect(text).not.toMatch(/5 projections/);
+  });
+
+  it("names every export format", () => {
+    for (const format of ["PNG", "SVG", "WebM", "MP4", "GIF", "JSON"]) expect(text).toContain(format);
+  });
+
+  it("points React users at the npm package", () => {
+    expect(text).toContain("npm i @globestudio/react");
+  });
+});
