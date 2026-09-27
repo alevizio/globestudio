@@ -3,6 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { injectSiteFacts } from "./scripts/site-facts.js";
 
 const projectDir = dirname(fileURLToPath(import.meta.url));
 
@@ -63,6 +64,13 @@ const teaserNoindexPlugin = () => ({
   },
 });
 
+// Look count + JSON-LD ItemList in index.html come from lookPresets
+// (scripts/site-facts.js), so adding a look updates the home <head> too.
+const siteFactsPlugin = () => ({
+  name: "site-facts",
+  transformIndexHtml: injectSiteFacts,
+});
+
 const slimCountriesPlugin = () => {
   const virtualId = "virtual:slim-countries";
   const resolvedId = `\0${virtualId}`;
@@ -85,7 +93,7 @@ export default defineConfig({
   // lib through a lazy chunk. Pre-bundle it so the first teaser load doesn't
   // 504 on an on-demand optimize-dep re-run.
   optimizeDeps: { include: ["@paper-design/shaders-react"] },
-  plugins: [react(), slimCountriesPlugin(), teaserNoindexPlugin()],
+  plugins: [react(), slimCountriesPlugin(), siteFactsPlugin(), teaserNoindexPlugin()],
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.{js,jsx}"],
