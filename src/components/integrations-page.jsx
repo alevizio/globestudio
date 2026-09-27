@@ -212,7 +212,7 @@ const INTEGRATIONS = [
     bg: "#0a0a0a",
     fg: "#ffffff",
     blurb:
-      "The Globestudio plugin is live on Figma Community. Install it and drop a dotted globe straight onto your canvas — pick any of 21 presets, customize, click Insert. Also works in FigJam via the embed URL.",
+      "The Globestudio plugin is live on Figma Community. Pick one of 21 looks, a country or region and a dot density, then click Insert to drop the map onto your canvas. Also works in FigJam via the embed URL.",
     snippet: `https://globestudio.app/embed?look=risograph`,
     cta: {
       href: "https://www.figma.com/community/plugin/1641603648370488902/globestudio",
