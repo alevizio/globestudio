@@ -43,6 +43,24 @@ const expectNoSeriousAxeViolations = async (page) => {
   expect(violations).toEqual([]);
 };
 
+// Presses Tab `count` times and returns each focused element's name and
+// effective opacity (its own times every ancestor's).
+const walkTabStops = async (page, count) => {
+  const stops = [];
+  for (let i = 0; i < count; i += 1) {
+    await page.keyboard.press("Tab");
+    stops.push(await page.evaluate(() => {
+      const el = document.activeElement;
+      let opacity = 1;
+      for (let node = el; node && node.nodeType === 1; node = node.parentElement) {
+        opacity *= Number(getComputedStyle(node).opacity);
+      }
+      return { label: el?.getAttribute("aria-label") || el?.textContent?.trim().slice(0, 30), opacity };
+    }));
+  }
+  return stops;
+};
+
 test("home renders the globe canvas", async ({ page }) => {
   await page.goto("/");
   await waitForCanvas(page);
@@ -191,6 +209,18 @@ test.describe("with reduced motion", () => {
         .toBeLessThan(0.005);
     });
   }
+
+  // Desktop hides the chrome with a 260ms fade that headless swiftshader never
+  // finishes; reduced motion drops the fade, so the end state can be checked.
+  test("chrome hidden with the panel takes no keyboard focus on desktop", async ({ page }) => {
+    await page.goto("/");
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Hide panel" }).click();
+    await expect(page.getByRole("button", { name: "Show panel" })).toBeVisible();
+    const stops = await walkTabStops(page, 12);
+    expect(stops.map((stop) => stop.label)).toContain("Show panel");
+    expect(stops.filter((stop) => stop.opacity < 0.1).map((stop) => stop.label)).toEqual([]);
+  });
 });
 
 test("mobile home does not overflow horizontally", async ({ page }) => {
@@ -217,20 +247,8 @@ test.describe("on a phone with the sheet collapsed", () => {
   test("chrome faded out with the panel takes no keyboard focus", async ({ page }) => {
     await page.goto("/");
     await waitForCanvas(page);
-    const invisibleStops = [];
-    for (let i = 0; i < 12; i += 1) {
-      await page.keyboard.press("Tab");
-      const stop = await page.evaluate(() => {
-        const el = document.activeElement;
-        let opacity = 1;
-        for (let node = el; node && node.nodeType === 1; node = node.parentElement) {
-          opacity *= Number(getComputedStyle(node).opacity);
-        }
-        return { label: el?.getAttribute("aria-label") || el?.textContent?.trim().slice(0, 30), opacity };
-      });
-      if (stop.opacity < 0.1) invisibleStops.push(stop.label);
-    }
-    expect(invisibleStops).toEqual([]);
+    const stops = await walkTabStops(page, 12);
+    expect(stops.filter((stop) => stop.opacity < 0.1).map((stop) => stop.label)).toEqual([]);
   });
 });
 
@@ -251,6 +269,9 @@ test.describe("on a short phone screen", () => {
       return rect.bottom <= window.innerHeight && Boolean(hit && el.contains(hit));
     });
     expect(reachable).toBe(true);
+    // Opaque on phones, so the control sheet can't read through the text.
+    const background = await page.locator(".export-modal").evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(background).toMatch(/^rgb\(/);
   });
 });
 
