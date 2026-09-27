@@ -78,7 +78,7 @@ const BUDGETS = [
   // Comparison pages — lazy /compare/:slug route + co-located CSS.
   { prefix: "compare-page-",     ext: ".js",  raw:  10_000,  gzip:   3_500, lazy: true },
   { prefix: "compare-page-",     ext: ".css", raw:   3_500,  gzip:   1_500, lazy: true },
-  // Look, region and density pickers, fetched only by /embed?plugin=figma.
+  // Look, region, density and view pickers, fetched only by /embed?plugin=figma.
   { prefix: "figma-plugin-pickers-", ext: ".js", raw: 2_000, gzip: 1_000, lazy: true },
   // Config defaults split into shared chunks once look-presets is imported by
   // a lazy route (gallery) as well as the main app.

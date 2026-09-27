@@ -81,7 +81,7 @@ Works in **Figma design files** and **FigJam**.
 4. **Plugins → Development → Globestudio** — the panel opens with a live globe.
 5. Pick a look, a country or region, a density and Globe or Flat, then press **Insert into Figma**.
 
-Insert lands at the viewport center. The Globe view sends no SVG, so the map arrives as a PNG of the globe preview, at the panel canvas size, on a rectangle. The Flat view of a dotted look also sends an SVG of the flat dotted map: with up to 2,500 dots it arrives as editable vectors, in named layers (Background, Dots and, for looks with overlays, Effects). A denser flat map, or Bloom's solid one, arrives as a PNG of the flat preview on a rectangle, as the line above the Insert button says. Press Insert again with a PNG rectangle selected and it updates in place instead of adding a new one.
+Insert lands at the viewport center. The Globe view sends no SVG, so the map arrives as a PNG of the globe preview, at the panel canvas size, on a rectangle. The Flat view of a dotted look also sends an SVG of the flat dotted map: with up to 2,500 dots it arrives as editable vectors, in named layers (Background, Dots and, for looks with overlays, Effects). A denser flat map, or Bloom's solid one, arrives as a PNG of the flat preview on a rectangle, as the line above the Insert button says. When an insert lands as a PNG and a Globestudio PNG rectangle is selected, it updates that rectangle in place instead of adding a new one; editable vectors always land as a new layer.
 
 ## Files
 
