@@ -59,7 +59,7 @@ import { AboutOverlay } from "./components/about-overlay.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
 import { CommandPalette } from "./components/command-palette.jsx";
 import { OnboardingHint } from "./components/onboarding-hint.jsx";
-import { Analytics, track, trackClientError } from "./components/analytics.jsx";
+import { track, trackClientError } from "./components/analytics.jsx";
 import { BrandPage } from "./components/brand-page.jsx";
 import { DocsPage } from "./components/docs-page.jsx";
 import { ChangelogPage } from "./components/changelog-page.jsx";
@@ -191,10 +191,6 @@ const App = () => {
     return (
       <Suspense fallback={<TeaserSkeleton />}>
         <TeaserPage />
-        {/* Mount analytics here too — the teaser returns early, so without
-            this the waitlist page records no pageviews or waitlist_signup
-            conversions. Same privacy gating applies. */}
-        <Analytics />
       </Suspense>
     );
   }
@@ -1819,7 +1815,6 @@ const App = () => {
       )}
       <FollowTooltip />
       <OnboardingHint />
-      <Analytics />
       {/* Per-preset long-form copy below the fold. Renders only when a
           preset is applied (i.e. on /looks/:id URLs). Drives SEO Phase 4
           — each preset URL gets 200+ words of unique designer-facing

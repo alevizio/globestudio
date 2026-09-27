@@ -15,6 +15,8 @@ import { isReloadingForStaleChunk } from "../utils/preload-recovery.js";
 // Vercel's analytics is cookieless — the visitor identity is a hash
 // derived from the daily-rotating salt + user-agent. No PII, no
 // fingerprinting, no third-party trackers.
+//
+// <Analytics /> is mounted once, in main.jsx, for every path except /embed.
 const OPT_OUT_KEY = "gs_optout";
 
 const isOptedOut = () => {
@@ -69,13 +71,14 @@ export const track = (name, properties) => {
 // aren't invisible.
 // Two properties, the Pro plan's per-event limit; msg is cut to 200
 // characters (Vercel caps values at 255). Unlike track(), this can't wait
-// for <Analytics />: the root boundary catches crashes on static routes,
-// which never mount it, and first-render crashes, which unmount it before
-// its effect runs. Without window.va, @vercel/analytics' track() is a no-op,
-// so inject the script (it queues the event until it loads). Never on
-// /embed: a customer's iframe gets no analytics script, so its errors stay
-// local. A stale chunk that already triggered a reload isn't reported: the
-// reload recovers it.
+// for <Analytics />: the root boundary catches first-render crashes, which
+// unmount it before its effect runs. Without window.va, @vercel/analytics'
+// track() is a no-op, so inject the script (it queues the event until it
+// loads; inject() skips a script that is already in the page, so a later
+// <Analytics /> mount adds no second one). Never on /embed, the one path
+// main.jsx doesn't mount <Analytics /> on: a customer's iframe gets no
+// analytics script, so its errors stay local. A stale chunk that already
+// triggered a reload isn't reported: the reload recovers it.
 export const trackClientError = (where, error) => {
   if (isOptedOut() || window.location.pathname.startsWith("/embed")) return;
   if (isReloadingForStaleChunk()) return;
