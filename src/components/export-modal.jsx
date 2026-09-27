@@ -264,6 +264,11 @@ export const ExportModal = ({
   };
   const fileInputRef = useRef(null);
   const dialogRef = useRef(null);
+  const [importFailed, setImportFailed] = useState(false);
+  // A failed import from an earlier visit shouldn't greet the next one.
+  useEffect(() => {
+    if (!open) setImportFailed(false);
+  }, [open]);
 
   const baseDims = useMemo(() => {
     const baseW = Math.max(1, canvasWidth || 1);
@@ -315,22 +320,33 @@ export const ExportModal = ({
 
   const handleVideo = () => {
     setVideoDurationMs?.(videoSeconds * 1000);
-    exportVideo?.({ scale, fps, durationMs: videoSeconds * 1000, format: videoFormat });
+    exportVideo?.({ fps, durationMs: videoSeconds * 1000, format: videoFormat });
+  };
+
+  // Malformed JSON, or JSON with nothing usable in it (importConfig returns
+  // false), shows a message by the drop zone instead of failing silently.
+  const importFile = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      let parsed;
+      try {
+        parsed = JSON.parse(String(e.target?.result || "{}"));
+      } catch (error) {
+        console.warn("Failed to import config", error);
+        setImportFailed(true);
+        return;
+      }
+      setImportFailed(importConfig?.(parsed) === false);
+    };
+    // A file that can't be read (moved or deleted after picking) fails too.
+    reader.onerror = () => setImportFailed(true);
+    reader.readAsText(file);
   };
 
   const handleFileImport = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const parsed = JSON.parse(String(e.target?.result || "{}"));
-        importConfig?.(parsed);
-      } catch (error) {
-        console.warn("Failed to import config", error);
-      }
-    };
-    reader.readAsText(file);
+    importFile(file);
     event.target.value = "";
   };
 
@@ -338,16 +354,7 @@ export const ExportModal = ({
     event.preventDefault();
     const file = event.dataTransfer?.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const parsed = JSON.parse(String(e.target?.result || "{}"));
-        importConfig?.(parsed);
-      } catch (error) {
-        console.warn("Failed to import config", error);
-      }
-    };
-    reader.readAsText(file);
+    importFile(file);
   };
 
   const isRecording = videoStatus === "recording";
@@ -397,14 +404,6 @@ export const ExportModal = ({
                 }}
               />
               <p className="export-modal-caption">Uses the current globe frame at export time.</p>
-              <button
-                type="button"
-                className={`export-modal-cta ${pngStatus === "saved" ? "is-success" : ""}`}
-                onClick={handlePng}
-              >
-                {pngStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
-                <span>{pngStatus === "saved" ? "PNG saved" : "Export PNG"}</span>
-              </button>
             </>
           )}
 
@@ -430,20 +429,12 @@ export const ExportModal = ({
                   MP4 (H.264) plays everywhere WebM can't — Safari/iOS, social, Keynote. Capped to 1024px.
                 </p>
               )}
-              <PillRow label="Aspect" options={ASPECT_OPTIONS} value={aspect} onChange={setAspect} />
-              <PillRow label="Quality" options={QUALITY_OPTIONS} value={quality} onChange={setQuality} />
-              <DimensionInputs
-                width={width}
-                height={height}
-                onWidth={(value) => {
-                  setManualDims(true);
-                  setWidth(value);
-                }}
-                onHeight={(value) => {
-                  setManualDims(true);
-                  setHeight(value);
-                }}
-              />
+              {/* No Aspect, Quality or size controls here: every video
+                  format records the live canvas frame (MP4 and GIF then cap
+                  its size), so those controls would do nothing. */}
+              {videoFormat === "webm" && (
+                <p className="export-modal-caption">Records the globe at its size on screen.</p>
+              )}
               <div className="export-modal-row">
                 <PillRow
                   label="FPS"
@@ -467,24 +458,6 @@ export const ExportModal = ({
                   </div>
                 </div>
               </div>
-              {isRecording && (
-                <div className="export-modal-progress" aria-hidden="true">
-                  <div className="export-modal-progress-fill" style={{ width: `${recordingPct}%` }} />
-                </div>
-              )}
-              <button
-                type="button"
-                className={`export-modal-cta ${isRecording ? "is-recording" : ""}`}
-                onClick={handleVideo}
-                disabled={isRecording}
-              >
-                <Download size={17} />
-                <span>
-                  {isRecording
-                    ? `Recording… ${recordingPct}%`
-                    : `Export ${{ webm: "WebM", mp4: "MP4", gif: "GIF" }[videoFormat]}`}
-                </span>
-              </button>
             </>
           )}
 
@@ -585,10 +558,62 @@ export const ExportModal = ({
                   onChange={handleFileImport}
                 />
               </div>
+              {importFailed && (
+                <p className="export-modal-error" role="alert">
+                  That file isn't a Globestudio configuration. Choose a .json file exported from this tab.
+                </p>
+              )}
             </>
           )}
         </div>
         </div>
+
+        {/* The Image and Video CTAs sit below the scrolling body, so they
+            stay on screen when the options overflow a short phone screen. */}
+        {tab === "image" && (
+          <footer className="export-modal-footer">
+            {pngStatus === "error" && (
+              <p className="export-modal-error" role="alert">
+                Export failed. Try again, or pick a lower quality.
+              </p>
+            )}
+            <button
+              type="button"
+              className={`export-modal-cta ${pngStatus === "saved" ? "is-success" : ""}`}
+              onClick={handlePng}
+            >
+              {pngStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
+              <span>{pngStatus === "saved" ? "PNG saved" : "Export PNG"}</span>
+            </button>
+          </footer>
+        )}
+        {tab === "video" && videoSupported && (
+          <footer className="export-modal-footer">
+            {isRecording && (
+              <div className="export-modal-progress" aria-hidden="true">
+                <div className="export-modal-progress-fill" style={{ width: `${recordingPct}%` }} />
+              </div>
+            )}
+            {videoStatus === "error" && (
+              <p className="export-modal-error" role="alert">
+                Export failed. Try again, or pick another format.
+              </p>
+            )}
+            <button
+              type="button"
+              className={`export-modal-cta ${isRecording ? "is-recording" : ""}`}
+              onClick={handleVideo}
+              disabled={isRecording}
+            >
+              <Download size={17} />
+              <span>
+                {isRecording
+                  ? `Recording… ${recordingPct}%`
+                  : `Export ${{ webm: "WebM", mp4: "MP4", gif: "GIF" }[videoFormat]}`}
+              </span>
+            </button>
+          </footer>
+        )}
       </div>
     </div>
   );

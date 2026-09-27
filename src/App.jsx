@@ -37,14 +37,15 @@ import {
   downloadBlob,
   exportScaleValue,
   pickVideoMimeType,
+  probeMp4Support,
   recordCanvasToGifBlob,
   recordCanvasToMp4Blob,
   recordCanvasToVideoBlob,
-  supportsMp4Export,
 } from "./utils/export.js";
 import { clearPersistedState, usePersistedState } from "./hooks/use-persisted-state.js";
 import { usePrefersReducedMotion } from "./hooks/use-prefers-reduced-motion.js";
 import { hasWebGL } from "./utils/webgl-support.js";
+import { formatSelectionStatus } from "./utils/a11y-status.js";
 import { CanvasA11yProxy } from "./components/canvas-a11y-proxy.jsx";
 import { ControlPanel } from "./components/control-panel.jsx";
 import { ErrorBoundary } from "./components/error-boundary.jsx";
@@ -421,7 +422,17 @@ const App = () => {
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoDurationMs, setVideoDurationMs] = useState(5000);
   const videoSupported = useMemo(() => Boolean(pickVideoMimeType()), []);
-  const mp4Supported = useMemo(() => supportsMp4Export(), []);
+  // MP4 shows up only once the browser confirms it can encode H.264.
+  const [mp4Supported, setMp4Supported] = useState(false);
+  useEffect(() => {
+    let active = true;
+    probeMp4Support().then((supported) => {
+      if (active) setMp4Supported(supported);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   // Brief acknowledgments after destructive/successful actions. Each is a
   // single-shot flag that auto-clears so the button can be re-pressed.
   const [resetFlash, setResetFlash] = useState(false);
@@ -792,12 +803,10 @@ const App = () => {
   const handleSelectionChange = useCallback((next) => {
     setSelection(next);
     // Selection values are namespaced ("country:USA", "continent:Europe", etc.)
-    // — only announce a friendly label for known shapes; skip the raw value
-    // for "world" since the visual update is obvious.
+    // — announce the picker's name for them; skip "world" since the visual
+    // update is obvious.
     if (typeof next === "string" && next !== "world") {
-      const [type, id] = next.split(":");
-      const friendly = id?.replace(/-/g, " ") ?? next;
-      setStatusMessage(`Selection: ${friendly} (${type})`);
+      setStatusMessage(formatSelectionStatus(next));
     }
   }, [setSelection]);
 
@@ -883,7 +892,10 @@ const App = () => {
       window.setTimeout(() => setVideoStatus("idle"), 2200);
     } catch (error) {
       console.error("Video export failed", error);
-      setVideoStatus("idle");
+      // "error" shows the failure in the dialog until the next attempt or
+      // until the dialog closes.
+      setVideoStatus("error");
+      trackClientError(`export-${format}`, error);
     } finally {
       setVideoProgress(0);
     }
@@ -975,11 +987,13 @@ const App = () => {
     [buildCurrentConfig],
   );
 
+  // Returns whether anything was applied, so the export dialog can say
+  // when a file wasn't a usable configuration.
   const importConfig = (config) => {
     const safeConfig = normalizeConfig(config);
     if (!safeConfig) {
       setStatusMessage("Configuration could not be imported");
-      return;
+      return false;
     }
     const set = (key, setter) => {
       if (safeConfig[key] !== undefined) setter(safeConfig[key]);
@@ -1025,6 +1039,7 @@ const App = () => {
     if (safeConfig.spaceSettings) setSpaceSettings((current) => ({ ...current, ...safeConfig.spaceSettings }));
     if (safeConfig.flowSettings) setFlowSettings((current) => ({ ...current, ...safeConfig.flowSettings }));
     setStatusMessage("Configuration imported");
+    return true;
   };
 
   // Declared here (not at the top of the component body) so `importConfig`
@@ -1051,7 +1066,8 @@ const App = () => {
   const flashPngSaved = (scale) => {
     setPngStatus("saved");
     setStatusMessage("PNG saved");
-    window.setTimeout(() => setPngStatus("idle"), 1800);
+    // Only clears the flash: a retry that already failed keeps its message.
+    window.setTimeout(() => setPngStatus((status) => (status === "saved" ? "idle" : status)), 1800);
     track("export_completed", {
       format: "png",
       look: currentPresetId ?? "custom",
@@ -1059,6 +1075,16 @@ const App = () => {
       // than fake a value.
       ...(scale ? { scale } : {}),
     });
+  };
+
+  // Every PNG path that ends without a file lands here (iOS returns no 2D
+  // context over its canvas area limit at High and Ultra, for example). The
+  // Image tab shows the failure until the next attempt or until the dialog
+  // closes, like the Video tab.
+  const failPngExport = (error) => {
+    console.error("PNG export failed", error);
+    setPngStatus("error");
+    trackClientError("export-png", error);
   };
 
   // CI runs on Chromium with SwiftShader (software WebGL). The high-res
@@ -1116,6 +1142,7 @@ const App = () => {
   };
 
   const exportPng = async (options = {}) => {
+    setPngStatus((status) => (status === "error" ? "idle" : status));
     const activeGlobeCanvas = globeCanvasRef.current;
     if (activeGlobeCanvas?.width && activeGlobeCanvas?.height) {
       const scale = options.scale ?? exportScaleValue(canvasScale);
@@ -1148,21 +1175,25 @@ const App = () => {
           }
         } catch (error) {
           console.warn("High-res capture failed, falling back to upscale", error);
+          trackClientError("export-png", error);
         }
       }
 
       // Fallback: Canvas2D upscale of the current framebuffer. Lower quality at
-      // higher scales but always works.
-      const pngBlob = composePngBlob(
-        activeGlobeCanvas,
-        activeGlobeCanvas.width,
-        activeGlobeCanvas.height,
-        target?.width ?? Math.round(activeGlobeCanvas.width * scale),
-        target?.height ?? Math.round(activeGlobeCanvas.height * scale),
-      );
-      if (pngBlob) {
+      // higher scales, and it fails when the browser won't allocate the canvas.
+      try {
+        const pngBlob = composePngBlob(
+          activeGlobeCanvas,
+          activeGlobeCanvas.width,
+          activeGlobeCanvas.height,
+          target?.width ?? Math.round(activeGlobeCanvas.width * scale),
+          target?.height ?? Math.round(activeGlobeCanvas.height * scale),
+        );
+        if (!pngBlob) throw new Error("No 2D canvas for the PNG fallback");
         downloadBlob(pngBlob, filename);
         flashPngSaved(scale);
+      } catch (error) {
+        failPngExport(error);
       }
       return;
     }
@@ -1176,6 +1207,11 @@ const App = () => {
       canvas.width = Math.round(exportSvgData.width);
       canvas.height = Math.round(exportSvgData.height);
       const context = canvas.getContext("2d");
+      if (!context) {
+        URL.revokeObjectURL(url);
+        failPngExport(new Error("No 2D canvas for the SVG to PNG export"));
+        return;
+      }
       if (!transparent) {
         context.fillStyle = background;
         context.fillRect(0, 0, canvas.width, canvas.height);
@@ -1185,13 +1221,29 @@ const App = () => {
         if (pngBlob) {
           downloadBlob(pngBlob, buildExportFilename(selected.label, "png", viewMode));
           flashPngSaved();
+        } else {
+          failPngExport(new Error("toBlob returned null"));
         }
         URL.revokeObjectURL(url);
       }, "image/png");
     };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      failPngExport(new Error("The SVG didn't load as an image"));
+    };
 
     image.src = url;
   };
+
+  // WebKit at DPR 3 (every recent iPhone) composites the WebGL canvas blank
+  // while the six-layer drop-shadow halo below is on it: headless WebKit with
+  // the iPhone 14 profile showed no globe on Default and Bloom, and DPR 2 or
+  // Chromium rendered fine. Dense and touch screens skip the CSS halo; the
+  // globe's own shader atmosphere still draws a glow there.
+  const skipCanvasHalo = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return window.devicePixelRatio > 2 || Boolean(window.matchMedia?.("(pointer: coarse)").matches);
+  }, []);
 
   const isViewTransitioning = Boolean(viewTransition);
   const globeGlowOpacity = viewMode === "globe" && globeSettings.glow
@@ -1332,7 +1384,7 @@ const App = () => {
         // soft cyan halo.
         "--globe-glow-spread": `${30 + (clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 80}%`,
         "--globe-glow-blur": `${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 56}px`,
-        "--globe-canvas-halo": globeSettings.glow
+        "--globe-canvas-halo": globeSettings.glow && !skipCanvasHalo
           ? (() => {
               const t = clampNumber(globeSettings.glowSpread, 0, 100) / 100;
               // SIX Gaussian halo layers in geometric ~1.8× radius
@@ -1534,10 +1586,11 @@ const App = () => {
       <section
         className={`control-rail ${panelCollapsed ? "is-collapsed" : ""} ${isDragging ? "is-dragging" : ""}`}
         style={{ "--drag-offset": `${dragOffset}px` }}
-        aria-hidden={panelCollapsed}
         // aria-hidden alone leaves the rail's ~80 controls in the Tab order
         // when collapsed; inert removes them from focus + hit-testing too.
-        // Desktop only: the mobile collapsed sheet is an interactive peek.
+        // Desktop only: the mobile collapsed sheet is an interactive peek,
+        // so it stays in the accessibility tree too (Export, looks, region).
+        aria-hidden={(panelCollapsed && !isMobileSheet) || undefined}
         inert={(panelCollapsed && !isMobileSheet) || undefined}
       >
         <button
@@ -1713,7 +1766,11 @@ const App = () => {
 
       <ExportModal
         open={exportModalOpen}
-        onClose={() => setExportModalOpen(false)}
+        onClose={() => {
+          setExportModalOpen(false);
+          setVideoStatus((status) => (status === "error" ? "idle" : status));
+          setPngStatus((status) => (status === "error" ? "idle" : status));
+        }}
         canvasWidth={globeCanvasRef.current?.clientWidth || globeCanvasRef.current?.width || 1920}
         canvasHeight={globeCanvasRef.current?.clientHeight || globeCanvasRef.current?.height || 1080}
         exportPng={exportPng}

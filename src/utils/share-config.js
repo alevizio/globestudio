@@ -40,7 +40,17 @@ const BACKGROUND_STYLES = new Set(["solid", "space", "flow"]);
 const RENDER_MODES = new Set(["dots", "solid"]);
 const VIEW_MODES = new Set(["globe", "flat"]);
 const GLOBE_LOOKS = new Set(["classic", "borderless"]);
-const FLAT_PROJECTIONS = new Set(["mercator", "equirectangular", "equal-earth", "winkel-tripel", "robinson"]);
+// The renderer's projection keys (FLAT_PROJECTION_OPTIONS in
+// three/world-texture.js, not imported here because that module pulls in
+// three.js). share-config.test.js checks the two lists match.
+const FLAT_PROJECTIONS = new Set(["mercator", "equalEarth", "naturalEarth1", "winkel3", "robinson"]);
+// Kebab-case ids the config schema used to publish, so configs written
+// against it still land on the right projection.
+const FLAT_PROJECTION_ALIASES = {
+  "equal-earth": "equalEarth",
+  "natural-earth": "naturalEarth1",
+  "winkel-tripel": "winkel3",
+};
 
 const normalizeHex = (value) => {
   if (typeof value !== "string" || !HEX_RE.test(value)) return undefined;
@@ -54,6 +64,11 @@ const normalizeNumber = (value, min, max) => {
   if (!Number.isFinite(number)) return undefined;
   return clampNumber(number, min, max);
 };
+const normalizeProjection = (value) =>
+  normalizeEnum(
+    typeof value === "string" && Object.hasOwn(FLAT_PROJECTION_ALIASES, value) ? FLAT_PROJECTION_ALIASES[value] : value,
+    FLAT_PROJECTIONS,
+  );
 const apply = (target, key, value) => {
   if (value !== undefined) target[key] = value;
 };
@@ -175,7 +190,7 @@ export const normalizeConfig = (config) => {
   apply(next, "tiltY", normalizeNumber(config.tiltY, -180, 180));
   apply(next, "animationsEnabled", normalizeBoolean(config.animationsEnabled));
   apply(next, "viewMode", normalizeEnum(config.viewMode, VIEW_MODES));
-  apply(next, "flatProjection", normalizeEnum(config.flatProjection, FLAT_PROJECTIONS));
+  apply(next, "flatProjection", normalizeProjection(config.flatProjection));
   apply(next, "riversVisible", normalizeBoolean(config.riversVisible));
   apply(next, "citiesVisible", normalizeBoolean(config.citiesVisible));
   apply(next, "citiesMinPop", normalizeNumber(config.citiesMinPop, 0, 50_000_000));

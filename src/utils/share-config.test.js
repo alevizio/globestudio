@@ -1,4 +1,8 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { FLAT_PROJECTION_OPTIONS } from "../three/world-texture.js";
 import {
   buildShareUrl,
   clearShareConfigFromUrl,
@@ -64,7 +68,7 @@ describe("share-config", () => {
   it("round-trips view state + overlay settings", () => {
     const config = {
       viewMode: "flat",
-      flatProjection: "equal-earth",
+      flatProjection: "equalEarth",
       riversVisible: true,
       citiesVisible: true,
       citiesMinPop: 1000000,
@@ -72,6 +76,27 @@ describe("share-config", () => {
     const url = buildShareUrl(config, "https://globestudio.app");
     const parsed = parseShareConfig(`?${url.split("?")[1]}`);
     expect(parsed).toMatchObject(config);
+  });
+
+  it("round-trips every flat projection the picker offers", () => {
+    for (const { value } of FLAT_PROJECTION_OPTIONS) {
+      const url = buildShareUrl({ viewMode: "flat", flatProjection: value }, "https://globestudio.app");
+      expect(parseShareConfig(`?${url.split("?")[1]}`).flatProjection, value).toBe(value);
+    }
+  });
+
+  it("maps the kebab-case projection ids the schema used to publish", () => {
+    expect(normalizeConfig({ flatProjection: "equal-earth" }).flatProjection).toBe("equalEarth");
+    expect(normalizeConfig({ flatProjection: "natural-earth" }).flatProjection).toBe("naturalEarth1");
+    expect(normalizeConfig({ flatProjection: "winkel-tripel" }).flatProjection).toBe("winkel3");
+    // Never a renderer projection (it fell back to Mercator), so it's dropped.
+    expect(normalizeConfig({ density: 40, flatProjection: "equirectangular" })).toEqual({ density: 40 });
+  });
+
+  it("publishes the renderer's projection ids in the config schema", () => {
+    const schemaPath = resolve(dirname(fileURLToPath(import.meta.url)), "../../public/schema/config.json");
+    const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
+    expect(schema.properties.flatProjection.enum).toEqual(FLAT_PROJECTION_OPTIONS.map((option) => option.value));
   });
 
   it("drops invalid view state + overlay values", () => {

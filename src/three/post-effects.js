@@ -1246,6 +1246,23 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
+// Uniforms measured in render-target pixels: pattern cell size (halftone,
+// pixel, bayer, sparkle...) and the RGB split offset. A hi-res PNG capture
+// renders at a higher pixel ratio than the preview, so these must grow by
+// the same factor or the pattern comes out finer than what the user sees.
+// Returns a function that puts the preview values back.
+const PIXEL_SIZED_UNIFORMS = ["uCellSize", "uSplit"];
+
+export const scalePixelUniforms = (uniforms, factor) => {
+  const saved = PIXEL_SIZED_UNIFORMS
+    .filter((name) => typeof uniforms[name]?.value === "number")
+    .map((name) => [name, uniforms[name].value]);
+  for (const [name, value] of saved) uniforms[name].value = value * factor;
+  return () => {
+    for (const [name, value] of saved) uniforms[name].value = value;
+  };
+};
+
 export const updatePostEffects = (handle, shaderSettings, time, uiTheme = "dark") => {
   if (!handle) return;
   const effect = shaderSettings.effect || "none";

@@ -73,6 +73,11 @@ export const pickVideoMimeType = () => {
   return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || null;
 };
 
+// A WebM with no frames is only its ~100 byte header (a starved render loop
+// produced a 110 byte file that downloads but won't open). One real frame
+// is several KB, so anything under this is rejected instead of saved.
+export const MIN_VIDEO_BYTES = 1024;
+
 // Record a canvas for `durationMs` milliseconds and return a Blob.
 // Uses the browser's MediaRecorder pulling frames at `fps` from the canvas
 // stream. Bitrate is generous so the post-effects (bloom, chromatic, twinkle)
@@ -97,6 +102,10 @@ export const recordCanvasToVideoBlob = (canvas, { durationMs = 4000, fps = 60, b
     recorder.onerror = (event) => reject(event.error || new Error("MediaRecorder error"));
     recorder.onstop = () => {
       const blob = new Blob(chunks, { type: mimeType });
+      if (chunks.length === 0 || blob.size < MIN_VIDEO_BYTES) {
+        reject(new Error(`Recording came out empty (${blob.size} bytes)`));
+        return;
+      }
       resolve(blob);
     };
 
@@ -165,9 +174,31 @@ export const recordCanvasToGifBlob = async (
 export const supportsMp4Export = () =>
   typeof window !== "undefined" && typeof window.VideoEncoder !== "undefined";
 
+const MP4_CODEC = "avc1.420028"; // H.264 baseline, level 4.0 — broad playback + ≤1024px
+const MP4_BITRATE = 12_000_000;
+
+// VideoEncoder existing doesn't mean it can encode H.264 (some browsers
+// ship WebCodecs without an H.264 encoder), so ask before offering MP4.
+// The probe uses the largest frame the export can produce (1024px cap).
+export const probeMp4Support = async () => {
+  if (!supportsMp4Export() || typeof window.VideoEncoder.isConfigSupported !== "function") return false;
+  try {
+    const { supported } = await window.VideoEncoder.isConfigSupported({
+      codec: MP4_CODEC,
+      width: 1024,
+      height: 1024,
+      bitrate: MP4_BITRATE,
+      framerate: 30,
+    });
+    return Boolean(supported);
+  } catch {
+    return false;
+  }
+};
+
 export const recordCanvasToMp4Blob = async (
   canvas,
-  { durationMs = 4000, fps = 30, bitrate = 12_000_000, maxSize = 1024, onProgress } = {},
+  { durationMs = 4000, fps = 30, bitrate = MP4_BITRATE, maxSize = 1024, onProgress } = {},
 ) => {
   if (!supportsMp4Export()) {
     throw new Error("This browser can't encode MP4 (no WebCodecs). Try WebM or GIF.");
@@ -189,20 +220,23 @@ export const recordCanvasToMp4Blob = async (
     video: { codec: "avc", width, height },
     fastStart: "in-memory",
   });
+  const config = { codec: MP4_CODEC, width, height, bitrate, framerate: fps };
+  const { supported } = (await window.VideoEncoder.isConfigSupported?.(config)) ?? { supported: true };
+  if (!supported) {
+    throw new Error(`This browser can't encode H.264 at ${width}x${height}. Try WebM or GIF.`);
+  }
   let encodeError = null;
+  let chunkCount = 0;
   const encoder = new window.VideoEncoder({
-    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+    output: (chunk, meta) => {
+      chunkCount += 1;
+      muxer.addVideoChunk(chunk, meta);
+    },
     error: (err) => {
       encodeError = err;
     },
   });
-  encoder.configure({
-    codec: "avc1.420028", // H.264 baseline, level 4.0 — broad playback + ≤1024px
-    width,
-    height,
-    bitrate,
-    framerate: fps,
-  });
+  encoder.configure(config);
 
   const frameCount = Math.max(1, Math.round((durationMs / 1000) * fps));
   const frameDurUs = 1_000_000 / fps;
@@ -227,6 +261,7 @@ export const recordCanvasToMp4Blob = async (
   await encoder.flush();
   encoder.close();
   if (encodeError) throw encodeError;
+  if (chunkCount === 0) throw new Error("MP4 encoder produced no frames");
   muxer.finalize();
   return new Blob([muxer.target.buffer], { type: "video/mp4" });
 };

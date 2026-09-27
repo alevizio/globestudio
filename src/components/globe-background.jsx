@@ -28,7 +28,7 @@ import { createGlobeNetwork, setNetworkColors, updateGlobeNetwork } from "../thr
 import { createDataMarkers } from "../three/data-markers.js";
 import { createSpaceBackgroundMesh } from "../three/space-mesh.js";
 import { createWorldTexture } from "../three/world-texture.js";
-import { createPostComposer, updatePostEffects } from "../three/post-effects.js";
+import { createPostComposer, scalePixelUniforms, updatePostEffects } from "../three/post-effects.js";
 import { DEFAULT_FLOW_SETTINGS } from "../config/backgrounds.js";
 import { createFlowBackgroundMesh } from "../three/flow-background-mesh.js";
 import { loadWorldCountries } from "../data/world-countries-topology.js";
@@ -989,7 +989,9 @@ export const GlobeBackground = ({
 
       // Uniform writes are cheap and keep the composer chain ready for an
       // instant switch when the user picks a non-default effect.
-      updatePostEffects(threeRef.current?.postHandle, settingsRef.current, now / 1000, uiThemeRef.current);
+      // ambientTime, not the raw clock: under reduced motion it holds at 0,
+      // which freezes Glitch, Bad TV, Aurora and the other uTime effects.
+      updatePostEffects(threeRef.current?.postHandle, settingsRef.current, ambientTime, uiThemeRef.current);
       // Manual reset — accumulates draw call totals across the full
       // render path (composer or direct) for the dev HUD. See
       // `renderer.info.autoReset = false` at renderer init for context.
@@ -1190,10 +1192,12 @@ export const GlobeBackground = ({
         // whichever fires first wins and the rest are no-ops.
         let restored = false;
         let watchdog = 0;
+        let restorePixelUniforms = () => {};
         const restore = () => {
           if (restored) return;
           restored = true;
           window.clearTimeout(watchdog);
+          restorePixelUniforms();
           renderer.setPixelRatio(originalPixelRatio);
           renderer.setSize(displayW, displayH, false);
           refs.postHandle.setSize(displayW * originalPixelRatio, displayH * originalPixelRatio);
@@ -1216,6 +1220,12 @@ export const GlobeBackground = ({
           renderer.setSize(displayW, displayH, false);
           refs.postHandle.setSize(displayW * targetPR, displayH * targetPR);
           setResolutionUniforms(displayW * targetPR, displayH * targetPR);
+          // Pattern cells are sized in pixels: grow them with the pixel
+          // ratio so the export keeps the preview's cell size.
+          restorePixelUniforms = scalePixelUniforms(
+            refs.postHandle.customPass.uniforms,
+            targetPR / originalPixelRatio,
+          );
           refs.postHandle.composer.render();
           renderer.domElement.toBlob((blob) => {
             restore();

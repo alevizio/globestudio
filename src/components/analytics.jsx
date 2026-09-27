@@ -65,7 +65,8 @@ export const track = (name, properties) => {
 };
 
 // Client errors (a render crash an ErrorBoundary caught, a lost WebGL
-// context) as a custom event, so launch-week failures aren't invisible.
+// context, a failed export) as a custom event, so launch-week failures
+// aren't invisible.
 // Two properties, the Pro plan's per-event limit; msg is cut to 200
 // characters (Vercel caps values at 255). Unlike track(), this can't wait
 // for <Analytics />: the root boundary catches crashes on static routes,

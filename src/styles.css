@@ -27,6 +27,7 @@
      accent backgrounds (primary buttons, current-look chip). Dark in
      dark mode (because --accent is light), light in light mode. */
   --on-accent: #0b0b0c;
+  --danger: #ff9ea0;
   /* Shadow tokens — set to `none` in light theme so the UI reads as
      flat in light mode and only the dark canvas gets the lift cards. */
   --shadow-sm: 0 6px 14px rgba(0, 0, 0, 0.32);
@@ -97,6 +98,7 @@
   --accent-soft: rgba(24, 23, 26, 0.16);
   --accent-softer: rgba(24, 23, 26, 0.06);
   --on-accent: #f6f2ea;
+  --danger: #b3261e;
   /* Canvas/body background — warm cream, lighter than --panel so panels
      still float visibly on top of the canvas in light mode. */
   --bg: #f4f1ea;
@@ -4053,6 +4055,8 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
 .export-modal {
   width: min(640px, 100%);
   max-height: calc(100vh - 48px);
+  /* svh: the height Safari's toolbars leave visible. */
+  max-height: calc(100svh - 48px);
   display: flex;
   flex-direction: column;
   /* Same translucent panel tint the control rail / color picker /
@@ -4938,6 +4942,19 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   overflow: auto;
 }
 
+/* Image and Video CTAs: outside the scrolling body, so Export stays on
+   screen on short phones. 20px + the body's 24px keeps the 44px break. */
+.export-modal-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px 24px;
+}
+
+.export-modal-footer .export-modal-cta {
+  margin-top: 0;
+}
+
 /* Mount-fade on tab content + the real vertical layout for the
    section stack. Keyed re-render per tab swap (see export-modal.jsx
    <div key={tab}>) means the animation fires on each tab change.
@@ -5126,6 +5143,13 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   background: rgba(246, 242, 234, 0.04);
 }
 
+.export-modal-error {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--danger);
+}
+
 .export-modal-progress {
   height: 3px;
   border-radius: 999px;
@@ -5181,6 +5205,13 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   }
   .export-modal-dimensions {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Phones: opaque, so the control sheet can't show through the text. */
+@media (max-width: 620px) {
+  .export-modal {
+    background: linear-gradient(var(--panel), var(--panel)), var(--bg);
   }
 }
 
@@ -5528,8 +5559,11 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
 .app-shell.is-panel-collapsed .social-link {
   opacity: 0;
   pointer-events: none;
+  /* Also out of the Tab order and AX tree, once the fade ends. */
+  visibility: hidden;
   transition: opacity 260ms cubic-bezier(0.4, 0, 0.2, 1),
-    transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 260ms;
 }
 
 /* Perf HUD is visible in normal (paneled) mode for dev introspection,
@@ -7831,6 +7865,7 @@ input[type="range"]:active::-moz-range-thumb {
   .app-shell.is-panel-collapsed .looks-bar {
     opacity: 1;
     pointer-events: auto;
+    visibility: visible;
   }
 
   /* During an active drag we suspend the spring transition so the sheet
