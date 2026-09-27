@@ -989,7 +989,9 @@ export const GlobeBackground = ({
 
       // Uniform writes are cheap and keep the composer chain ready for an
       // instant switch when the user picks a non-default effect.
-      updatePostEffects(threeRef.current?.postHandle, settingsRef.current, now / 1000, uiThemeRef.current);
+      // ambientTime, not the raw clock: under reduced motion it holds at 0,
+      // which freezes Glitch, Bad TV, Aurora and the other uTime effects.
+      updatePostEffects(threeRef.current?.postHandle, settingsRef.current, ambientTime, uiThemeRef.current);
       // Manual reset — accumulates draw call totals across the full
       // render path (composer or direct) for the dev HUD. See
       // `renderer.info.autoReset = false` at renderer init for context.

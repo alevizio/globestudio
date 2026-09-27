@@ -110,6 +110,52 @@ test("PNG export announces 'PNG saved' via the aria-live status region", async (
     .toHaveText(/PNG saved/i, { timeout: process.env.CI ? 45_000 : 30_000 });
 });
 
+test.describe("with reduced motion", () => {
+  test.use({ contextOptions: { reducedMotion: "reduce" } });
+
+  // Share of pixels that differ between two PNG frames, decoded in the page.
+  const changedShare = (page, a, b) =>
+    page.evaluate(async ([first, second]) => {
+      const pixels = async (b64) => {
+        const img = new Image();
+        img.src = `data:image/png;base64,${b64}`;
+        await img.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const context = canvas.getContext("2d");
+        context.drawImage(img, 0, 0);
+        return context.getImageData(0, 0, img.width, img.height).data;
+      };
+      const [p, q] = [await pixels(first), await pixels(second)];
+      let changed = 0;
+      for (let i = 0; i < p.length; i += 4) {
+        if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) > 12) changed += 1;
+      }
+      return changed / (p.length / 4);
+    }, [a.toString("base64"), b.toString("base64")]);
+
+  // Animated, Glitch and Bad TV change about 12% of the canvas every
+  // second. Frozen, the frame settles once the camera's easing ends. (Aurora
+  // runs on the same uTime path but takes most of a minute to draw under
+  // swiftshader, so it is left out.)
+  for (const look of ["glitch", "badtv"]) {
+    test(`the ${look} look holds still`, async ({ page }) => {
+      await page.goto(`/looks/${look}`);
+      await waitForCanvas(page);
+      const canvas = page.locator(".globe-background canvas");
+      await expect
+        .poll(async () => {
+          const first = await canvas.screenshot();
+          await page.waitForTimeout(1000);
+          const second = await canvas.screenshot();
+          return changedShare(page, first, second);
+        }, { timeout: CANVAS_TIMEOUT, intervals: [0] })
+        .toBeLessThan(0.005);
+    });
+  }
+});
+
 test("mobile home does not overflow horizontally", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
