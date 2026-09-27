@@ -150,10 +150,11 @@ export const EmbedView = () => {
   // In the Figma plugin shell the look, region, density and view pickers
   // replace the matching query params, so the panel renders what
   // /embed?look=…&selection=…&density=…&view=… would. Insert always sends a
-  // PNG of that preview. Only the Flat view also sends an SVG of the flat
-  // dotted map, which the plugin (figma-plugin/code.js) inserts as vectors
-  // when it has up to 2,500 dots; a denser map, or the Globe view, lands as
-  // the PNG. Every other embed reads the URL alone.
+  // PNG of that preview. Only the Flat view of a dotted look also sends an
+  // SVG of the flat dotted map, which the plugin (figma-plugin/code.js)
+  // inserts as vectors when it has up to 2,500 dots; a denser map, a solid
+  // look or the Globe view lands as the PNG. Every other embed reads the URL
+  // alone.
   const [picks, setPicks] = useState(() => {
     const fromUrl = { look: params.look, selection: params.selection, density: params.density, view: params.view };
     return params.plugin === "figma" ? restoreFigmaPicks(fromUrl) : fromUrl;
@@ -227,10 +228,11 @@ export const EmbedView = () => {
       // In the Flat view, also generate the dotted-map SVG so the plugin can
       // insert editable vectors (named Background/Dots/Effects layers) of the
       // map the panel shows. The Globe view sends svg null, so the plugin
-      // inserts the globe PNG. Best-effort: if it throws, the plugin falls
-      // back to the PNG bytes.
+      // inserts the globe PNG, and so does a solid look (Bloom), whose
+      // textured map the dotted SVG can't reproduce. Best-effort: if it
+      // throws, the plugin falls back to the PNG bytes.
       let svg = null;
-      if (view === "flat") {
+      if (view === "flat" && settings.renderMode !== "solid") {
         try {
           svg = createDottedSvg({
             mapData,
@@ -480,6 +482,7 @@ export const EmbedView = () => {
               density={settings.density}
               view={raw.view}
               dots={mapData.points.length}
+              solid={settings.renderMode === "solid"}
               onChange={(patch) => setPicks((current) => ({ ...current, ...patch }))}
             />
           </Suspense>

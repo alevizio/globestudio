@@ -212,7 +212,7 @@ const INTEGRATIONS = [
     bg: "#0a0a0a",
     fg: "#ffffff",
     blurb:
-      "The Globestudio plugin is live on Figma Community. Pick one of 21 looks, a country or region, a dot density and Globe or Flat, then click Insert. Globe adds a PNG; Flat adds editable vectors, or a PNG past 2,500 dots. Also works in FigJam via the embed URL.",
+      "The Globestudio plugin is live on Figma Community. Pick one of 21 looks, a country or region, a dot density and Globe or Flat, then click Insert. Globe adds a PNG; Flat adds editable vectors, or a PNG past 2,500 dots or with Bloom. Also works in FigJam via the embed URL.",
     snippet: `https://globestudio.app/embed?look=risograph`,
     cta: {
       href: "https://www.figma.com/community/plugin/1641603648370488902/globestudio",

@@ -234,6 +234,19 @@ test("figma plugin Globe and Flat toggle changes the preview and only Flat sends
   expect(backInsert.frame).toBe(settledFrame);
 });
 
+test("figma plugin Flat with the solid Bloom look inserts a PNG, not dotted vectors", async ({ page }) => {
+  await page.setViewportSize(PANEL);
+  await page.goto("/embed?plugin=figma&static=1");
+  await waitForCanvas(page);
+  await recordInserts(page);
+  await page.getByRole("combobox", { name: "Look" }).selectOption("bloom");
+  await page.getByRole("button", { name: "Flat" }).click();
+  await expect(insertNote(page)).toHaveText("Inserts a PNG of the flat map.");
+  const insert = await insertAndRead(page);
+  expect(insert.bytes).toBeGreaterThan(0);
+  expect(insert.svg).toBe(false);
+});
+
 test("figma plugin picks survive the Your colors reload", async ({ page }) => {
   await page.setViewportSize(PANEL);
   await page.goto("/embed?plugin=figma&autoSpin=true&cb=1");

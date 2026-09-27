@@ -11,8 +11,9 @@ a live preview with four controls under it:
   with search.
 - **Density**: dot density from 1 to 90.
 - **View**: Globe or Flat. Globe previews the 3D globe and inserts a PNG
-  of it. Flat previews the flat dotted map and inserts it as editable
-  vectors, or as a PNG of the flat map when it has more than 2,500 dots.
+  of it. Flat previews the flat map and inserts it as editable vectors,
+  or as a PNG of the flat map when it has more than 2,500 dots or the
+  look is Bloom, whose map is solid, not dotted.
 
 A line above the Insert button says which of those Insert will add. If
 the file has local color variables, a **Your colors** strip at the top
@@ -80,7 +81,7 @@ Works in **Figma design files** and **FigJam**.
 4. **Plugins → Development → Globestudio** — the panel opens with a live globe.
 5. Pick a look, a country or region, a density and Globe or Flat, then press **Insert into Figma**.
 
-Insert lands at the viewport center. The Globe view sends no SVG, so the map arrives as a PNG of the globe preview, at the panel canvas size, on a rectangle. The Flat view also sends an SVG of the flat dotted map: with up to 2,500 dots it arrives as editable vectors, in named layers (Background, Dots and, for looks with overlays, Effects). A denser flat map arrives as a PNG of the flat preview on a rectangle, as the line above the Insert button says. Press Insert again with a PNG rectangle selected and it updates in place instead of adding a new one.
+Insert lands at the viewport center. The Globe view sends no SVG, so the map arrives as a PNG of the globe preview, at the panel canvas size, on a rectangle. The Flat view of a dotted look also sends an SVG of the flat dotted map: with up to 2,500 dots it arrives as editable vectors, in named layers (Background, Dots and, for looks with overlays, Effects). A denser flat map, or Bloom's solid one, arrives as a PNG of the flat preview on a rectangle, as the line above the Insert button says. Press Insert again with a PNG rectangle selected and it updates in place instead of adding a new one.
 
 ## Files
 
@@ -88,7 +89,7 @@ Insert lands at the viewport center. The Globe view sends no SVG, so the map arr
 |---|---|
 | `manifest.json` | Plugin metadata + network allowlist for `globestudio.app` |
 | `ui.html` | UI iframe + postMessage bridge to the sandbox |
-| `code.js` | Sandbox: receives the PNG bytes and, from the Flat view, the SVG; creates vectors or the Figma image, handles selection update-in-place |
+| `code.js` | Sandbox: receives the PNG bytes and, from the Flat view of a dotted look, the SVG; creates vectors or the Figma image, handles selection update-in-place |
 | `SUBMISSION.md` | Marketing copy + step-by-step Figma Community submission guide |
 
 ## Roadmap

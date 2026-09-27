@@ -97,6 +97,18 @@ describe("FigmaPluginPickers", () => {
     expect(screen.getByText("Inserts a PNG. Lower the density for vectors.")).toBeTruthy();
   });
 
+  it("says a solid look inserts a PNG of the flat map at any dot count", () => {
+    const props = { look: "bloom", selection: "world", density: 40, solid: true, onChange: vi.fn() };
+    // Bloom's Flat view shows a textured map, so no dotted vectors, even
+    // under the 2,500 dot limit.
+    const { rerender } = render(<FigmaPluginPickers {...props} view="flat" dots={1365} />);
+    expect(screen.getByText("Inserts a PNG of the flat map.")).toBeTruthy();
+    rerender(<FigmaPluginPickers {...props} view="flat" dots={9000} />);
+    expect(screen.getByText("Inserts a PNG of the flat map.")).toBeTruthy();
+    rerender(<FigmaPluginPickers {...props} view="globe" dots={1365} />);
+    expect(screen.getByText("Inserts a PNG of the globe.")).toBeTruthy();
+  });
+
   it("shows the current region label", () => {
     renderPickers({ selection: "country:JPN" });
     expect(screen.getByRole("button", { name: /^Country or region: Japan/ })).toBeTruthy();

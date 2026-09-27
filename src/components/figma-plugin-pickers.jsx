@@ -21,8 +21,11 @@ const VECTOR_DOT_LIMIT = 2500;
 // density step, so the status region stays quiet while sliding. Each line
 // fits one row of the 380px panel, even in the monospace fallback font, so
 // crossing the dot limit never grows the bar under a dragged slider.
-const insertNote = (view, dots) => {
+const insertNote = (view, dots, solid) => {
   if (view !== "flat") return "Inserts a PNG of the globe.";
+  // A solid look (Bloom) shows a textured map, not dots, so embed-view.jsx
+  // sends no SVG and the PNG of that map lands instead.
+  if (solid) return "Inserts a PNG of the flat map.";
   if (dots <= VECTOR_DOT_LIMIT) return "Inserts the flat map as editable vectors.";
   return "Inserts a PNG. Lower the density for vectors.";
 };
@@ -31,11 +34,11 @@ const insertNote = (view, dots) => {
 // (/embed?plugin=figma). Each one stands in for the embed's own look /
 // selection / density / view query param, so the panel renders what
 // /embed?look=…&selection=…&density=…&view=… renders, and Insert sends
-// those settings (embed-view.jsx sends the SVG in the Flat view only).
+// those settings (embed-view.jsx sends the SVG only for a dotted Flat view).
 // embed-view.jsx lazy-loads this file: that takes about 0.6 kB gzip off the
 // initial payload, counting the icons.jsx chunk Rolldown then splits out
 // (both budgeted in scripts/check-bundle-size.js).
-export const FigmaPluginPickers = ({ look, selection, density, view, dots, onChange }) => {
+export const FigmaPluginPickers = ({ look, selection, density, view, dots, solid, onChange }) => {
   // The embed treats any view other than "flat" as the globe.
   const currentView = view === "flat" ? "flat" : "globe";
   return (
@@ -79,7 +82,7 @@ export const FigmaPluginPickers = ({ look, selection, density, view, dots, onCha
       </OptionRow>
       {/* In the grid, under Density and View, so it adds no gap of its own. */}
       <p className="embed-plugin-note" role="status">
-        {insertNote(currentView, dots)}
+        {insertNote(currentView, dots, solid)}
       </p>
     </div>
   );
