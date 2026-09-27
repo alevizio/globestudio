@@ -170,8 +170,8 @@
 
     "flatProjection": {
       "type": "string",
-      "enum": ["mercator", "equirectangular", "equal-earth", "winkel-tripel", "robinson"],
-      "description": "Projection used for the 2D flat map view."
+      "enum": ["mercator", "equalEarth", "naturalEarth1", "winkel3", "robinson"],
+      "description": "Projection for the flat map view. It applies to solid maps (renderMode \"solid\"); dotted maps always use Mercator."
     },
 
     "riversVisible": { "type": "boolean" },
