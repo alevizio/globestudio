@@ -47,6 +47,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # Launch mode, the value production ships with (1 = teaser). The
+          # Lighthouse job audits this dist, so it must be the app.
+          VITE_TEASER: "0"
 
       - name: Check bundle size
         run: npm run check:bundle
@@ -57,6 +61,43 @@ jobs:
           name: dist
           path: dist
           retention-days: 7
+
+  packages:
+    name: Packages (mcp, react, element)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/*/package-lock.json
+
+      # The contract test decodes every URL the server emits with the app's
+      # own share-config parser, so drift between the two fails here.
+      - name: MCP server (build + contract test)
+        working-directory: packages/mcp
+        run: |
+          npm ci
+          npm run build
+          npm test
+
+      - name: React component (build)
+        working-directory: packages/react
+        run: |
+          npm ci
+          npm run build
+
+      # No build step: the package ships its source. Check that it parses
+      # and that the tarball npm would publish is valid.
+      - name: Web component (syntax + pack)
+        working-directory: packages/web-component
+        run: |
+          node --check index.js
+          npm pack --dry-run
 
   lighthouse:
     name: Lighthouse CI
