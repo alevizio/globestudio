@@ -85,6 +85,7 @@ export const PrivacyPage = () => {
           <li><Plus size={12} aria-hidden="true" /><span><code>preset_applied</code> — which preset was selected</span></li>
           <li><Plus size={12} aria-hidden="true" /><span><code>export_started</code> / <code>export_completed</code> — what format you exported (PNG, SVG, WebM)</span></li>
           <li><Plus size={12} aria-hidden="true" /><span><code>share_clicked</code> — that a share happened (not where)</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span><code>client_error</code>: which part of the app broke and a short error message, so we can fix it</span></li>
         </ul>
         <p>
           And{" "}
