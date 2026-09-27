@@ -1263,7 +1263,7 @@ export const scalePixelUniforms = (uniforms, factor) => {
   };
 };
 
-export const updatePostEffects =(handle, shaderSettings, time, uiTheme = "dark") => {
+export const updatePostEffects = (handle, shaderSettings, time, uiTheme = "dark") => {
   if (!handle) return;
   const effect = shaderSettings.effect || "none";
   const intensity = clamp01((shaderSettings.intensity ?? 45) / 100);
