@@ -2833,9 +2833,7 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   pointer-events: none;
 }
 
-/* Look and region, then density and view, then the note. The rows' own
-   padding spaces them, so the bar keeps the 242px it had before View and
-   the note: the globe stays clear of the labels in the 380x620 panel. */
+/* No row gap keeps the bar 242px tall, clear of the globe. */
 .embed-plugin-pickers {
   pointer-events: auto;
   align-self: stretch;
@@ -2852,14 +2850,14 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   text-align: center;
 }
 
-/* The studio toggle, cut to the density slider's height (25px buttons). */
+/* View toggle at the slider's height. */
 .embed-plugin-pickers .segmented-toggle {
   margin: 0;
   padding: 2px;
 }
 
 .embed-plugin-pickers .segmented-toggle-indicator {
-  inset: 2px auto 2px 2px;
+  inset: 2px;
   width: calc(50% - 4px);
 }
 
