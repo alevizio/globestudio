@@ -159,7 +159,7 @@ as parsed in [`src/components/embed-view.jsx`](src/components/embed-view.jsx):
 | `background` | hex, `#` optional | unset | Page background behind the canvas (only painted when set) |
 | `theme` | `dark` · `light` | `dark` | Globe chrome palette — `light` reads cleanly on light host pages |
 | `transparent` | `1` · `0` | `0` | See-through document, composites onto the host page |
-| `plugin` | `figma` | unset | Host-plugin shell (the Figma plugin's Insert button) |
+| `plugin` | `figma` | unset | Figma plugin shell: Look, Country or region, Density and View (Globe or Flat) pickers above an Insert button. Globe inserts a PNG; Flat inserts editable vectors, or a PNG past 2,500 dots or with the solid Bloom look |
 | `source` | string | `embed` | Analytics tag, echoed in resize `postMessage`s |
 | `c` | URL-encoded config JSON | unset | Full share-config payload (what the Share dialog produces) — overrides the preset and the params above |
 

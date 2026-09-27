@@ -3,8 +3,9 @@ import { areaOptionByValue } from "../data/geography.js";
 import { clampNumber } from "./math.js";
 
 // The Figma plugin's "Your colors" strip (figma-plugin/ui.html) applies a
-// file color by reloading the embed with ?dotColor=. The look, region and
-// density pickers live in React state, so that reload would reset them.
+// file color by reloading the embed with ?dotColor=. The look, region,
+// density and view pickers live in React state, so that reload would reset
+// them.
 // sessionStorage carries them across it for the plugin session; when storage
 // is blocked the pickers simply start from the URL again.
 const PICKS_KEY = "globestudio:figma-picks";
@@ -20,6 +21,7 @@ export const restoreFigmaPicks = (fromUrl, win = window) => {
       look: lookPresets.some((preset) => preset.id === stored.look) ? stored.look : fromUrl.look,
       selection: areaOptionByValue.has(stored.selection) ? stored.selection : fromUrl.selection,
       density: Number.isFinite(stored.density) ? clampNumber(stored.density, 1, 90) : fromUrl.density,
+      view: stored.view === "globe" || stored.view === "flat" ? stored.view : fromUrl.view,
     };
   } catch {
     return fromUrl;

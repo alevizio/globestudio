@@ -6,7 +6,7 @@ import {
   FLOW_BACKGROUND_BASE,
   SPACE_BACKGROUND_BASE,
 } from "../config/backgrounds.js";
-import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
+import { DEFAULT_GLOBE_SETTINGS, GLOBE_MORPH_DURATION } from "../config/globe-settings.js";
 import { effectPresets, DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { areaOptions } from "../data/geography.js";
 import { createCountryMapData } from "../utils/dot-generation.js";
@@ -147,15 +147,16 @@ export const EmbedView = () => {
   // customizations layered on top of preset defaults. See
   // src/utils/share-config.js for the encoding contract.
   const shareConfig = useMemo(() => parseShareConfig(search), [search]);
-  // In the Figma plugin shell the look, region and density pickers replace
-  // the matching query params, so the panel renders what
-  // /embed?look=…&selection=…&density=… would. Insert sends a PNG of that
-  // preview plus an SVG of the same settings as a flat dotted map, and the
-  // plugin (figma-plugin/code.js) inserts the SVG when it has up to 2,500
-  // dots, so a sparse map lands flat even while the panel shows a globe.
-  // Every other embed reads the URL alone.
+  // In the Figma plugin shell the look, region, density and view pickers
+  // replace the matching query params, so the panel renders what
+  // /embed?look=…&selection=…&density=…&view=… would. Insert always sends a
+  // PNG of that preview. Only the Flat view of a dotted look also sends an
+  // SVG of the flat dotted map, which the plugin (figma-plugin/code.js)
+  // inserts as vectors when it has up to 2,500 dots; a denser map, a solid
+  // look or the Globe view lands as the PNG. Every other embed reads the URL
+  // alone.
   const [picks, setPicks] = useState(() => {
-    const fromUrl = { look: params.look, selection: params.selection, density: params.density };
+    const fromUrl = { look: params.look, selection: params.selection, density: params.density, view: params.view };
     return params.plugin === "figma" ? restoreFigmaPicks(fromUrl) : fromUrl;
   });
   useEffect(() => {
@@ -182,6 +183,15 @@ export const EmbedView = () => {
   const [inserting, setInserting] = useState(false);
   const isSpaceBackground = settings.backgroundStyle === "space";
   const isFlowBackground = settings.backgroundStyle === "flow";
+  // The latest picks for Insert, which reads them after it waits (below),
+  // and when the view last changed, which starts a GLOBE_MORPH_DURATION
+  // morph in GlobeBackground.
+  const insertInputs = useRef(null);
+  const viewChange = useRef({ view: raw.view, at: -Infinity });
+  useEffect(() => {
+    insertInputs.current = { look: raw.look, view: raw.view, mapData, settings };
+    if (viewChange.current.view !== raw.view) viewChange.current = { view: raw.view, at: performance.now() };
+  });
 
   // Figma plugin Insert: capture the live canvas at native resolution,
   // package the PNG bytes, and postMessage them to window.parent (the
@@ -189,6 +199,15 @@ export const EmbedView = () => {
   const handleFigmaInsert = useCallback(async () => {
     setInserting(true);
     try {
+      // Wait out a view morph, plus 80ms for its last frames as App.jsx
+      // allows, so Insert never captures a half-morphed frame or the
+      // previous view (the button reads "Inserting…" meanwhile). The loop
+      // starts over if the view changes again while it waits, and the
+      // picks below shadow the render's so the SVG matches the capture.
+      for (let wait; (wait = viewChange.current.at + GLOBE_MORPH_DURATION + 80 - performance.now()) > 0; ) {
+        await new Promise((resolve) => setTimeout(resolve, wait));
+      }
+      const { look, view, mapData, settings } = insertInputs.current;
       // Wait one frame so the latest render is committed to the canvas.
       // WebGLRenderer uses preserveDrawingBuffer: true so toBlob/toDataURL
       // return the most recent frame after this beat.
@@ -206,35 +225,40 @@ export const EmbedView = () => {
       });
       const buf = await blob.arrayBuffer();
       const bytes = new Uint8Array(buf);
-      // Also generate the dotted-map SVG so the plugin can insert editable
-      // vectors (named Background/Dots/Effects layers) instead of a flat PNG.
-      // Best-effort: if it throws, the plugin falls back to the PNG bytes.
+      // In the Flat view, also generate the dotted-map SVG so the plugin can
+      // insert editable vectors (named Background/Dots/Effects layers) of the
+      // map the panel shows. The Globe view sends svg null, so the plugin
+      // inserts the globe PNG, and so does a solid look (Bloom), whose
+      // textured map the dotted SVG can't reproduce. Best-effort: if it
+      // throws, the plugin falls back to the PNG bytes.
       let svg = null;
-      try {
-        svg = createDottedSvg({
-          mapData,
-          dotColor: settings.dotColor || "#ffffff",
-          dotColorAlpha: settings.dotColorAlpha ?? 1,
-          dotGradient: settings.dotGradient ?? null,
-          dotSize: settings.dotSize,
-          shape: settings.shape || "Circle",
-          asciiSymbol: settings.asciiSymbol || "*",
-          dotsVisible: settings.dotsVisible !== false,
-          background: settings.background,
-          transparent: settings.transparent,
-          selectedDots: new Set(),
-          mode: settings.renderMode,
-          shaderSettings: settings.shaderSettings,
-          sizeVary: settings.sizeVary || false,
-          crop: true,
-          label: "Globestudio dotted map",
-        }).svg;
-      } catch (svgErr) {
-        // eslint-disable-next-line no-console
-        console.warn("[globestudio] SVG generation failed; sending PNG only:", svgErr);
-        svg = null;
+      if (view === "flat" && settings.renderMode !== "solid") {
+        try {
+          svg = createDottedSvg({
+            mapData,
+            dotColor: settings.dotColor || "#ffffff",
+            dotColorAlpha: settings.dotColorAlpha ?? 1,
+            dotGradient: settings.dotGradient ?? null,
+            dotSize: settings.dotSize,
+            shape: settings.shape || "Circle",
+            asciiSymbol: settings.asciiSymbol || "*",
+            dotsVisible: settings.dotsVisible !== false,
+            background: settings.background,
+            transparent: settings.transparent,
+            selectedDots: new Set(),
+            mode: settings.renderMode,
+            shaderSettings: settings.shaderSettings,
+            sizeVary: settings.sizeVary || false,
+            crop: true,
+            label: "Globestudio dotted map",
+          }).svg;
+        } catch (svgErr) {
+          // eslint-disable-next-line no-console
+          console.warn("[globestudio] SVG generation failed; sending PNG only:", svgErr);
+          svg = null;
+        }
       }
-      const preset = lookPresets.find((p) => p.id === raw.look);
+      const preset = lookPresets.find((p) => p.id === look);
       window.parent.postMessage(
         {
           type: "globestudio-insert",
@@ -254,7 +278,7 @@ export const EmbedView = () => {
     } finally {
       setInserting(false);
     }
-  }, [raw.look, mapData, settings]);
+  }, []);
 
   // Probe for WebGL 2 support up-front so we can show a graceful fallback
   // instead of a blank canvas. The probe happens once, after mount.
@@ -429,7 +453,7 @@ export const EmbedView = () => {
           selectionCollection={null}
           background={isSpaceBackground ? SPACE_BACKGROUND_BASE : isFlowBackground ? FLOW_BACKGROUND_BASE : settings.background}
           transparent={settings.transparent || isSpaceBackground || isFlowBackground}
-          morphMode={params.view === "flat" ? "flat" : "globe"}
+          morphMode={raw.view === "flat" ? "flat" : "globe"}
           morphTransition={null}
           interactive={false}
           tiltX={settings.tiltX}
@@ -456,6 +480,9 @@ export const EmbedView = () => {
               look={raw.look}
               selection={effectiveSelection}
               density={settings.density}
+              view={raw.view}
+              dots={mapData.points.length}
+              solid={settings.renderMode === "solid"}
               onChange={(patch) => setPicks((current) => ({ ...current, ...patch }))}
             />
           </Suspense>

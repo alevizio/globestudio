@@ -2813,8 +2813,8 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
 }
 
 /* Plugin-host shell — when the embed is loaded inside the Figma plugin
-   (via ?plugin=figma), a bottom action bar stacks the look, region and
-   density pickers above an Insert button.
+   (via ?plugin=figma), a bottom action bar stacks the pickers and a
+   note above an Insert button.
    Fixed-position over the canvas so it follows along when the embed
    resizes for different plugin panel heights. */
 .embed-plugin-bar {
@@ -2826,24 +2826,43 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   justify-content: center;
   padding: 12px 16px 16px;
   background: linear-gradient(180deg, transparent 0%, rgba(10, 10, 12, 0.86) 60%);
   pointer-events: none;
 }
 
-/* Look and region share a row, density spans the row below. */
+/* No row gap keeps the bar 242px tall, clear of the globe. */
 .embed-plugin-pickers {
   pointer-events: auto;
   align-self: stretch;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 10px 12px;
+  gap: 0 12px;
 }
 
-.embed-plugin-pickers .option-row:last-child {
+.embed-plugin-note {
   grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+/* View toggle at the slider's height. */
+.embed-plugin-pickers .segmented-toggle {
+  margin: 0;
+  padding: 2px;
+}
+
+.embed-plugin-pickers .segmented-toggle-indicator {
+  inset: 2px;
+  width: calc(50% - 4px);
+}
+
+.embed-plugin-pickers .segmented-toggle-button {
+  min-height: 25px;
 }
 
 /* Drop the studio rail's 180px floor so two columns fit the 380px panel. */
