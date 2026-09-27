@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { isReloadingForStaleChunk } from "../utils/preload-recovery.js";
 
 // Privacy-respecting analytics layer. Loads Vercel Web Analytics +
 // Speed Insights ONLY when:
@@ -72,9 +73,11 @@ export const track = (name, properties) => {
 // its effect runs. Without window.va, @vercel/analytics' track() is a no-op,
 // so inject the script (it queues the event until it loads). Never on
 // /embed: a customer's iframe gets no analytics script, so its errors stay
-// local.
+// local. A stale chunk that already triggered a reload isn't reported: the
+// reload recovers it.
 export const trackClientError = (where, error) => {
   if (isOptedOut() || window.location.pathname.startsWith("/embed")) return;
+  if (isReloadingForStaleChunk()) return;
   const msg = String(error?.message || error || "unknown").slice(0, 200);
   import("@vercel/analytics")
     .then((mod) => {

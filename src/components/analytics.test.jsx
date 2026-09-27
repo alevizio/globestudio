@@ -2,6 +2,7 @@
 // (analytics is off on localhost, jsdom's default host)
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { inject, track as vercelTrack } from "@vercel/analytics";
+import { isReloadingForStaleChunk } from "../utils/preload-recovery.js";
 import { trackClientError } from "./analytics.jsx";
 
 // inject() stands up the window.va queue like the real one does.
@@ -11,6 +12,8 @@ vi.mock("@vercel/analytics", () => ({
     window.va = () => {};
   }),
 }));
+
+vi.mock("../utils/preload-recovery.js", () => ({ isReloadingForStaleChunk: vi.fn(() => false) }));
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -57,6 +60,14 @@ describe("trackClientError", () => {
     expect(inject).not.toHaveBeenCalled();
     expect(vercelTrack).not.toHaveBeenCalled();
     expect(window.va).toBeUndefined();
+  });
+
+  it("does not report a stale chunk that already triggered a reload", async () => {
+    isReloadingForStaleChunk.mockReturnValueOnce(true);
+    trackClientError("root", new Error("Failed to fetch dynamically imported module"));
+    await settle();
+    expect(inject).not.toHaveBeenCalled();
+    expect(vercelTrack).not.toHaveBeenCalled();
   });
 
   it("sends nothing when the visitor opted out", async () => {
