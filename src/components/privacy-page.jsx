@@ -97,7 +97,10 @@ export const PrivacyPage = () => {
             Vercel Speed Insights
           </a>{" "}
           for Core Web Vitals (LCP, INP, CLS) so we can keep the canvas
-          fast.
+          fast. Unless you opt out (see below), both load on every
+          globestudio.app page except the <code>/embed</code> view, so a
+          globe embedded on another site or in the Figma plugin loads
+          neither.
         </p>
       </section>
 

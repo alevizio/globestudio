@@ -35,9 +35,8 @@ describe("trackClientError", () => {
   });
 
   it("injects the analytics script before tracking when <Analytics /> never mounted", async () => {
-    // A static route (/gallery) or a first-render crash: no window.va yet,
-    // so a bare track() would drop the event.
-    window.history.replaceState(null, "", "/gallery");
+    // A first-render crash unmounts <Analytics /> before its effect runs: no
+    // window.va yet, so a bare track() would drop the event.
     trackClientError("root", new Error("Failed to fetch dynamically imported module"));
     await vi.waitFor(() => expect(vercelTrack).toHaveBeenCalledTimes(1));
     expect(inject).toHaveBeenCalledTimes(1);
