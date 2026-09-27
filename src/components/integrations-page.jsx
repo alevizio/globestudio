@@ -263,7 +263,7 @@ const INTEGRATIONS = [
     bg: "#20232A",
     fg: "#61DAFB",
     blurb:
-      "One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box — works in React, Next.js, Remix, Astro.",
+      "One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box. Works in React, Next.js, Remix, Astro.",
     snippet: `npm install @globestudio/react
 
 // Then:
@@ -277,14 +277,14 @@ import { Globe } from "@globestudio/react";
 export const IntegrationsPage = () => {
   useBodyScrollable();
   useEffect(() => {
-    document.title = "Integrations — Globestudio";
+    document.title = "Integrations · Globestudio";
     const setMeta = (selector, content) => {
       const el = document.querySelector(selector);
       if (el) el.setAttribute("content", content);
     };
     setMeta(
       'meta[name="description"]',
-      "Drop Globestudio into Webflow, Framer, Figma, Notion, WordPress, plain HTML, or React — copy-paste snippets, no install.",
+      "Drop Globestudio into Webflow, Framer, Figma, Notion, WordPress, plain HTML, or React. Copy-paste snippets, no install.",
     );
   }, []);
 
@@ -302,7 +302,7 @@ export const IntegrationsPage = () => {
           </a>
           <h1 className="integrations-page-title">Integrations</h1>
           <p className="integrations-page-lede">
-            Every Globestudio embed is a single URL — paste it into any
+            Every Globestudio embed is a single URL: paste it into any
             tool that takes an iframe. Below are the copy-paste snippets
             for the eight surfaces we hear about most, plus the MCP
             server so AI assistants can build globes for you in chat.

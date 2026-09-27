@@ -11,7 +11,7 @@ import { DottedGlobe } from "./icons.jsx";
 export const NotFoundPage = () => {
   useBodyScrollable();
   useEffect(() => {
-    document.title = "Not found — Globestudio";
+    document.title = "Not found · Globestudio";
     const head = document.head;
     const setMeta = (selector, attrs) => {
       let el = document.querySelector(selector);

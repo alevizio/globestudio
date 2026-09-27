@@ -38,7 +38,7 @@ const getOptOut = () => {
 export const PrivacyPage = () => {
   useBodyScrollable();
   useEffect(() => {
-    document.title = "Privacy — Globestudio";
+    document.title = "Privacy · Globestudio";
     const setMeta = (selector, content) => {
       const el = document.querySelector(selector);
       if (el) el.setAttribute("content", content);
@@ -82,9 +82,9 @@ export const PrivacyPage = () => {
           to count anonymous page views and a few product events:
         </p>
         <ul className="privacy-list">
-          <li><Plus size={12} aria-hidden="true" /><span><code>preset_applied</code> — which preset was selected</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span><code>preset_applied</code>: which preset was selected</span></li>
           <li><Plus size={12} aria-hidden="true" /><span><code>export_completed</code>: the format you saved (PNG, SVG, WebM, MP4 or GIF), the look, and the PNG scale or video length</span></li>
-          <li><Plus size={12} aria-hidden="true" /><span><code>share_clicked</code> — that a share happened (not where)</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span><code>share_clicked</code>: that a share happened (not where)</span></li>
           <li><Plus size={12} aria-hidden="true" /><span><code>client_error</code>: which part of the app broke and a short error message, so we can fix it</span></li>
         </ul>
         <p>
@@ -157,7 +157,7 @@ export const PrivacyPage = () => {
           <li>
             <Plus size={12} aria-hidden="true" />
             <span>
-              <strong>Browser-level (already respected)</strong> — enable
+              <strong>Browser-level (already respected)</strong>: enable
               Do-Not-Track or Global Privacy Control in your browser. We
               check both on every page load and don't load analytics if
               either is on.
@@ -166,7 +166,7 @@ export const PrivacyPage = () => {
           <li>
             <Plus size={12} aria-hidden="true" />
             <span>
-              <strong>localStorage toggle</strong> — click the button
+              <strong>localStorage toggle</strong>: click the button
               below, or paste{" "}
               <code>localStorage.setItem('gs_optout', 'true')</code> into
               DevTools.
@@ -175,7 +175,7 @@ export const PrivacyPage = () => {
           <li>
             <Plus size={12} aria-hidden="true" />
             <span>
-              <strong>Network blocker</strong> — block requests to{" "}
+              <strong>Network blocker</strong>: block requests to{" "}
               <code>/_vercel/insights/</code> in your adblocker.
             </span>
           </li>
@@ -186,7 +186,7 @@ export const PrivacyPage = () => {
             className="privacy-optout-button"
             onClick={() => setOptOut(!optedOut)}
           >
-            {optedOut ? "Analytics is OFF — turn back on" : "Turn analytics OFF for this browser"}
+            {optedOut ? "Analytics is OFF. Turn back on" : "Turn analytics OFF for this browser"}
           </button>
           <p className="privacy-optout-note">
             {optedOut
@@ -217,7 +217,7 @@ export const PrivacyPage = () => {
           >
             github.com/alevizio/globestudio
           </a>
-          {" "}— the analytics gating logic lives in{" "}
+          . The analytics gating logic lives in{" "}
           <code>src/components/analytics.jsx</code>.
         </p>
         <div className="docs-section-links">

@@ -116,7 +116,7 @@ export const AboutOverlay = ({ open, onClose }) => {
                 <h3 className="about-section-title">Hi, I’m Alejandro</h3>
                 <p className="about-section-text">
                   Product designer who codes. I make tools for designers and
-                  creative developers — Globestudio is the one I reach for
+                  creative developers. Globestudio is the one I reach for
                   most.
                 </p>
               </div>

@@ -16,7 +16,7 @@ export const NoWebGLFallback = () => (
       <img
         className="no-webgl-image"
         src="/og/default.png"
-        alt="Globestudio — dotted globe preview"
+        alt="Globestudio: dotted globe preview"
         width="600"
         height="315"
         loading="eager"
@@ -24,7 +24,7 @@ export const NoWebGLFallback = () => (
       <h2 className="no-webgl-title">WebGL is needed for the live globe</h2>
       <p className="no-webgl-body">
         Your browser couldn’t create a WebGL context, so the interactive globe
-        can’t render. Everything else on Globestudio still works — you just see
+        can’t render. Everything else on Globestudio still works. You just see
         a still preview instead of the animated 3D version.
       </p>
       <details className="no-webgl-details">

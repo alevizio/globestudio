@@ -18,7 +18,7 @@ const EMBED_SNIPPET = `<iframe
   title="Globestudio dotted globe"
 ></iframe>`;
 
-const REACT_SNIPPET = `// Drop-in React component — no install, just paste.
+const REACT_SNIPPET = `// Drop-in React component. No install, just paste.
 export const Globe = ({ look = "halftone", width = 640, height = 480 }) => (
   <iframe
     src={\`https://globestudio.app/embed?look=\${look}\`}
@@ -63,14 +63,14 @@ const TOC = [
 export const DocsPage = () => {
   useBodyScrollable();
   useEffect(() => {
-    document.title = "Docs — Globestudio";
+    document.title = "Docs · Globestudio";
     const setMeta = (selector, content) => {
       const el = document.querySelector(selector);
       if (el) el.setAttribute("content", content);
     };
     setMeta(
       'meta[name="description"]',
-      "Globestudio documentation — embed snippet, shareable config URLs, keyboard shortcuts, preset catalog, JSON schema.",
+      "Globestudio documentation: embed snippet, shareable config URLs, keyboard shortcuts, preset catalog, JSON schema.",
     );
   }, []);
 
@@ -96,7 +96,7 @@ export const DocsPage = () => {
           </SectionHeading>
           <p>
             Drop a dotted globe into any web page with an iframe. The{" "}
-            <code>/embed</code> route is the canvas-only build — no panel, no
+            <code>/embed</code> route is the canvas-only build: no panel, no
             chrome, no marketing nav. Sized to whatever wrapper you put it in.
           </p>
           <CodeBlock language="html">{EMBED_SNIPPET}</CodeBlock>
@@ -126,7 +126,7 @@ export const DocsPage = () => {
             Script-tag loader
           </SectionHeading>
           <p>
-            For Webflow, Framer, Notion, plain HTML — anywhere you can drop
+            For Webflow, Framer, plain HTML, anywhere you can drop
             a <code>&lt;script&gt;</code> tag:
           </p>
           <CodeBlock language="html">{SCRIPT_SNIPPET}</CodeBlock>
@@ -153,7 +153,7 @@ export const DocsPage = () => {
             <a href="/schema/config.json" target="_blank" rel="noreferrer">
               config JSON schema
             </a>
-            {" "}— so it's autocomplete-friendly in any editor that respects{" "}
+            , so it's autocomplete-friendly in any editor that respects{" "}
             <code>$schema</code>.
           </p>
         </section>
@@ -242,7 +242,7 @@ export const DocsPage = () => {
             >
               globestudio.app/schema/look-preset.json
             </a>
-            {" "}— enforced by{" "}
+            , enforced by{" "}
             <code>src/data/look-presets.test.js</code> in CI.
           </p>
         </section>

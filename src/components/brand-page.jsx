@@ -55,14 +55,14 @@ const OG_PRESETS = [
 export const BrandPage = () => {
   useBodyScrollable();
   useEffect(() => {
-    document.title = "Brand — Globestudio";
+    document.title = "Brand · Globestudio";
     const setMeta = (selector, content) => {
       const el = document.querySelector(selector);
       if (el) el.setAttribute("content", content);
     };
     setMeta(
       'meta[name="description"]',
-      "Globestudio press kit — logo, OG cards, color palette, taglines. Free to use for editorial coverage.",
+      "Globestudio press kit: logo, OG cards, color palette, taglines. Free to use for editorial coverage.",
     );
   }, []);
 
@@ -103,7 +103,7 @@ export const BrandPage = () => {
         </div>
         <p className="brand-caption">
           The DottedGlobe mark works at any size down to 16 px. No background
-          fill required — it's a stroke-only icon that reads the current text
+          fill required: it's a stroke-only icon that reads the current text
           color.
         </p>
       </section>
@@ -137,7 +137,7 @@ export const BrandPage = () => {
         </div>
         <p className="brand-caption">
           All {OG_PRESETS.length} preset cards live under{" "}
-          <code>https://globestudio.app/og/{`{preset-id}.png`}</code> — request
+          <code>https://globestudio.app/og/{`{preset-id}.png`}</code>. Request
           any one directly.
         </p>
       </section>

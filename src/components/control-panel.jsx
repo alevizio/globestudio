@@ -610,7 +610,7 @@ export const ControlPanel = ({
               value={dataText}
               onChange={(event) => handleDataText(event.target.value)}
               placeholder={"lat,lng,value  or  country,value\n40.7,-74,10\nUS,1200\nFR,800\nJP,950"}
-              aria-label="Data points — lat,lng,value or country,value per line"
+              aria-label="Data points: lat,lng,value or country,value per line"
               spellCheck={false}
             />
             <button
@@ -632,8 +632,8 @@ export const ControlPanel = ({
               />
               <p className="data-points-hint">
                 {dataPointCount > 0
-                  ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted — markers sized by value (globe + flat).`
-                  : "Paste lat,lng,value — or country,value (e.g. US,1200) — per line."}
+                  ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted. Markers sized by value (globe + flat).`
+                  : "Paste lat,lng,value or country,value (e.g. US,1200) per line."}
               </p>
             </div>
             {dataPointCount >= 2 && (

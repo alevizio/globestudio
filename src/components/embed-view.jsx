@@ -266,7 +266,7 @@ export const EmbedView = () => {
           svg,
           width: canvas.width,
           height: canvas.height,
-          presetName: preset ? `Globestudio — ${preset.name}` : "Globestudio",
+          presetName: preset ? `Globestudio · ${preset.name}` : "Globestudio",
         },
         "*",
       );

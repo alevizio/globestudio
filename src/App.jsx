@@ -758,7 +758,7 @@ const App = () => {
       window.history.pushState({}, "", "/");
       // Restore the homepage SEO + share metadata (mirrors the applyLook block
       // above). Keeps link previews accurate when users navigate back to root.
-      const homeTitle = "Globestudio — Open-Source Dotted Maps and 3D Globes for Designers";
+      const homeTitle = "Globestudio: Open-Source Dotted Maps and 3D Globes for Designers";
       const homeDescription = "Designer-first tool for dotted maps and animated 3D globes. Pick any country, region, or US state. Customize shapes, gradients, shader effects. Export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Open source under MIT.";
       const homeImage = shareCardUrl("default");
       document.title = homeTitle;
@@ -772,7 +772,7 @@ const App = () => {
       setMeta('meta[property="og:url"]', "https://globestudio.app/");
       setMeta('meta[property="og:image"]', homeImage);
       setMeta('meta[property="og:image:alt"]', PRODUCT_CARD_ALT);
-      setMeta('meta[name="twitter:title"]', "Globestudio — Open-Source Dotted Maps and 3D Globes");
+      setMeta('meta[name="twitter:title"]', "Globestudio: Open-Source Dotted Maps and 3D Globes");
       setMeta('meta[name="twitter:description"]', homeDescription);
       setMeta('meta[name="twitter:image"]', homeImage);
       setMeta('meta[name="twitter:image:alt"]', PRODUCT_CARD_ALT);
@@ -1618,10 +1618,10 @@ const App = () => {
             <span
               className={`panel-meta-icon ${appliedLookId ? "is-rippling" : ""}`}
               role="img"
-              aria-label={`${selected.label} — ${
+              aria-label={`${selected.label}: ${
                 dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
               }`}
-              title={`${selected.label} — ${
+              title={`${selected.label}: ${
                 dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
               }`}
             >

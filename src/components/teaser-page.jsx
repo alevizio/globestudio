@@ -362,7 +362,7 @@ export const TeaserPage = () => {
       await new Promise((r) => setTimeout(r, 600));
       track("waitlist_signup");
       setStatus("success");
-      setMessage("You're on the list — we'll email you at launch. (dev)");
+      setMessage("You're on the list. We'll email you at launch. (dev)");
       return;
     }
 
@@ -375,13 +375,13 @@ export const TeaserPage = () => {
       if (res.status === 409) {
         track("waitlist_duplicate");
         setStatus("success");
-        setMessage("That email is already on the list — you're all set, no need to sign up again.");
+        setMessage("That email is already on the list, so you're all set. No need to sign up again.");
         return;
       }
       if (!res.ok) throw new Error(`status ${res.status}`);
       track("waitlist_signup");
       setStatus("success");
-      setMessage("You're on the list — we'll email you at launch.");
+      setMessage("You're on the list. We'll email you at launch.");
     } catch (_err) {
       setStatus("error");
       setMessage("Something went wrong. Please try again.");
@@ -471,12 +471,12 @@ export const TeaserPage = () => {
         </span>
         <h1 className="teaser-title">Something worldly is coming.</h1>
         <p className="teaser-tagline">
-          Open-source dotted maps and 3D globes for designers — render any
+          Open-source dotted maps and 3D globes for designers. Render any
           country in dots, ASCII, or halftone and export it anywhere.
         </p>
 
         {renderSignup(honeypotRef, "top")}
-        <p className="teaser-footnote">No spam — one email when we launch.</p>
+        <p className="teaser-footnote">No spam, just one email when we launch.</p>
       </section>
       </section>
 
@@ -502,7 +502,7 @@ export const TeaserPage = () => {
               ref={appFrameRef}
               className={`teaser-app-iframe ${appLoaded ? "is-loaded" : ""}`}
               src="/looks/bloom?app=1"
-              title="Globestudio app — Bloom look"
+              title="Globestudio app, Bloom look"
               loading="lazy"
               tabIndex={-1}
               // Trim the chrome immediately, then wait out the WebGL globe's

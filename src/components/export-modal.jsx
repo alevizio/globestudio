@@ -421,12 +421,12 @@ export const ExportModal = ({
               />
               {videoFormat === "gif" && (
                 <p className="export-modal-caption">
-                  GIF plays everywhere (Slack, X, Keynote, iOS) — capped to ~20fps and 640px so the file stays light.
+                  GIF plays everywhere (Slack, X, Keynote, iOS). Capped to ~20fps and 640px so the file stays light.
                 </p>
               )}
               {videoFormat === "mp4" && (
                 <p className="export-modal-caption">
-                  MP4 (H.264) plays everywhere WebM can't — Safari/iOS, social, Keynote. Capped to 1024px.
+                  MP4 (H.264) plays everywhere WebM can't: Safari/iOS, social, Keynote. Capped to 1024px.
                 </p>
               )}
               {/* No Aspect, Quality or size controls here: every video
@@ -463,7 +463,7 @@ export const ExportModal = ({
 
           {tab === "svg" && (
             <>
-              <p className="export-modal-caption">Vector export — dot positions, shapes, and colors. Effects and atmosphere are not applied (post-effects can't be rasterized into vectors).</p>
+              <p className="export-modal-caption">Vector export: dot positions, shapes, and colors. Effects and atmosphere are not applied (post-effects can't be rasterized into vectors).</p>
               <button
                 type="button"
                 className={`export-modal-cta ${svgStatus === "saved" ? "is-success" : ""}`}
@@ -492,7 +492,7 @@ export const ExportModal = ({
           {tab === "share" && (
             <>
               <p className="export-modal-caption">
-                Copy the current URL — anyone who opens it lands on the same look. For exact
+                Copy the current URL. Anyone who opens it lands on the same look. For exact
                 customizations beyond a preset, export the configuration as JSON below.
               </p>
               <button
@@ -519,7 +519,7 @@ export const ExportModal = ({
                   {reactStatus === "copied"
                     ? "React snippet copied"
                     : reactStatus === "manual"
-                      ? "Copy failed — try again"
+                      ? "Copy failed. Try again"
                       : "Copy as React (@globestudio/react)"}
                 </span>
               </button>
