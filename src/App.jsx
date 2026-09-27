@@ -1534,10 +1534,11 @@ const App = () => {
       <section
         className={`control-rail ${panelCollapsed ? "is-collapsed" : ""} ${isDragging ? "is-dragging" : ""}`}
         style={{ "--drag-offset": `${dragOffset}px` }}
-        aria-hidden={panelCollapsed}
         // aria-hidden alone leaves the rail's ~80 controls in the Tab order
         // when collapsed; inert removes them from focus + hit-testing too.
-        // Desktop only: the mobile collapsed sheet is an interactive peek.
+        // Desktop only: the mobile collapsed sheet is an interactive peek,
+        // so it stays in the accessibility tree too (Export, looks, region).
+        aria-hidden={(panelCollapsed && !isMobileSheet) || undefined}
         inert={(panelCollapsed && !isMobileSheet) || undefined}
       >
         <button

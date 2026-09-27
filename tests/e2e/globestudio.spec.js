@@ -118,6 +118,20 @@ test("mobile home does not overflow horizontally", async ({ page }) => {
   expect(hasOverflow).toBe(false);
 });
 
+test.describe("on a phone with the sheet collapsed", () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test("the visible sheet is in the accessibility tree", async ({ page }) => {
+    await page.goto("/");
+    await waitForCanvas(page);
+    await expect(page.locator(".control-rail")).toHaveClass(/is-collapsed/);
+    // getByRole skips anything under aria-hidden, like a screen reader does.
+    await expect(page.getByRole("button", { name: "Open export dialog" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Expand options panel" })).toBeVisible();
+    await expectNoSeriousAxeViolations(page);
+  });
+});
+
 for (const path of ["/", "/docs", "/brand", "/privacy"]) {
   test(`axe has no serious violations on ${path}`, async ({ page }) => {
     await page.goto(path);
