@@ -43,6 +43,11 @@ The first public release. This section sums up everything that ships in
   `/privacy`).
 - A tab that loads a chunk from an older deploy reloads once instead of
   breaking.
+- **Figma plugin panel**: pick a look, a country or region, and a dot
+  density, and switch between the globe and the flat map, before you
+  insert. The panel remembers its picks for the session.
+- `favicon.ico`, `apple-touch-icon.png`, and a shared footer that links
+  `/gallery` and the compare pages.
 
 ### Changed
 
@@ -53,6 +58,18 @@ The first public release. This section sums up everything that ships in
   app shell.
 - CI builds and tests the npm packages, and Lighthouse CI audits the studio
   instead of the teaser.
+- Head tags, structured data, the web manifest and `llms.txt` name every
+  export format (PNG, SVG, WebM, MP4, GIF, JSON, embed) and all 21 looks,
+  and the home page's list of looks is built from the presets.
+- New share cards for every look, each under 300 KB and served with
+  `?v=2`. Every prerendered route has its own `twitter:description` and
+  image alt text.
+- `/privacy` covers the launch waitlist, the analytics events that fire,
+  and the font CDNs.
+- `/examples` uses made-up logos and Inter.
+- The Video tab no longer shows Aspect, Quality and size controls, which
+  never changed the recording.
+- Analytics loads on every page except `/embed`.
 - README, ROADMAP, and launch docs rewritten to match what ships.
 
 ### Fixed
@@ -67,6 +84,23 @@ The first public release. This section sums up everything that ships in
   longer zooms on focus.
 - Off-screen shader backdrops pause, and animated chrome respects
   `prefers-reduced-motion`.
+- Shader effects, Glitch, Bad TV and Aurora included, hold still under
+  `prefers-reduced-motion`.
+- Phones: the collapsed control sheet stays in the accessibility tree,
+  Export PNG stays on screen in an opaque export dialog, and the canvas
+  halo is skipped on DPR 3 and touch screens, where it could blank the
+  globe.
+- Keyboard and screen readers: faded-out controls leave the Tab order,
+  region picks are announced by name, focus returns to the country picker
+  after a pick, and the compare table has a name and scrolls with the
+  keyboard.
+- Exports: hi-res PNGs keep the preview's pattern size. A failed PNG or
+  video export shows a message and sends `client_error`, an empty WebM or
+  MP4 no longer downloads, and MP4 is offered only where H.264 encoding
+  works. A bad or unreadable config file shows an import message.
+- Share links keep all 5 flat projections, and the config schema lists
+  the right projection ids.
+- The Metal look's blurb is no longer cut off.
 
 ## Pre-1.0 detail (May 2026, part of 1.0.0)
 
