@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { lookPresets } from "../data/look-presets.js";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { PagePager } from "./ui/page-pager.jsx";
 import { DottedGlobe, Github, Instagram, Twitter } from "./icons.jsx";
@@ -169,10 +170,10 @@ export const BrandPage = () => {
         </SectionHeading>
         <ul className="brand-taglines">
           <li>"Designer-first dotted maps and animated 3D globes."</li>
-          <li>"21 shader looks. 5 projections. One free web tool."</li>
+          <li>"{lookPresets.length} shader looks. 5 flat projections for solid maps. One free web tool."</li>
           <li>
-            "Pick any country. Customize. Export as PNG, SVG, WebM, or shareable
-            JSON."
+            "Pick any country. Customize. Export as PNG, SVG, WebM, MP4, GIF,
+            JSON or an embed."
           </li>
           <li>"Open source, MIT licensed, runs entirely in your browser."</li>
         </ul>

@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
+import { lookPresets } from "../data/look-presets.js";
 import { DottedGlobe, Github, Instagram, Twitter, X } from "./icons.jsx";
 
 // About modal — opens from the panel header's info icon. Two short
@@ -51,8 +52,10 @@ export const AboutOverlay = ({ open, onClose }) => {
           <section className="about-section">
             <h3 className="about-section-title">Globestudio</h3>
             <p className="about-section-text">
-              Designer-first dotted maps and animated 3D globes. 17 shader
-              looks, 5 projections, custom GeoJSON, embed anywhere.
+              Designer-first dotted maps and animated 3D globes.{" "}
+              {lookPresets.length} shader looks, custom GeoJSON, embed
+              anywhere. Solid maps come in 5 flat projections; dotted maps
+              use Mercator.
             </p>
             <p className="about-section-text">
               Built with React + Three.js. Open source, MIT licensed.
