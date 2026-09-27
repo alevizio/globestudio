@@ -4,7 +4,7 @@ import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { injectSiteFacts } from "../scripts/site-facts.js";
 import { lookPresets } from "./data/look-presets.js";
-import { PRODUCT_CARD_ALT, TEASER_CARD_ALT, swapInTeaserCard } from "./data/share-cards.js";
+import { PRODUCT_CARD_ALT, TEASER_CARD_ALT, shareCardUrl, swapInTeaserCard } from "./data/share-cards.js";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(resolve(repoRoot, path), "utf8");
@@ -99,6 +99,9 @@ describe("share cards", () => {
 
   it("points the home card at the cache-busted URL", () => {
     const card = "https://globestudio.app/og/default.png?v=2";
+    // prerender.js and the client meta rewrites build card URLs from the
+    // same OG_VERSION, so index.html must match it.
+    expect(shareCardUrl("default")).toBe(card);
     expect(metaContent("property", "og:image")).toBe(card);
     expect(metaContent("name", "twitter:image")).toBe(card);
     expect(graphNode("SoftwareApplication").image).toBe(card);

@@ -1,8 +1,15 @@
 // Share cards (public/og/*.png) and the alt text that describes each one, in
 // one place so a card and its alt can't drift apart. The build reads these
-// (the teaser swap in vite.config.js, scripts/prerender.js). index.html
-// repeats the product card values for crawlers that don't run JS, and
-// site-facts.test.js keeps it in step.
+// (the teaser swap in vite.config.js, scripts/prerender.js), and so do the
+// client-side meta rewrites (utils/preset-route.js, Reset in App.jsx).
+// index.html repeats the product card values for crawlers that don't run JS,
+// and site-facts.test.js keeps it in step.
+
+// X, LinkedIn and Facebook cache a card by URL, so bump this (and the ?v= in
+// index.html) whenever the og/*.png cards are regenerated.
+export const OG_VERSION = "?v=2";
+
+export const shareCardUrl = (id) => `https://globestudio.app/og/${id}.png${OG_VERSION}`;
 
 // og/default.png: the home product card. It also serves /looks/default, so
 // there is no separate Default-look card.

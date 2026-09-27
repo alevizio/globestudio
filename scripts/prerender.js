@@ -18,7 +18,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lookPresets } from "../src/data/look-presets.js";
 import { comparisons } from "../src/data/comparisons.js";
-import { PRODUCT_CARD_ALT, lookCardAlt } from "../src/data/share-cards.js";
+import { PRODUCT_CARD_ALT, lookCardAlt, shareCardUrl } from "../src/data/share-cards.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const distDir = resolve(dir, "../dist");
@@ -94,10 +94,6 @@ const buildHead = (html, { title, description, url, image, imageAlt }) => {
 // keeps the homepage crawlable). Reverts once VITE_TEASER=0 (1 = teaser).
 const TEASER = process.env.VITE_TEASER === "1";
 
-// Cache-buster for the og/*.png cards, matching index.html. Social platforms
-// cache a card by URL, so bump both when the cards are regenerated.
-const OG_VERSION = "?v=2";
-
 const writeRoute = (routePath, meta) => {
   let [html, misses] = buildHead(template, meta);
   if (TEASER) {
@@ -119,7 +115,7 @@ for (const preset of lookPresets) {
   const id = preset.id;
   const name = preset.name || id;
   const image = existsSync(resolve(distDir, "og", `${id}.png`))
-    ? `${SITE}/og/${id}.png${OG_VERSION}`
+    ? shareCardUrl(id)
     : null; // fall back to the default og:image already in the template
   totalMisses += writeRoute(`looks/${id}`, {
     title: `${name} — dotted map & 3D globe look · Globestudio`,
@@ -140,7 +136,7 @@ for (const preset of lookPresets) {
 // Set explicitly (not via template fallback) so the card survives template
 // drift; in teaser mode the template already swapped in og/teaser.png
 // (teaserNoindexPlugin), so leave the fallback to keep that card.
-const productCard = TEASER ? null : `${SITE}/og/default.png${OG_VERSION}`;
+const productCard = TEASER ? null : shareCardUrl("default");
 
 for (const c of Object.values(comparisons)) {
   totalMisses += writeRoute(`compare/${c.slug}`, {
