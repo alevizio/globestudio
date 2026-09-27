@@ -43,9 +43,10 @@ export default defineConfig({
     url: e2eBaseUrl,
     reuseExistingServer: process.env.PW_REUSE_SERVER === "1",
     timeout: 120_000,
-    // The teaser gate is default-ON (App.jsx: VITE_TEASER !== "0"), which
-    // would serve the coming-soon page on every route and the suite would
-    // never reach the actual app.
+    // The teaser gate is on only when VITE_TEASER === "1" (App.jsx). Pin it
+    // to "0", the value production launches with, so a VITE_TEASER=1 left in
+    // the shell can't serve the coming-soon page on every route and keep the
+    // suite from ever reaching the actual app.
     env: { ...process.env, VITE_TEASER: "0" },
   },
 });

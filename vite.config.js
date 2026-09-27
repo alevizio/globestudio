@@ -58,7 +58,7 @@ const teaserNoindexPlugin = () => ({
     if (process.env.VITE_TEASER !== "1") return html;
     // The index IS the coming-soon teaser, so the share card should be the
     // teaser OG (the hero CRT globe), not the default preset card. Swaps
-    // og:image + twitter:image; reverts automatically once VITE_TEASER unset.
+    // og:image + twitter:image; reverts once VITE_TEASER=0 (1 = teaser).
     return html.replace(/og\/default\.png/g, "og/teaser.png");
   },
 });
@@ -81,9 +81,9 @@ const slimCountriesPlugin = () => {
 
 export default defineConfig({
   base: "/",
-  // The teaser is the default index and its LiquidMetal logo pulls in this
-  // shader lib through a lazy chunk. Pre-bundle it so the first teaser load
-  // doesn't 504 on an on-demand optimize-dep re-run.
+  // The teaser (VITE_TEASER=1) and its LiquidMetal logo pull in this shader
+  // lib through a lazy chunk. Pre-bundle it so the first teaser load doesn't
+  // 504 on an on-demand optimize-dep re-run.
   optimizeDeps: { include: ["@paper-design/shaders-react"] },
   plugins: [react(), slimCountriesPlugin(), teaserNoindexPlugin()],
   test: {

@@ -260,10 +260,11 @@ export const buildShareUrl = (config, origin, pathname = "/") => {
   // `app=1` is the app's non-persisting teaser bypass (App.jsx
   // isTeaserActive), so share links land in the app. Mirrors App.jsx's
   // TEASER_MODE expression — Vite inlines it at build time, so the flag
-  // disappears from links in the same VITE_TEASER=0 build that retires the
-  // teaser. Optional chaining keeps plain-node consumers working
-  // (scripts/capture-og-canvas.js), where import.meta.env is undefined.
-  const teaser = import.meta.env?.VITE_TEASER !== "0" ? "&app=1" : "";
+  // only appears in VITE_TEASER=1 builds and disappears from links in the
+  // same build that retires the teaser. Optional chaining keeps plain-node
+  // consumers working (scripts/capture-og-canvas.js), where import.meta.env
+  // is undefined.
+  const teaser = import.meta.env?.VITE_TEASER === "1" ? "&app=1" : "";
   return `${base}${pathname}?${PARAM_KEY}=${encoded}${teaser}`;
 };
 

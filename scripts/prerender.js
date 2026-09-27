@@ -82,7 +82,7 @@ const buildHead = (html, { title, description, url, image }) => {
 // these prerendered routes (looks/compare/gallery) self-canonical — so without
 // this they'd be ~24 indexable duplicates of the teaser. Only "/" is indexable
 // during pre-launch, so noindex them here (not in the shared index.html, which
-// keeps the homepage crawlable). Auto-reverts when VITE_TEASER is unset.
+// keeps the homepage crawlable). Reverts once VITE_TEASER=0 (1 = teaser).
 const TEASER = process.env.VITE_TEASER === "1";
 
 const writeRoute = (routePath, meta) => {

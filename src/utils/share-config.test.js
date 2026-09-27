@@ -165,15 +165,23 @@ describe("share-config", () => {
     expect(new URL(url).pathname).toBe("/embed");
   });
 
-  it("appends the ?app=1 teaser bypass while teaser mode is active", () => {
-    // Test env has no VITE_TEASER (≠ "0"), matching teaser-active builds —
-    // without the bypass, recipients land on the coming-soon page and the
+  it("appends the ?app=1 teaser bypass in VITE_TEASER=1 builds", () => {
+    // Without the bypass, recipients land on the coming-soon page and the
     // share config is discarded.
+    vi.stubEnv("VITE_TEASER", "1");
     const url = new URL(buildShareUrl({ selection: "world" }, "https://globestudio.app"));
     expect(url.searchParams.get("app")).toBe("1");
     // The appended param must not corrupt the config payload.
     const parsed = parseShareConfig(url.search);
     expect(parsed).toMatchObject({ selection: "world" });
+  });
+
+  it("omits the teaser bypass when VITE_TEASER is unset, like the build scripts", () => {
+    // Unset means launch mode everywhere (App.jsx, vite.config.js,
+    // prerender.js, generate-sitemap.js all test `=== "1"`).
+    vi.stubEnv("VITE_TEASER", undefined);
+    const url = new URL(buildShareUrl({ selection: "world" }, "https://globestudio.app"));
+    expect(url.searchParams.has("app")).toBe(false);
   });
 
   it("omits the teaser bypass once VITE_TEASER=0 retires the teaser", () => {
