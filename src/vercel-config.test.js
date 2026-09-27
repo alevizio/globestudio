@@ -36,4 +36,14 @@ describe("vercel.json", () => {
       value: "public, max-age=31536000, immutable",
     });
   });
+
+  it("keeps /embed out of the index for crawlers that don't run JS", () => {
+    // embed-view.jsx adds a robots meta only after hydration, and the raw
+    // HTML canonicals to "/", so the header is the only signal non-JS
+    // crawlers see.
+    expect(headersFor("/embed")).toContainEqual({ key: "X-Robots-Tag", value: "noindex" });
+    expect(headersFor("/looks/halftone")).not.toContainEqual(
+      expect.objectContaining({ key: "X-Robots-Tag" }),
+    );
+  });
 });
