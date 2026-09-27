@@ -3,7 +3,8 @@
 > GTM, SEO, and ready-to-paste copy for the public launch. Companion to
 > [STRATEGY.md](STRATEGY.md). Derived from 2026 launch/SEO research. Pre-launch
 > state: a coming-soon teaser (gated by `VITE_TEASER`) is collecting an email
-> waitlist; launch = delete the env var + run the plan below.
+> waitlist; launch = set `VITE_TEASER=0` (1 = teaser) on Production, redeploy,
+> then run the plan below.
 
 ## Positioning
 

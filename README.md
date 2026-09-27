@@ -75,7 +75,9 @@ npm install
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173/`.
+Open `http://127.0.0.1:5173/` and the studio loads. To preview the pre-launch
+waitlist teaser instead, run `VITE_TEASER=1 npm run dev`; deploys set
+`VITE_TEASER=0` (1 = teaser).
 
 ### Build it
 
