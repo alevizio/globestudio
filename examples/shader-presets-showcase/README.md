@@ -7,16 +7,17 @@ live mini-iframe. Useful as:
 
 - A **picker tool** for designers comparing presets before committing
 - A **demo page** for blog posts / portfolios introducing Globestudio
-- A **screen-recording subject** for social posts ("16 dotted-globe
+- A **screen-recording subject** for social posts ("21 dotted-globe
   looks in 30 seconds")
 
 ## What's in the gallery
 
-All 16 presets:
+All 21 presets:
 
 `default`, `halftone`, `risograph`, `newsprint`, `aurora`, `pixel`,
-`bayer`, `iridescent`, `wireframe`, `crt`, `glitch`, `badtv`, `bloom`,
-`metal`, `pencil`, `corrupt`.
+`bayer`, `atkinson`, `iridescent`, `wireframe`, `crt`, `glitch`, `badtv`,
+`bloom`, `metal`, `pencil`, `corrupt`, `toon`, `threshold`, `vapor`,
+`topographic`.
 
 Each card:
 
@@ -35,7 +36,7 @@ Or open `index.html` directly.
 
 ## Performance notes
 
-16 iframes is a lot. The page uses `loading="lazy"` on each so iframes
+21 iframes is a lot. The page uses `loading="lazy"` on each so iframes
 below the fold don't load until scrolled into view. On mobile, the
 gallery switches to 2 columns to keep memory usage reasonable.
 
