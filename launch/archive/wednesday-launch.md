@@ -1,8 +1,10 @@
+> Archived 27 Sep 2026: a May 2026 plan kept for reference only. The current launch plan and schedule are in [LAUNCH.md](../../LAUNCH.md).
+
 # Wednesday relaunch — day-of checklist
 
 A focused checklist for the **Wednesday, May 27 2026** push — also the
 **Globestudio rebrand launch**. The original launch already ran under
-the name *worlddots* (see [`README.md`](./README.md) for the from-scratch
+the name *worlddots* (see [`README.md`](../README.md) for the from-scratch
 playbook); this is a **wave-2 push** that doubles as a rename milestone.
 
 **Why Wed May 27 specifically**: it's the peak engagement day for 4 of
@@ -53,11 +55,11 @@ scrolled past last time now have *two* reasons to look again.
       bugs Slack misses.
 - [ ] **Embed route in Webflow.** Spin up a free Webflow project
       (or Codepen) and paste the embed snippet from
-      [`docs/integrations/webflow.md`](../docs/integrations/webflow.md).
+      [`docs/integrations/webflow.md`](../../docs/integrations/webflow.md).
       Confirm the iframe renders and the resize protocol works.
 - [ ] **Framer reference component.** Open Framer, create a code
       component, paste
-      [`examples/framer-component/GlobestudioGlobe.tsx`](../examples/framer-component/GlobestudioGlobe.tsx),
+      [`examples/framer-component/GlobestudioGlobe.tsx`](../../examples/framer-component/GlobestudioGlobe.tsx),
       drag onto a frame, verify the property controls show up.
 - [ ] **Run `npm test`** — confirm 125+ tests pass including the
       axe-core a11y guard.
@@ -216,11 +218,11 @@ Open these tabs at 7am and leave them open:
 
 ## Reference
 
-- Full launch playbook (T-7, T-3, T-1 days): [`./README.md`](./README.md)
-- Product Hunt draft (if you do PH this round): [`./product-hunt.md`](./product-hunt.md)
-- Show HN draft + responses: [`./show-hn.md`](./show-hn.md)
-- Social thread drafts: [`./social-threads.md`](./social-threads.md)
-- Outreach email template + list: [`./outreach-email.md`](./outreach-email.md)
-- Per-tool integration guides for sharing: [`../docs/integrations/`](../docs/integrations/)
+- Full launch playbook (T-7, T-3, T-1 days): [`./README.md`](../README.md)
+- Product Hunt draft (if you do PH this round): [`./product-hunt.md`](../product-hunt.md)
+- Show HN draft + responses: [`./show-hn.md`](../show-hn.md)
+- Social thread drafts: [`./social-threads.md`](../social-threads.md)
+- Outreach email template + list: [`./outreach-email.md`](../outreach-email.md)
+- Per-tool integration guides for sharing: [`../docs/integrations/`](../../docs/integrations/)
 - What's new since v1 (commit log highlights):
   `git log --oneline 5fa700c..HEAD`
