@@ -214,7 +214,7 @@ A few implementation notes:
 
 1. Every dot is an instance of one InstancedMesh. Switching between the flat map and the globe re-bakes the instance matrices on the CPU along a flat, cylinder, sphere path and uploads them in chunks through updateRanges, so the morph never rebuilds the mesh.
 
-2. Per-instance gradient color goes through instanceColor. The gradient math is shared with the SVG export path, so a gradient reads the same in both.
+2. Per-instance gradient color goes through instanceColor. The gradient math is mirrored in the SVG export path, so dot colors line up in both. InstancedMesh has no per-instance alpha, so stop opacity on the canvas is approximated (folded into the RGB, plus one averaged material opacity), while the SVG gets real per-dot fill-opacity.
 
 3. Looks are post-processing: each look applies at most one pass from 24 fragment shader effects (halftone, riso, Bayer and Atkinson dither, CRT, aurora and more).
 

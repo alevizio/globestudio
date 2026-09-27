@@ -59,7 +59,7 @@ multiple emails.
 | Hook context | Sample sentence |
 |---|---|
 | They cover design tools | "It's an open-source, designer-first take on map styling, built for the deck slide rather than the GIS pipeline." |
-| They cover dev tools | "It's a small case study in shared WebGL and SVG render math: the dot gradient uses the same function in both paths, so a gradient reads the same in the PNG and the SVG." |
+| They cover dev tools | "It's a small case study in keeping WebGL and SVG render math in step: the SVG export mirrors the WebGL gradient math, so dot colors line up between the PNG and the SVG." |
 | They cover open source | "It's MIT licensed with no accounts and cookieless, opt-out-friendly analytics, and the contribution docs make presets and examples first-class alongside code." |
 | They run a design newsletter | "I think your readers will recognize the gap: you need a stylized map for a hero shot, and every library you reach for is built for a different job." |
 | They run a dev newsletter | "It's React and Three.js: one InstancedMesh for every dot, a flat to globe morph that re-bakes instance matrices in chunks, adaptive DPR, and 24 post-processing shaders." |
