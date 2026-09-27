@@ -203,9 +203,9 @@ alternative article.
 ## SEO — technical checklist
 
 - [ ] Home H1 leads with the job ("free, no-watermark, export …").
-- [x] `/compare/cobe` + `/compare/geolayers` (honest tables; clean HTML; FAQ JSON-LD for AI-Overview lift — rich snippets are deprecated but AI still parses it). Shipped; the FAQ JSON-LD is still added client side.
+- [x] `/compare/cobe` + `/compare/geolayers` (honest tables; clean HTML; FAQ JSON-LD for AI-Overview lift; rich snippets are deprecated but AI still parses it). Shipped; the FAQ JSON-LD is still added client side.
 - [ ] **Gallery hub-and-spoke**: each `/looks/:id` carries ≥30% unique value (param config table + use-case + related looks) or it triggers the 2026 scaled-content penalty; otherwise `noindex` the thin ones.
-- [x] **Per-look OG images** (1200×630) — WebGL previews don't render in social/AI cards. (Static OG exists at `/og/{look}.png` — wire it per look.) Shipped: every `/looks/:id` uses its own card.
+- [x] **Per-look OG images** (1200×630): WebGL previews don't render in social/AI cards. (Static OG exists at `/og/{look}.png`; wire it per look.) Shipped: every `/looks/:id` uses its own card.
 - [x] `SoftwareApplication` + `isAccessibleForFree:true` + `offers:{price:0}`; `ImageObject` per look; `BreadcrumbList`. Shipped except `ImageObject` per look; `BreadcrumbList` is added client side.
 - [x] `/embed` `noindex` (thin; competes with canonical pages). Shipped as an `X-Robots-Tag` header in `vercel.json`.
 - [ ] Looks pages SSR/200 with real HTML + in sitemap with `lastmod`; param permutations canonicalize to the clean tool page.
