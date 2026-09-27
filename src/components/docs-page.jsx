@@ -126,7 +126,7 @@ export const DocsPage = () => {
             Script-tag loader
           </SectionHeading>
           <p>
-            For Webflow, Framer, Notion, plain HTML, anywhere you can drop
+            For Webflow, Framer, plain HTML, anywhere you can drop
             a <code>&lt;script&gt;</code> tag:
           </p>
           <CodeBlock language="html">{SCRIPT_SNIPPET}</CodeBlock>
