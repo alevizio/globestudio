@@ -19,9 +19,10 @@
 //   node scripts/capture-og-canvas.js halftone
 //
 // Afterwards, compress each card under 300 KB (src/site-facts.test.js checks)
-// and bump the ?v= cache-buster in index.html and scripts/prerender.js. The
-// cards in the repo went through ffmpeg's palettegen + paletteuse to an 8-bit
-// palette: 256 colors where that fits, fewer only for the noisiest looks.
+// and bump the ?v= cache-buster in index.html and OG_VERSION in
+// src/data/share-cards.js. The cards in the repo went through ffmpeg's
+// palettegen + paletteuse to an 8-bit palette: 256 colors where that fits,
+// fewer only for the noisiest looks.
 
 import { chromium } from "playwright";
 import { writeFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";

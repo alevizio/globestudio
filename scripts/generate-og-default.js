@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Generates EVERY Open Graph card for globestudio.app:
+// Generates the SVG-rendered Open Graph cards for globestudio.app:
 //   - public/og/default.png          → headline card for /
 //   - public/og.svg                  → SVG mirror of the headline
-//   - public/og/{preset-id}.png × 19 → per-preset cards for /looks/:id
+//   - docs/github-social-preview.png → 1280x640 GitHub repo preview
+//   - public/og/{preset-id}.png      → flat per-preset cards, only with --looks
 //
 // All cards share the same composition: a dotted globe (real Natural
 // Earth 1:50m coastlines, projected to a sphere) cropped to the
@@ -16,12 +17,18 @@
 // only produced the headline). Single pass, ~30 seconds for all 20.
 //
 // Run:
-//   node scripts/generate-og-default.js
+//   node scripts/generate-og-default.js           (default card + previews)
+//   node scripts/generate-og-default.js --looks   (also every per-look card)
+//
+// The per-look cards in public/og are real shader captures from
+// scripts/capture-og-canvas.js. --looks overwrites them with these flat SVG
+// approximations, which can also land over the 300 KB limit, so it's opt-in.
 //
 // Afterwards, compress each card under 300 KB (src/site-facts.test.js checks)
-// and bump the ?v= cache-buster in index.html and scripts/prerender.js. The
-// cards in the repo went through ffmpeg's palettegen + paletteuse to an 8-bit
-// palette: 256 colors where that fits, fewer only for the noisiest looks.
+// and bump the ?v= cache-buster in index.html and OG_VERSION in
+// src/data/share-cards.js. The cards in the repo went through ffmpeg's
+// palettegen + paletteuse to an 8-bit palette: 256 colors where that fits,
+// fewer only for the noisiest looks.
 
 import { writeFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -598,8 +605,9 @@ const splitBlurb = (text, maxLen = 22) => {
   console.log(`github-social-preview → ${socialPng.length} bytes`);
 }
 
-// ----- Render every per-preset card -----
-for (const preset of lookPresets) {
+// ----- Render every per-preset card (opt-in, see the header) -----
+const renderLookCards = process.argv.includes("--looks");
+for (const preset of renderLookCards ? lookPresets : []) {
   // Skip "default" — its filename clashes with the homepage headline
   // card (index.html's og:image points at /og/default.png, and that
   // should stay the product-positioning card, not a generic "Default"
@@ -629,4 +637,8 @@ for (const preset of lookPresets) {
   console.log(`${preset.id} → ${png.length} bytes`);
 }
 
-console.log(`Done. ${lookPresets.length + 1} OG cards written to public/og/.`);
+console.log(
+  renderLookCards
+    ? `Done. ${lookPresets.length} OG cards written to public/og/.`
+    : "Done. default.png written; per-look cards skipped (pass --looks).",
+);
