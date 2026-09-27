@@ -338,6 +338,8 @@ export const ExportModal = ({
       }
       setImportFailed(importConfig?.(parsed) === false);
     };
+    // A file that can't be read (moved or deleted after picking) fails too.
+    reader.onerror = () => setImportFailed(true);
     reader.readAsText(file);
   };
 

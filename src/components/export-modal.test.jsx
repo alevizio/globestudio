@@ -106,6 +106,24 @@ describe("ExportModal", () => {
       expect((await screen.findByRole("alert")).textContent).toMatch(/isn't a Globestudio configuration/);
     });
 
+    it("says so when the file can't be read", async () => {
+      const original = window.FileReader;
+      window.FileReader = class {
+        readAsText() {
+          queueMicrotask(() => this.onerror?.(new ProgressEvent("error")));
+        }
+      };
+      try {
+        const importConfig = vi.fn();
+        const { container } = renderModal({ importConfig });
+        importText(container, "{}");
+        expect((await screen.findByRole("alert")).textContent).toMatch(/isn't a Globestudio configuration/);
+        expect(importConfig).not.toHaveBeenCalled();
+      } finally {
+        window.FileReader = original;
+      }
+    });
+
     it("stays quiet when the import is applied", async () => {
       const importConfig = vi.fn(() => true);
       const { container } = renderModal({ importConfig });
