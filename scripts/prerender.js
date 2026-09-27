@@ -50,7 +50,7 @@ const swap = (html, regex, replacement) => {
   return [next, hit];
 };
 
-const buildHead = (html, { title, description, url, image }) => {
+const buildHead = (html, { title, description, url, image, imageAlt }) => {
   let misses = 0;
   const apply = (re, rep) => {
     const [next, hit] = swap(html, re, rep);
@@ -70,10 +70,17 @@ const buildHead = (html, { title, description, url, image }) => {
   inject(/(<meta\s+property="og:description"\s+content=")[^"]*(")/, esc(description));
   inject(/(<meta\s+property="og:url"\s+content=")[^"]*(")/, url);
   inject(/(<meta\s+name="twitter:title"\s+content=")[^"]*(")/, esc(title));
+  inject(/(<meta\s+name="twitter:description"\s+content=")[^"]*(")/, esc(description));
   inject(/(<link\s+rel="canonical"\s+href=")[^"]*(")/, url);
   if (image) {
     inject(/(<meta\s+property="og:image"\s+content=")[^"]*(")/, image);
     inject(/(<meta\s+name="twitter:image"\s+content=")[^"]*(")/, image);
+  }
+  // Alt text follows the image. Routes that reuse the home product card
+  // (compare, gallery, static pages, /looks/default) keep the template's alt.
+  if (imageAlt) {
+    inject(/(<meta\s+property="og:image:alt"\s+content=")[^"]*(")/, esc(imageAlt));
+    inject(/(<meta\s+name="twitter:image:alt"\s+content=")[^"]*(")/, esc(imageAlt));
   }
   return [html, misses];
 };
@@ -110,9 +117,14 @@ for (const preset of lookPresets) {
     : null; // fall back to the default og:image already in the template
   totalMisses += writeRoute(`looks/${id}`, {
     title: `${name} — dotted map & 3D globe look · Globestudio`,
-    description: `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, or GIF. Free and open source.`,
+    description: `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free and open source.`,
     url: `${SITE}/looks/${id}`,
     image,
+    // og/default.png is the home product card, not a Default-look card.
+    imageAlt:
+      image && id !== "default"
+        ? `A dotted globe in the Globestudio ${name} look, captioned: ${preset.blurb}.`
+        : null,
   });
   count += 1;
 }
@@ -138,7 +150,7 @@ for (const c of Object.values(comparisons)) {
 totalMisses += writeRoute("gallery", {
   title: "Looks gallery — dotted map & 3D globe styles · Globestudio",
   description:
-    "Browse every built-in Globestudio look. Open one to generate a dotted map or animated 3D globe and export PNG, SVG, WebM, MP4, or GIF. Free, open source.",
+    "Browse every built-in Globestudio look. Open one to generate a dotted map or animated 3D globe and export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free, open source.",
   url: `${SITE}/gallery`,
   image: null,
 });
