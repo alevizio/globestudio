@@ -81,7 +81,7 @@ test("figma plugin embed shows look, region and density pickers plus Insert", as
   expect(violations).toEqual([]);
 });
 
-test("figma plugin pickers change the render and Insert sends what is shown", async ({ page }) => {
+test("figma plugin pickers change the render and Insert sends the picked look and region", async ({ page }) => {
   await page.setViewportSize(PANEL);
   await page.goto("/embed?plugin=figma&static=1");
   const canvas = await waitForCanvas(page);

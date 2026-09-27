@@ -9,8 +9,9 @@ const LOOK_OPTIONS = lookPresets.map((preset) => ({ value: preset.id, label: pre
 
 // Look, region and density pickers for the Figma plugin shell
 // (/embed?plugin=figma). Each one stands in for the embed's own look /
-// selection / density query param, so the panel renders exactly what
-// /embed?look=…&selection=…&density=… renders, and Insert captures that.
+// selection / density query param, so the panel renders what
+// /embed?look=…&selection=…&density=… renders, and Insert sends those
+// settings (embed-view.jsx notes when the plugin inserts a flat SVG).
 // embed-view.jsx lazy-loads this file: that takes about 0.6 kB gzip off the
 // initial payload, counting the icons.jsx chunk Rolldown then splits out
 // (both budgeted in scripts/check-bundle-size.js).

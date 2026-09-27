@@ -148,9 +148,12 @@ export const EmbedView = () => {
   // src/utils/share-config.js for the encoding contract.
   const shareConfig = useMemo(() => parseShareConfig(search), [search]);
   // In the Figma plugin shell the look, region and density pickers replace
-  // the matching query params, so the panel renders (and Insert captures)
-  // exactly what /embed?look=…&selection=…&density=… would. Every other
-  // embed reads the URL alone.
+  // the matching query params, so the panel renders what
+  // /embed?look=…&selection=…&density=… would. Insert sends a PNG of that
+  // preview plus an SVG of the same settings as a flat dotted map, and the
+  // plugin (figma-plugin/code.js) inserts the SVG when it has up to 2,500
+  // dots, so a sparse map lands flat even while the panel shows a globe.
+  // Every other embed reads the URL alone.
   const [picks, setPicks] = useState(() => {
     const fromUrl = { look: params.look, selection: params.selection, density: params.density };
     return params.plugin === "figma" ? restoreFigmaPicks(fromUrl) : fromUrl;
