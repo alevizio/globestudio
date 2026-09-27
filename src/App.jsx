@@ -1209,6 +1209,16 @@ const App = () => {
     image.src = url;
   };
 
+  // WebKit at DPR 3 (every recent iPhone) composites the WebGL canvas blank
+  // while the six-layer drop-shadow halo below is on it: headless WebKit with
+  // the iPhone 14 profile showed no globe on Default and Bloom, and DPR 2 or
+  // Chromium rendered fine. Dense and touch screens skip the CSS halo; the
+  // globe's own shader atmosphere still draws a glow there.
+  const skipCanvasHalo = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return window.devicePixelRatio > 2 || Boolean(window.matchMedia?.("(pointer: coarse)").matches);
+  }, []);
+
   const isViewTransitioning = Boolean(viewTransition);
   const globeGlowOpacity = viewMode === "globe" && globeSettings.glow
     ? (globeSettings.look === "borderless" ? 0.18 : 0.12)
@@ -1348,7 +1358,7 @@ const App = () => {
         // soft cyan halo.
         "--globe-glow-spread": `${30 + (clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 80}%`,
         "--globe-glow-blur": `${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 56}px`,
-        "--globe-canvas-halo": globeSettings.glow
+        "--globe-canvas-halo": globeSettings.glow && !skipCanvasHalo
           ? (() => {
               const t = clampNumber(globeSettings.glowSpread, 0, 100) / 100;
               // SIX Gaussian halo layers in geometric ~1.8× radius
