@@ -49,7 +49,7 @@ The version on `main` already does all of this.
 - **PNG** at 1x to 4x, **SVG** with clean vector dots (6 effects
   approximated with SVG filters), **WebM**, **MP4** (where the browser
   supports it) and **GIF** video, and a **JSON config** with `$schema`
-- **Share links** that carry the full config, and "Copy as React"
+- **Share links** that carry your settings, and "Copy as React"
 
 ### Globestudio everywhere
 
