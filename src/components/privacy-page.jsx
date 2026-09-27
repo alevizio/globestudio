@@ -97,7 +97,8 @@ export const PrivacyPage = () => {
             Vercel Speed Insights
           </a>{" "}
           for Core Web Vitals (LCP, INP, CLS) so we can keep the canvas
-          fast.
+          fast. Both load on every globestudio.app page. A globe embedded
+          on another site loads neither.
         </p>
       </section>
 
