@@ -73,7 +73,7 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
     <title>Globestudio changelog</title>
     <link>${SITE}/changelog</link>
     <atom:link href="${SITE}/changelog.xml" rel="self" type="application/rss+xml" />
-    <description>Recent shipped work in Globestudio — new presets, polish, infrastructure, and first-visit experience.</description>
+    <description>Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
 ${items}

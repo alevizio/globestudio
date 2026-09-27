@@ -263,7 +263,7 @@ const INTEGRATIONS = [
     bg: "#20232A",
     fg: "#61DAFB",
     blurb:
-      "One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box — works in React, Next.js, Remix, Astro.",
+      "One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box. Works in React, Next.js, Remix, Astro.",
     snippet: `npm install @globestudio/react
 
 // Then:
@@ -302,7 +302,7 @@ export const IntegrationsPage = () => {
           </a>
           <h1 className="integrations-page-title">Integrations</h1>
           <p className="integrations-page-lede">
-            Every Globestudio embed is a single URL — paste it into any
+            Every Globestudio embed is a single URL: paste it into any
             tool that takes an iframe. Below are the copy-paste snippets
             for the eight surfaces we hear about most, plus the MCP
             server so AI assistants can build globes for you in chat.

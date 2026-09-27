@@ -103,7 +103,7 @@ export const BrandPage = () => {
         </div>
         <p className="brand-caption">
           The DottedGlobe mark works at any size down to 16 px. No background
-          fill required — it's a stroke-only icon that reads the current text
+          fill required: it's a stroke-only icon that reads the current text
           color.
         </p>
       </section>
@@ -137,7 +137,7 @@ export const BrandPage = () => {
         </div>
         <p className="brand-caption">
           All {OG_PRESETS.length} preset cards live under{" "}
-          <code>https://globestudio.app/og/{`{preset-id}.png`}</code> — request
+          <code>https://globestudio.app/og/{`{preset-id}.png`}</code>. Request
           any one directly.
         </p>
       </section>

@@ -468,7 +468,7 @@ const PachamaShowcase = () => (
         Restore nature, <em style={{ color: "#F25C3B", fontStyle: "italic" }}>at scale.</em>
       </h2>
       <p className="showcase-subhead" style={{ color: "#0E3B2E", opacity: 0.75 }}>
-        AI and satellite data monitoring 30 million+ tonnes of CO₂ across global forest projects — verified, transparent, real.
+        AI and satellite data monitoring 30 million+ tonnes of CO₂ across global forest projects. Verified, transparent, real.
       </p>
       <div className="showcase-ctas">
         <span className="showcase-cta showcase-cta--primary" style={{ background: "#0E3B2E", color: "#F4F1EA" }}>
@@ -689,7 +689,7 @@ const VercelShowcase = () => {
         Deploy to the edge of the world.
       </h2>
       <p className="showcase-subhead" style={{ color: "#a1a1a1", fontSize: "clamp(17px, 1.5vw, 20px)", lineHeight: 1.6, maxWidth: 540 }}>
-        Vercel runs your frontend on a global edge network — every visitor, in
+        Vercel runs your frontend on a global edge network: every visitor, in
         every region, gets a faster, more personalized web.
       </p>
       <div className="showcase-ctas">
@@ -1191,7 +1191,7 @@ const NewsShowcase = () => {
           <h3 className="news-kicker">Quoted</h3>
           <blockquote className="news-quote">
             “We checked twice. It is, reassuringly, still round.”
-            <cite>— Office of the Cartographer Royal</cite>
+            <cite>Office of the Cartographer Royal</cite>
           </blockquote>
           <h3 className="news-kicker">Also Inside</h3>
           <ul className="news-index">
@@ -1204,7 +1204,7 @@ const NewsShowcase = () => {
         <div className="news-main">
           <h2 className="news-headline">The World, Rendered</h2>
           <p className="news-deck">
-            After 4.5 billion years, Earth keeps its appointment — printed here
+            After 4.5 billion years, Earth keeps its appointment, printed here
             in full halftone, one dot at a time.
           </p>
           <figure className="news-photo">
@@ -1261,7 +1261,7 @@ const NewsShowcase = () => {
             </div>
             <figcaption>
               THE EARTH, photographed mid-spin from the newsroom window.
-              — Staff dot-photography
+              Photo: Staff dot-photography
             </figcaption>
           </figure>
           <div className="news-text">
@@ -1277,7 +1277,7 @@ const NewsShowcase = () => {
             </p>
             <p>
               Analysts cautioned against complacency, noting the planet remains
-              under no obligation to continue — and does so, they stress, purely
+              under no obligation to continue, and does so, they stress, purely
               out of long-standing habit.
             </p>
             <p>
@@ -1355,7 +1355,7 @@ const ProfoundShowcase = () => (
           </span>
         </h2>
         <p className="showcase-subhead" style={{ color: "#6B7280" }}>
-          1.5 billion+ prompts analyzed across 150+ regions and 30+ languages — live, weekly-refreshed visibility into what every assistant says about you.
+          1.5 billion+ prompts analyzed across 150+ regions and 30+ languages. Live, weekly-refreshed visibility into what every assistant says about you.
         </p>
         <div className="showcase-ctas">
           <span className="showcase-cta showcase-cta--primary" style={{ background: "#0B1F4B", color: "#fff" }}>
@@ -1939,7 +1939,7 @@ const StripeShowcase = () => {
           Payments infrastructure that spans the globe.{" "}
           <span style={{ color: "#41597a" }}>
             Accept money across borders, settle in local currency, and reach
-            customers in every time zone—from your first transaction to your
+            customers in every time zone, from your first transaction to your
             billionth.
           </span>
         </h2>
@@ -2209,7 +2209,7 @@ const EarthscaleShowcase = () => (
           fontFamily: 'ui-sans-serif, system-ui, sans-serif',
         }}
       >
-        AI agents parse permits, grid plans, and supply-chain lead times — across every project on earth.
+        AI agents parse permits, grid plans, and supply-chain lead times across every project on earth.
       </p>
       <div className="showcase-ctas">
         <span
@@ -2315,7 +2315,7 @@ const CardsGallery = () => (
     <h2 className="examples-block-title">…and inside cards.</h2>
     <p className="examples-block-lede">
       The same patterns work at card-scale. Drop a chip into any feature grid,
-      hero rail, or product tile — colors swap, the globe stays.
+      hero rail, or product tile. Colors swap, the globe stays.
     </p>
     <div className="examples-cards-grid">
       {[
