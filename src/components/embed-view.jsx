@@ -147,15 +147,15 @@ export const EmbedView = () => {
   // customizations layered on top of preset defaults. See
   // src/utils/share-config.js for the encoding contract.
   const shareConfig = useMemo(() => parseShareConfig(search), [search]);
-  // In the Figma plugin shell the look, region and density pickers replace
-  // the matching query params, so the panel renders what
-  // /embed?look=…&selection=…&density=… would. Insert sends a PNG of that
-  // preview plus an SVG of the same settings as a flat dotted map, and the
-  // plugin (figma-plugin/code.js) inserts the SVG when it has up to 2,500
-  // dots, so a sparse map lands flat even while the panel shows a globe.
-  // Every other embed reads the URL alone.
+  // In the Figma plugin shell the look, region, density and view pickers
+  // replace the matching query params, so the panel renders what
+  // /embed?look=…&selection=…&density=…&view=… would. Insert always sends a
+  // PNG of that preview. Only the Flat view also sends an SVG of the flat
+  // dotted map, which the plugin (figma-plugin/code.js) inserts as vectors
+  // when it has up to 2,500 dots; a denser map, or the Globe view, lands as
+  // the PNG. Every other embed reads the URL alone.
   const [picks, setPicks] = useState(() => {
-    const fromUrl = { look: params.look, selection: params.selection, density: params.density };
+    const fromUrl = { look: params.look, selection: params.selection, density: params.density, view: params.view };
     return params.plugin === "figma" ? restoreFigmaPicks(fromUrl) : fromUrl;
   });
   useEffect(() => {
@@ -206,33 +206,37 @@ export const EmbedView = () => {
       });
       const buf = await blob.arrayBuffer();
       const bytes = new Uint8Array(buf);
-      // Also generate the dotted-map SVG so the plugin can insert editable
-      // vectors (named Background/Dots/Effects layers) instead of a flat PNG.
-      // Best-effort: if it throws, the plugin falls back to the PNG bytes.
+      // In the Flat view, also generate the dotted-map SVG so the plugin can
+      // insert editable vectors (named Background/Dots/Effects layers) of the
+      // map the panel shows. The Globe view sends svg null, so the plugin
+      // inserts the globe PNG. Best-effort: if it throws, the plugin falls
+      // back to the PNG bytes.
       let svg = null;
-      try {
-        svg = createDottedSvg({
-          mapData,
-          dotColor: settings.dotColor || "#ffffff",
-          dotColorAlpha: settings.dotColorAlpha ?? 1,
-          dotGradient: settings.dotGradient ?? null,
-          dotSize: settings.dotSize,
-          shape: settings.shape || "Circle",
-          asciiSymbol: settings.asciiSymbol || "*",
-          dotsVisible: settings.dotsVisible !== false,
-          background: settings.background,
-          transparent: settings.transparent,
-          selectedDots: new Set(),
-          mode: settings.renderMode,
-          shaderSettings: settings.shaderSettings,
-          sizeVary: settings.sizeVary || false,
-          crop: true,
-          label: "Globestudio dotted map",
-        }).svg;
-      } catch (svgErr) {
-        // eslint-disable-next-line no-console
-        console.warn("[globestudio] SVG generation failed; sending PNG only:", svgErr);
-        svg = null;
+      if (raw.view === "flat") {
+        try {
+          svg = createDottedSvg({
+            mapData,
+            dotColor: settings.dotColor || "#ffffff",
+            dotColorAlpha: settings.dotColorAlpha ?? 1,
+            dotGradient: settings.dotGradient ?? null,
+            dotSize: settings.dotSize,
+            shape: settings.shape || "Circle",
+            asciiSymbol: settings.asciiSymbol || "*",
+            dotsVisible: settings.dotsVisible !== false,
+            background: settings.background,
+            transparent: settings.transparent,
+            selectedDots: new Set(),
+            mode: settings.renderMode,
+            shaderSettings: settings.shaderSettings,
+            sizeVary: settings.sizeVary || false,
+            crop: true,
+            label: "Globestudio dotted map",
+          }).svg;
+        } catch (svgErr) {
+          // eslint-disable-next-line no-console
+          console.warn("[globestudio] SVG generation failed; sending PNG only:", svgErr);
+          svg = null;
+        }
       }
       const preset = lookPresets.find((p) => p.id === raw.look);
       window.parent.postMessage(
@@ -254,7 +258,7 @@ export const EmbedView = () => {
     } finally {
       setInserting(false);
     }
-  }, [raw.look, mapData, settings]);
+  }, [raw.look, raw.view, mapData, settings]);
 
   // Probe for WebGL 2 support up-front so we can show a graceful fallback
   // instead of a blank canvas. The probe happens once, after mount.
@@ -429,7 +433,7 @@ export const EmbedView = () => {
           selectionCollection={null}
           background={isSpaceBackground ? SPACE_BACKGROUND_BASE : isFlowBackground ? FLOW_BACKGROUND_BASE : settings.background}
           transparent={settings.transparent || isSpaceBackground || isFlowBackground}
-          morphMode={params.view === "flat" ? "flat" : "globe"}
+          morphMode={raw.view === "flat" ? "flat" : "globe"}
           morphTransition={null}
           interactive={false}
           tiltX={settings.tiltX}
@@ -456,6 +460,8 @@ export const EmbedView = () => {
               look={raw.look}
               selection={effectiveSelection}
               density={settings.density}
+              view={raw.view}
+              dots={mapData.points.length}
               onChange={(patch) => setPicks((current) => ({ ...current, ...patch }))}
             />
           </Suspense>

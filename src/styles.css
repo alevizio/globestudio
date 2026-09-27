@@ -2813,8 +2813,8 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
 }
 
 /* Plugin-host shell — when the embed is loaded inside the Figma plugin
-   (via ?plugin=figma), a bottom action bar stacks the look, region and
-   density pickers above an Insert button.
+   (via ?plugin=figma), a bottom action bar stacks the pickers and a
+   note above an Insert button.
    Fixed-position over the canvas so it follows along when the embed
    resizes for different plugin panel heights. */
 .embed-plugin-bar {
@@ -2833,7 +2833,7 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   pointer-events: none;
 }
 
-/* Look and region share a row, density spans the row below. */
+/* Look and region, then density and view. */
 .embed-plugin-pickers {
   pointer-events: auto;
   align-self: stretch;
@@ -2842,8 +2842,11 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   gap: 10px 12px;
 }
 
-.embed-plugin-pickers .option-row:last-child {
-  grid-column: 1 / -1;
+.embed-plugin-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
 }
 
 /* Drop the studio rail's 180px floor so two columns fit the 380px panel. */

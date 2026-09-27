@@ -8,19 +8,30 @@ import { FigmaPluginPickers } from "./figma-plugin-pickers.jsx";
 const renderPickers = (props = {}) => {
   const onChange = vi.fn();
   const utils = render(
-    <FigmaPluginPickers look="default" selection="world" density={40} onChange={onChange} {...props} />,
+    <FigmaPluginPickers
+      look="default"
+      selection="world"
+      density={40}
+      view="globe"
+      dots={1365}
+      onChange={onChange}
+      {...props}
+    />,
   );
   return { onChange, ...utils };
 };
 
 describe("FigmaPluginPickers", () => {
-  it("renders a labeled look, region and density control", () => {
+  it("renders a labeled look, region, density and view control", () => {
     renderPickers();
     expect(screen.getByRole("group", { name: "Globe settings" })).toBeTruthy();
     const look = screen.getByRole("combobox", { name: "Look" });
     expect(look.value).toBe("default");
     expect(screen.getByRole("button", { name: "Country or region: World" })).toBeTruthy();
     expect(screen.getByRole("slider", { name: "Density" }).value).toBe("40");
+    expect(screen.getByRole("group", { name: "View" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Globe", pressed: true })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Flat", pressed: false })).toBeTruthy();
   });
 
   it("offers every look preset", () => {
@@ -51,13 +62,50 @@ describe("FigmaPluginPickers", () => {
     expect(onChange).toHaveBeenCalledWith({ density: 72 });
   });
 
+  it("reports a view change from the keyboard", async () => {
+    const user = userEvent.setup();
+    const { onChange } = renderPickers();
+    screen.getByRole("button", { name: "Flat" }).focus();
+    await user.keyboard(" ");
+    expect(onChange).toHaveBeenCalledWith({ view: "flat" });
+  });
+
+  it("shows the Flat view as checked", () => {
+    renderPickers({ view: "flat" });
+    expect(screen.getByRole("button", { name: "Flat", pressed: true })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Globe", pressed: false })).toBeTruthy();
+  });
+
+  it("treats an unknown view as the globe, like the embed does", () => {
+    renderPickers({ view: "sideways" });
+    expect(screen.getByRole("button", { name: "Globe", pressed: true })).toBeTruthy();
+    expect(screen.getByText("Inserts a PNG of the globe.")).toBeTruthy();
+  });
+
+  it("says what Insert adds for each view and dot count", () => {
+    const props = { look: "default", selection: "world", density: 40, onChange: vi.fn() };
+    const { rerender } = renderPickers();
+    // A polite status region, so a screen reader hears the outcome change.
+    expect(screen.getByText("Inserts a PNG of the globe.").getAttribute("role")).toBe("status");
+    // The Globe view inserts the PNG whatever the dot count.
+    rerender(<FigmaPluginPickers {...props} view="globe" dots={9000} />);
+    expect(screen.getByText("Inserts a PNG of the globe.")).toBeTruthy();
+    // figma-plugin/code.js keeps vectors up to and including 2,500 dots.
+    rerender(<FigmaPluginPickers {...props} view="flat" dots={2500} />);
+    expect(screen.getByText("Inserts the flat map as editable vectors.")).toBeTruthy();
+    rerender(<FigmaPluginPickers {...props} view="flat" dots={2501} />);
+    expect(
+      screen.getByText("Over 2,500 dots, so this inserts a PNG of the flat map. Lower the density for vectors."),
+    ).toBeTruthy();
+  });
+
   it("shows the current region label", () => {
     renderPickers({ selection: "country:JPN" });
     expect(screen.getByRole("button", { name: /^Country or region: Japan/ })).toBeTruthy();
   });
 
-  it("has no axe violations", async () => {
-    const { container } = renderPickers();
+  it.each(["globe", "flat"])("has no axe violations in the %s view", async (view) => {
+    const { container } = renderPickers({ view });
     const results = await axe.run(container, { rules: { region: { enabled: false } } });
     expect(results.violations).toEqual([]);
   });

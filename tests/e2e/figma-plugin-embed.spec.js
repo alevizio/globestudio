@@ -2,9 +2,9 @@ import { expect, test } from "@playwright/test";
 import axeSource from "axe-core";
 
 // The Figma plugin (figma-plugin/ui.html) iframes /embed?plugin=figma inside a
-// 380x620 panel. These specs load that shell headless: the look, region and
-// density pickers must show up, drive the render, and feed Insert. Plain
-// /embed must stay canvas only.
+// 380x620 panel. These specs load that shell headless: the look, region,
+// density and view pickers must show up, drive the render, and feed Insert.
+// Plain /embed must stay canvas only.
 
 const CANVAS_TIMEOUT = process.env.CI ? 40_000 : 20_000;
 const PANEL = { width: 380, height: 620 };
@@ -41,10 +41,16 @@ const recordInserts = (page) =>
       window.__inserts.push({
         presetName: event.data.presetName,
         bytes: event.data.bytes?.length ?? 0,
+        svg: typeof event.data.svg === "string",
+        // Counted the way figma-plugin/code.js counts before its 2,500 limit.
         dots: (event.data.svg?.match(/data-dot-id=/g) || []).length,
       });
     });
   });
+
+// The line above Insert that says what Insert adds. The Density readout is
+// an <output>, also a status, so match on the text.
+const insertNote = (page) => page.getByRole("status").filter({ hasText: /insert/i });
 
 const insertAndRead = async (page) => {
   const count = await page.evaluate(() => window.__inserts.length);
@@ -53,7 +59,7 @@ const insertAndRead = async (page) => {
   return page.evaluate(() => window.__inserts.at(-1));
 };
 
-test("figma plugin embed shows look, region and density pickers plus Insert", async ({ page }) => {
+test("figma plugin embed shows look, region, density and view pickers plus Insert", async ({ page }) => {
   await page.setViewportSize(PANEL);
   await page.goto("/embed?plugin=figma&autoSpin=true");
   await waitForCanvas(page);
@@ -64,6 +70,10 @@ test("figma plugin embed shows look, region and density pickers plus Insert", as
   await expect(look.locator("option")).toHaveCount(21);
   await expect(page.getByRole("button", { name: "Country or region: World" })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Density" })).toHaveValue("40");
+  await expect(page.getByRole("group", { name: "View" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Globe", pressed: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Flat", pressed: false })).toBeVisible();
+  await expect(insertNote(page)).toHaveText("Inserts a PNG of the globe.");
   await expect(page.getByRole("button", { name: "Insert into Figma" })).toBeVisible();
 
   const overflows = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
@@ -86,6 +96,8 @@ test("figma plugin pickers change the render and Insert sends the picked look an
   await page.goto("/embed?plugin=figma&static=1");
   const canvas = await waitForCanvas(page);
   await recordInserts(page);
+  // Flat, so Insert carries the SVG and its dot count shows the picked region.
+  await page.getByRole("button", { name: "Flat" }).click();
 
   // Settle on a stable frame first, so a changed frame can only come from
   // the look change.
@@ -101,6 +113,7 @@ test("figma plugin pickers change the render and Insert sends the picked look an
   const worldInsert = await insertAndRead(page);
   expect(worldInsert.presetName).toMatch(/Default$/);
   expect(worldInsert.bytes).toBeGreaterThan(0);
+  expect(worldInsert.svg).toBe(true);
   expect(worldInsert.dots).toBeGreaterThan(0);
 
   await page.getByRole("combobox", { name: "Look" }).selectOption("halftone");
@@ -127,11 +140,72 @@ test("figma plugin pickers change the render and Insert sends the picked look an
   expect(japanInsert.dots).toBeLessThan(worldInsert.dots);
 });
 
+test("figma plugin Globe and Flat toggle changes the preview and only Flat sends the SVG", async ({ page }) => {
+  await page.setViewportSize(PANEL);
+  await page.goto("/embed?plugin=figma&static=1");
+  const canvas = await waitForCanvas(page);
+  await recordInserts(page);
+  const globe = page.getByRole("button", { name: "Globe" });
+  const flat = page.getByRole("button", { name: "Flat" });
+
+  let globeFrame = "";
+  await expect
+    .poll(async () => {
+      const previous = globeFrame;
+      await page.waitForTimeout(400);
+      globeFrame = await frameSignature(canvas);
+      return globeFrame === previous;
+    }, { timeout: CANVAS_TIMEOUT })
+    .toBe(true);
+  await expect(globe).toHaveAttribute("aria-pressed", "true");
+  await expect(insertNote(page)).toHaveText("Inserts a PNG of the globe.");
+  const globeInsert = await insertAndRead(page);
+  expect(globeInsert.bytes).toBeGreaterThan(0);
+  expect(globeInsert.svg).toBe(false);
+
+  // Keyboard only: focus Flat and press it.
+  await flat.focus();
+  await page.keyboard.press("Space");
+  await expect(flat).toHaveAttribute("aria-pressed", "true");
+  await expect(globe).toHaveAttribute("aria-pressed", "false");
+  await expect(insertNote(page)).toHaveText("Inserts the flat map as editable vectors.");
+  await expect.poll(() => frameSignature(canvas), { timeout: CANVAS_TIMEOUT }).not.toBe(globeFrame);
+  const flatInsert = await insertAndRead(page);
+  expect(flatInsert.bytes).toBeGreaterThan(0);
+  expect(flatInsert.svg).toBe(true);
+  // The default World at density 40 (1,365 dots today) stays within the
+  // plugin's vector limit.
+  expect(flatInsert.dots).toBeGreaterThan(0);
+  expect(flatInsert.dots).toBeLessThanOrEqual(2500);
+
+  // Past 2,500 dots code.js inserts the PNG instead. Insert still sends the
+  // SVG (code.js counts its dots) and the note says what will land.
+  const density = page.getByRole("slider", { name: "Density" });
+  await density.focus();
+  await page.keyboard.press("End");
+  await expect(density).toHaveValue("90");
+  await expect(insertNote(page)).toHaveText(
+    "Over 2,500 dots, so this inserts a PNG of the flat map. Lower the density for vectors.",
+  );
+  const denseInsert = await insertAndRead(page);
+  expect(denseInsert.svg).toBe(true);
+  expect(denseInsert.dots).toBeGreaterThan(2500);
+
+  await globe.focus();
+  await page.keyboard.press("Enter");
+  await expect(globe).toHaveAttribute("aria-pressed", "true");
+  await expect(insertNote(page)).toHaveText("Inserts a PNG of the globe.");
+  const backInsert = await insertAndRead(page);
+  expect(backInsert.svg).toBe(false);
+  expect(backInsert.dots).toBe(0);
+});
+
 test("figma plugin picks survive the Your colors reload", async ({ page }) => {
   await page.setViewportSize(PANEL);
   await page.goto("/embed?plugin=figma&autoSpin=true&cb=1");
   await waitForCanvas(page);
   await page.getByRole("combobox", { name: "Look" }).selectOption("risograph");
+  await page.getByRole("button", { name: "Flat" }).click();
   await page.getByRole("button", { name: /^Country or region/ }).click();
   const filter = page.getByLabel("Filter Country or region");
   await expect(filter).toBeFocused();
@@ -153,6 +227,7 @@ test("figma plugin picks survive the Your colors reload", async ({ page }) => {
   await waitForCanvas(page);
   await expect(page.getByRole("combobox", { name: "Look" })).toHaveValue("risograph");
   await expect(page.getByRole("button", { name: /^Country or region: Brazil/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Flat", pressed: true })).toBeVisible();
 });
 
 test("plain embed has no plugin pickers or Insert", async ({ page }) => {
