@@ -127,6 +127,25 @@ test("figma plugin pickers change the render and Insert sends what is shown", as
   expect(japanInsert.dots).toBeLessThan(worldInsert.dots);
 });
 
+test("figma plugin picks survive the Your colors reload", async ({ page }) => {
+  await page.setViewportSize(PANEL);
+  await page.goto("/embed?plugin=figma&autoSpin=true&cb=1");
+  await waitForCanvas(page);
+  await page.getByRole("combobox", { name: "Look" }).selectOption("risograph");
+  await page.getByRole("button", { name: /^Country or region/ }).click();
+  const filter = page.getByLabel("Filter Country or region");
+  await expect(filter).toBeFocused();
+  await filter.pressSequentially("brazil");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: /^Country or region: Brazil/ })).toBeVisible();
+
+  // ui.html applies a file color by pointing the iframe at a new URL.
+  await page.goto("/embed?plugin=figma&autoSpin=true&dotColor=ff3366&cb=2");
+  await waitForCanvas(page);
+  await expect(page.getByRole("combobox", { name: "Look" })).toHaveValue("risograph");
+  await expect(page.getByRole("button", { name: /^Country or region: Brazil/ })).toBeVisible();
+});
+
 test("plain embed has no plugin pickers or Insert", async ({ page }) => {
   await page.goto("/embed?look=halftone");
   await waitForCanvas(page);

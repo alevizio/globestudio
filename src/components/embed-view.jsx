@@ -14,6 +14,7 @@ import { createDottedSvg } from "../utils/svg-markup.js";
 import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
 import { parseShareConfig } from "../utils/share-config.js";
 import { clampNumber } from "../utils/math.js";
+import { restoreFigmaPicks, saveFigmaPicks } from "../utils/figma-picks.js";
 import { FigmaPluginPickers } from "./figma-plugin-pickers.jsx";
 
 // Lazy-load the heavy WebGL component so the initial embed payload is small.
@@ -146,11 +147,13 @@ export const EmbedView = () => {
   // the matching query params, so the panel renders (and Insert captures)
   // exactly what /embed?look=…&selection=…&density=… would. Every other
   // embed reads the URL alone.
-  const [picks, setPicks] = useState(() => ({
-    look: params.look,
-    selection: params.selection,
-    density: params.density,
-  }));
+  const [picks, setPicks] = useState(() => {
+    const fromUrl = { look: params.look, selection: params.selection, density: params.density };
+    return params.plugin === "figma" ? restoreFigmaPicks(fromUrl) : fromUrl;
+  });
+  useEffect(() => {
+    if (params.plugin === "figma") saveFigmaPicks(picks);
+  }, [params.plugin, picks]);
   const raw = useMemo(
     () => (params.plugin === "figma" ? { ...params, ...picks } : params),
     [params, picks],
