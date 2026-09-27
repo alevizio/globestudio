@@ -1,4 +1,5 @@
 import { getPresetSeo } from "../data/preset-seo.js";
+import { lookCardAlt, shareCardUrl } from "../data/share-cards.js";
 
 // Side-effects fired when a preset becomes the "current" view: rewrite the
 // URL to /looks/:id, update document.title + meta tags + canonical link,
@@ -51,9 +52,12 @@ export const updatePresetRoute = (preset) => {
   const title = `${preset.name} — Globestudio dotted globe`;
   const seo = getPresetSeo(preset.id);
   const description = seo?.metaDescription
-    || `${preset.blurb}. Generate dotted maps and animated 3D globes with the ${preset.name} preset. Export as PNG, SVG, or WebM.`;
+    || `${preset.blurb}. Generate dotted maps and animated 3D globes with the ${preset.name} preset. Export PNG, SVG, WebM, MP4, GIF, JSON or an embed.`;
   const absoluteUrl = `https://globestudio.app/looks/${preset.id}`;
-  const previewImage = `https://globestudio.app/og/${preset.id}.png`;
+  // Same card URL (with its ?v= cache-buster) and alt as the prerendered
+  // /looks/:id head, so client navigation doesn't leave them disagreeing.
+  const previewImage = shareCardUrl(preset.id);
+  const previewAlt = lookCardAlt(preset);
 
   document.title = title;
   setMeta('meta[name="description"]', description);
@@ -61,9 +65,11 @@ export const updatePresetRoute = (preset) => {
   setMeta('meta[property="og:description"]', description);
   setMeta('meta[property="og:url"]', absoluteUrl);
   setMeta('meta[property="og:image"]', previewImage);
+  setMeta('meta[property="og:image:alt"]', previewAlt);
   setMeta('meta[name="twitter:title"]', title);
   setMeta('meta[name="twitter:description"]', description);
   setMeta('meta[name="twitter:image"]', previewImage);
+  setMeta('meta[name="twitter:image:alt"]', previewAlt);
 
   const canonical = document.querySelector('link[rel="canonical"]');
   if (canonical) canonical.setAttribute("href", absoluteUrl);

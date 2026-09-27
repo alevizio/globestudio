@@ -1,4 +1,5 @@
 import { lookPresets } from "../data/look-presets.js";
+import { TakeoverFooter } from "./takeover-footer.jsx";
 import "./gallery-page.css";
 
 // Static gallery of every built-in look. Uses the pre-rendered /looks/{id}.png
@@ -12,7 +13,7 @@ export const GalleryPage = () => (
       <a className="gallery-back" href="/">← Globestudio</a>
       <h1 className="gallery-title">Looks gallery</h1>
       <p className="gallery-sub">
-        Every built-in look. Open one to customize it in the editor and export PNG, SVG, GIF, or an embed.
+        Every built-in look. Open one to customize it in the editor and export PNG, SVG, WebM, MP4, GIF, JSON or an embed.
       </p>
     </header>
     <ul className="gallery-grid">
@@ -37,5 +38,6 @@ export const GalleryPage = () => (
         </li>
       ))}
     </ul>
+    <TakeoverFooter />
   </main>
 );

@@ -13,6 +13,7 @@ import {
 } from "./config/globe-settings.js";
 import { areaOptionByValue, areaOptions } from "./data/geography.js";
 import { lookPresets } from "./data/look-presets.js";
+import { PRODUCT_CARD_ALT, shareCardUrl } from "./data/share-cards.js";
 import { presetTags } from "./data/preset-tags.js";
 import { useUsStatesLoader } from "./hooks/use-us-states-loader.js";
 import { useShareConfigImport } from "./hooks/use-share-config-import.js";
@@ -162,7 +163,11 @@ const isTeaserActive = () => {
     return TEASER_MODE;
   }
 };
-import { PrivacyPage } from "./components/privacy-page.jsx";
+// Lazy like /examples, /gallery and /compare: the policy copy is only read on
+// /privacy, so it stays out of the initial payload every visitor downloads.
+const PrivacyPage = lazy(() =>
+  import("./components/privacy-page.jsx").then((m) => ({ default: m.PrivacyPage })),
+);
 import { NotFoundPage } from "./components/not-found-page.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
@@ -224,7 +229,12 @@ const App = () => {
           <ComparePage />
         </Suspense>
       );
-    if (path === "/privacy") return <PrivacyPage />;
+    if (path === "/privacy")
+      return (
+        <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
+          <PrivacyPage />
+        </Suspense>
+      );
     const isHome = path === "/";
     const isPresetRoute = /^\/looks\/[\w-]+$/.test(path);
     const isEmbed = path === "/embed";
@@ -749,8 +759,8 @@ const App = () => {
       // Restore the homepage SEO + share metadata (mirrors the applyLook block
       // above). Keeps link previews accurate when users navigate back to root.
       const homeTitle = "Globestudio — Open-Source Dotted Maps and 3D Globes for Designers";
-      const homeDescription = "Designer-first tool for dotted maps and animated 3D globes. Pick any country, region, or US state. Customize shapes, gradients, shader effects. Export PNG, SVG, WebM. Open source under MIT.";
-      const homeImage = "https://globestudio.app/og/default.png";
+      const homeDescription = "Designer-first tool for dotted maps and animated 3D globes. Pick any country, region, or US state. Customize shapes, gradients, shader effects. Export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Open source under MIT.";
+      const homeImage = shareCardUrl("default");
       document.title = homeTitle;
       const setMeta = (selector, content) => {
         const el = document.querySelector(selector);
@@ -761,9 +771,11 @@ const App = () => {
       setMeta('meta[property="og:description"]', homeDescription);
       setMeta('meta[property="og:url"]', "https://globestudio.app/");
       setMeta('meta[property="og:image"]', homeImage);
+      setMeta('meta[property="og:image:alt"]', PRODUCT_CARD_ALT);
       setMeta('meta[name="twitter:title"]', "Globestudio — Open-Source Dotted Maps and 3D Globes");
       setMeta('meta[name="twitter:description"]', homeDescription);
       setMeta('meta[name="twitter:image"]', homeImage);
+      setMeta('meta[name="twitter:image:alt"]', PRODUCT_CARD_ALT);
       // Restore the canonical URL to the homepage when navigating back to root.
       const canonical = document.querySelector('link[rel="canonical"]');
       if (canonical) canonical.setAttribute("href", "https://globestudio.app/");
@@ -1431,7 +1443,7 @@ const App = () => {
           so keyboard users don't have to tab through chrome to reach the
           globe. WCAG 2.4.1 Bypass Blocks (Level A). */}
       <a href="#globe-canvas" className="skip-link">Skip to globe</a>
-      <h1 className="visually-hidden">Globestudio — dotted maps and globe generator</h1>
+      <h1 className="visually-hidden">Free dotted map and 3D globe generator: export PNG, SVG, WebM, MP4, GIF or an embed, no watermark</h1>
       <div className="visually-hidden" role="status" aria-live="polite">{statusMessage}</div>
       {/* Persistent screen-reader description of canvas state. The existing
           aria-live status above narrates *changes*; this proxy gives

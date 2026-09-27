@@ -64,7 +64,7 @@ const walkTabStops = async (page, count) => {
 test("home renders the globe canvas", async ({ page }) => {
   await page.goto("/");
   await waitForCanvas(page);
-  await expect(page.getByRole("heading", { name: /dotted maps and globe generator/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /free dotted map and 3D globe generator/i })).toBeVisible();
 });
 
 test("preset routes apply the requested look", async ({ page }) => {
@@ -279,6 +279,10 @@ for (const path of ["/", "/docs", "/brand", "/privacy"]) {
   test(`axe has no serious violations on ${path}`, async ({ page }) => {
     await page.goto(path);
     if (path === "/") await waitForCanvas(page);
+    // /privacy is a lazy route: audit the policy, not the Suspense fallback.
+    if (path === "/privacy") {
+      await expect(page.getByRole("heading", { level: 1, name: "Privacy" })).toBeVisible();
+    }
     await expectNoSeriousAxeViolations(page);
   });
 }

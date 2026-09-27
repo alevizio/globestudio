@@ -2,8 +2,9 @@
 
 > Open-source, designer-first generator of dotted-style world maps and 3D
 > globes that runs entirely in the browser. React + Three.js (WebGL2), 21
-> shader looks, 5 projections, custom GeoJSON, PNG / SVG / WebM / MP4 / GIF
-> export. MIT licensed. WCAG 2.2 AA. NOT a GIS tool — a visual generator that
+> shader looks, 5 flat projections for solid maps (dotted maps use Mercator),
+> custom GeoJSON, PNG / SVG / WebM / MP4 / GIF / JSON export and embeds. MIT
+> licensed. Targets WCAG 2.2 AA. NOT a GIS tool: a visual generator that
 > an AI assistant can drive programmatically.
 
 This is the expanded reference. The short version is at
@@ -94,10 +95,10 @@ URL.
   <https://github.com/alevizio/globestudio/blob/main/README.md#embed-parameters>
 - Integrations (Webflow / Framer / Figma / Notion / WordPress / plain HTML /
   React, per-tool setup): <https://globestudio.app/integrations>
-- WordPress plugin: <https://github.com/alevizio/globestudio/blob/main/wordpress-plugin/globestudio/README.md>
+- WordPress: works via a Custom HTML embed (<https://globestudio.app/integrations>). A block plugin is in the repo, not yet on wordpress.org: <https://github.com/alevizio/globestudio/blob/main/wordpress-plugin/globestudio/README.md>
 - MCP server: <https://github.com/alevizio/globestudio/blob/main/packages/mcp/README.md>
 - JSON Schema: <https://globestudio.app/schema/config.json>
-- React drop-in component: <https://github.com/alevizio/globestudio/blob/main/examples/react-component/Globestudio.tsx>
+- React component (`npm i @globestudio/react`): <https://www.npmjs.com/package/@globestudio/react>
 - Script-tag loader: <https://globestudio.app/embed.js>
 
 ## Constraints to remember

@@ -72,6 +72,9 @@ const BUDGETS = [
   // Looks gallery — lazy /gallery route + co-located CSS.
   { prefix: "gallery-page-",     ext: ".js",  raw:   3_000,  gzip:   1_500, lazy: true },
   { prefix: "gallery-page-",     ext: ".css", raw:   3_500,  gzip:   1_500, lazy: true },
+  // Privacy policy — lazy /privacy route. Its CSS stays in index-*.css with
+  // the other takeover pages, so there is no co-located stylesheet.
+  { prefix: "privacy-page-",     ext: ".js",  raw:   9_000,  gzip:   3_000, lazy: true },
   // Comparison pages — lazy /compare/:slug route + co-located CSS.
   { prefix: "compare-page-",     ext: ".js",  raw:  10_000,  gzip:   3_500, lazy: true },
   { prefix: "compare-page-",     ext: ".css", raw:   3_500,  gzip:   1_500, lazy: true },

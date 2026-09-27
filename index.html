@@ -56,7 +56,7 @@
     <title>Globestudio — Open-Source Dotted Maps and 3D Globes for Designers</title>
     <meta
       name="description"
-      content="Open-source dotted maps and animated 3D globes for designers, animators, and creative developers. Pick any country, customize dots, shapes, gradients, and shader effects, then export PNG, SVG, or WebM. Built with React + Three.js."
+      content="Open-source dotted maps and animated 3D globes for designers. Pick any country, choose from __GS_LOOK_COUNT__ looks, export PNG, SVG, WebM, MP4, GIF, JSON or an embed."
     />
     <meta
       name="keywords"
@@ -79,33 +79,37 @@
          the build swaps og/default.png → og/teaser.png (teaserNoindexPlugin in
          vite.config.js), so links preview as the teaser; at launch it reverts
          to this product card automatically. Keeping default.png here also keeps
-         the JSON-LD/Twitter image consistent through the same swap. -->
-    <meta property="og:image" content="https://globestudio.app/og/default.png" />
+         the JSON-LD/Twitter image consistent through the same swap.
+         ?v=2: X, LinkedIn and Facebook cache cards by URL, so bump it (here and
+         OG_VERSION in src/data/share-cards.js) whenever the og/*.png cards are
+         regenerated. -->
+    <meta property="og:image" content="https://globestudio.app/og/default.png?v=2" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Globestudio — open-source dotted maps and 3D globes for designers." />
+    <meta property="og:image:alt" content="A dotted 3D globe beside the Globestudio headline: Render the world. Halftone. Risograph. Cartography, restyled." />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Globestudio — Open-Source Dotted Maps and 3D Globes" />
     <meta
       name="twitter:description"
-      content="Designer-first dotted maps and animated 3D globes. Gradients, shaders, presets, PNG / SVG / WebM exports. Open source."
+      content="Designer-first dotted maps and animated 3D globes. __GS_LOOK_COUNT__ looks, shader effects, and PNG, SVG, WebM, MP4, GIF, JSON or embed exports. Open source."
     />
-    <meta name="twitter:image" content="https://globestudio.app/og/default.png" />
-    <meta name="twitter:image:alt" content="Globestudio — open-source dotted maps and 3D globes for designers." />
+    <meta name="twitter:image" content="https://globestudio.app/og/default.png?v=2" />
+    <meta name="twitter:image:alt" content="A dotted 3D globe beside the Globestudio headline: Render the world. Halftone. Risograph. Cartography, restyled." />
     <meta name="twitter:creator" content="@alevizio" />
     <meta name="twitter:site" content="@alevizio" />
 
     <link rel="canonical" href="https://globestudio.app/" />
-    <!-- SVG favicon only. The previous PNG fallbacks (favicon-32.png +
-         apple-touch-icon.png) referenced files that no longer ship in
-         /public, so Vercel's SPA rewrite returned index.html for both
-         and browsers fell back to the default icon. SVG is supported
-         everywhere except old iOS Safari, where the brand mark
-         degrades gracefully to the system default. -->
+    <!-- SVG favicon for browsers, plus the two files that crawlers, link
+         unfurlers and iOS request by path whether or not they're linked:
+         /favicon.ico (16/32/48) and /apple-touch-icon.png (180, opaque).
+         Both are built from favicon.svg and must ship in /public, or
+         Vercel's SPA rewrite answers those paths with index.html. -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
     <!-- JSON-LD: SoftwareApplication + WebSite + SoftwareSourceCode -->
@@ -133,9 +137,9 @@
             "browserRequirements": "Requires JavaScript and WebGL 2.",
             "isAccessibleForFree": true,
             "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-            "description": "Designer-first tool for creating dotted maps and animated 3D globes. Pick any country, region, or US state. Customize dot shapes, gradients, and shader effects. Export PNG, SVG, or animated WebM video. Built with React and Three.js. Open source under MIT.",
+            "description": "Designer-first tool for creating dotted maps and animated 3D globes. Pick any country, region, or US state. Customize dot shapes, gradients, and shader effects. Export PNG, SVG, WebM, MP4 or GIF, a JSON config, or an embed. Built with React and Three.js. Open source under MIT.",
             "url": "https://globestudio.app/",
-            "image": "https://globestudio.app/og/default.png",
+            "image": "https://globestudio.app/og/default.png?v=2",
             "softwareVersion": "1.0",
             "license": "https://opensource.org/licenses/MIT",
             "creator": { "@id": "https://globestudio.app/#publisher" },
@@ -155,8 +159,9 @@
               "Shader effects: bloom, chromatic split, CRT, halftone, pixel, threshold, edge, glitch, wave",
               "Animated route arcs and city pulse network",
               "Live animations with prefers-reduced-motion support",
-              "10+ named presets with shareable URLs",
-              "Exports: PNG (high-res), SVG, WebM video, JSON config",
+              "__GS_LOOK_COUNT__ named looks with shareable URLs",
+              "Exports: PNG (high-res), SVG, WebM, MP4 and GIF video, JSON config, embed",
+              "Figma plugin, React component, MCP server, and an iframe or script embed for any site",
               "Full keyboard shortcuts and accessible dialogs"
             ]
           },
@@ -189,7 +194,7 @@
                 "name": "What is Globestudio?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Globestudio is a designer-first, open-source web tool for creating dotted maps and animated 3D globes. Pick any country, region, or US state, customize dot shapes, gradients, and WebGL shader effects, then export as PNG, SVG, WebM video, or shareable JSON config. It runs in the browser with no account or install."
+                  "text": "Globestudio is a designer-first, open-source web tool for creating dotted maps and animated 3D globes. Pick any country, region, or US state, customize dot shapes, gradients, and WebGL shader effects, then export PNG, SVG, WebM, MP4 or GIF, a JSON config, or an embed. It runs in the browser with no account or install."
                 }
               },
               {
@@ -197,7 +202,7 @@
                 "name": "Is Globestudio free to use commercially?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Yes. Globestudio is MIT-licensed, so you can use it commercially without paying. MIT requires you to keep the LICENSE + NOTICE files when redistributing the source or built bundle (NOTICE credits Pixelarticons and the open atlases the tool relies on). The visuals you export — PNG, SVG, WebM, JSON — are yours; no attribution needed on the exports themselves. The whole tool runs client-side in your browser; nothing is sent to a server."
+                  "text": "Yes. Globestudio is MIT-licensed, so you can use it commercially without paying. MIT requires you to keep the LICENSE + NOTICE files when redistributing the source or built bundle (NOTICE credits Pixelarticons and the open atlases the tool relies on). The visuals you export (PNG, SVG, WebM, MP4, GIF, JSON) are yours; no attribution needed on the exports themselves. The whole tool runs client-side in your browser; nothing is sent to a server."
                 }
               },
               {
@@ -205,7 +210,7 @@
                 "name": "How do I export a dotted globe?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Press D or click the Export button to open the export dialog. PNG exports re-render the canvas at any resolution; SVG exports produce vector output for print or further editing; WebM exports record the live animation; JSON exports save the full config so others can reproduce your look."
+                  "text": "Press D or click the Export button to open the export dialog. PNG exports re-render the canvas at up to 4x resolution; SVG exports produce vector output for print or further editing; WebM, MP4 and GIF exports record the live animation; JSON exports save the full config so others can reproduce your look."
                 }
               },
               {
@@ -221,7 +226,7 @@
                 "name": "What design tools does Globestudio integrate with?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Globestudio supports paste-in embed via iframe for Webflow and Framer. Native Framer code component and Figma plugin are on the roadmap. PNG and SVG export means output can be brought into any design tool — Figma, Sketch, Adobe Illustrator, Affinity Designer."
+                  "text": "The Globestudio Figma plugin, in the Figma Community, inserts a globe into your file. For websites, paste the iframe or the one-line script embed into Webflow, Framer or plain HTML, or the embed URL into Notion; it works in WordPress via a Custom HTML embed. React apps can use @globestudio/react, and AI assistants can use the @globestudio/mcp server. PNG and SVG exports drop into any design tool: Figma, Sketch, Adobe Illustrator, Affinity Designer."
                 }
               },
               {
@@ -229,7 +234,7 @@
                 "name": "Can I animate the globe?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Yes. The globe view supports auto-spin, dot rotation, twinkle, size variance, and animated network arcs. WebM export captures the live animation; all motion respects the user's prefers-reduced-motion preference automatically."
+                  "text": "Yes. The globe view supports auto-spin, dot rotation, twinkle, size variance, and animated network arcs. WebM, MP4 and GIF exports capture the live animation; all motion respects the user's prefers-reduced-motion preference automatically."
                 }
               },
               {
@@ -256,25 +261,8 @@
             "name": "Look presets",
             "description": "Visual aesthetics shipped with Globestudio, each with its own shareable URL.",
             "itemListOrder": "Unordered",
-            "numberOfItems": 16,
-            "itemListElement": [
-              { "@type": "ListItem", "position": 1, "url": "https://globestudio.app/looks/default", "name": "Default" },
-              { "@type": "ListItem", "position": 2, "url": "https://globestudio.app/looks/halftone", "name": "Halftone" },
-              { "@type": "ListItem", "position": 3, "url": "https://globestudio.app/looks/risograph", "name": "Risograph" },
-              { "@type": "ListItem", "position": 4, "url": "https://globestudio.app/looks/newsprint", "name": "Newsprint" },
-              { "@type": "ListItem", "position": 5, "url": "https://globestudio.app/looks/aurora", "name": "Aurora" },
-              { "@type": "ListItem", "position": 6, "url": "https://globestudio.app/looks/pixel", "name": "Pixel" },
-              { "@type": "ListItem", "position": 7, "url": "https://globestudio.app/looks/bayer", "name": "Bayer" },
-              { "@type": "ListItem", "position": 8, "url": "https://globestudio.app/looks/iridescent", "name": "Iridescent" },
-              { "@type": "ListItem", "position": 9, "url": "https://globestudio.app/looks/wireframe", "name": "Wireframe" },
-              { "@type": "ListItem", "position": 10, "url": "https://globestudio.app/looks/crt", "name": "CRT" },
-              { "@type": "ListItem", "position": 11, "url": "https://globestudio.app/looks/glitch", "name": "Glitch" },
-              { "@type": "ListItem", "position": 12, "url": "https://globestudio.app/looks/badtv", "name": "Bad TV" },
-              { "@type": "ListItem", "position": 13, "url": "https://globestudio.app/looks/bloom", "name": "Bloom" },
-              { "@type": "ListItem", "position": 14, "url": "https://globestudio.app/looks/metal", "name": "Metal" },
-              { "@type": "ListItem", "position": 15, "url": "https://globestudio.app/looks/pencil", "name": "Pencil" },
-              { "@type": "ListItem", "position": 16, "url": "https://globestudio.app/looks/corrupt", "name": "Corrupt" }
-            ]
+            "numberOfItems": "__GS_LOOK_COUNT__",
+            "itemListElement": "__GS_LOOKS_ITEMLIST__"
           }
         ]
       }
@@ -367,8 +355,9 @@
             <strong>Open-source dotted maps and animated 3D globes for designers, animators, and creative developers.</strong>
           </p>
           <p style="font-size: 16px; line-height: 1.6; color: #aaa; margin: 0 0 16px;">
-            Pick any country or the whole world, customize dot shapes and gradients, apply shader effects
-            (bloom, chromatic, glitch, CRT, halftone, more), and export PNG, SVG, or animated WebM video.
+            Pick any country or the whole world, choose from __GS_LOOK_COUNT__ looks, customize dot shapes and gradients,
+            apply shader effects (bloom, chromatic, glitch, CRT, halftone, more), and export PNG, SVG,
+            WebM, MP4, GIF, a JSON config, or an embed.
             Built with React + Three.js. MIT licensed.
           </p>
           <p style="font-size: 16px; line-height: 1.6; color: #aaa; margin: 0 0 16px;">

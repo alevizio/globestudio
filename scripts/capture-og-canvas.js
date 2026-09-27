@@ -17,6 +17,12 @@
 //
 // Or to regenerate just one preset:
 //   node scripts/capture-og-canvas.js halftone
+//
+// Afterwards, compress each card under 300 KB (src/site-facts.test.js checks)
+// and bump the ?v= cache-buster in index.html and OG_VERSION in
+// src/data/share-cards.js. The cards in the repo went through ffmpeg's
+// palettegen + paletteuse to an 8-bit palette: 256 colors where that fits,
+// fewer only for the noisiest looks.
 
 import { chromium } from "playwright";
 import { writeFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
@@ -161,11 +167,11 @@ const buildOverlay = ({ headlines, accent, url }) => {
   <g transform="translate(72 480)" font-family="'Press Start 2P', ui-monospace, Menlo, monospace" font-size="12" fill="#a8a39b">
     <g transform="translate(0 0)">
       <svg x="0" y="-12" width="16" height="16" viewBox="0 0 24 24" color="#a8a39b">${DOWNLOAD_ICON}</svg>
-      <text x="24" y="0">PNG / SVG / WebM</text>
+      <text x="24" y="0">PNG / SVG / WebM / MP4 / GIF</text>
     </g>
     <g transform="translate(280 0)">
       <svg x="0" y="-12" width="16" height="16" viewBox="0 0 24 24" color="#a8a39b">${KEYBOARD_ICON}</svg>
-      <text x="24" y="0">21 presets</text>
+      <text x="24" y="0">${lookPresets.length} looks</text>
     </g>
   </g>
 
@@ -199,8 +205,12 @@ const main = async () => {
   });
   const page = await context.newPage();
 
+  // "default" is skipped: og/default.png is the home product card from
+  // generate-og-default.js ("Render the world."), which / and every static
+  // route share. Capturing the Default look over it put a "Default / Clean
+  // cartography" card with a /looks/default URL on the home page.
   const presets = lookPresets.filter(
-    (p) => argFilter.length === 0 || argFilter.includes(p.id),
+    (p) => p.id !== "default" && (argFilter.length === 0 || argFilter.includes(p.id)),
   );
 
   for (const preset of presets) {
@@ -262,10 +272,6 @@ const main = async () => {
 
     const outPath = resolve(outputDir, `${preset.id}.png`);
     writeFileSync(outPath, composedPng);
-    // Also overwrite default.png when the "default" preset is captured.
-    if (preset.id === "default") {
-      writeFileSync(resolve(outputDir, "default.png"), composedPng);
-    }
     console.log(`  wrote ${outPath} (${composedPng.length} bytes)`);
   }
 

@@ -6,7 +6,18 @@
     <atom:link href="https://globestudio.app/changelog.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped work in Globestudio — new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 01 Jun 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 29 Sep 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Launch</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#launch</guid>
+      <pubDate>Tue, 29 Sep 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Globestudio opens to everyone, no waitlist: 21 looks, PNG, SVG, WebM, MP4 and GIF export, JSON configs and embeds, free and MIT licensed</li>
+  <li>@globestudio/element on npm: &lt;globe-studio&gt;, a framework-free web component</li>
+  <li>Fresh share cards for every look, and /privacy covers the launch waitlist</li>
+</ul>]]></description>
+    </item>
     <item>
       <title>Launch hardening</title>
       <link>https://globestudio.app/changelog</link>
@@ -42,7 +53,6 @@
       <description><![CDATA[<ul>
   <li>@globestudio/mcp on npm — MCP server so AI assistants can generate globes, share URLs, and embed snippets</li>
   <li>@globestudio/react — drop-in &lt;Globe /&gt; component for React apps, zero deps, SSR-friendly</li>
-  <li>@globestudio/element — framework-free web component</li>
   <li>embed.js — one script tag + a div embeds a globe in Webflow, Squarespace, or plain HTML</li>
   <li>WordPress plugin — Gutenberg block + [globestudio] shortcode, wordpress.org submission prepped</li>
   <li>Figma plugin live in the Community — insert globes as editable vectors</li>
@@ -58,7 +68,7 @@
   <li>Two new presets — Vapor (synthwave) and Topographic (contour rings) — the catalog hits 21 looks</li>
   <li>Animated GIF and MP4 export join WebM</li>
   <li>/gallery — a static index of every built-in look</li>
-  <li>/examples — six full-screen brand showcases with copy-paste HTML</li>
+  <li>/examples: four full-screen hero showcases</li>
 </ul>]]></description>
     </item>
     <item>

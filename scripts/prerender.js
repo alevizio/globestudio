@@ -18,6 +18,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lookPresets } from "../src/data/look-presets.js";
 import { comparisons } from "../src/data/comparisons.js";
+import { PRODUCT_CARD_ALT, lookCardAlt, shareCardUrl } from "../src/data/share-cards.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const distDir = resolve(dir, "../dist");
@@ -50,7 +51,7 @@ const swap = (html, regex, replacement) => {
   return [next, hit];
 };
 
-const buildHead = (html, { title, description, url, image }) => {
+const buildHead = (html, { title, description, url, image, imageAlt }) => {
   let misses = 0;
   const apply = (re, rep) => {
     const [next, hit] = swap(html, re, rep);
@@ -70,10 +71,18 @@ const buildHead = (html, { title, description, url, image }) => {
   inject(/(<meta\s+property="og:description"\s+content=")[^"]*(")/, esc(description));
   inject(/(<meta\s+property="og:url"\s+content=")[^"]*(")/, url);
   inject(/(<meta\s+name="twitter:title"\s+content=")[^"]*(")/, esc(title));
+  inject(/(<meta\s+name="twitter:description"\s+content=")[^"]*(")/, esc(description));
   inject(/(<link\s+rel="canonical"\s+href=")[^"]*(")/, url);
   if (image) {
     inject(/(<meta\s+property="og:image"\s+content=")[^"]*(")/, image);
     inject(/(<meta\s+name="twitter:image"\s+content=")[^"]*(")/, image);
+  }
+  // Alt text follows the image: set whenever the image is. Routes that keep
+  // the template's image (gallery, static pages, every teaser-mode fallback)
+  // keep its alt too, which the teaser build swaps along with the image.
+  if (imageAlt) {
+    inject(/(<meta\s+property="og:image:alt"\s+content=")[^"]*(")/, esc(imageAlt));
+    inject(/(<meta\s+name="twitter:image:alt"\s+content=")[^"]*(")/, esc(imageAlt));
   }
   return [html, misses];
 };
@@ -106,13 +115,17 @@ for (const preset of lookPresets) {
   const id = preset.id;
   const name = preset.name || id;
   const image = existsSync(resolve(distDir, "og", `${id}.png`))
-    ? `${SITE}/og/${id}.png`
+    ? shareCardUrl(id)
     : null; // fall back to the default og:image already in the template
   totalMisses += writeRoute(`looks/${id}`, {
     title: `${name} — dotted map & 3D globe look · Globestudio`,
-    description: `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, or GIF. Free and open source.`,
+    description: `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free and open source.`,
     url: `${SITE}/looks/${id}`,
     image,
+    // og/default.png is the home product card, not a Default-look card, so
+    // lookCardAlt describes it as such. Set even in teaser mode, where the
+    // template alt describes the teaser card instead.
+    imageAlt: image ? lookCardAlt(preset) : null,
   });
   count += 1;
 }
@@ -123,7 +136,7 @@ for (const preset of lookPresets) {
 // Set explicitly (not via template fallback) so the card survives template
 // drift; in teaser mode the template already swapped in og/teaser.png
 // (teaserNoindexPlugin), so leave the fallback to keep that card.
-const productCard = TEASER ? null : `${SITE}/og/default.png`;
+const productCard = TEASER ? null : shareCardUrl("default");
 
 for (const c of Object.values(comparisons)) {
   totalMisses += writeRoute(`compare/${c.slug}`, {
@@ -131,6 +144,7 @@ for (const c of Object.values(comparisons)) {
     description: c.metaDescription,
     url: `${SITE}/compare/${c.slug}`,
     image: productCard,
+    imageAlt: productCard ? PRODUCT_CARD_ALT : null,
   });
   count += 1;
 }
@@ -138,7 +152,7 @@ for (const c of Object.values(comparisons)) {
 totalMisses += writeRoute("gallery", {
   title: "Looks gallery — dotted map & 3D globe styles · Globestudio",
   description:
-    "Browse every built-in Globestudio look. Open one to generate a dotted map or animated 3D globe and export PNG, SVG, WebM, MP4, or GIF. Free, open source.",
+    "Browse every built-in Globestudio look. Open one to generate a dotted map or animated 3D globe and export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free, open source.",
   url: `${SITE}/gallery`,
   image: null,
 });
@@ -166,7 +180,7 @@ const staticRoutes = [
     route: "examples",
     title: "Examples — Globestudio",
     description:
-      "Real-world examples of Globestudio in product marketing — Pachama, Vercel, Profound, Linear, Stripe, Earthscale. Six full-screen hero showcases plus card and stat patterns. Copy-paste HTML.",
+      "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style product heroes to a retro game screen and a newspaper front page.",
   },
   {
     route: "brand",

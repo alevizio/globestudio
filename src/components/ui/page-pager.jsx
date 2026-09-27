@@ -8,11 +8,13 @@ import {
   LayoutGrid,
   Share2,
 } from "../icons.jsx";
+import { TakeoverFooter } from "../takeover-footer.jsx";
 
 // Bottom-of-page prev/next navigation across the takeover pages.
 // Order mirrors the top nav: Docs → Changelog → Press kit → Privacy.
-// Replaces the old TakeoverFooter so visitors are nudged to the
-// next surface instead of hunting through a list of links.
+// The prev/next cards nudge visitors to the next surface; the slim
+// TakeoverFooter under them carries the links the top nav doesn't
+// (gallery, compare pages, license).
 //
 // On the first page, prev is empty; on the last, next links back to
 // the canvas. Reads window.location.pathname at mount to figure out
@@ -48,6 +50,7 @@ export const PagePager = () => {
   const next = index < PAGES.length - 1 ? PAGES[index + 1] : HOME;
 
   return (
+    <>
     <nav className="page-pager" aria-label="Pages">
       {prev ? (
         <a className="page-pager-link page-pager-prev" href={prev.href}>
@@ -68,5 +71,7 @@ export const PagePager = () => {
         </span>
       </a>
     </nav>
+    <TakeoverFooter />
+    </>
   );
 };

@@ -3,6 +3,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { injectSiteFacts } from "./scripts/site-facts.js";
+import { swapInTeaserCard } from "./src/data/share-cards.js";
 
 const projectDir = dirname(fileURLToPath(import.meta.url));
 
@@ -58,9 +60,17 @@ const teaserNoindexPlugin = () => ({
     if (process.env.VITE_TEASER !== "1") return html;
     // The index IS the coming-soon teaser, so the share card should be the
     // teaser OG (the hero CRT globe), not the default preset card. Swaps
-    // og:image + twitter:image; reverts once VITE_TEASER=0 (1 = teaser).
-    return html.replace(/og\/default\.png/g, "og/teaser.png");
+    // og:image + twitter:image and their alt text; reverts once
+    // VITE_TEASER=0 (1 = teaser).
+    return swapInTeaserCard(html);
   },
+});
+
+// Look count + JSON-LD ItemList in index.html come from lookPresets
+// (scripts/site-facts.js), so adding a look updates the home <head> too.
+const siteFactsPlugin = () => ({
+  name: "site-facts",
+  transformIndexHtml: injectSiteFacts,
 });
 
 const slimCountriesPlugin = () => {
@@ -85,7 +95,7 @@ export default defineConfig({
   // lib through a lazy chunk. Pre-bundle it so the first teaser load doesn't
   // 504 on an on-demand optimize-dep re-run.
   optimizeDeps: { include: ["@paper-design/shaders-react"] },
-  plugins: [react(), slimCountriesPlugin(), teaserNoindexPlugin()],
+  plugins: [react(), slimCountriesPlugin(), siteFactsPlugin(), teaserNoindexPlugin()],
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.{js,jsx}"],

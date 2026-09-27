@@ -1782,9 +1782,9 @@ const StripeShowcase = () => {
     style={{
       background: "#FFFFFF",
       color: "#0d253d",
-      // Söhne web font (licensed — see public/showcase-fonts/) with Inter as
-      // the fallback while it loads / if it fails.
-      fontFamily: '"Sohne Local", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
+      // Inter (loaded by ShowcaseStack) stands in for Stripe's Söhne, which
+      // this MIT repo can't redistribute.
+      fontFamily: '"Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
       position: "relative",
       overflow: "hidden",
       display: "flex",
@@ -1792,7 +1792,6 @@ const StripeShowcase = () => {
       borderBottom: "1px solid rgba(10,37,64,0.1)",
     }}
   >
-    <style>{`@font-face{font-family:"Sohne Local";src:url("/showcase-fonts/sohne.woff2") format("woff2");font-weight:100 800;font-style:normal;font-display:swap;}`}</style>
     {/* Background gradient removed — the globe is the hero visual now. */}
     {/* Vertical container rules — frame the hero at the edges of the nav's
         container width. They start at the nav's bottom hairline (not the
@@ -1993,37 +1992,27 @@ const StripeShowcase = () => {
         <div className="stripe-logo-marquee">
           <div className="stripe-logo-marquee-track">
             {(() => {
+              // Made-up brands as type-only wordmarks: real customer logos
+              // here would read as those companies endorsing Globestudio.
               const logos = [
-                { name: "Vercel", file: "vercel.svg", weight: 600, h: 32 },
-                { name: "Uber", file: "uber.svg", weight: 700, h: 30 },
-                { name: "Anthropic", file: "anthropic.svg", weight: 500, tracking: "0.02em", h: 28 },
-                { name: "Lightspeed", file: "lightspeed.svg", weight: 600, h: 32 },
-                { name: "Cursor", file: "cursor.svg", weight: 600, tracking: "0.04em", h: 30 },
-                { name: "OpenAI", file: "openai.svg", weight: 500, h: 32 },
-                { name: "amazon", file: "amazon.svg", weight: 700, h: 36 },
-                { name: "NVIDIA", file: "nvidia.svg", weight: 700, tracking: "0.02em", h: 32 },
+                { name: "Mossgrove", weight: 600 },
+                { name: "KITEFIELD", weight: 700, tracking: "0.12em", size: 22 },
+                { name: "quillon", weight: 500, tracking: "-0.03em" },
+                { name: "Driftline", weight: 400, tracking: "0.02em" },
+                { name: "Ferrowave", weight: 700, tracking: "-0.02em" },
+                { name: "LANTERNFISH", weight: 500, tracking: "0.16em", size: 20 },
+                { name: "Oakhollow", weight: 600 },
+                { name: "brisa&co", weight: 700, tracking: "-0.04em" },
               ];
-              return [...logos, ...logos].map((l, i) => {
-                const hidden = i >= logos.length;
-                return (
-                  <img
-                    key={l.name + i}
-                    src={`/showcase-logos/${l.file}`}
-                    alt={hidden ? "" : l.name}
-                    aria-hidden={hidden ? "true" : undefined}
-                    style={{ height: l.h, width: "auto", display: "block", flexShrink: 0 }}
-                    // If a logo asset is ever missing, fall back to the
-                    // styled text wordmark instead of a broken image.
-                    onError={(e) => {
-                      const span = document.createElement("span");
-                      span.textContent = l.name;
-                      span.style.cssText = `font-family:"Inter",system-ui,sans-serif;font-weight:${l.weight};letter-spacing:${l.tracking || "-0.01em"};font-size:27px;color:#697386;white-space:nowrap;`;
-                      if (hidden) span.setAttribute("aria-hidden", "true");
-                      e.currentTarget.replaceWith(span);
-                    }}
-                  />
-                );
-              });
+              return [...logos, ...logos].map((l, i) => (
+                <span
+                  key={l.name + i}
+                  aria-hidden={i >= logos.length ? "true" : undefined}
+                  style={{ fontFamily: '"Inter", system-ui, sans-serif', fontWeight: l.weight, letterSpacing: l.tracking || "-0.01em", fontSize: l.size || 27, lineHeight: 1, color: "#697386", whiteSpace: "nowrap", flexShrink: 0 }}
+                >
+                  {l.name}
+                </span>
+              ));
             })()}
           </div>
         </div>
@@ -2527,7 +2516,7 @@ export const ExamplesPage = () => {
     };
     setMeta(
       'meta[name="description"]',
-      "Real-world examples of Globestudio in product marketing — Pachama, Vercel, Profound, Linear, Stripe, Earthscale. Six full-screen hero showcases plus card and stat patterns. Copy-paste HTML.",
+      "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style product heroes to a retro game screen and a newspaper front page.",
     );
   }, []);
 
@@ -2547,9 +2536,8 @@ export const ExamplesPage = () => {
           </a>
           <h1 className="examples-hero-title">Real-world examples</h1>
           <p className="examples-hero-lede">
-            Six hero showcases in the actual palette + voice of six products
-            you already know — Pachama, Vercel, Profound, Linear, Stripe,
-            Earthscale. Then cards. Then stats. Steal any of it.
+            Four hero showcases: Stripe and Vercel style product heroes, a
+            retro game screen, and a newspaper front page. Steal any of it.
           </p>
         </header>
 

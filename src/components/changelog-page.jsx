@@ -16,6 +16,15 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 
 const ENTRIES = [
   {
+    label: "Launch",
+    date: "29 September 2026",
+    items: [
+      "Globestudio opens to everyone, no waitlist: 21 looks, PNG, SVG, WebM, MP4 and GIF export, JSON configs and embeds, free and MIT licensed",
+      "@globestudio/element on npm: <globe-studio>, a framework-free web component",
+      "Fresh share cards for every look, and /privacy covers the launch waitlist",
+    ],
+  },
+  {
     label: "Launch hardening",
     date: "June 2026",
     items: [
@@ -44,7 +53,6 @@ const ENTRIES = [
     items: [
       "@globestudio/mcp on npm — MCP server so AI assistants can generate globes, share URLs, and embed snippets",
       "@globestudio/react — drop-in <Globe /> component for React apps, zero deps, SSR-friendly",
-      "@globestudio/element — framework-free web component",
       "embed.js — one script tag + a div embeds a globe in Webflow, Squarespace, or plain HTML",
       "WordPress plugin — Gutenberg block + [globestudio] shortcode, wordpress.org submission prepped",
       "Figma plugin live in the Community — insert globes as editable vectors",
@@ -58,7 +66,7 @@ const ENTRIES = [
       "Two new presets — Vapor (synthwave) and Topographic (contour rings) — the catalog hits 21 looks",
       "Animated GIF and MP4 export join WebM",
       "/gallery — a static index of every built-in look",
-      "/examples — six full-screen brand showcases with copy-paste HTML",
+      "/examples: four full-screen hero showcases",
     ],
   },
   {

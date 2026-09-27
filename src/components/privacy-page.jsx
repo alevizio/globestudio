@@ -83,7 +83,7 @@ export const PrivacyPage = () => {
         </p>
         <ul className="privacy-list">
           <li><Plus size={12} aria-hidden="true" /><span><code>preset_applied</code> — which preset was selected</span></li>
-          <li><Plus size={12} aria-hidden="true" /><span><code>export_started</code> / <code>export_completed</code> — what format you exported (PNG, SVG, WebM)</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span><code>export_completed</code>: the format you saved (PNG, SVG, WebM, MP4 or GIF), the look, and the PNG scale or video length</span></li>
           <li><Plus size={12} aria-hidden="true" /><span><code>share_clicked</code> — that a share happened (not where)</span></li>
           <li><Plus size={12} aria-hidden="true" /><span><code>client_error</code>: which part of the app broke and a short error message, so we can fix it</span></li>
         </ul>
@@ -102,6 +102,22 @@ export const PrivacyPage = () => {
       </section>
 
       <section className="privacy-section" >
+        <SectionHeading id="waitlist" className="privacy-section-title">
+          Launch waitlist
+        </SectionHeading>
+        <p>
+          Before launch this site was a waitlist. If you joined it, we
+          stored your email address and signup time in private Vercel Blob
+          storage, and the launch email goes out through Resend. We use it
+          for that one email only, never share or sell it, and delete the
+          list after launch week. To be removed sooner, use the unsubscribe
+          link in the email or message @alevizio on X. The waitlist page also
+          counted <code>waitlist_signup</code> and{" "}
+          <code>waitlist_duplicate</code> events, without the address.
+        </p>
+      </section>
+
+      <section className="privacy-section" >
         <SectionHeading
           id="what-we-dont-collect"
           className="privacy-section-title"
@@ -111,11 +127,23 @@ export const PrivacyPage = () => {
         <ul className="privacy-list">
           <li><Plus size={12} aria-hidden="true" /><span>No cookies</span></li>
           <li><Plus size={12} aria-hidden="true" /><span>No fingerprinting</span></li>
-          <li><Plus size={12} aria-hidden="true" /><span>No personal data — your IP is hashed and discarded at Vercel's edge</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span>No personal data: your IP is hashed and discarded at Vercel's edge. The one exception is the launch waitlist, above.</span></li>
           <li><Plus size={12} aria-hidden="true" /><span>No third-party advertisers</span></li>
           <li><Plus size={12} aria-hidden="true" /><span>No session replay</span></li>
           <li><Plus size={12} aria-hidden="true" /><span>No cross-site tracking</span></li>
         </ul>
+      </section>
+
+      <section className="privacy-section" >
+        <SectionHeading id="fonts" className="privacy-section-title">
+          Fonts and avatar
+        </SectionHeading>
+        <p>
+          Pages load fonts from Google Fonts and jsDelivr, and the About
+          dialog loads a GitHub avatar. Like any web request, those
+          services see your IP address and browser. They never see what
+          you make.
+        </p>
       </section>
 
       <section className="privacy-section" >
