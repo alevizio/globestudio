@@ -3,7 +3,14 @@ import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import { EmbedView } from "./components/embed-view.jsx";
 import { consoleGreeting } from "./utils/console-greeting.js";
+import { reloadOnceOnPreloadError } from "./utils/preload-recovery.js";
 import "./styles.css";
+
+// A lazy chunk from the previous deploy is gone: reload once to pick up the
+// current build (see preload-recovery.js).
+if (typeof window !== "undefined") {
+  window.addEventListener("vite:preloadError", () => reloadOnceOnPreloadError());
+}
 
 // Embed mode — when the path starts with /embed, render a stripped view with
 // just the canvas, no chrome. Driven by query-string params. The full app
