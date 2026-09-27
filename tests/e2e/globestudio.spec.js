@@ -46,7 +46,7 @@ const expectNoSeriousAxeViolations = async (page) => {
 test("home renders the globe canvas", async ({ page }) => {
   await page.goto("/");
   await waitForCanvas(page);
-  await expect(page.getByRole("heading", { name: /dotted maps and globe generator/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /free dotted map and 3D globe generator/i })).toBeVisible();
 });
 
 test("preset routes apply the requested look", async ({ page }) => {

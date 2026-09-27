@@ -1379,7 +1379,7 @@ const App = () => {
           so keyboard users don't have to tab through chrome to reach the
           globe. WCAG 2.4.1 Bypass Blocks (Level A). */}
       <a href="#globe-canvas" className="skip-link">Skip to globe</a>
-      <h1 className="visually-hidden">Globestudio — dotted maps and globe generator</h1>
+      <h1 className="visually-hidden">Free dotted map and 3D globe generator: export PNG, SVG, WebM, MP4, GIF or an embed, no watermark</h1>
       <div className="visually-hidden" role="status" aria-live="polite">{statusMessage}</div>
       {/* Persistent screen-reader description of canvas state. The existing
           aria-live status above narrates *changes*; this proxy gives
