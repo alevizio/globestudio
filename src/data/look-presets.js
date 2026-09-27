@@ -259,7 +259,7 @@ export const lookPresets = [
   {
     id: "metal",
     name: "Metal",
-    blurb: "Liquid chrome, soft refl",
+    blurb: "Liquid chrome, soft reflections",
     settings: merge({
       background: "#08080e",
       density: 70,
