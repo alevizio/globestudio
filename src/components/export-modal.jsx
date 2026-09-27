@@ -264,6 +264,11 @@ export const ExportModal = ({
   };
   const fileInputRef = useRef(null);
   const dialogRef = useRef(null);
+  const [importFailed, setImportFailed] = useState(false);
+  // A failed import from an earlier visit shouldn't greet the next one.
+  useEffect(() => {
+    if (!open) setImportFailed(false);
+  }, [open]);
 
   const baseDims = useMemo(() => {
     const baseW = Math.max(1, canvasWidth || 1);
@@ -318,19 +323,28 @@ export const ExportModal = ({
     exportVideo?.({ fps, durationMs: videoSeconds * 1000, format: videoFormat });
   };
 
+  // Malformed JSON, or JSON with nothing usable in it (importConfig returns
+  // false), shows a message by the drop zone instead of failing silently.
+  const importFile = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      let parsed;
+      try {
+        parsed = JSON.parse(String(e.target?.result || "{}"));
+      } catch (error) {
+        console.warn("Failed to import config", error);
+        setImportFailed(true);
+        return;
+      }
+      setImportFailed(importConfig?.(parsed) === false);
+    };
+    reader.readAsText(file);
+  };
+
   const handleFileImport = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const parsed = JSON.parse(String(e.target?.result || "{}"));
-        importConfig?.(parsed);
-      } catch (error) {
-        console.warn("Failed to import config", error);
-      }
-    };
-    reader.readAsText(file);
+    importFile(file);
     event.target.value = "";
   };
 
@@ -338,16 +352,7 @@ export const ExportModal = ({
     event.preventDefault();
     const file = event.dataTransfer?.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const parsed = JSON.parse(String(e.target?.result || "{}"));
-        importConfig?.(parsed);
-      } catch (error) {
-        console.warn("Failed to import config", error);
-      }
-    };
-    reader.readAsText(file);
+    importFile(file);
   };
 
   const isRecording = videoStatus === "recording";
@@ -551,6 +556,11 @@ export const ExportModal = ({
                   onChange={handleFileImport}
                 />
               </div>
+              {importFailed && (
+                <p className="export-modal-error" role="alert">
+                  That file isn't a Globestudio configuration. Choose a .json file exported from this tab.
+                </p>
+              )}
             </>
           )}
         </div>

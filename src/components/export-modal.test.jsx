@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ExportModal } from "./export-modal.jsx";
 
 beforeAll(() => {
@@ -74,5 +74,36 @@ describe("ExportModal", () => {
     expect(screen.getByRole("alert").textContent).toMatch(/Export failed/);
     // The button stays usable so the user can retry.
     expect(screen.getByRole("button", { name: /Export WebM/ }).disabled).toBe(false);
+  });
+
+  describe("importing a configuration file", () => {
+    const importText = (container, text) => {
+      fireEvent.click(screen.getByRole("tab", { name: "Share" }));
+      const input = container.querySelector('input[type="file"]');
+      fireEvent.change(input, { target: { files: [new File([text], "config.json", { type: "application/json" })] } });
+    };
+
+    it("says so when the file isn't valid JSON", async () => {
+      const importConfig = vi.fn();
+      const { container } = renderModal({ importConfig });
+      importText(container, "{not json");
+      expect((await screen.findByRole("alert")).textContent).toMatch(/isn't a Globestudio configuration/);
+      expect(importConfig).not.toHaveBeenCalled();
+    });
+
+    it("says so when the JSON holds nothing the app can use", async () => {
+      const importConfig = vi.fn(() => false);
+      const { container } = renderModal({ importConfig });
+      importText(container, '{"hello":"world"}');
+      expect((await screen.findByRole("alert")).textContent).toMatch(/isn't a Globestudio configuration/);
+    });
+
+    it("stays quiet when the import is applied", async () => {
+      const importConfig = vi.fn(() => true);
+      const { container } = renderModal({ importConfig });
+      importText(container, '{"density":60}');
+      await waitFor(() => expect(importConfig).toHaveBeenCalledWith({ density: 60 }));
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
   });
 });

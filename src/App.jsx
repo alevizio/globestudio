@@ -988,11 +988,13 @@ const App = () => {
     [buildCurrentConfig],
   );
 
+  // Returns whether anything was applied, so the export dialog can say
+  // when a file wasn't a usable configuration.
   const importConfig = (config) => {
     const safeConfig = normalizeConfig(config);
     if (!safeConfig) {
       setStatusMessage("Configuration could not be imported");
-      return;
+      return false;
     }
     const set = (key, setter) => {
       if (safeConfig[key] !== undefined) setter(safeConfig[key]);
@@ -1038,6 +1040,7 @@ const App = () => {
     if (safeConfig.spaceSettings) setSpaceSettings((current) => ({ ...current, ...safeConfig.spaceSettings }));
     if (safeConfig.flowSettings) setFlowSettings((current) => ({ ...current, ...safeConfig.flowSettings }));
     setStatusMessage("Configuration imported");
+    return true;
   };
 
   // Declared here (not at the top of the component body) so `importConfig`
