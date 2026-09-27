@@ -21,7 +21,7 @@ export const presetSeo = {
   default: {
     targetKeyword: "dotted map generator",
     metaDescription:
-      "Clean dotted map and 3D globe generator. White dots on dark background, smooth rotation, no shader effects. Export PNG, SVG, or WebM.",
+      "Clean dotted map and 3D globe generator. White dots on dark background, smooth rotation, no shader effects. Export PNG, SVG, WebM, MP4 or GIF.",
     longDescription:
       "The Default look is the unstyled starting point — white dots arranged across the world map, rotating gently on a dark background. No shader effects, no overlays, no print aesthetics. It reads as a neutral piece of geographic data visualization rather than a styled treatment, which is why it works as the safe default for landing pages, headers, and decks where the dotted globe is supporting the story rather than being the story. Tweak density, dot shape, and color from here to find your own variation, or use it as-is for a clean motion-design moment that respects the rest of your composition.",
     useCases: [
@@ -81,7 +81,7 @@ export const presetSeo = {
   pixel: {
     targetKeyword: "pixel art dotted globe",
     metaDescription:
-      "Pixel-art dotted globe generator — 8-bit blocky pixelation with chunky square dots. Indie game aesthetic, exportable as PNG or animated WebM.",
+      "Pixel-art dotted globe generator — 8-bit blocky pixelation with chunky square dots. Indie game aesthetic, exportable as PNG or animated WebM, MP4 or GIF.",
     longDescription:
       "Pixel is the 8-bit treatment — chunky square dots arranged at a coarse grid, evoking the look of early arcade games, indie pixel-art studios, and early-90s software UI. Density and dotSize together control the pixelation scale: lower density with larger dotSize produces the iconic NES-style chunky map, while higher density approaches a Game Boy resolution. Square dot shape is locked in to maintain the aesthetic. Pair Pixel with the country selection to build per-market splash screens for indie games, retro-themed marketing pages, or any product that wants to lean into 8-bit nostalgia without committing to a full pixel-art design system.",
     useCases: [
@@ -153,7 +153,7 @@ export const presetSeo = {
   badtv: {
     targetKeyword: "vhs analog distortion globe",
     metaDescription:
-      "Bad TV dotted globe with VHS analog distortion, grain, and motion roll. Retro-tape aesthetic. Export PNG, SVG, or WebM.",
+      "Bad TV dotted globe with VHS analog distortion, grain, and motion roll. Retro-tape aesthetic. Export PNG, SVG, WebM, MP4 or GIF.",
     longDescription:
       "Bad TV simulates the look of a worn-out VHS tape — heavy analog grain, soft motion roll, channel ghosting, and the kind of color shift you'd see when the heads need cleaning. It's a related but distinct aesthetic from CRT (which is about the display) and Glitch (which is about digital corruption) — Bad TV is about the tape itself. grain controls noise density, motion controls roll speed. The preset pairs well with the country selection for retro tourism-board pastiches, mockumentary openers, and any project where the design wants to feel like it was rescued from an attic of unmarked cassettes.",
     useCases: [

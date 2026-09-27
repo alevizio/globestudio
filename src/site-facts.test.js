@@ -15,6 +15,14 @@ const jsonLd = JSON.parse(
   html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1],
 );
 const graphNode = (type) => jsonLd["@graph"].find((node) => node["@type"] === type);
+const metaContent = (attr, name) =>
+  html.match(new RegExp(`<meta\\s+${attr}="${name}"\\s+content="([^"]*)"`))[1];
+const noscriptText = html.match(/<noscript>([\s\S]*?)<\/noscript>/)[1].replace(/\s+/g, " ");
+const manifest = JSON.parse(read("public/manifest.webmanifest"));
+
+// The one set of product facts every public surface states.
+const FORMATS = ["PNG", "SVG", "WebM", "MP4", "GIF", "JSON", "embed"];
+const LOOKS = `${lookPresets.length} looks`;
 
 describe("index.html site facts", () => {
   it("fills every placeholder", () => {
@@ -32,5 +40,26 @@ describe("index.html site facts", () => {
         name: preset.name,
       })),
     );
+  });
+
+  it("keeps the meta description short enough for a search snippet", () => {
+    expect(metaContent("name", "description").length).toBeLessThanOrEqual(155);
+  });
+
+  it.each([
+    ["meta description", () => metaContent("name", "description")],
+    ["twitter:description", () => metaContent("name", "twitter:description")],
+    ["noscript", () => noscriptText],
+    ["manifest", () => manifest.description],
+  ])("%s names every export format and the look count", (_, text) => {
+    for (const fact of [...FORMATS, LOOKS]) expect(text()).toContain(fact);
+  });
+
+  it("drops the stale claims", () => {
+    const app = graphNode("SoftwareApplication");
+    expect(app.featureList).toContain(`${lookPresets.length} named looks with shareable URLs`);
+    for (const text of [html, JSON.stringify(manifest)]) {
+      expect(text).not.toMatch(/10\+ named presets|on the roadmap|PNG, SVG, or (animated )?WebM|PNG \/ SVG \/ WebM exports/);
+    }
   });
 });

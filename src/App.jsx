@@ -738,7 +738,7 @@ const App = () => {
       // Restore the homepage SEO + share metadata (mirrors the applyLook block
       // above). Keeps link previews accurate when users navigate back to root.
       const homeTitle = "Globestudio — Open-Source Dotted Maps and 3D Globes for Designers";
-      const homeDescription = "Designer-first tool for dotted maps and animated 3D globes. Pick any country, region, or US state. Customize shapes, gradients, shader effects. Export PNG, SVG, WebM. Open source under MIT.";
+      const homeDescription = "Designer-first tool for dotted maps and animated 3D globes. Pick any country, region, or US state. Customize shapes, gradients, shader effects. Export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Open source under MIT.";
       const homeImage = "https://globestudio.app/og/default.png";
       document.title = homeTitle;
       const setMeta = (selector, content) => {

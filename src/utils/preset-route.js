@@ -51,7 +51,7 @@ export const updatePresetRoute = (preset) => {
   const title = `${preset.name} — Globestudio dotted globe`;
   const seo = getPresetSeo(preset.id);
   const description = seo?.metaDescription
-    || `${preset.blurb}. Generate dotted maps and animated 3D globes with the ${preset.name} preset. Export as PNG, SVG, or WebM.`;
+    || `${preset.blurb}. Generate dotted maps and animated 3D globes with the ${preset.name} preset. Export PNG, SVG, WebM, MP4, GIF, JSON or an embed.`;
   const absoluteUrl = `https://globestudio.app/looks/${preset.id}`;
   const previewImage = `https://globestudio.app/og/${preset.id}.png`;
 
