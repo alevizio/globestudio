@@ -102,3 +102,16 @@ describe("share cards", () => {
     expect(graphNode("SoftwareApplication").image).toBe(card);
   });
 });
+
+describe("icons", () => {
+  // Crawlers, link unfurlers and iOS request these paths even when no tag
+  // links them; without the files the SPA rewrite answers with index.html.
+  it("ships favicon.ico and a 180px apple-touch-icon, and links both", () => {
+    const ico = readFileSync(resolve(repoRoot, "public/favicon.ico"));
+    expect(ico.readUInt16LE(2)).toBe(1); // ICO resource type
+    const touch = readFileSync(resolve(repoRoot, "public/apple-touch-icon.png"));
+    expect([touch.readUInt32BE(16), touch.readUInt32BE(20)]).toEqual([180, 180]);
+    expect(html).toContain('<link rel="icon" href="/favicon.ico" sizes="32x32" />');
+    expect(html).toContain('<link rel="apple-touch-icon" href="/apple-touch-icon.png" />');
+  });
+});

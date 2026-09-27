@@ -101,13 +101,14 @@
     <meta name="twitter:site" content="@alevizio" />
 
     <link rel="canonical" href="https://globestudio.app/" />
-    <!-- SVG favicon only. The previous PNG fallbacks (favicon-32.png +
-         apple-touch-icon.png) referenced files that no longer ship in
-         /public, so Vercel's SPA rewrite returned index.html for both
-         and browsers fell back to the default icon. SVG is supported
-         everywhere except old iOS Safari, where the brand mark
-         degrades gracefully to the system default. -->
+    <!-- SVG favicon for browsers, plus the two files that crawlers, link
+         unfurlers and iOS request by path whether or not they're linked:
+         /favicon.ico (16/32/48) and /apple-touch-icon.png (180, opaque).
+         Both are built from favicon.svg and must ship in /public, or
+         Vercel's SPA rewrite answers those paths with index.html. -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
     <!-- JSON-LD: SoftwareApplication + WebSite + SoftwareSourceCode -->
