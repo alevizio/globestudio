@@ -57,7 +57,7 @@ import { AboutOverlay } from "./components/about-overlay.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
 import { CommandPalette } from "./components/command-palette.jsx";
 import { OnboardingHint } from "./components/onboarding-hint.jsx";
-import { Analytics, track } from "./components/analytics.jsx";
+import { Analytics, track, trackClientError } from "./components/analytics.jsx";
 import { BrandPage } from "./components/brand-page.jsx";
 import { DocsPage } from "./components/docs-page.jsx";
 import { ChangelogPage } from "./components/changelog-page.jsx";
@@ -1404,6 +1404,7 @@ const App = () => {
         <NoWebGLFallback />
       ) : (
       <ErrorBoundary
+        onError={(error) => trackClientError("globe", error)}
         fallback={({ reset, error }) => (
           <div className="map-background-error" role="alert">
             <p>Couldn’t load the globe view.</p>

@@ -62,3 +62,12 @@ export const track = (name, properties) => {
     .then((mod) => mod.track(name, properties))
     .catch(() => {});
 };
+
+// Client errors (a render crash an ErrorBoundary caught, a lost WebGL
+// context) as a custom event, so launch-week failures aren't invisible.
+// Two properties, the Pro plan's per-event limit; msg is cut to 200
+// characters (Vercel caps values at 255). Sent only where the analytics
+// script is loaded, so /embed errors stay local.
+export const trackClientError = (where, error) => {
+  track("client_error", { where, msg: String(error?.message || error || "unknown").slice(0, 200) });
+};

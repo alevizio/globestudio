@@ -33,7 +33,11 @@ const BUDGETS = [
   { prefix: "src-",              ext: ".js",  raw:  20_000,  gzip:   8_000, lazy: false },
   { prefix: "vendor-",           ext: ".js",  raw:  10_000,  gzip:   5_000, lazy: false },
   { prefix: "rolldown-runtime-", ext: ".js",  raw:   2_000,  gzip:   1_000, lazy: false },
-  { prefix: "preload-helper-",   ext: ".js",  raw:   2_000,  gzip:   1_000, lazy: false },
+  // Rolldown may fold this ~1 kB helper into index-*.js; it does since
+  // globe-background imports the client_error tracker from analytics.jsx.
+  // Its bytes then count toward the index budget and the initial total, so
+  // a missing file here is not a regression.
+  { prefix: "preload-helper-",   ext: ".js",  raw:   2_000,  gzip:   1_000, lazy: false, optional: true },
   // CSS is unminified — the build pipeline drops -webkit-backdrop-filter
   // / backdrop-filter pairs when minified, breaking modal frosted-glass
   // across browsers (see vite.config.js#cssMinify: false). Budget bumped
@@ -111,7 +115,7 @@ for (const budget of BUDGETS) {
     (f) => f.name.startsWith(budget.prefix) && f.name.endsWith(budget.ext),
   );
   if (!match) {
-    failures.push(`missing expected chunk ${budget.prefix}*${budget.ext}`);
+    if (!budget.optional) failures.push(`missing expected chunk ${budget.prefix}*${budget.ext}`);
     continue;
   }
   matchedNames.add(match.name);

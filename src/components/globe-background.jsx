@@ -36,6 +36,7 @@ import { getCachedWorldRivers, loadWorldRivers } from "../data/world-rivers-topo
 import { getCachedWorldCities, loadWorldCities } from "../data/world-cities-topology.js";
 import { cca3ToCcn3 } from "../data/geography.js";
 import { PerfMonitor } from "./perf-monitor.jsx";
+import { trackClientError } from "./analytics.jsx";
 
 // Per-instance dot spin animation speed range. The user-facing
 // shapeRotationSpeed slider maps 0-100 onto this range (linearly):
@@ -504,6 +505,7 @@ export const GlobeBackground = ({
       window.cancelAnimationFrame(frame);
       frame = 0;
       console.warn("WebGL context lost — pausing render loop");
+      trackClientError("webgl", "context lost");
     };
     const handleContextRestored = () => {
       console.warn("WebGL context restored — reloading to rebuild GPU resources");

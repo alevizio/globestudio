@@ -25,7 +25,7 @@ if (!isEmbed) consoleGreeting();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <RootErrorBoundary>
+    <RootErrorBoundary where={isEmbed ? "embed" : "root"}>
       {isEmbed ? <EmbedView /> : <App />}
     </RootErrorBoundary>
   </StrictMode>,
