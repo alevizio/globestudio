@@ -11,22 +11,23 @@ const headersFor = (path) =>
     .flatMap(({ headers }) => headers);
 
 describe("vercel.json", () => {
-  const spaRewrite = toRegExp(
-    vercelConfig.rewrites.find(({ destination }) => destination === "/index.html").source,
-  );
+  const rewrites = (vercelConfig.rewrites ?? []).map(({ source }) => toRegExp(source));
 
-  it("serves the SPA shell for app routes", () => {
-    for (const path of ["/", "/looks/halftone", "/compare/cobe", "/gallery", "/embed"]) {
-      expect(spaRewrite.test(path), path).toBe(true);
-    }
-  });
-
-  it("lets missing chunks, data files and API routes 404 instead of returning index.html", () => {
-    // A tab opened before a deploy asks for chunk hashes that no longer
-    // exist; an HTML 200 there breaks the lazy import instead of letting
-    // the vite:preloadError reload recover.
-    for (const path of ["/assets/index-deadbeef.js", "/data/world-cities.json", "/api/subscribe"]) {
-      expect(spaRewrite.test(path), path).toBe(false);
+  it("has no catch-all rewrite, so unknown paths get 404.html with a 404 status", () => {
+    // Every page is a prerendered file (site-routes.test.js checks that), so
+    // a rewrite to index.html would only turn missing URLs into 200 copies of
+    // the home page. A tab opened before a deploy also asks for chunk hashes
+    // that no longer exist; an HTML 200 there breaks the lazy import instead
+    // of letting the vite:preloadError reload recover.
+    for (const path of [
+      "/nope",
+      "/looks/nope",
+      "/compare/nope",
+      "/assets/index-deadbeef.js",
+      "/data/world-cities.json",
+      "/api/subscribe",
+    ]) {
+      expect(rewrites.some((source) => source.test(path)), path).toBe(false);
     }
   });
 

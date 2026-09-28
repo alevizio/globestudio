@@ -9,7 +9,14 @@ import { lookPresets } from "../data/look-presets.js";
 // editor with no look applied. Compare slugs are checked by ComparePage, so
 // the comparison copy stays in its lazy chunk.
 
-const PAGES = new Set(["brand", "docs", "changelog", "integrations", "examples", "gallery", "privacy"]);
+// The pre-launch teaser's secret path to the studio (see App.jsx). It is not
+// a page of its own: App.jsx swaps it for "/" on load. Prerender writes it a
+// copy of the app shell so it keeps working without a catch-all rewrite.
+export const APP_UNLOCK_PATH = "/studio-d74dea52";
+
+// Pages at /<name>. Exported so the route parity test can check that each
+// one has a prerendered file.
+export const PAGES = new Set(["brand", "docs", "changelog", "integrations", "examples", "gallery", "privacy"]);
 
 // Strip an optional trailing `/index.html`, then a trailing slash, so static
 // hosts that serve the SPA at the literal file path (Lighthouse CI's local

@@ -10,8 +10,8 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 // launch. Static page, no canvas — separate from the main app shell
 // so the busy globe doesn't compete with the asset list. Rendered
 // when the URL pathname starts with /brand. SPA routing: handled by
-// the conditional render in App.jsx; vercel.json rewrites every
-// route to index.html so the SPA picks up the path on first paint.
+// the conditional render in App.jsx, from the prerendered
+// dist/brand/index.html (scripts/prerender.js).
 
 // Colors mirror the design tokens used in the app. Keep this list in
 // sync with --bg / --text / --accent / --muted in styles.css if those

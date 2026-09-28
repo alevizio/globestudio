@@ -3,11 +3,12 @@ import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { TakeoverFooter } from "./takeover-footer.jsx";
 import { DottedGlobe } from "./icons.jsx";
 
-// Catch-all 404 page. The SPA serves index.html for every route
-// (vercel.json rewrite), so any unmatched path hits this component
-// instead of the main app. Tells search engines the URL is gone via
-// the noindex meta tag, and offers users a path back to known
-// surfaces.
+// Catch-all 404 page. Vercel answers any path without a prerendered
+// file with dist/404.html and a 404 status; the SPA boots there and
+// src/utils/route-match.js sends the path here. Unknown look ids and
+// compare slugs land here too. The noindex meta repeats the one in
+// 404.html for client-rendered cases, and the links offer a path back
+// to known surfaces.
 export const NotFoundPage = () => {
   useBodyScrollable();
   useEffect(() => {

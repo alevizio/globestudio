@@ -53,7 +53,7 @@ import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { NoWebGLFallback } from "./components/no-webgl-fallback.jsx";
 import { PresetDetail } from "./components/preset-detail.jsx";
 import { updatePresetRoute } from "./utils/preset-route.js";
-import { matchRoute } from "./utils/route-match.js";
+import { APP_UNLOCK_PATH, matchRoute } from "./utils/route-match.js";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { AboutOverlay } from "./components/about-overlay.jsx";
@@ -124,14 +124,13 @@ const TeaserSkeleton = () => (
 );
 
 // With VITE_TEASER=1 the pre-launch teaser is the index everywhere. The app
-// is then reached only via the secret unlock path below (or ?preview) —
+// is then reached only via the secret APP_UNLOCK_PATH (or ?preview) —
 // visiting it flips a persisted `gs_preview` flag that reveals the app from
 // then on, and drops the token from the URL. `?teaser` re-locks (handy for
 // previewing the teaser again). Any other value, unset included, serves the
 // app: the same `=== "1"` test as vite.config.js, prerender.js and
 // generate-sitemap.js, so the client and the build never disagree. Launch
 // sets VITE_TEASER=0 (1 = teaser) on the deploy.
-const APP_UNLOCK_PATH = "/studio-d74dea52";
 const TEASER_MODE = import.meta.env.VITE_TEASER === "1";
 
 // Run once at module load: if the URL is the secret unlock path, persist the

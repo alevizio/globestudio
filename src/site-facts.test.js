@@ -126,7 +126,7 @@ describe("share cards", () => {
 
 describe("icons", () => {
   // Crawlers, link unfurlers and iOS request these paths even when no tag
-  // links them; without the files the SPA rewrite answers with index.html.
+  // links them; without the files those requests 404.
   it("ships favicon.ico and a 180px apple-touch-icon, and links both", () => {
     const ico = readFileSync(resolve(repoRoot, "public/favicon.ico"));
     expect(ico.readUInt16LE(2)).toBe(1); // ICO resource type
