@@ -12,11 +12,18 @@
 //
 // Filter: Lanczos. swscale's "area" flag leaves a checkerboard moiré on
 // the halftone grid at this ratio; Lanczos low-passes it cleanly.
+// Light: the resize runs in linear light (zscale decodes sRGB first and
+// re-encodes after). Averaging sRGB values instead darkens fine bright
+// detail on black: Bayer and Atkinson kept under a third of their light
+// and read as blank discs. Linear light keeps each thumb's mean brightness
+// within a few percent of its source, and the #0b0b0c canvas round-trips
+// exactly.
 // Encoding: lossless WebP. Lossy WebP is always 4:2:0, which washes the
 // Risograph pink/cyan misregistration out to grey at this size; lossless
-// keeps every resampled pixel and still lands at 2-8 KB per file.
+// keeps every resampled pixel and still lands at 2-12 KB per file.
 //
-// Requires ffmpeg on PATH (or FFMPEG=/path/to/ffmpeg). Commit the output:
+// Requires an ffmpeg built with libzimg for the zscale filter (most packaged
+// builds are) on PATH, or FFMPEG=/path/to/ffmpeg. Commit the output:
 // the thumbs are static assets served from public/.
 //
 // Run:
@@ -35,6 +42,8 @@ const projectRoot = resolve(__dirname, "..");
 const sourceDir = resolve(projectRoot, "public/looks");
 const outputDir = resolve(sourceDir, "thumbs");
 const FFMPEG = process.env.FFMPEG || "ffmpeg";
+// The captures are untagged full-range sRGB; say so, or zscale guesses.
+const RGB_FULL = "pin=bt709:p=bt709:min=gbr:m=gbr:rin=full:r=full";
 const argFilter = process.argv.slice(2);
 
 const presets = argFilter.length
@@ -64,7 +73,13 @@ for (const preset of presets) {
         "-v", "error",
         "-y",
         "-i", source,
-        "-vf", `scale=${width}:${width}:flags=lanczos+accurate_rnd+full_chroma_int`,
+        "-vf", [
+          `zscale=tin=iec61966-2-1:t=linear:${RGB_FULL}`,
+          "format=gbrpf32le",
+          `zscale=w=${width}:h=${width}:f=lanczos`,
+          `zscale=tin=linear:t=iec61966-2-1:${RGB_FULL}`,
+          "format=gbrp",
+        ].join(","),
         "-c:v", "libwebp",
         "-lossless", "1",
         "-compression_level", "6",

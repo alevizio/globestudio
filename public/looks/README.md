@@ -64,8 +64,9 @@ Easiest workflow:
 The looks bar chips, the command palette and the docs preset catalog
 don't load these PNGs. They use `thumbs/<id>@2x.webp` (56 px) and
 `thumbs/<id>@3x.webp` (84 px), downsampled with Lanczos so dot and
-halftone patterns don't alias into noise. After adding or recapturing
-a PNG here, run:
+halftone patterns don't alias into noise, in linear light so dithered
+looks keep their brightness. The script needs an ffmpeg with the
+`zscale` filter. After adding or recapturing a PNG here, run:
 
 ```
 npm run thumbs:generate            # every preset
