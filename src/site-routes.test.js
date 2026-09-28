@@ -33,7 +33,10 @@ describe("site routes", () => {
 
   it("gives every page the router serves a file", () => {
     for (const page of PAGES) expect(prerenderedPaths, page).toContain(`/${page}`);
-    for (const slug of comparisonSlugs) expect(prerenderedPaths).toContain(`/compare/${slug}`);
+    for (const slug of comparisonSlugs) {
+      expect(prerenderedPaths).toContain(`/compare/${slug}`);
+      expect(matchRoute(`/compare/${slug}`), slug).toEqual({ page: "compare", slug });
+    }
     // The client-only routes get the app shell instead.
     expect(matchRoute("/embed").page).toBe("embed");
     expect(shellPaths).toEqual(["/embed", APP_UNLOCK_PATH]);

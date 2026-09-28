@@ -24,6 +24,10 @@ describe("matchRoute", () => {
     expect(matchRoute("/compare/cobe")).toEqual({ page: "compare", slug: "cobe" });
   });
 
+  it("sends unknown compare slugs to the 404 page", () => {
+    expect(matchRoute("/compare/nope").page).toBe("not-found");
+  });
+
   it("reads a trailing slash or /index.html like the clean URL", () => {
     expect(matchRoute("/index.html")).toEqual({ page: "home" });
     expect(matchRoute("/docs/")).toEqual({ page: "docs" });

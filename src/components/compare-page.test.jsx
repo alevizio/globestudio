@@ -7,10 +7,4 @@ describe("ComparePage", () => {
     render(<ComparePage slug="cobe" />);
     expect(screen.getByRole("heading", { level: 1, name: "Globestudio vs cobe" })).toBeTruthy();
   });
-
-  it("renders the noindexed 404 page for an unknown slug", () => {
-    render(<ComparePage slug="nope" />);
-    expect(screen.getByRole("heading", { level: 1, name: "Page not found" })).toBeTruthy();
-    expect(document.head.querySelector('meta[name="robots"]').getAttribute("content")).toBe("noindex,follow");
-  });
 });

@@ -1,5 +1,4 @@
 import { comparisons } from "../data/comparisons.js";
-import { NotFoundPage } from "./not-found-page.jsx";
 import { TakeoverFooter } from "./takeover-footer.jsx";
 import "./compare-page.css";
 
@@ -11,11 +10,19 @@ const slugFromLocation = () =>
 // Lazy takeover route for /compare/:slug — a factual decision-aid comparison.
 // Includes FAQPage JSON-LD (deprecated for Google rich snippets but still
 // parsed by AI assistants) and a real HTML table (AI parses tables well).
-// An unknown slug is the shared 404 page, so it gets the same noindex.
+// The router only renders it for known slugs (src/utils/route-match.js).
 export const ComparePage = ({ slug = slugFromLocation() }) => {
   const data = comparisons[slug];
 
-  if (!data) return <NotFoundPage />;
+  if (!data) {
+    return (
+      <main className="compare-page">
+        <a className="compare-back" href="/">← Globestudio</a>
+        <h1 className="compare-title">Comparison not found</h1>
+        <p className="compare-summary">That comparison doesn’t exist yet.</p>
+      </main>
+    );
+  }
 
   const faqLd = {
     "@context": "https://schema.org",
