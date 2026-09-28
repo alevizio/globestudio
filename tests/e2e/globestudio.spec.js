@@ -73,6 +73,16 @@ test("preset routes apply the requested look", async ({ page }) => {
   await expect(page.getByText(/Applied Halftone/i)).toBeVisible();
 });
 
+test("retired look URLs land on the gallery", async ({ page }) => {
+  // vercel.json 308s these before the app loads. The dev server has no
+  // redirects, so this checks the router sends them to the same place.
+  for (const look of ["particles", "ascii"]) {
+    await page.goto(`/looks/${look}`);
+    await expect(page).toHaveURL(/\/gallery$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Looks gallery" })).toBeVisible();
+  }
+});
+
 test("the panel ends with links to the site's pages", async ({ page }) => {
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Site links" });

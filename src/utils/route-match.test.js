@@ -9,10 +9,17 @@ describe("matchRoute", () => {
     }
   });
 
-  it("sends unknown and retired look ids to the 404 page", () => {
-    // /looks/print, /looks/particles and /looks/ascii were in an old sitemap.
-    for (const path of ["/looks/nope", "/looks/print", "/looks/particles", "/looks/ascii", "/looks/Halftone", "/looks"]) {
+  it("sends unknown look ids to the 404 page", () => {
+    // /looks/print was in an old sitemap; vercel.json sends it to Halftone.
+    for (const path of ["/looks/nope", "/looks/print", "/looks/Halftone", "/looks/Particles", "/looks/constructor", "/looks"]) {
       expect(matchRoute(path).page, path).toBe("not-found");
+    }
+  });
+
+  it("sends the retired Particles and ASCII looks to the gallery", () => {
+    // Both were in an old sitemap; vercel.json 308s them to the same place.
+    for (const path of ["/looks/particles", "/looks/ascii", "/looks/ascii/"]) {
+      expect(matchRoute(path), path).toEqual({ page: "redirect", to: "/gallery" });
     }
   });
 

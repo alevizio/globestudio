@@ -7,7 +7,9 @@
       "destination": "https://globestudio.app/:path",
       "permanent": true
     },
-    { "source": "/looks/print", "destination": "/looks/halftone", "permanent": true }
+    { "source": "/looks/print", "destination": "/looks/halftone", "permanent": true },
+    { "source": "/looks/particles", "destination": "/gallery", "permanent": true },
+    { "source": "/looks/ascii", "destination": "/gallery", "permanent": true }
   ],
   "headers": [
     {

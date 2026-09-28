@@ -21,6 +21,12 @@ export const PAGES = new Set(["brand", "docs", "changelog", "integrations", "exa
 // in the lazy compare chunk. site-routes.test.js fails if they drift.
 const COMPARE_SLUGS = ["cobe", "geolayers"];
 
+// Removed looks an old sitemap listed, and where their URLs go now.
+// vercel.json answers them with a 308 before the app loads; the router sends
+// them to the same place so hosts without those redirects (vite dev and
+// preview) agree. vercel-config.test.js checks each one has its redirect.
+export const RETIRED_LOOKS = { particles: "/gallery", ascii: "/gallery" };
+
 // Strip an optional trailing `/index.html`, then a trailing slash, so static
 // hosts that serve the SPA at the literal file path (Lighthouse CI's local
 // server, file:// previews) resolve like the clean URL.
@@ -39,5 +45,6 @@ export const matchRoute = (pathname) => {
   if (look && lookPresets.some((preset) => preset.id === look[1])) {
     return { page: "look", id: look[1] };
   }
+  if (look && Object.hasOwn(RETIRED_LOOKS, look[1])) return { page: "redirect", to: RETIRED_LOOKS[look[1]] };
   return { page: "not-found" };
 };

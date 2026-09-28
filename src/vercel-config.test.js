@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import vercelConfig from "../vercel.json";
+import { RETIRED_LOOKS } from "./utils/route-match.js";
 
 // vercel.json `source` values are path-to-regexp strings. The ones used here
 // are plain regex groups, so anchoring them matches the same paths.
@@ -43,6 +44,24 @@ describe("vercel.json", () => {
       destination: "/looks/halftone",
       permanent: true,
     });
+  });
+
+  it("sends the retired Particles and ASCII looks to the gallery, like the router", () => {
+    // Neither has a replacement look, so the gallery of current ones is the
+    // closest page. The router mirrors these (RETIRED_LOOKS) for hosts
+    // without vercel.json; other unknown look ids stay a 404.
+    expect(Object.keys(RETIRED_LOOKS).sort()).toEqual(["ascii", "particles"]);
+    for (const [id, destination] of Object.entries(RETIRED_LOOKS)) {
+      expect(vercelConfig.redirects).toContainEqual({
+        source: `/looks/${id}`,
+        destination,
+        permanent: true,
+      });
+    }
+    const pathRedirects = vercelConfig.redirects
+      .filter(({ has }) => !has)
+      .map(({ source }) => toRegExp(source));
+    expect(pathRedirects.some((source) => source.test("/looks/nope"))).toBe(false);
   });
 
   it("sends the production vercel.app alias to the apex domain", () => {

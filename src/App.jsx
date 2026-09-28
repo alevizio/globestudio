@@ -199,7 +199,13 @@ const App = () => {
   if (typeof window !== "undefined") {
     // Home, /looks/:id (known ids only) and /embed fall through to the
     // canvas app; see src/utils/route-match.js.
-    const { page } = matchRoute(window.location.pathname);
+    const { page, to } = matchRoute(window.location.pathname);
+    // A retired look: go where vercel.json's 308 sends it, keeping the query
+    // and hash like a browser following that redirect does.
+    if (page === "redirect") {
+      window.location.replace(`${to}${window.location.search}${window.location.hash}`);
+      return null;
+    }
     if (page === "brand") return <BrandPage />;
     if (page === "docs") return <DocsPage />;
     if (page === "changelog") return <ChangelogPage />;
