@@ -3698,12 +3698,6 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   pointer-events: none;
 }
 
-.panel-links {
-  gap: 10px 16px;
-  padding: 4px 12px;
-  font-size: 12px;
-}
-
 .panel-header-actions {
   display: inline-flex;
   align-items: center;
@@ -7982,12 +7976,6 @@ input[type="range"]:active::-moz-range-thumb {
     opacity: 1;
     filter: none;
     pointer-events: auto;
-  }
-
-  .panel-links a {
-    min-width: 44px;
-    min-height: 44px;
-    justify-content: center;
   }
 
   /* Below the looks the peek would show the top of the header in the home

@@ -13,8 +13,7 @@
 // VITE_TEASER picks the studio or the teaser as the build does.
 
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
-import { matchRoute } from "../utils/route-match.js";
+import { render, screen } from "@testing-library/react";
 
 // jsdom doesn't ship matchMedia or ResizeObserver; both are called
 // during App's first render (usePrefersReducedMotion, looks-bar scroll
@@ -70,30 +69,6 @@ describe("App smoke", () => {
       expect(headings.map((h) => h.textContent)).toEqual(["Halftone dotted map and 3D globe look"]);
     } finally {
       window.history.pushState({}, "", "/");
-    }
-  }, 20000);
-
-  it("links the site's pages from the panel on the home page", async () => {
-    // The studio is what "/" renders once JS runs, so without these a
-    // crawler that renders the page finds no path to the rest of the site.
-    window.history.pushState({}, "", "/");
-    const { default: App } = await import("../App.jsx");
-    render(<App />);
-    const nav = screen.getByRole("navigation", { name: "Site links" });
-    const links = within(nav).getAllByRole("link");
-    expect(links.map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
-      ["Gallery", "/gallery"],
-      ["Docs", "/docs"],
-      ["Integrations", "/integrations"],
-      ["Examples", "/examples"],
-      ["vs cobe", "/compare/cobe"],
-      ["vs GEOlayers", "/compare/geolayers"],
-      ["Changelog", "/changelog"],
-    ]);
-    for (const link of links) {
-      // Same tab, like every other internal link, and to a page that exists.
-      expect(link.hasAttribute("target"), link.textContent).toBe(false);
-      expect(matchRoute(link.getAttribute("href")).page, link.textContent).not.toMatch(/not-found|redirect/);
     }
   }, 20000);
 

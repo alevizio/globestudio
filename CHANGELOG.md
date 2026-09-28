@@ -60,7 +60,6 @@ The first public release. This section sums up everything that ships in
   `/embed?background=transparent` works.
 - **Data section**: pasted data points have their own section with an eye
   that hides the markers and arcs without clearing them.
-- The studio panel links every page of the site.
 
 ### Changed
 

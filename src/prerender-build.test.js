@@ -66,6 +66,15 @@ describe("prerendered static bodies", () => {
     for (const path of paths) expect(words(read(path)).length, path).toBeGreaterThan(100);
   });
 
+  it("link the rest of the site from the home page", () => {
+    // The studio panel has no link row, so this HTML is how a crawler
+    // leaves "/" (plus the sitemap and every other page's footer).
+    const body = staticBody(read("/"));
+    for (const path of ["/gallery", "/docs", "/changelog", "/compare/cobe", "/compare/geolayers"]) {
+      expect(body, path).toContain(`href="${path}"`);
+    }
+  });
+
   it("put the look's copy and links to other looks on a look page", () => {
     const html = read("/looks/halftone");
     expect(staticBody(html)).toContain("Halftone is the print-aesthetic preset.");
