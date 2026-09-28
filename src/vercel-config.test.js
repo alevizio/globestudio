@@ -31,6 +31,12 @@ describe("vercel.json", () => {
     }
   });
 
+  it("redirects trailing-slash URLs to the canonical slashless form", () => {
+    // Every canonical and sitemap URL has no trailing slash; without this
+    // /docs/ and /looks/halftone/ answer 200 as duplicates.
+    expect(vercelConfig.trailingSlash).toBe(false);
+  });
+
   it("caches content-hashed assets for a year", () => {
     expect(headersFor("/assets/index-deadbeef.js")).toContainEqual({
       key: "Cache-Control",
