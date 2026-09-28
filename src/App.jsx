@@ -240,6 +240,12 @@ const App = () => {
   }
 
   const globeCanvasRef = useRef(null);
+  // Loaded inside the Figma plugin (figma-plugin/ui.html): exports land on
+  // the Figma canvas instead of downloading, and web-only links hide.
+  const isFigmaPlugin = useMemo(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("plugin") === "figma",
+    [],
+  );
   // Probe once on first mount whether WebGL is available. If not, the
   // <GlobeBackground> render path below is replaced by <NoWebGLFallback>
   // and Three.js never loads. The probe is synchronous + cheap (creates
@@ -913,7 +919,61 @@ const App = () => {
 
   useEffect(() => () => window.clearTimeout(viewTransitionTimeoutRef.current), []);
 
+  // Hands an export to the plugin shell, which forwards it to code.js: the
+  // same message the /embed Figma shell sends. width and height are the
+  // size of the layer in Figma; the image keeps its extra pixels for Retina.
+  const sendToFigma = async ({ blob = null, svg = null, density = 1 }) => {
+    let width = 0;
+    let height = 0;
+    if (blob) {
+      const bitmap = await createImageBitmap(blob);
+      width = Math.round(bitmap.width / density);
+      height = Math.round(bitmap.height / density);
+      bitmap.close();
+    }
+    const bytes = blob ? new Uint8Array(await blob.arrayBuffer()) : null;
+    const preset = lookPresets.find((p) => p.id === currentPresetId);
+    window.parent.postMessage(
+      {
+        type: "globestudio-insert",
+        bytes,
+        svg,
+        width,
+        height,
+        presetName: preset ? `Globestudio · ${preset.name}` : "Globestudio",
+      },
+      "*",
+    );
+  };
+
+  // A color variable from the Figma file, clicked in the plugin shell.
+  useEffect(() => {
+    if (!isFigmaPlugin) return undefined;
+    const onMessage = (event) => {
+      const data = event.data;
+      if (!data || data.type !== "globestudio-set-dot-color") return;
+      if (typeof data.hex === "string" && /^#[0-9a-f]{6}$/i.test(data.hex)) setDotColor(data.hex);
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [isFigmaPlugin, setDotColor]);
+
   const exportSvg = () => {
+    if (isFigmaPlugin) {
+      // Vectors when the plugin accepts them (up to 2,500 dots), with a PNG
+      // of the current frame for code.js to fall back on above that.
+      const canvas = globeCanvasRef.current;
+      const fallback = canvas?.captureAtScale ? canvas.captureAtScale(1).catch(() => null) : Promise.resolve(null);
+      fallback
+        .then((blob) => sendToFigma({ blob, svg: exportSvgData.svg, density: canvas.width / (canvas.clientWidth || canvas.width) || 1 }))
+        .then(() => {
+          setSvgStatus("saved");
+          setStatusMessage("Inserted into Figma");
+          window.setTimeout(() => setSvgStatus("idle"), 1800);
+          track("export_completed", { format: "figma-svg", look: currentPresetId ?? "custom" });
+        });
+      return;
+    }
     downloadBlob(
       new Blob([exportSvgData.svg], { type: "image/svg+xml;charset=utf-8" }),
       buildExportFilename(selected.label, "svg", viewMode),
@@ -1273,7 +1333,8 @@ const App = () => {
               }
               bitmap.close();
             }
-            downloadBlob(finalBlob, filename);
+            if (isFigmaPlugin) await sendToFigma({ blob: finalBlob, density: scale });
+            else downloadBlob(finalBlob, filename);
             flashPngSaved(scale);
             return;
           }
@@ -1296,7 +1357,8 @@ const App = () => {
           target?.height ?? Math.round(activeGlobeCanvas.height * scale),
         );
         if (!pngBlob) throw new Error("No 2D canvas for the PNG fallback");
-        downloadBlob(pngBlob, filename);
+        if (isFigmaPlugin) await sendToFigma({ blob: pngBlob, density: scale });
+        else downloadBlob(pngBlob, filename);
         flashPngSaved(scale);
       } catch (error) {
         failPngExport(error);
@@ -1674,7 +1736,7 @@ const App = () => {
             type="button"
             className="panel-icon-button panel-icon-button--primary top-bar-export"
             onClick={() => setExportModalOpen(true)}
-            aria-label="Open export dialog"
+            aria-label={isFigmaPlugin ? "Insert into Figma" : "Open export dialog"}
           >
             <Download size={16} />
           </button>
@@ -1682,6 +1744,8 @@ const App = () => {
       </div>
       <MapZoomControls value={mapZoom} onChange={setMapZoom} />
 
+      {!isFigmaPlugin && (
+      <>
       <a
         className="social-link bug-link"
         href="https://github.com/alevizio/globestudio/issues/new?template=bug-report.yml"
@@ -1704,6 +1768,8 @@ const App = () => {
           <Github size={17} />
         </a>
       </nav>
+      </>
+      )}
 
       {panelCollapsed && (
         <button
@@ -1926,6 +1992,7 @@ const App = () => {
               TakeoverFooter is replaced on mount). Plain anchors like the
               takeover pages use: each page is its own document. Inside the
               rail, so the mobile sheet carries them too. */}
+          {!isFigmaPlugin && (
           <nav className="takeover-footer-links panel-links" aria-label="Site links">
             <a href="/gallery">Gallery</a>
             <a href="/docs">Docs</a>
@@ -1935,11 +2002,14 @@ const App = () => {
             <a href="/compare/geolayers">vs GEOlayers</a>
             <a href="/changelog">Changelog</a>
           </nav>
+          )}
         </div>
       </section>
 
       <ExportModal
         open={exportModalOpen}
+        figmaPlugin={isFigmaPlugin}
+        initialAspect={isFigmaPlugin ? (viewMode === "flat" ? "16:9" : "1:1") : "original"}
         onClose={() => {
           setExportModalOpen(false);
           setVideoStatus((status) => (status === "error" ? "idle" : status));
@@ -1984,7 +2054,7 @@ const App = () => {
         </div>
       )}
       <FollowTooltip />
-      <OnboardingHint />
+      {!isFigmaPlugin && <OnboardingHint />}
       {/* Per-preset long-form copy below the fold. Renders only when a
           preset is applied (i.e. on /looks/:id URLs). Drives SEO Phase 4
           — each preset URL gets 200+ words of unique designer-facing

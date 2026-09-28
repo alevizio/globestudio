@@ -52,12 +52,14 @@ const computeDimensions = (baseW, baseH, aspectId, scale) => {
   return { width: Math.round(w * scale), height: Math.round(h * scale) };
 };
 
-const Tabs = ({ tab, setTab, hasVideo }) => {
+const Tabs = ({ tab, setTab, hasVideo, figmaPlugin = false }) => {
+  // Inside the Figma plugin only what can land on the canvas: an image or
+  // editable vectors.
   const tabs = [
     { id: "image", label: "Image" },
-    hasVideo && { id: "video", label: "Video" },
+    hasVideo && !figmaPlugin && { id: "video", label: "Video" },
     { id: "svg", label: "SVG" },
-    { id: "share", label: "Share" },
+    !figmaPlugin && { id: "share", label: "Share" },
   ].filter(Boolean);
 
   // Refs to each tab button so we can measure the active one and slide
@@ -195,6 +197,8 @@ const DimensionInputs = ({ width, height, onWidth, onHeight }) => (
 export const ExportModal = ({
   open,
   onClose,
+  figmaPlugin = false,
+  initialAspect = "original",
   canvasWidth,
   canvasHeight,
   exportPng,
@@ -221,7 +225,12 @@ export const ExportModal = ({
   regionName,
 }) => {
   const [tab, setTab] = useState("image");
-  const [aspect, setAspect] = useState("original");
+  const [aspect, setAspect] = useState(initialAspect);
+  // In the Figma plugin each opening starts from the crop that fits the
+  // current view (square globe, wide flat map).
+  useEffect(() => {
+    if (open && figmaPlugin) setAspect(initialAspect);
+  }, [open, figmaPlugin, initialAspect]);
   const [quality, setQuality] = useState("standard");
   const [fps, setFps] = useState(60);
   const [videoFormat, setVideoFormat] = useState("webm");
@@ -397,7 +406,7 @@ export const ExportModal = ({
           </button>
         </header>
 
-        <Tabs tab={tab} setTab={setTab} hasVideo={videoSupported} />
+        <Tabs tab={tab} setTab={setTab} hasVideo={videoSupported} figmaPlugin={figmaPlugin} />
 
         <div className="export-modal-body">
         <div key={tab} className="export-modal-pane">
@@ -490,7 +499,9 @@ export const ExportModal = ({
                 onClick={exportSvg}
               >
                 {svgStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
-                <span>{svgStatus === "saved" ? "SVG saved" : "Download SVG"}</span>
+                <span>{figmaPlugin
+                  ? svgStatus === "saved" ? "Inserted" : "Insert vectors into Figma"
+                  : svgStatus === "saved" ? "SVG saved" : "Download SVG"}</span>
               </button>
               <button
                 type="button"
@@ -613,7 +624,9 @@ export const ExportModal = ({
               onClick={handlePng}
             >
               {pngStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
-              <span>{pngStatus === "saved" ? "PNG saved" : "Export PNG"}</span>
+              <span>{figmaPlugin
+                ? pngStatus === "saved" ? "Inserted" : "Insert into Figma"
+                : pngStatus === "saved" ? "PNG saved" : "Export PNG"}</span>
             </button>
           </footer>
         )}
