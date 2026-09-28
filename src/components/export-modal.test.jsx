@@ -103,6 +103,32 @@ describe("ExportModal", () => {
     expect(screen.queryByText(note)).toBeNull();
   });
 
+  it("says GIF transparency has hard edges, only for a Transparent background", () => {
+    const note = "GIF transparency has hard edges. Use WebM or PNG for soft ones.";
+    const { rerender } = renderModal({ transparent: true });
+    fireEvent.click(screen.getByRole("tab", { name: "Video" }));
+    expect(screen.queryByText(note)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "GIF" }));
+    expect(screen.getByText(note)).toBeTruthy();
+
+    rerender(
+      <ExportModal
+        open
+        onClose={vi.fn()}
+        canvasWidth={1200}
+        canvasHeight={800}
+        exportVideo={vi.fn()}
+        transparent={false}
+        videoSupported
+        videoStatus="idle"
+        videoProgress={0}
+        videoDurationMs={5000}
+        setVideoDurationMs={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(note)).toBeNull();
+  });
+
   it("says so when a PNG export fails, next to the button that retries it", () => {
     const exportPng = vi.fn();
     renderModal({ exportPng, pngStatus: "error" });

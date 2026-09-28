@@ -197,7 +197,8 @@ export const ExportModal = ({
   copyStatus,
   exportVideo,
   mp4Supported = false,
-  // The background is Transparent: MP4 is the one format that can't keep it.
+  // The background is Transparent: MP4 can't keep it and GIF keeps it with
+  // hard edges, so both say so.
   transparent = false,
   videoStatus,
   videoProgress,
@@ -425,6 +426,9 @@ export const ExportModal = ({
                 <p className="export-modal-caption">
                   GIF plays everywhere (Slack, X, Keynote, iOS). Capped to ~20fps and 640px so the file stays light.
                 </p>
+              )}
+              {videoFormat === "gif" && transparent && (
+                <p className="export-modal-caption">GIF transparency has hard edges. Use WebM or PNG for soft ones.</p>
               )}
               {videoFormat === "mp4" && (
                 <p className="export-modal-caption">
