@@ -5962,7 +5962,7 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
 .segmented-toggle {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--segment-count, 2), minmax(0, 1fr));
   gap: 4px;
   padding: 4px;
   border: 1px solid var(--border);
@@ -5981,7 +5981,7 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   top: 4px;
   bottom: 4px;
   left: 4px;
-  width: calc((100% - 12px) / 2);
+  width: calc((100% - 4px - 4px * var(--segment-count, 2)) / var(--segment-count, 2));
   border-radius: 0;
   /* clip-path applied via shared selector list below. */
   border: 1px solid var(--accent);
