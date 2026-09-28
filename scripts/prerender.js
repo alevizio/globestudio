@@ -141,8 +141,7 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
   routes.push({
     route: "gallery",
     title: "Looks gallery: dotted map & 3D globe styles · Globestudio",
-    description:
-      "Browse every built-in Globestudio look. Open one to generate a dotted map or animated 3D globe and export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free, open source.",
+    description: `Browse all ${lookPresets.length} Globestudio looks. Open one to make a dotted map or animated 3D globe, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free, open source.`,
     url: `${SITE}/gallery`,
     image: null,
   });
@@ -169,7 +168,7 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
       route: "examples",
       title: "Examples · Globestudio",
       description:
-        "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style product heroes to a retro game screen and a newspaper front page.",
+        "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style heroes to a retro game screen and a newspaper front page.",
     },
     {
       route: "brand",

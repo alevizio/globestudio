@@ -22,4 +22,10 @@ describe("prerendered heads", () => {
       expect(title.length, route).toBeLessThanOrEqual(60);
     }
   });
+
+  it("keep every description within the 160 characters a results page shows", () => {
+    for (const { route, description } of routes) {
+      expect(description.length, route).toBeLessThanOrEqual(160);
+    }
+  });
 });

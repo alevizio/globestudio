@@ -2516,7 +2516,7 @@ export const ExamplesPage = () => {
     };
     setMeta(
       'meta[name="description"]',
-      "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style product heroes to a retro game screen and a newspaper front page.",
+      "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style heroes to a retro game screen and a newspaper front page.",
     );
   }, []);
 
