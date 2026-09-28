@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { FLAT_PROJECTION_OPTIONS } from "../three/world-texture.js";
 import {
   buildShareUrl,
@@ -117,6 +118,56 @@ describe("share-config", () => {
     const schemaPath = resolve(dirname(fileURLToPath(import.meta.url)), "../../public/schema/config.json");
     const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
     expect(schema.properties.flatProjection.enum).toEqual(FLAT_PROJECTION_OPTIONS.map((option) => option.value));
+  });
+
+  it("documents the Data keys of globeSettings in the shapes the parser accepts", () => {
+    const schemaPath = resolve(dirname(fileURLToPath(import.meta.url)), "../../public/schema/config.json");
+    const globe = JSON.parse(readFileSync(schemaPath, "utf8")).properties.globeSettings.properties;
+    const kept = (key, value) => normalizeConfig({ globeSettings: { [key]: value } })?.globeSettings?.[key];
+    const dataKeys = (keys) => keys.filter((key) => /^data(?:[A-Z]|$)/.test(key)).sort();
+
+    // Every Data setting the app stores is documented.
+    expect(dataKeys(Object.keys(globe))).toEqual(dataKeys(Object.keys(DEFAULT_GLOBE_SETTINGS)));
+
+    for (const key of ["data", "dataArcs"]) {
+      expect(globe[key].type, key).toBe("boolean");
+      expect(kept(key, true), key).toBe(true);
+      expect(kept(key, false), key).toBe(false);
+      expect(kept(key, "yes"), key).toBeUndefined();
+    }
+
+    // dataMarkerColor: a string the schema pattern allows, or null.
+    const color = globe.dataMarkerColor;
+    expect(color.type).toEqual(["string", "null"]);
+    expect(kept("dataMarkerColor", null)).toBeNull();
+    const pattern = new RegExp(color.pattern);
+    for (const candidate of ["#ff8800", "ff8800", "#abc", "#ff880080", "red", "#12", "#123456789", ""]) {
+      expect(kept("dataMarkerColor", candidate) !== undefined, candidate).toBe(pattern.test(candidate));
+    }
+    for (const example of color.examples) expect(kept("dataMarkerColor", example)).toBe(example);
+
+    // dataPoints: [{ lat, lng, value? }], in range, capped at maxItems.
+    const points = globe.dataPoints;
+    const { lat, lng, value } = points.items.properties;
+    expect(points.type).toBe("array");
+    expect(points.items.required).toEqual(["lat", "lng"]);
+    const onBounds = [
+      { lat: lat.minimum, lng: lng.minimum, value: 1 },
+      { lat: lat.maximum, lng: lng.maximum, value: 1 },
+    ];
+    expect(kept("dataPoints", onBounds)).toEqual(onBounds);
+    expect(kept("dataPoints", [
+      { lat: lat.minimum - 0.1, lng: 0 },
+      { lat: lat.maximum + 0.1, lng: 0 },
+      { lat: 0, lng: lng.minimum - 0.1 },
+      { lat: 0, lng: lng.maximum + 0.1 },
+      { lng: 0, value: 1 },
+      { lat: 0, value: 1 },
+    ])).toEqual([]);
+    expect(kept("dataPoints", [{ lat: 0, lng: 0 }])).toEqual([{ lat: 0, lng: 0, value: value.default }]);
+    const tooMany = Array.from({ length: points.maxItems + 1 }, (_, index) => ({ lat: 0, lng: index % 180, value: 1 }));
+    expect(kept("dataPoints", tooMany)).toHaveLength(points.maxItems);
+    for (const example of points.examples) expect(kept("dataPoints", example)).toEqual(example);
   });
 
   it("drops invalid view state + overlay values", () => {
