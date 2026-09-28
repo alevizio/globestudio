@@ -21,6 +21,8 @@ import { hexToRgb, rgbToHex } from "../utils/color.js";
 // When a non-Mercator projection is picked AND dots are visible, the dots
 // will misalign with the texture (dotted-map only knows Mercator). The UI
 // gates the projection picker to Solid mode for this reason.
+//
+// The picker's labels are FLAT_PROJECTION_OPTIONS in config/constants.js.
 const FLAT_PROJECTIONS = {
   mercator: geoMercator,
   equalEarth: geoEqualEarth,
@@ -28,14 +30,6 @@ const FLAT_PROJECTIONS = {
   winkel3: geoWinkel3,
   robinson: geoRobinson,
 };
-
-export const FLAT_PROJECTION_OPTIONS = [
-  { value: "mercator", label: "Mercator" },
-  { value: "equalEarth", label: "Equal Earth" },
-  { value: "naturalEarth1", label: "Natural Earth" },
-  { value: "winkel3", label: "Winkel Tripel" },
-  { value: "robinson", label: "Robinson" },
-];
 
 // Build a Canvas2D linear gradient that spans the full texture along the
 // supplied angle. Matches the dot-color gradient math so a single gradient

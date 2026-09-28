@@ -64,8 +64,7 @@ const RENDER_MODES = new Set(["dots", "solid"]);
 const VIEW_MODES = new Set(["globe", "flat"]);
 const GLOBE_LOOKS = new Set(["classic", "borderless"]);
 // The renderer's projection keys (FLAT_PROJECTION_OPTIONS in
-// three/world-texture.js, not imported here because that module pulls in
-// three.js). share-config.test.js checks the two lists match.
+// config/constants.js). share-config.test.js checks the two lists match.
 const FLAT_PROJECTIONS = new Set(["mercator", "equalEarth", "naturalEarth1", "winkel3", "robinson"]);
 // Kebab-case ids the config schema used to publish, so configs written
 // against it still land on the right projection.

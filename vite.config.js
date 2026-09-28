@@ -130,10 +130,11 @@ export default defineConfig({
     // Only filter the on-demand atlas chunks out of modulepreload —
     // countries-50m (756 kB raw) and states-10m (114 kB) are only used
     // when the user enters solid render mode or selects the US, and
-    // shouldn't compete with critical-path resources. `three`,
-    // `dotted-map`, and `globe-background` stay preloaded — they're
-    // needed for the canvas LCP element to paint, so loading them in
-    // parallel with the main bundle is correct.
+    // shouldn't compete with critical-path resources. `dotted-map` stays
+    // preloaded with the main bundle. `three` is preloaded together with
+    // the lazy `globe-background` chunk that needs it, so the panel can
+    // paint without waiting for three.js; keep three.js imports out of
+    // the modules the app shell imports statically.
     modulePreload: {
       resolveDependencies: (filename, deps) =>
         deps.filter((dep) => {

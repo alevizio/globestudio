@@ -167,6 +167,16 @@ for (const file of files) {
   }
 }
 
+// three.js loads with the lazy globe-background chunk. If a module the app
+// shell imports statically pulls it in again, index.html preloads it and
+// first paint waits on it, while its budget row above still reads "lazy".
+const indexHtml = readFileSync(resolve(distAssets, "..", "index.html"), "utf8");
+if (/\/assets\/three-[^"]*\.js/.test(indexHtml)) {
+  failures.push(
+    "dist/index.html loads three-*.js up front. Import three.js only from modules behind the lazy globe-background chunk.",
+  );
+}
+
 if (initialGzipTotal > INITIAL_GZIP_BUDGET) {
   failures.push(
     `initial-payload gzip total ${format(initialGzipTotal)} > budget ${format(INITIAL_GZIP_BUDGET)}`,

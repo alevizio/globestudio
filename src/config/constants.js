@@ -47,6 +47,17 @@ export const dotShapeOptions = [
   "Custom",
 ];
 
+// Picker labels for the flat projections three/world-texture.js draws. They
+// live here, not next to the projections, so the control panel can list them
+// without pulling three.js into the first load.
+export const FLAT_PROJECTION_OPTIONS = [
+  { value: "mercator", label: "Mercator" },
+  { value: "equalEarth", label: "Equal Earth" },
+  { value: "naturalEarth1", label: "Natural Earth" },
+  { value: "winkel3", label: "Winkel Tripel" },
+  { value: "robinson", label: "Robinson" },
+];
+
 // Cap stored custom-shape data URLs so we don't blow past the ~5MB localStorage
 // budget. SVG icons are usually <10KB; PNG icons under 200KB is generous.
 export const CUSTOM_SHAPE_MAX_BYTES = 200 * 1024;

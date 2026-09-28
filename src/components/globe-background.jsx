@@ -93,7 +93,7 @@ export const GlobeBackground = ({
   worldStrokeVisible = true,
   worldStrokeWidth = 1.8,
   // Solid-mode flat-plane projection. Only affects the flat texture; sphere
-  // always uses equirectangular. See FLAT_PROJECTION_OPTIONS in world-texture.js.
+  // always uses equirectangular. See FLAT_PROJECTION_OPTIONS in config/constants.js.
   flatProjection = "mercator",
   // Rivers overlay (Phase 4 of map-data-rollout). Lazy-loads ~120KB of slim
   // Natural Earth 1:50m river + lake centerlines on first toggle. Drawn into

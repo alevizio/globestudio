@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
-import { FLAT_PROJECTION_OPTIONS } from "../three/world-texture.js";
+import { FLAT_PROJECTION_OPTIONS } from "../config/constants.js";
 import {
   buildShareUrl,
   clearShareConfigFromUrl,

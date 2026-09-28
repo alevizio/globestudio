@@ -8,7 +8,7 @@ const Collapsible = ({ open, children }) => (
     <div className="collapsible-section-inner">{children}</div>
   </div>
 );
-import { US_COUNTRY_ID, dotShapeOptions } from "../config/constants.js";
+import { FLAT_PROJECTION_OPTIONS, US_COUNTRY_ID, dotShapeOptions } from "../config/constants.js";
 import { readCustomShapeFile, readCustomShapeText } from "../utils/custom-shape.js";
 import {
   effectsWithCellSize,
@@ -21,7 +21,6 @@ import {
   shaderEffectOptions,
 } from "../config/shader-effects.js";
 import { areaOptions } from "../data/geography.js";
-import { FLAT_PROJECTION_OPTIONS } from "../three/world-texture.js";
 import { formatSvgNumber } from "../utils/math.js";
 import { ColorSwatch } from "./ui/color-swatch.jsx";
 import { extractPaletteFromImage, darkestColor } from "../utils/palette.js";
