@@ -2483,12 +2483,15 @@ export const ShowcaseStack = () => {
   useEffect(() => {
     // Geist (Vercel), Inter (Stripe/Linear/Profound), Fraunces (serif
     // display) — the actual faces are the biggest "looks like their site"
-    // lever. Scoped + removed on unmount so the canvas app never pays for it.
+    // lever. Plus the newspaper faces: UnifrakturMaguntia (blackletter
+    // nameplate) and Playfair Display (headlines). Those used to sit in
+    // index.html as a render-blocking stylesheet on every route.
+    // Scoped + removed on unmount so the canvas app never pays for it.
     if (document.querySelector("link[data-examples-fonts]")) return undefined;
     const fontLink = document.createElement("link");
     fontLink.rel = "stylesheet";
     fontLink.href =
-      "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap";
+      "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=UnifrakturMaguntia&display=swap";
     fontLink.dataset.examplesFonts = "true";
     document.head.appendChild(fontLink);
     return () => {
