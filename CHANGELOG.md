@@ -111,6 +111,8 @@ The first public release. This section sums up everything that ships in
 - WebM, GIF and MP4 exports use the solid background color, and share links
   keep the Transparent style.
 - A `/looks/<id>` link shows its look in the looks bar, even late in the list.
+- Picking a country, continent or state turns the globe to face it, from the
+  panel, a share link or an agent; before, a place on the far side looked empty.
 - Shader-on-background composite paints instead of sampling transparent
   black in every "Skip" state.
 - PNG export composites the solid background and honors aspect and size.
