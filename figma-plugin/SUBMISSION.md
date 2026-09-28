@@ -62,29 +62,26 @@ Capture from the desktop app at 1× or 2× display, then resize to 1280 × 800.
 ### Description (paste verbatim, edit to taste)
 
 ```
-Drop a customized dotted globe or country map into your Figma file as a
-high-resolution image. The plugin opens a panel with the full Globestudio
-canvas — pick any of 21 shader looks (Halftone, Risograph, Aurora,
-Vapor, CRT, Pixel, Bloom, Iridescent, and more), filter to any country
-or region, customize colors and density, then press Insert.
+The full Globestudio studio inside Figma. Design a dotted globe or a flat
+map with every control from the web app, then insert it into your file as
+an image or as editable vectors.
 
 What you get:
-• 21 ready-made shader presets (halftone print, vinyl wave, holographic,
-  CRT scanlines, hand-drawn pencil, more)
-• Any country, region, or continent — 250+ pre-tagged selections
-• Customize dot color, density, shape, background, glow
-• 1200 × 675 PNG by default; insert at the viewport center
-• Update-in-place: keep the existing rectangle selected and press Insert
-  again to swap the image without spawning duplicates
-• Works in Figma design files AND FigJam
+• 21 looks (Halftone, Risograph, Aurora, CRT, Metal, Bloom, Vapor and more)
+• Any country, continent or US state, and the globe turns to face it
+• Every control: dots, shape, colors, grid, network arcs, your own data
+  points, animation, shaders and a solid, space or transparent background
+• Globe or flat map, with a smooth morph between them
+• Insert an image at the crop and quality you pick (1:1, 4:5, 16:9, 9:16,
+  up to 4x), or the flat map as editable vector dots
+• Click one of your file's color variables to use it for the dots
+• Works in Figma design files and FigJam
 
 How it works:
-The plugin UI is a thin iframe over globestudio.app/embed — the same
-canvas designers use on the web. Press Insert and the live frame
-captures as a PNG and lands on your canvas. No extra service, no
-account required, no exported assets to manage.
+The plugin loads the same studio you use at globestudio.app. Press Insert
+and the design lands on your canvas. No account, no extra service.
 
-Open source MIT — github.com/alevizio/globestudio
+Open source, MIT: github.com/alevizio/globestudio
 ```
 
 ### Network access reasoning (already in manifest)

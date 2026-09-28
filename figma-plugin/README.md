@@ -2,37 +2,34 @@
 
 **🚀 [Install from Figma Community →](https://www.figma.com/community/plugin/1641603648370488902/globestudio)**
 
-Drops a customized Globestudio dotted map into your Figma file. The plugin
-UI is a thin iframe over `globestudio.app/embed?plugin=figma`, which shows
-a live preview with four controls under it:
+The full Globestudio studio inside Figma. The plugin UI is a thin iframe
+over `globestudio.app/?plugin=figma`: the studio in its phone layout, with
+the globe above a sheet that holds every control from the web app (looks,
+region, surface, globe, grid, network, data, animations, shaders and
+background). Flat/Globe and **Insert into Figma** sit in the top bar.
 
-- **Look**: one of the 21 looks.
-- **Country or region**: World, a continent, a subregion or one country,
-  with search.
-- **Density**: dot density from 1 to 90.
-- **View**: Globe or Flat. Globe previews the 3D globe and inserts a PNG
-  of it. Flat previews the flat map and inserts it as editable vectors,
-  or as a PNG of the flat map when it has more than 2,500 dots or the
-  look is Bloom, whose map is solid, not dotted.
+Insert opens the studio's export dialog with two tabs:
 
-A line above the Insert button says which of those Insert will add. If
-the file has local color variables, a **Your colors** strip at the top
-recolors the dots with one of them. **Insert into Figma** adds the map
-with those settings (see below).
+- **Image**: a PNG at the crop and quality you pick (Original, 1:1, 4:5,
+  16:9 or 9:16; Draft to Ultra, up to 4x). It starts at 1:1 for the globe
+  and 16:9 for the flat map. The layer is sized in points, with the extra
+  pixels kept for Retina.
+- **SVG**: the flat map as editable vector dots, up to 2,500 dots. Above
+  that `code.js` inserts the PNG that comes with it instead.
 
-The panel remembers the last look, region, density and view in the
-browser's sessionStorage (`src/utils/figma-picks.js`). That keeps them
-through a **Your colors** reload, and it also carries them into the next
-plugin open in the same Figma tab. The remembered picks win over any
-`look`, `selection`, `density` or `view` in the embed URL, so a `ui.html`
-release that starts passing those params needs a matching change to
-`figma-picks.js`. If storage is blocked, the pickers start from the URL
-each time.
+If the file has local color variables, a **Your colors** strip above the
+studio sets the dot color to the one you click. The studio keeps its
+settings in the browser like on the web.
 
-The pickers are part of the embed, so every installed copy gets them as
-soon as globestudio.app deploys. Changes to `ui.html`, `code.js` or
-`manifest.json` reach designers only through a new plugin release, which
-goes through Figma review (see `SUBMISSION.md`).
+Studio changes reach every installed copy as soon as globestudio.app
+deploys. Changes to `ui.html`, `code.js` or `manifest.json` reach
+designers through a new plugin version, published from the desktop app
+(Plugins, Manage plugins, Publish new version); once a plugin is approved,
+updates go live without another review.
+
+Versions 1 and 2 of the plugin load `/embed?plugin=figma` (the small
+look, region, density and view pickers), which keeps working for anyone
+who hasn't updated yet.
 
 Works in **Figma design files** and **FigJam**.
 
