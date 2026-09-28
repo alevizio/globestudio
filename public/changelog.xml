@@ -22,6 +22,7 @@
   <li>Lighter on your GPU: a still globe draws nothing, and Aurora and Bloom use about a fifth of the GPU time they did</li>
   <li>Share links keep every setting, even custom SVG dots; old links open as before</li>
   <li>@globestudio/element on npm: &lt;globe-studio&gt;, a framework-free web component</li>
+  <li>Figma plugin: the full studio runs inside Figma, and Insert adds an image or the flat map as editable vectors</li>
 </ul>]]></description>
     </item>
     <item>

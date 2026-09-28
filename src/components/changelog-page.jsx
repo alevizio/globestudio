@@ -28,6 +28,7 @@ const ENTRIES = [
       "Lighter on your GPU: a still globe draws nothing, and Aurora and Bloom use about a fifth of the GPU time they did",
       "Share links keep every setting, even custom SVG dots; old links open as before",
       "@globestudio/element on npm: <globe-studio>, a framework-free web component",
+      "Figma plugin: the full studio runs inside Figma, and Insert adds an image or the flat map as editable vectors",
     ],
   },
   {

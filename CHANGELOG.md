@@ -43,9 +43,10 @@ The first public release. This section sums up everything that ships in
   `/privacy`).
 - A tab that loads a chunk from an older deploy reloads once instead of
   breaking.
-- **Figma plugin panel**: pick a look, a country or region, and a dot
-  density, and switch between the globe and the flat map, before you
-  insert. The panel remembers its picks for the session.
+- **Figma plugin**: the full studio runs inside the plugin, with every look
+  and control. Insert places an image at the crop and quality you pick, or
+  the flat map as editable vector dots, and a click on one of the file's
+  color variables sets the dot color.
 - `favicon.ico`, `apple-touch-icon.png`, and a shared footer that links
   `/gallery` and the compare pages.
 - **Use with AI**: the Share tab copies a ready-to-paste prompt for any
