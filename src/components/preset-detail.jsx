@@ -1,3 +1,4 @@
+import { lookPresets } from "../data/look-presets.js";
 import { getPresetSeo } from "../data/preset-seo.js";
 
 // Visible long-form content rendered below the canvas when a preset is
@@ -15,6 +16,11 @@ export const PresetDetail = ({ preset }) => {
   if (!preset) return null;
   const seo = getPresetSeo(preset.id);
   if (!seo) return null;
+  // Neighbours in gallery order, wrapping at both ends, so every look page
+  // links two others and crawlers can walk all of them from any one.
+  const index = lookPresets.findIndex((p) => p.id === preset.id);
+  const previous = lookPresets[(index - 1 + lookPresets.length) % lookPresets.length];
+  const next = lookPresets[(index + 1) % lookPresets.length];
 
   return (
     <section className="preset-detail" aria-labelledby={`preset-detail-${preset.id}`}>
@@ -38,9 +44,17 @@ export const PresetDetail = ({ preset }) => {
         )}
       </div>
       <footer className="preset-detail-footer">
-        <a href="/" className="preset-detail-back">
-          ← All looks
-        </a>
+        <nav className="preset-detail-nav" aria-label="Looks">
+          <a href="/gallery" className="preset-detail-back">
+            ← All looks
+          </a>
+          <a href={`/looks/${previous.id}`} className="preset-detail-back">
+            Previous: {previous.name}
+          </a>
+          <a href={`/looks/${next.id}`} className="preset-detail-back">
+            Next: {next.name} →
+          </a>
+        </nav>
         <span className="preset-detail-share">
           Direct link: <code>https://globestudio.app/looks/{preset.id}</code>
         </span>

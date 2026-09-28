@@ -2713,6 +2713,12 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   pointer-events: none;
 }
 
+.preset-detail-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .preset-detail-back {
   color: var(--text);
   text-decoration: none;
