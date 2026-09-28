@@ -219,6 +219,31 @@ describe("ControlPanel Data section", () => {
     expect(screen.getByRole("button", { name: "Show data markers" }).getAttribute("aria-pressed")).toBe("false");
   });
 
+  it("labels the arcs switch Arcs on screen and for assistive tech alike", async () => {
+    const latest = {};
+    const twoPoints = [
+      { lat: 40.7, lng: -74, value: 10 },
+      { lat: 51.5, lng: -0.1, value: 6 },
+    ];
+    const { container } = render(
+      <Harness latest={latest} initialGlobeSettings={{ ...DEFAULT_GLOBE_SETTINGS, dataPoints: twoPoints }} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Data" }));
+    const toggle = screen.getByRole("switch", { name: "Arcs" });
+    const visibleLabel = toggle.closest(".option-row").querySelector("label").textContent;
+    expect(visibleLabel).toBe("Arcs");
+    expect(toggle.getAttribute("aria-label")).toBe(visibleLabel);
+
+    fireEvent.click(toggle);
+    expect(latest.globeSettings.dataArcs).toBe(true);
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+
+    const results = await axe.run(dataSection(container), {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+
   it("has no axe violations with the section open", async () => {
     const { container } = render(<Harness />);
     fireEvent.click(screen.getByRole("button", { name: "Data" }));

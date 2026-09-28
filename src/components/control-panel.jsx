@@ -1015,13 +1015,15 @@ export const ControlPanel = ({
             </p>
           </div>
           {dataPointCount >= 2 && (
-            <ToggleControl
-              label="Connect with arcs"
-              checked={!!globeSettings?.dataArcs}
-              onChange={(value) =>
-                setGlobeSettings((settings) => ({ ...settings, dataArcs: value }))
-              }
-            />
+            <OptionRow label="Arcs">
+              <ToggleControl
+                label="Arcs"
+                checked={!!globeSettings?.dataArcs}
+                onChange={(value) =>
+                  setGlobeSettings((settings) => ({ ...settings, dataArcs: value }))
+                }
+              />
+            </OptionRow>
           )}
         </div>
       </PanelSection>
