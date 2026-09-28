@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { lookPresets } from "../data/look-presets.js";
+import { lookThumbProps } from "../utils/look-thumbs.js";
 
 // Scroll-aware edge fade indicators so users know there are more looks to the
 // right (the bar overflows by ~450px on a default panel width). The data
@@ -62,10 +63,16 @@ export const LooksBar = ({ onPick, appliedId = null, currentId = null }) => {
             onClick={() => onPick(preset)}
           >
             <span className="looks-chip-thumb" aria-hidden="true">
+              {/* Eager, not lazy: lazy chips only start loading once scrolled
+                  into the bar, so they popped in mid scroll. The whole thumb
+                  set weighs less than one old 512 px PNG did on average. */}
               <img
-                src={`/looks/${preset.id}.png`}
+                {...lookThumbProps(preset.id, "28px")}
                 alt=""
-                loading="lazy"
+                width={28}
+                height={28}
+                decoding="async"
+                fetchPriority="low"
                 draggable="false"
                 onError={(event) => {
                   event.currentTarget.style.display = "none";
