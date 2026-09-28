@@ -108,7 +108,7 @@ The teaser promised "one email when we launch". Send exactly that one: Thu 1
 Oct, right after Product Hunt goes live, as a Resend Broadcast from a verified
 sending domain (DKIM, SPF, DMARC), with an unsubscribe link and a postal
 address. No warmups before it, no follow-up after it. `/api/subscribe`
-retires after the final export on Wed 30 Sep, so the list does not grow.
+is retired and answers 410 Gone, so the list does not grow.
 
 **Subject:** `Globestudio is live`
 
