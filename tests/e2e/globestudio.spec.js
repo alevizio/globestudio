@@ -288,6 +288,12 @@ test.describe("the Data section", () => {
     await expect(eye).toHaveAttribute("aria-pressed", "false");
     await disclosure.click();
     await expect(page.getByRole("textbox", { name: /Data points/ })).toHaveValue(/^40\.7,-74,10\n51\.5,-0\.1,10/);
+    // Close the section before counting again: its marker color swatch is
+    // the same red and sits over the canvas, so while it shows it passes for
+    // markers and the count below could never fail.
+    await disclosure.click();
+    await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    expect(await redPixels(page)).toBe(0);
     await eye.click();
     await expect.poll(() => redPixels(page), { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(20);
   });
