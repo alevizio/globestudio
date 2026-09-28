@@ -12,6 +12,7 @@ const stubClipboard = (writeText) => {
 
 afterEach(() => {
   delete navigator.clipboard;
+  delete document.execCommand;
 });
 
 const renderBlock = (props = {}) =>
@@ -43,13 +44,45 @@ describe("AgentShare", () => {
     expect(button).toBeTruthy();
   });
 
-  it("says so when the clipboard refuses", async () => {
+  it("falls back to execCommand without the Clipboard API, keeping focus on the button", async () => {
+    let copied = "";
+    document.execCommand = vi.fn(() => {
+      copied = document.querySelector("textarea").value;
+      return true;
+    });
+    renderBlock();
+    const button = screen.getByRole("button", { name: /Copy for AI/ });
+    button.focus();
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    expect(document.execCommand).toHaveBeenCalledWith("copy");
+    expect(copied).toContain(`Link: ${SHARE_URL}`);
+    expect(document.querySelector("textarea")).toBeNull();
+    expect(document.activeElement).toBe(button);
+    expect(screen.getByRole("status").textContent).toBe("Prompt copied to clipboard");
+  });
+
+  it("falls back when the Clipboard API refuses", async () => {
     stubClipboard(vi.fn(() => Promise.reject(new Error("denied"))));
+    document.execCommand = vi.fn(() => true);
+    renderBlock();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Copy for AI/ }));
+    });
+    expect(document.execCommand).toHaveBeenCalledWith("copy");
+    expect(screen.getByRole("button", { name: /Prompt copied to clipboard/ })).toBeTruthy();
+  });
+
+  it("says so when both routes fail", async () => {
+    stubClipboard(vi.fn(() => Promise.reject(new Error("denied"))));
+    document.execCommand = vi.fn(() => false);
     renderBlock();
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /Copy for AI/ }));
     });
     expect(screen.getByRole("button", { name: /Copy failed\. Try again/ })).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe("Copy failed");
   });
 
   it("shows the Claude Code command and the Claude app steps first", () => {

@@ -75,6 +75,32 @@ const readConfig = (shareUrl) => {
   }
 };
 
+// The prompt exists only on the clipboard, so a refused or missing
+// Clipboard API falls back to a hidden textarea and execCommand, like the
+// docs CodeBlock. Selecting the textarea takes focus, so it goes back to
+// the button afterwards.
+const writeClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return;
+  } catch {
+    // No Clipboard API, or the browser refused it: try the older route.
+  }
+  const focused = document.activeElement;
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.style.position = "fixed";
+  area.style.opacity = "0";
+  document.body.append(area);
+  area.focus();
+  area.select();
+  const copied = document.execCommand?.("copy") === true;
+  area.remove();
+  focused?.focus?.();
+  if (!copied) throw new Error("Copy refused");
+};
+
 export const AgentShare = ({ getShareUrl, lookName, regionName }) => {
   const id = useId();
   const [status, setStatus] = useState("idle");
@@ -89,7 +115,7 @@ export const AgentShare = ({ getShareUrl, lookName, regionName }) => {
     const shareUrl = typeof getShareUrl === "function" ? getShareUrl() : window.location.href;
     const prompt = buildAgentPrompt({ shareUrl, lookName, regionName, config: readConfig(shareUrl) });
     try {
-      await navigator.clipboard.writeText(prompt);
+      await writeClipboard(prompt);
       setStatus("copied");
       track("share_clicked", { method: "ai" });
       window.setTimeout(() => setStatus("idle"), 1800);
