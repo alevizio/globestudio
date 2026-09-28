@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { US_COUNTRY_ID } from "./config/constants.js";
+import { PHONE_LAYOUT_QUERY, US_COUNTRY_ID } from "./config/constants.js";
 import {
   DEFAULT_FLOW_SETTINGS,
   DEFAULT_SPACE_SETTINGS,
@@ -355,20 +355,23 @@ const App = () => {
   const [globeSettings, setGlobeSettings] = usePersistedState("globeSettings", DEFAULT_GLOBE_SETTINGS);
   // First-time mobile visitors land on the globe with the panel hidden so the
   // visual is the first impression. Returning users keep their saved choice.
+  // Phones held sideways are wider than 720px but get the phone layout too.
   const [panelCollapsed, setPanelCollapsed] = usePersistedState(
     "panelCollapsed",
-    typeof window !== "undefined" && window.innerWidth < 720,
+    typeof window !== "undefined" &&
+      (window.innerWidth < 720 || Boolean(window.matchMedia?.(PHONE_LAYOUT_QUERY).matches)),
   );
-  // Mirrors the styles.css 620px bottom-sheet breakpoint. Collapsing fully
+  // Mirrors the styles.css bottom-sheet query (narrow screens and phones held
+  // sideways, see PHONE_LAYOUT_QUERY). Collapsing fully
   // hides the rail on desktop (so it can go inert), but on mobile the
   // collapsed rail is a touchable peek — drag handle + looks bar stay live.
   const [isMobileSheet, setIsMobileSheet] = useState(() => {
     if (typeof window === "undefined" || !window.matchMedia) return false;
-    return window.matchMedia("(max-width: 620px)").matches;
+    return window.matchMedia(PHONE_LAYOUT_QUERY).matches;
   });
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return undefined;
-    const mq = window.matchMedia("(max-width: 620px)");
+    const mq = window.matchMedia(PHONE_LAYOUT_QUERY);
     const onChange = (event) => setIsMobileSheet(event.matches);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);

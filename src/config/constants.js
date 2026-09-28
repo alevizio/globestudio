@@ -1,6 +1,11 @@
 export const MAP_WIDTH = 1000;
 export const MAP_HEIGHT = 620;
 export const US_COUNTRY_ID = "USA";
+
+// The phone layout (bottom sheet, no hover tooltips): narrow screens, plus
+// phones held sideways, which are wide but short and touch driven. Keep in
+// step with the @media blocks in styles.css that use the same query.
+export const PHONE_LAYOUT_QUERY = "(max-width: 620px), (pointer: coarse) and (max-height: 500px)";
 export const CLICK_HIGHLIGHT = "#ffffff";
 
 export const TRACKPAD_ZOOM_IGNORE_SELECTOR = [

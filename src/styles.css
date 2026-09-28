@@ -5255,7 +5255,7 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
 }
 
 /* Phones: opaque, so the control sheet can't show through the text. */
-@media (max-width: 620px) {
+@media (max-width: 620px), (pointer: coarse) and (max-height: 500px) {
   .export-modal {
     background: linear-gradient(var(--panel), var(--panel)), var(--bg);
   }
@@ -5347,8 +5347,8 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
 }
 
 /* Mobile-only drag handle inside the control rail. Default hidden — the
-   @media (max-width: 620px) block below turns the rail into a bottom sheet
-   and reveals this handle. */
+   phone @media block below turns the rail into a bottom sheet and reveals
+   this handle. */
 .mobile-drag-handle {
   display: none;
 }
@@ -7791,7 +7791,10 @@ input[type="range"]:active::-moz-range-thumb {
   border-color: var(--border-strong);
 }
 
-@media (max-width: 620px) {
+/* Phones, in portrait (narrow) and held sideways (short and touch driven):
+   the rail becomes a bottom sheet. App.jsx and globe-background.jsx match
+   the same query through PHONE_LAYOUT_QUERY in config/constants.js. */
+@media (max-width: 620px), (pointer: coarse) and (max-height: 500px) {
   body {
     overflow: auto;
   }
@@ -8018,13 +8021,6 @@ input[type="range"]:active::-moz-range-thumb {
     display: none;
   }
 
-  /* Tooltips are a hover-discoverability pattern that doesn't translate to
-     touch — every tap fires a "hover" and flashes a tooltip the user
-     didn't ask for. Hide them entirely on mobile. */
-  .follow-tooltip {
-    display: none !important;
-  }
-
   /* GitHub + bug-report links sit above the bottom sheet's collapsed peek
      line (200px + the sheet's 10px floating gap) so they stay visible at
      rest. When the user expands the sheet they're hidden under it, which
@@ -8072,6 +8068,15 @@ input[type="range"]:active::-moz-range-thumb {
     grid-template-columns: minmax(88px, 104px) minmax(0, 1fr);
     gap: 10px;
     padding: 9px 12px;
+  }
+}
+
+/* Tooltips follow the mouse. On a touch screen every tap fires a "hover"
+   and flashes one nobody asked for, so they are off wherever there is no
+   hover: phones either way up, and tablets. */
+@media (hover: none) {
+  .follow-tooltip {
+    display: none !important;
   }
 }
 
