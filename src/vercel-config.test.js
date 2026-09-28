@@ -25,7 +25,12 @@ describe("vercel.json", () => {
     // A tab opened before a deploy asks for chunk hashes that no longer
     // exist; an HTML 200 there breaks the lazy import instead of letting
     // the vite:preloadError reload recover.
-    for (const path of ["/assets/index-deadbeef.js", "/data/world-cities.json", "/api/subscribe"]) {
+    for (const path of [
+      "/assets/index-deadbeef.js",
+      "/data/world-cities.json",
+      "/api/subscribe",
+      "/looks/thumbs/halftone@2x.webp",
+    ]) {
       expect(spaRewrite.test(path), path).toBe(false);
     }
   });
@@ -35,6 +40,18 @@ describe("vercel.json", () => {
       key: "Cache-Control",
       value: "public, max-age=31536000, immutable",
     });
+  });
+
+  it("caches look thumbnails for a day and revalidates in the background", () => {
+    // Not content-hashed: `npm run thumbs:generate` rewrites them in place
+    // when a look changes, so a year of `immutable` would pin stale chips.
+    const cache = headersFor("/looks/thumbs/halftone@2x.webp").find(
+      ({ key }) => key === "Cache-Control",
+    );
+    expect(cache?.value).toBe("public, max-age=86400, stale-while-revalidate=604800");
+    expect(headersFor("/looks/halftone")).not.toContainEqual(
+      expect.objectContaining({ key: "Cache-Control" }),
+    );
   });
 
   it("keeps /embed out of the index for crawlers that don't run JS", () => {
