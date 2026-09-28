@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { handleMcpRequest, MAX_BODY_BYTES } from "../dist/http.js";
+import { handleMcpRequest, MAX_BATCH_MESSAGES, MAX_BODY_BYTES } from "../dist/http.js";
 
 const { parseShareConfig } = await import(new URL("../../../src/utils/share-config.js", import.meta.url).href);
 const APP_LINKS = JSON.parse(readFileSync(new URL("./fixtures/app-links.json", import.meta.url), "utf8"));
@@ -107,4 +107,14 @@ test("oversized and malformed bodies are refused before any tool runs", async ()
   const broken = await request({ method: "POST", headers, body: "{not json" });
   assert.equal(broken.status, 400);
   assert.equal((await broken.json()).error.code, -32700);
+
+  // One body must not fan out into many tool calls.
+  const ping = (id) => ({ jsonrpc: "2.0", id, method: "ping" });
+  const small = await request({ method: "POST", headers, body: JSON.stringify([ping(1), ping(2)]) });
+  assert.equal(small.status, 200);
+  assert.equal((await small.json()).length, 2);
+  const flood = Array.from({ length: MAX_BATCH_MESSAGES + 1 }, (_, i) => ping(i + 1));
+  const tooMany = await request({ method: "POST", headers, body: JSON.stringify(flood) });
+  assert.equal(tooMany.status, 400);
+  assert.equal((await tooMany.json()).error.code, -32600);
 });

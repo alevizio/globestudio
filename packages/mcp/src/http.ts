@@ -17,6 +17,14 @@ import { createServer } from "./server.js";
 /** Largest request body accepted. A share link with every setting is ~2.5 kB. */
 export const MAX_BODY_BYTES = 128 * 1024;
 
+/**
+ * Most JSON-RPC messages in one batch (a JSON array body; protocol 2025-03-26
+ * allows batches, later versions dropped them). Uncapped, one 128 KB body
+ * holds ~1,600 list_presets calls: a 15 MB reply and ~200 ms of CPU from a
+ * single request, which a per-request rate limit would not see.
+ */
+export const MAX_BATCH_MESSAGES = 10;
+
 // Public and credential free, so any origin may call it: browser based MCP
 // clients (the MCP Inspector, web agents) need these to reach it at all.
 const RESPONSE_HEADERS: Record<string, string> = {
@@ -92,6 +100,9 @@ export const handleMcpRequest = async (request: Request): Promise<Response> => {
     parsedBody = JSON.parse(text);
   } catch {
     return jsonRpcError(400, -32700, "Parse error: the request body is not JSON.");
+  }
+  if (Array.isArray(parsedBody) && parsedBody.length > MAX_BATCH_MESSAGES) {
+    return jsonRpcError(400, -32600, `A batch can hold up to ${MAX_BATCH_MESSAGES} messages.`);
   }
 
   const server = createServer();

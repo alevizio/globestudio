@@ -47,7 +47,7 @@ cursor://anysphere.cursor-deeplink/mcp/install?name=globestudio&config=eyJ1cmwiO
 
 **Any other MCP client:** add `https://globestudio.app/mcp` as a remote server using the streamable HTTP transport.
 
-The hosted server is stateless: every request gets a fresh server, nothing is stored between requests, and replies are plain JSON. It takes POST only (GET and DELETE answer 405) and requests up to 128 KB.
+The hosted server is stateless: every request gets a fresh server, nothing is stored between requests, and replies are plain JSON. It takes POST only (GET and DELETE answer 405), requests up to 128 KB and batches of up to 10 messages.
 
 ## Run it locally (stdio)
 
