@@ -660,6 +660,10 @@ export const GlobeBackground = ({
     };
     applyGlobeShellProgress(threeRef.current, morphRef.current.progress, globeSettingsRef.current);
 
+    // True until bgTarget has been rendered (cleared) since it was last
+    // allocated or last held background content; see the bg pass in animate.
+    let bgTargetDirty = true;
+
     const resize = () => {
       const rect = mount.getBoundingClientRect();
       const width = Math.max(1, Math.floor(rect.width));
@@ -702,6 +706,7 @@ export const GlobeBackground = ({
         Math.max(1, Math.round(width * dpr)),
         Math.max(1, Math.round(height * dpr)),
       );
+      bgTargetDirty = true;
     };
 
     const observer = new ResizeObserver(resize);
@@ -980,9 +985,17 @@ export const GlobeBackground = ({
         // still render the (empty / hidden mesh) scene to the target — the
         // clear color produced becomes the bg the customPass composites,
         // which gives the solid-bg case the same visual as before.
+        //
+        // With nothing visible in bgScene (solid bg, or the shaded default
+        // where the bg meshes live in the main scene) that render is just a
+        // full-screen clear to transparent, and the target already holds
+        // exactly that once it has been cleared after its last (re)allocation
+        // or its last frame with content (bgTargetDirty). Skipping the repeat
+        // saves a full-resolution clear + store every frame.
         const bgScene = threeRef.current?.bgScene;
         const bgTarget = threeRef.current?.bgTarget;
-        if (bgScene && bgTarget) {
+        const bgHasContent = Boolean(bgScene?.children.some((child) => child.visible));
+        if (bgScene && bgTarget && (bgHasContent || bgTargetDirty)) {
           const prevTarget = renderer.getRenderTarget();
           const prevAutoClear = renderer.autoClear;
           renderer.autoClear = true;
@@ -990,6 +1003,7 @@ export const GlobeBackground = ({
           renderer.render(bgScene, threeRef.current.camera);
           renderer.setRenderTarget(prevTarget);
           renderer.autoClear = prevAutoClear;
+          bgTargetDirty = bgHasContent;
         }
       }
 
@@ -1133,6 +1147,7 @@ export const GlobeBackground = ({
       renderer.setSize(1, 1, false);
       postHandle.setSize(1, 1);
       bgTarget.setSize(1, 1);
+      bgTargetDirty = true;
       buffersReleased = true;
     };
     const handleVisibility = () => {
