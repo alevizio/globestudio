@@ -1764,6 +1764,20 @@ const App = () => {
             viewMode={viewMode}
             usStates={usStates}
           />
+        {/* The studio's own links to the rest of the site, so crawlers that
+            run JS reach every page from "/" (the prerendered body's
+            TakeoverFooter is replaced on mount). Plain anchors like the
+            takeover pages use: each page is its own document. Inside the
+            rail, so the mobile sheet carries them too. */}
+        <nav className="takeover-footer-links panel-links" aria-label="Site links">
+          <a href="/gallery">Gallery</a>
+          <a href="/docs">Docs</a>
+          <a href="/integrations">Integrations</a>
+          <a href="/examples">Examples</a>
+          <a href="/compare/cobe">vs cobe</a>
+          <a href="/compare/geolayers">vs GEOlayers</a>
+          <a href="/changelog">Changelog</a>
+        </nav>
       </section>
 
       <ExportModal
