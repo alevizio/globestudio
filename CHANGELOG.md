@@ -109,8 +109,8 @@ The first public release. This section sums up everything that ships in
   before the fix open exactly as before.
 - Data points loaded from a share link or a JSON file show up in the paste
   box instead of being overwritten by the next edit.
-- WebM, GIF and MP4 exports use the solid background color, and share links
-  keep the Transparent style.
+- With a Solid background, WebM, GIF and MP4 exports use its color, and
+  share links keep the Transparent style.
 - A `/looks/<id>` link shows its look in the looks bar, even late in the list.
 - Picking a country, continent or state turns the globe to face it, from the
   panel, a share link or an agent; before, a place on the far side looked empty.
