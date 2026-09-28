@@ -169,7 +169,7 @@ const McpLogo = ({ size = 28 }) => (
 const INTEGRATIONS = [
   {
     id: "mcp",
-    name: "Claude / MCP",
+    name: "AI agents / MCP",
     Logo: McpLogo,
     bg: "#1e1e22",
     fg: "#ffffff",
