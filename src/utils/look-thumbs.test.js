@@ -6,6 +6,7 @@ import { lookPresets } from "../data/look-presets.js";
 import { LOOK_THUMB_WIDTHS, lookThumbProps } from "./look-thumbs.js";
 
 const thumbsDir = resolve(dirname(fileURLToPath(import.meta.url)), "../../public/looks/thumbs");
+const stylesPath = resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css");
 
 // Lossless WebP (VP8L) keeps the 14-bit width and height, minus one, right
 // after the 0x2f signature byte at offset 20.
@@ -40,5 +41,17 @@ describe("look thumbnails", () => {
       srcSet: "/looks/thumbs/halftone@2x.webp 56w, /looks/thumbs/halftone@3x.webp 84w",
       sizes: "28px",
     });
+  });
+
+  it("lets the browser smooth the thumbs instead of pixelating them", () => {
+    // image-rendering: pixelated on these slots is what turned the dot and
+    // halftone looks into sparkle noise; the small thumbs need smoothing.
+    const rules = [...readFileSync(stylesPath, "utf8").matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(
+      ([, selector]) => /\.(looks-chip|command-palette|docs-preset)-thumb\b/.test(selector),
+    );
+    expect(rules.length).toBeGreaterThanOrEqual(6);
+    for (const [, selector, body] of rules) {
+      expect(body, selector.trim()).not.toMatch(/image-rendering/);
+    }
   });
 });
