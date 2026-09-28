@@ -223,6 +223,16 @@ test.describe("with reduced motion", () => {
   });
 });
 
+test("the phone sheet lists Data between Network and Animations", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const disclosures = page.locator(".control-panel .option-block-disclosure");
+  await expect(disclosures.filter({ hasText: /^Data$/ })).toHaveCount(1);
+  const titles = await disclosures.allTextContents();
+  expect(titles.indexOf("Data")).toBe(titles.indexOf("Network") + 1);
+  expect(titles.indexOf("Animations")).toBe(titles.indexOf("Data") + 1);
+});
+
 test("mobile home does not overflow horizontally", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");

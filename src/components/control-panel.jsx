@@ -602,51 +602,6 @@ export const ControlPanel = ({
             )}
           </div>
         </OptionRow>
-        <OptionRow label="Data points" stacked>
-          <div className="data-points-control">
-            <textarea
-              className="data-points-input"
-              rows={4}
-              value={dataText}
-              onChange={(event) => handleDataText(event.target.value)}
-              placeholder={"lat,lng,value  or  country,value\n40.7,-74,10\nUS,1200\nFR,800\nJP,950"}
-              aria-label="Data points: lat,lng,value or country,value per line"
-              spellCheck={false}
-            />
-            <button
-              type="button"
-              className="data-points-sample"
-              onClick={() =>
-                handleDataText("US,1200\nGB,820\nJP,950\nDE,700\nBR,540\nAU,410\nIN,880")
-              }
-            >
-              Load sample
-            </button>
-            <div className="data-points-meta">
-              <ColorSwatch
-                value={globeSettings?.dataMarkerColor || "#7edfff"}
-                onChange={(hex) =>
-                  setGlobeSettings((settings) => ({ ...settings, dataMarkerColor: hex }))
-                }
-                label="Data marker color"
-              />
-              <p className="data-points-hint">
-                {dataPointCount > 0
-                  ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted. Markers sized by value (globe + flat).`
-                  : "Paste lat,lng,value or country,value (e.g. US,1200) per line."}
-              </p>
-            </div>
-            {dataPointCount >= 2 && (
-              <ToggleControl
-                label="Connect with arcs"
-                checked={!!globeSettings?.dataArcs}
-                onChange={(value) =>
-                  setGlobeSettings((settings) => ({ ...settings, dataArcs: value }))
-                }
-              />
-            )}
-          </div>
-        </OptionRow>
         <OptionRow label="Density" value={density}>
           {/* Capped at 90 — beyond that the dot count climbs into the
               tens-of-thousands range and per-frame InstancedMesh upload
@@ -1000,6 +955,54 @@ export const ControlPanel = ({
           </OptionRow>
         </PanelSection>
       </Collapsible>
+
+      {/* Data section. Pasted points plot as additive markers in both
+          views, so unlike Network it isn't gated on globe mode. */}
+      <PanelSection title="Data">
+        <div className="data-points-control">
+          <textarea
+            className="data-points-input"
+            rows={4}
+            value={dataText}
+            onChange={(event) => handleDataText(event.target.value)}
+            placeholder={"lat,lng,value  or  country,value\n40.7,-74,10\nUS,1200\nFR,800\nJP,950"}
+            aria-label="Data points: lat,lng,value or country,value per line"
+            spellCheck={false}
+          />
+          <button
+            type="button"
+            className="data-points-sample"
+            onClick={() =>
+              handleDataText("US,1200\nGB,820\nJP,950\nDE,700\nBR,540\nAU,410\nIN,880")
+            }
+          >
+            Load sample
+          </button>
+          <div className="data-points-meta">
+            <ColorSwatch
+              value={globeSettings?.dataMarkerColor || "#7edfff"}
+              onChange={(hex) =>
+                setGlobeSettings((settings) => ({ ...settings, dataMarkerColor: hex }))
+              }
+              label="Data marker color"
+            />
+            <p className="data-points-hint">
+              {dataPointCount > 0
+                ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted. Markers sized by value (globe + flat).`
+                : "Paste lat,lng,value or country,value (e.g. US,1200) per line."}
+            </p>
+          </div>
+          {dataPointCount >= 2 && (
+            <ToggleControl
+              label="Connect with arcs"
+              checked={!!globeSettings?.dataArcs}
+              onChange={(value) =>
+                setGlobeSettings((settings) => ({ ...settings, dataArcs: value }))
+              }
+            />
+          )}
+        </div>
+      </PanelSection>
 
       {/* Animations section. No abstract "all animations" master
           toggle — each motion is its own concrete control. The
