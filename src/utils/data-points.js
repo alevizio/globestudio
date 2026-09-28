@@ -41,6 +41,11 @@ export const parseDataPoints = (text, countryIndex = null) => {
   return points;
 };
 
+// The paste box text for a set of points: one "lat,lng,value" line each,
+// which parseDataPoints reads back as the same points.
+export const serializeDataPoints = (points) =>
+  Array.isArray(points) ? points.map((p) => [p.lat, p.lng, p.value].join(",")).join("\n") : "";
+
 // Map a value to a marker radius between rMin/rMax, sqrt-scaled so the marker's
 // AREA (not radius) reads proportional to the value. Returns the mid radius
 // when every value is equal.

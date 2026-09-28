@@ -251,6 +251,38 @@ test.describe("the Data section", () => {
     }, png.toString("base64"));
   };
 
+  test("its paste box shows the points a share link loads and keeps them on edit", async ({ page }) => {
+    const points = [
+      { lat: 40.7, lng: -74, value: 10 },
+      { lat: 51.5, lng: -0.1, value: 10 },
+      { lat: 35.7, lng: 139.7, value: 10 },
+    ];
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { dataPoints: points } }))}`);
+    // The link is applied after the panel mounts, so the box has to pick
+    // the points up then, not only when it first renders.
+    await page.getByRole("button", { name: "Data", exact: true }).click();
+    const box = page.getByRole("textbox", { name: /Data points/ });
+    await expect(box).toHaveValue("40.7,-74,10\n51.5,-0.1,10\n35.7,139.7,10");
+
+    // Change the middle line's value one key at a time. Each key has to land
+    // where the caret was put, so the box can't be rewritten mid typing.
+    const middleLineEnd = "40.7,-74,10\n51.5,-0.1,10".length;
+    await box.evaluate((node, at) => {
+      node.focus();
+      node.setSelectionRange(at, at);
+    }, middleLineEnd);
+    await page.keyboard.press("Backspace");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("25");
+    await expect(box).toHaveValue("40.7,-74,10\n51.5,-0.1,25\n35.7,139.7,10");
+    expect(await box.evaluate((node) => node.selectionStart)).toBe(middleLineEnd);
+    await expect(page.getByText(/^3 points plotted\./)).toBeVisible();
+    // The other two points are kept in the saved settings, not just the box.
+    await expect
+      .poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("globestudio:globeSettings"))?.dataPoints))
+      .toEqual([points[0], { ...points[1], value: 25 }, points[2]]);
+  });
+
   test("its eye hides the markers and keeps the pasted points", async ({ page }) => {
     // Two cold canvas boots (the reload) plus pixel polls: over a minute on
     // swiftshader locally, so give CI's slower runners the headroom.

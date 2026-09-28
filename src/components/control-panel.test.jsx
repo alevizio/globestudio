@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import axe from "axe-core";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
@@ -9,10 +9,13 @@ import { ControlPanel } from "./control-panel.jsx";
 const noop = () => {};
 
 // Holds globeSettings in real state, like App.jsx does, and reports every
-// render's value so tests can read what the panel wrote.
+// render's value so tests can read what the panel wrote. The setter is
+// exposed too, so a test can change settings from outside the panel the
+// way a share link or JSON import does.
 const Harness = ({ initialGlobeSettings = DEFAULT_GLOBE_SETTINGS, viewMode = "globe", latest = {} }) => {
   const [globeSettings, setGlobeSettings] = useState(initialGlobeSettings);
   latest.globeSettings = globeSettings;
+  latest.setGlobeSettings = setGlobeSettings;
   return (
     <ControlPanel
       selection="world"
@@ -142,6 +145,58 @@ describe("ControlPanel Data section", () => {
     fireEvent.click(eye);
     expect(latest.globeSettings.data).toBe(true);
     expect(latest.globeSettings.dataPoints).toHaveLength(7);
+  });
+
+  it("fills the paste box with points loaded after it mounted, and keeps them on edit", () => {
+    const latest = {};
+    render(<Harness latest={latest} />);
+    fireEvent.click(screen.getByRole("button", { name: "Data" }));
+    const textarea = screen.getByRole("textbox", { name: /Data points/ });
+    expect(textarea.value).toBe("");
+
+    // A share link or JSON import lands after the panel mounted.
+    act(() =>
+      latest.setGlobeSettings((settings) => ({
+        ...settings,
+        dataPoints: [
+          { lat: 40.7, lng: -74, value: 10 },
+          { lat: 51.5, lng: -0.1, value: 6 },
+          { lat: 35.7, lng: 139.7, value: 8 },
+        ],
+      })),
+    );
+    expect(textarea.value).toBe("40.7,-74,10\n51.5,-0.1,6\n35.7,139.7,8");
+    expect(screen.getByText(/3 points plotted/)).toBeTruthy();
+
+    // Editing one line keeps the other two instead of wiping them.
+    fireEvent.change(textarea, { target: { value: "40.7,-74,10\n51.5,-0.1,60\n35.7,139.7,8" } });
+    expect(latest.globeSettings.dataPoints).toEqual([
+      { lat: 40.7, lng: -74, value: 10 },
+      { lat: 51.5, lng: -0.1, value: 60 },
+      { lat: 35.7, lng: 139.7, value: 8 },
+    ]);
+
+    // Clearing the points from outside (a reset) empties the box too.
+    act(() => latest.setGlobeSettings((settings) => ({ ...settings, dataPoints: [] })));
+    expect(textarea.value).toBe("");
+  });
+
+  it("never rewrites what the user typed", () => {
+    const latest = {};
+    render(<Harness latest={latest} />);
+    fireEvent.click(screen.getByRole("button", { name: "Data" }));
+    const textarea = screen.getByRole("textbox", { name: /Data points/ });
+    // A comment, a country line, and a half typed coordinate: the parsed
+    // points serialize to something else, so a rewrite would show here.
+    const typed = "# visits\nUS,1200\n40.7,-7";
+    fireEvent.change(textarea, { target: { value: typed } });
+    expect(latest.globeSettings.dataPoints).toHaveLength(2);
+    expect(textarea.value).toBe(typed);
+
+    // Other Data settings changing around it leave the text alone too.
+    fireEvent.click(screen.getByRole("button", { name: "Show data markers" }));
+    act(() => latest.setGlobeSettings((settings) => ({ ...settings, dataMarkerColor: "#ff0000" })));
+    expect(textarea.value).toBe(typed);
   });
 
   it("shows a saved hidden state as the eye off", () => {

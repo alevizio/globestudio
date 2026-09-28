@@ -25,7 +25,7 @@ import { FLAT_PROJECTION_OPTIONS } from "../three/world-texture.js";
 import { formatSvgNumber } from "../utils/math.js";
 import { ColorSwatch } from "./ui/color-swatch.jsx";
 import { extractPaletteFromImage, darkestColor } from "../utils/palette.js";
-import { parseDataPoints } from "../utils/data-points.js";
+import { parseDataPoints, serializeDataPoints } from "../utils/data-points.js";
 import { countryCentroidIndex } from "../data/geography.js";
 import { DepthControl } from "./ui/depth-control.jsx";
 import { OptionRow } from "./ui/option-row.jsx";
@@ -247,15 +247,23 @@ export const ControlPanel = ({
     img.src = url;
   };
   // Data-binding: paste lat,lng[,value] → additive markers on the globe.
-  const [dataText, setDataText] = useState(() =>
-    (globeSettings?.dataPoints || [])
-      .map((p) => [p.lat, p.lng, p.value].join(","))
-      .join("\n"),
-  );
-  const dataPointCount = (globeSettings?.dataPoints || []).length;
+  // The box holds the user's own text. dataTextPoints is the dataPoints
+  // array that text stands for: the box's own edits set both together, so
+  // typing is never rewritten. When dataPoints changes from anywhere else
+  // (share link, JSON import, look, reset) the box is refilled from it,
+  // during render so it never shows the old text for a frame.
+  const dataPoints = globeSettings?.dataPoints;
+  const [dataText, setDataText] = useState(() => serializeDataPoints(dataPoints));
+  const [dataTextPoints, setDataTextPoints] = useState(dataPoints);
+  if (dataPoints !== dataTextPoints) {
+    setDataTextPoints(dataPoints);
+    setDataText(serializeDataPoints(dataPoints));
+  }
+  const dataPointCount = (dataPoints || []).length;
   const handleDataText = (text) => {
-    setDataText(text);
     const points = parseDataPoints(text, countryCentroidIndex);
+    setDataText(text);
+    setDataTextPoints(points);
     setGlobeSettings((settings) => ({ ...settings, dataPoints: points }));
   };
 

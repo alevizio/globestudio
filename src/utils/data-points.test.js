@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseDataPoints, valueToRadius, visibleDataPoints } from "./data-points.js";
+import { parseDataPoints, serializeDataPoints, valueToRadius, visibleDataPoints } from "./data-points.js";
 
 describe("parseDataPoints", () => {
   it("parses lat,lng[,value]; skips header, blanks, comments, out-of-range", () => {
@@ -35,6 +35,24 @@ describe("parseDataPoints", () => {
       { lat: 40.7, lng: -74, value: 10 },
       { lat: 38, lng: -97, value: 1200 },
     ]);
+  });
+});
+
+describe("serializeDataPoints", () => {
+  it("writes one lat,lng,value line per point that parses back to the same points", () => {
+    const points = [
+      { lat: 40.7, lng: -74, value: 10 },
+      { lat: -23.5, lng: -46.6, value: 0.25 },
+    ];
+    const text = serializeDataPoints(points);
+    expect(text).toBe("40.7,-74,10\n-23.5,-46.6,0.25");
+    expect(parseDataPoints(text)).toEqual(points);
+  });
+
+  it("returns an empty string for missing or empty points", () => {
+    expect(serializeDataPoints([])).toBe("");
+    expect(serializeDataPoints(undefined)).toBe("");
+    expect(serializeDataPoints(null)).toBe("");
   });
 });
 
