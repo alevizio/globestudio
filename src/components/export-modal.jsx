@@ -1,7 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
 import { Check, Clipboard, Download, Share2, Upload, X } from "./icons.jsx";
 import { track } from "./analytics.jsx";
+import { ErrorBoundary } from "./error-boundary.jsx";
+
+// The Share tab's "Use with AI" block (prompt builder, client commands and
+// its CSS) loads only when that tab opens. If the chunk fails, the block is
+// left out and the rest of the tab still works.
+const AgentShare = lazy(() =>
+  import("./agent-share.jsx").then((m) => ({ default: m.AgentShare })),
+);
 
 const ASPECT_OPTIONS = [
   { id: "original", label: "Original", ratio: null },
@@ -205,6 +213,8 @@ export const ExportModal = ({
   exportConfig,
   importConfig,
   getShareUrl,
+  lookName,
+  regionName,
 }) => {
   const [tab, setTab] = useState("image");
   const [aspect, setAspect] = useState("original");
@@ -523,6 +533,11 @@ export const ExportModal = ({
                       : "Copy as React (@globestudio/react)"}
                 </span>
               </button>
+              <ErrorBoundary fallback={null}>
+                <Suspense fallback={null}>
+                  <AgentShare getShareUrl={getShareUrl} lookName={lookName} regionName={regionName} />
+                </Suspense>
+              </ErrorBoundary>
               <button
                 type="button"
                 className="export-modal-cta is-secondary"

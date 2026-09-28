@@ -1,0 +1,74 @@
+/* "Use with AI" block in the export dialog's Share tab. Ships with the lazy
+   agent-share chunk, not the critical stylesheet. It reuses the dialog's
+   label, caption, CTA and segmented toggle classes plus the docs CodeBlock,
+   so only layout and the three-client toggle live here. */
+
+.agent-share {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+}
+
+.agent-share h3 {
+  margin: 0;
+}
+
+.agent-share .export-modal-cta {
+  margin-top: 0;
+}
+
+.agent-share a.export-modal-cta {
+  text-decoration: none;
+}
+
+/* The CTA and toggle buttons are clipped to pixel corners, which would cut
+   off an outer outline, so the focus ring sits inside the edge. */
+.agent-share .export-modal-cta:focus-visible,
+.agent-share .segmented-toggle-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -4px;
+}
+
+.agent-share-connect-label {
+  margin: 12px 0 0;
+}
+
+/* Three clients instead of the toggle's usual two: 8px of padding plus two
+   4px gaps come out of the width before it splits in thirds. */
+.agent-share-clients {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.agent-share-clients .segmented-toggle-indicator {
+  width: calc((100% - 16px) / 3);
+}
+
+.agent-share-panel,
+.agent-share-step {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agent-share-step {
+  gap: 8px;
+}
+
+.agent-share .code-block {
+  margin: 0;
+}
+
+/* Commands wrap on a phone sheet instead of scrolling sideways, only
+   between arguments (see Args in agent-share.jsx). Copy still copies the
+   exact text. */
+.agent-share .code-block .code-block-pre code {
+  white-space: pre-wrap;
+}
+
+.agent-share-arg {
+  white-space: nowrap;
+}
