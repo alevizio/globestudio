@@ -1,6 +1,6 @@
 {
   "name": "@globestudio/mcp",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "mcpName": "io.github.alevizio/globestudio",
   "description": "Model Context Protocol server for Globestudio — let any MCP-compatible AI assistant (Claude Desktop, Claude Code, Cursor, etc.) generate dotted globes, build share URLs, and grab embed snippets.",
   "license": "MIT",
@@ -40,7 +40,7 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {

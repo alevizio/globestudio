@@ -1,7 +1,11 @@
 {
   "rewrites": [
+    { "source": "/mcp", "destination": "/api/mcp" },
     { "source": "/((?!api/|assets/|data/).*)", "destination": "/index.html" }
   ],
+  "functions": {
+    "api/mcp.ts": { "maxDuration": 10 }
+  },
   "headers": [
     {
       "source": "/assets/(.*)",
@@ -14,6 +18,12 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" },
         { "key": "X-Robots-Tag", "value": "noindex" }
+      ]
+    },
+    {
+      "source": "/mcp",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     },
     {

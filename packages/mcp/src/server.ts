@@ -1,15 +1,17 @@
 /**
  * Globestudio MCP server factory.
  *
- * Builds a configured low-level MCP `Server` with all five tools registered.
- * Shared by the stdio entry point (index.ts — Claude Desktop/Code, Cursor, …)
- * and the Smithery entry point (smithery.ts — streamable-HTTP hosting), so both
- * expose identical tools. Pure factory: no transport, no side effects on import.
+ * Builds a configured low-level MCP `Server` with all six tools registered.
+ * Shared by the stdio entry point (index.ts: Claude Desktop/Code, Cursor, …),
+ * the hosted endpoint (http.ts, served at https://globestudio.app/mcp) and the
+ * Smithery entry point (smithery.ts), so all of them expose identical tools.
+ * Pure factory: no transport, no side effects on import.
  *
  * Tools:
  *   list_presets()                   → every shipped look with name, blurb, thumbnail, vibe tags
  *   find_presets({ vibe })           → fuzzy-match presets by vibe (e.g. "synthwave", "print")
- *   build_share_url({ look, ... })   → /looks/<id>?c=… studio URL + /embed?look=<id>&… embed URL
+ *   build_share_url({ look | share_url, ... }) → studio URL + embed URL, new or changed from a link
+ *   read_share_url({ url })          → the look + settings a Globestudio link carries
  *   embed_snippet({ look, framework}) → paste-ready code for iframe/react/script-tag
  *   preview_url({ look })            → live /embed?look=<id> URL + thumbnail URL
  */
@@ -20,6 +22,15 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
+import {
+  encodeShareConfig,
+  isRecord,
+  mergeConfig,
+  NESTED_KEYS,
+  normalizeConfig,
+  parseShareConfig,
+  type ShareConfig,
+} from "./share-config.js";
 
 // --- Constants ---------------------------------------------------------------
 
@@ -209,12 +220,18 @@ const FindPresetsSchema = z.object({
 });
 
 const BuildShareUrlSchema = z.object({
-  look: z.string().describe("Preset id (use list_presets first to see options). Examples: 'halftone', 'aurora', 'vapor'."),
+  look: z.string().optional().describe("Preset id (use list_presets first to see options). Examples: 'halftone', 'aurora', 'vapor'. Required unless share_url is given."),
+  share_url: z.string().min(1).optional().describe("A Globestudio link to change instead of starting from a preset. Everything it sets is kept unless overridden here."),
   selection: z.string().optional().describe("Country/region selection: 'world' (default), an ISO country code ('JP' or 'JPN'), a country name ('Japan'), a continent ('Europe'), or a subregion ('Western Europe')."),
   dotColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().describe("Hex color for the dots, e.g. '#3df4ff'."),
   background: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().describe("Background hex color."),
   density: z.number().int().min(10).max(100).optional().describe("Dot density 10-100 (lower = sparser)."),
   shape: z.enum(DOT_SHAPES).optional().describe("Dot shape."),
+  config: z.record(z.unknown()).optional().describe("Any other setting, using the keys read_share_url returns in config."),
+});
+
+const ReadShareUrlSchema = z.object({
+  url: z.string().min(1).describe("A Globestudio link: a studio share link (/?c=…), a look link (/looks/<id>, with or without ?c=…) or an embed URL (/embed?…)."),
 });
 
 const EmbedSnippetSchema = z.object({
@@ -270,51 +287,280 @@ const findPresets = (vibe: string) => {
   }));
 };
 
-// ?c= payload matches the app's share-config.js contract exactly:
-// encodeURIComponent(JSON.stringify({ v: 1, ...config })).
-const encodeShareConfig = (config: Record<string, unknown>) =>
-  encodeURIComponent(JSON.stringify({ v: 1, ...config }));
+const isPresetId = (id: string) => PRESETS.some((p) => p.id === id);
+
+// --- Reading links -------------------------------------------------------------
+
+type LinkKind = "studio" | "look" | "embed";
+
+type ParsedLink = {
+  kind: LinkKind;
+  origin: string;
+  /** Preset the link starts from; null for studio links (they carry every setting). */
+  look: string | null;
+  /** Every setting the link applies, in the app's ?c= vocabulary. */
+  config: ShareConfig;
+  /** Embed-only query params (theme, static, …), kept as they were. */
+  embedOptions: Record<string, string>;
+};
+
+const describeUrl = (raw: string) => (raw.length > 80 ? `${raw.slice(0, 77)}...` : raw);
+
+const toUrl = (raw: string): URL => {
+  const text = raw.trim();
+  try {
+    if (text.startsWith("/")) return new URL(text, SITE_URL);
+    if (/^https?:\/\//i.test(text)) return new URL(text);
+    return new URL(`https://${text}`);
+  } catch {
+    throw new Error(`"${describeUrl(raw)}" is not a URL. Pass the full Globestudio link.`);
+  }
+};
+
+// Query params the embed reads straight into settings (embed-view.jsx
+// parseParams + buildSettings), translated to their ?c= keys with the embed's
+// own parsing and clamping. Anything else except c, look and app is an
+// embed-only option (theme, static, source, …) and rides along untouched.
+const readEmbedParams = (params: URLSearchParams) => {
+  const settings: ShareConfig = {};
+  const options: Record<string, string> = {};
+  const size = (value: string, min: number, max: number) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? Math.min(max, Math.max(min, n)) : undefined;
+  };
+  const bool = (value: string) => value === "1" || value === "true";
+  // The embed reads params.get(key): the first of repeated keys wins.
+  const seen = new Set<string>();
+  for (const [key, value] of params) {
+    if (seen.has(key)) continue;
+    seen.add(key);
+    switch (key) {
+      case "c":
+      case "look":
+      case "app":
+        break;
+      case "dotColor":
+      case "worldFill":
+      case "background":
+        if (value) settings[key] = `#${value.replace(/^#/, "")}`;
+        break;
+      case "density":
+        if (value) settings.density = size(value, 1, 90);
+        break;
+      case "dotSize":
+        if (value) settings.dotSize = size(value, 0.1, 25);
+        break;
+      case "selection":
+      case "renderMode":
+        if (value) settings[key] = value;
+        break;
+      case "tiltX":
+      case "tiltY": {
+        const n = Number(value);
+        if (value && Number.isFinite(n)) settings[key] = Math.min(45, Math.max(-45, n));
+        break;
+      }
+      case "transparent":
+        settings.transparent = bool(value);
+        break;
+      case "autoSpin":
+        settings.globeSettings = { autoSpin: bool(value) };
+        break;
+      case "view":
+        settings.viewMode = value === "flat" ? "flat" : "globe";
+        break;
+      default:
+        options[key] = value;
+    }
+  }
+  return { settings: normalizeConfig(settings), options };
+};
+
+const parseLink = (raw: string): ParsedLink => {
+  const url = toUrl(raw);
+  const path = url.pathname.replace(/\/+$/, "") || "/";
+  const shared = parseShareConfig(url.search) ?? {};
+
+  if (path === "/") {
+    return { kind: "studio", origin: url.origin, look: null, config: shared, embedOptions: {} };
+  }
+
+  const lookMatch = /^\/looks\/([a-z0-9-]+)$/i.exec(path);
+  if (lookMatch) {
+    // The app matches preset ids exactly (use-route-look.js).
+    if (!isPresetId(lookMatch[1])) {
+      throw new Error(`Unknown look "${lookMatch[1]}" in that link. Use list_presets to see options.`);
+    }
+    return { kind: "look", origin: url.origin, look: lookMatch[1], config: shared, embedOptions: {} };
+  }
+
+  if (path === "/embed") {
+    // The embed falls back to the first preset (Default) for a missing or
+    // unknown look, and ?c= wins over the dedicated params.
+    const requested = url.searchParams.get("look");
+    const look = requested && isPresetId(requested) ? requested : "default";
+    const { settings, options } = readEmbedParams(url.searchParams);
+    return { kind: "embed", origin: url.origin, look, config: mergeConfig(settings, shared), embedOptions: options };
+  }
+
+  throw new Error(
+    `"${describeUrl(raw)}" is not a Globestudio share link. Expected a studio link (https://globestudio.app/?c=…), a look link (/looks/<id>) or an embed URL (/embed?…).`,
+  );
+};
+
+// --- Building links ------------------------------------------------------------
+
+// Studio: /looks/<id> applies the preset and ?c= layers the settings on top
+// (the app's share-config import wins over the route preset by design, see
+// src/hooks/use-share-config-import.js); a studio link without a look lands
+// on "/" and ?c= carries everything. app=1 is the app's non-persisting teaser
+// bypass: while the pre-launch coming-soon gate is up, recipients without it
+// land on the waitlist and the config is discarded. Harmless after launch
+// (the param is ignored).
+const studioUrl = (look: string | null, config: ShareConfig) => {
+  const path = look ? `/looks/${look}` : "/";
+  return Object.keys(config).length > 0
+    ? `${SITE_URL}${path}?c=${encodeShareConfig(config)}&app=1`
+    : `${SITE_URL}${path}?app=1`;
+};
+
+// Embed: dedicated query params where they exist (embed-view.jsx parseParams,
+// hex colors WITHOUT the '#'), view=flat because the embed only reads the
+// view from its own param, then ?c= for everything else. The embed caps its
+// density param at 90, so a higher density stays in ?c=.
+const embedUrl = (look: string | null, config: ShareConfig, options: Record<string, string>) => {
+  const params: string[] = look ? [`look=${look}`] : [];
+  const rest: ShareConfig = { ...config };
+  for (const key of ["selection", "dotColor", "background", "density"]) {
+    const value = config[key];
+    if (value === undefined) continue;
+    if (key === "density" && (typeof value !== "number" || value > 90)) continue;
+    const text = String(value);
+    params.push(`${key}=${encodeURIComponent(key === "dotColor" || key === "background" ? text.slice(1) : text)}`);
+    delete rest[key];
+  }
+  if (config.viewMode === "flat") params.push("view=flat");
+  for (const [key, value] of Object.entries(options)) {
+    params.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+  }
+  if (Object.keys(rest).length > 0) params.push(`c=${encodeShareConfig(rest)}`);
+  return params.length > 0 ? `${SITE_URL}/embed?${params.join("&")}` : `${SITE_URL}/embed`;
+};
+
+// The app decodes ?c= twice (URLSearchParams, then decodeURIComponent in
+// parseShareConfig), so a "%" inside a value comes back changed or, as in an
+// SVG custom shape's data URL, makes the app drop the whole config. Links
+// leave such keys out rather than open with none of their settings.
+const splitLinkable = (config: ShareConfig) => {
+  const kept: ShareConfig = {};
+  const dropped: string[] = [];
+  for (const [key, value] of Object.entries(config)) {
+    if (JSON.stringify(value).includes("%")) dropped.push(key);
+    else kept[key] = value;
+  }
+  return { kept, dropped };
+};
+
+const IGNORED_NOTE = "Globestudio does not accept these keys or values, so they were left out.";
+const UNLINKABLE_NOTE =
+  "Left out because Globestudio does not accept them or a link cannot carry them: Globestudio misreads a % sign inside a link, which also rules out SVG custom shapes.";
+
+const NESTED = new Set<string>(NESTED_KEYS);
+
+// Keys (and nested keys) of a requested config the app would drop.
+const ignoredKeys = (requested: Record<string, unknown>, kept: ShareConfig) => {
+  const ignored: string[] = [];
+  for (const [key, value] of Object.entries(requested)) {
+    const keptValue = kept[key];
+    if (keptValue === undefined) {
+      ignored.push(key);
+    } else if (NESTED.has(key) && isRecord(value) && isRecord(keptValue)) {
+      for (const sub of Object.keys(value)) if (!(sub in keptValue)) ignored.push(`${key}.${sub}`);
+    }
+  }
+  return ignored;
+};
 
 const buildShareUrl = (input: z.infer<typeof BuildShareUrlSchema>) => {
-  const preset = PRESETS.find((p) => p.id === input.look);
-  if (!preset) {
+  if (input.look !== undefined && !isPresetId(input.look)) {
     throw new Error(`Unknown preset "${input.look}". Use list_presets to see options.`);
   }
-  // Per-field overrides on top of the preset. "look" is NOT a ?c= config key
-  // (the app's normalizeConfig silently drops it) — the preset rides on the
-  // URL instead: /looks/<id> path for the studio, ?look=<id> for the embed.
-  const overrides: Record<string, unknown> = {};
-  if (input.selection) overrides.selection = normalizeSelection(input.selection);
-  if (input.dotColor) overrides.dotColor = input.dotColor;
-  if (input.background) overrides.background = input.background;
-  if (input.density !== undefined) overrides.density = input.density;
-  if (input.shape) overrides.shape = input.shape;
+  const base = input.share_url ? parseLink(input.share_url) : null;
+  if (!base && input.look === undefined) {
+    throw new Error("Pass look (a preset id from list_presets) or share_url (a Globestudio link to change).");
+  }
+  if (base?.kind === "studio" && input.look !== undefined) {
+    throw new Error(
+      "That link was copied from the studio and stores every setting, so a look would not change it. To switch looks, call build_share_url with look and without share_url, then pass the settings you want to keep.",
+    );
+  }
 
-  // Studio: /looks/<id> applies the preset, ?c= layers the overrides on top
-  // (the app's share-config import wins over the route preset by design —
-  // see src/hooks/use-share-config-import.js).
-  // app=1 is the app's non-persisting teaser bypass: while the pre-launch
-  // coming-soon gate is up, recipients without it land on the waitlist and
-  // the config is discarded. Harmless after launch (the param is ignored).
-  const shareUrl = Object.keys(overrides).length > 0
-    ? `${SITE_URL}/looks/${input.look}?c=${encodeShareConfig(overrides)}&app=1`
-    : `${SITE_URL}/looks/${input.look}?app=1`;
+  // Requested changes: the free-form config first, the named fields win.
+  // "look" is NOT a ?c= config key (the app's normalizeConfig silently drops
+  // it); the preset rides on the URL instead: /looks/<id> path for the
+  // studio, ?look=<id> for the embed.
+  const requested: Record<string, unknown> = { ...(input.config ?? {}) };
+  if (typeof requested.selection === "string") requested.selection = normalizeSelection(requested.selection);
+  if (input.selection) requested.selection = normalizeSelection(input.selection);
+  if (input.dotColor) requested.dotColor = input.dotColor;
+  if (input.background) requested.background = input.background;
+  if (input.density !== undefined) requested.density = input.density;
+  if (input.shape) requested.shape = input.shape;
+  const changes = normalizeConfig(requested);
 
-  // Embed: dedicated query params where they exist (embed-view.jsx
-  // parseParams — hex colors WITHOUT the '#'), ?c= only for fields with no
-  // dedicated param (shape).
-  const embedParams = [`look=${input.look}`];
-  if (overrides.selection) embedParams.push(`selection=${encodeURIComponent(String(overrides.selection))}`);
-  if (input.dotColor) embedParams.push(`dotColor=${input.dotColor.slice(1)}`);
-  if (input.background) embedParams.push(`background=${input.background.slice(1)}`);
-  if (input.density !== undefined) embedParams.push(`density=${input.density}`);
-  if (input.shape) embedParams.push(`c=${encodeShareConfig({ shape: input.shape })}`);
+  const look = input.look ?? base?.look ?? null;
+  const { kept: config, dropped } = splitLinkable(mergeConfig(base?.config ?? {}, changes));
+  const ignored = [...(input.config ? ignoredKeys(input.config, changes) : []), ...dropped];
 
   return {
-    share_url: shareUrl,
-    embed_url: `${SITE_URL}/embed?${embedParams.join("&")}`,
-    look: input.look,
-    config: overrides,
+    share_url: studioUrl(look, config),
+    embed_url: embedUrl(look, config, base?.embedOptions ?? {}),
+    look,
+    config,
+    ...(ignored.length > 0 ? { ignored, ignored_note: dropped.length > 0 ? UNLINKABLE_NOTE : IGNORED_NOTE } : {}),
+  };
+};
+
+// The handful of settings that describe a globe at a glance.
+const summarize = (look: string | null, config: ShareConfig) => {
+  const shader = isRecord(config.shaderSettings) ? config.shaderSettings : undefined;
+  const globe = isRecord(config.globeSettings) ? config.globeSettings : undefined;
+  const summary: Record<string, unknown> = {
+    look: look ?? undefined,
+    selection: config.selection,
+    view: config.viewMode,
+    dotColor: config.dotColor,
+    background: config.background,
+    transparent: config.transparent,
+    density: config.density,
+    dotSize: config.dotSize,
+    shape: config.shape,
+    renderMode: config.renderMode,
+    effect: shader?.effect,
+    autoSpin: globe?.autoSpin,
+  };
+  return Object.fromEntries(Object.entries(summary).filter(([, value]) => value !== undefined));
+};
+
+const readShareUrl = (input: z.infer<typeof ReadShareUrlSchema>) => {
+  const link = parseLink(input.url);
+  const empty = Object.keys(link.config).length === 0;
+  const { kept, dropped } = splitLinkable(link.config);
+  return {
+    kind: link.kind,
+    look: link.look,
+    source_origin: link.origin,
+    summary: summarize(link.look, link.config),
+    config: link.config,
+    ...(Object.keys(link.embedOptions).length > 0 ? { embed_options: link.embedOptions } : {}),
+    share_url: studioUrl(link.look, kept),
+    embed_url: embedUrl(link.look, kept, link.embedOptions),
+    ...(dropped.length > 0 ? { ignored: dropped, ignored_note: UNLINKABLE_NOTE } : {}),
+    note: link.kind === "studio"
+      ? (empty
+          ? "This link carries no settings, so it opens the studio as it is."
+          : "Studio links store every setting. To change some, call build_share_url with share_url set to this link and only the settings to change.")
+      : `Settings not listed come from the ${link.look} look. To change some, call build_share_url with share_url set to this link and only the settings to change.`,
   };
 };
 
@@ -401,18 +647,35 @@ const TOOL_DEFS = [
   },
   {
     name: "build_share_url",
-    description: "Build Globestudio URLs for a customized globe (look + optional country/region, dot color, background, density, shape). Returns share_url (opens the studio with the preset + overrides applied) and embed_url (the bare canvas, for iframes).",
+    description: "Build Globestudio URLs for a customized globe. Start from a preset (look) or change an existing link (share_url, e.g. one the user pasted): pass only the settings to change and everything else in the link is kept. Returns share_url (opens the studio with those settings) and embed_url (the bare canvas, for iframes).",
     inputSchema: {
       type: "object",
       properties: {
-        look: { type: "string", description: "Preset id, e.g. 'halftone'." },
+        look: { type: "string", description: "Preset id, e.g. 'halftone'. Required unless share_url is given." },
+        share_url: { type: "string", description: "A Globestudio link to change instead of starting from a preset." },
         selection: { type: "string", description: "Region: 'world' (default), ISO country code ('JP' or 'JPN'), country name ('Japan'), continent ('Europe'), or subregion ('Western Europe')." },
         dotColor: { type: "string", description: "Hex color, e.g. '#3df4ff'.", pattern: "^#[0-9a-fA-F]{6}$" },
         background: { type: "string", description: "Background hex.", pattern: "^#[0-9a-fA-F]{6}$" },
         density: { type: "integer", minimum: 10, maximum: 100 },
         shape: { type: "string", enum: [...DOT_SHAPES] },
+        config: {
+          type: "object",
+          description: "Any other setting, using the keys read_share_url returns in config, e.g. {\"viewMode\": \"flat\"} or {\"globeSettings\": {\"autoSpin\": false}}. Nested settings merge key by key; keys Globestudio does not accept come back in ignored.",
+          additionalProperties: true,
+        },
       },
-      required: ["look"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "read_share_url",
+    description: "Decode a Globestudio link (a studio share link, a /looks/<id> link or an /embed URL) into the look and settings it carries. Use it when the user pastes a link, then pass the link as share_url to build_share_url with the changes they ask for.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "The Globestudio link, e.g. 'https://globestudio.app/?c=…'." },
+      },
+      required: ["url"],
       additionalProperties: false,
     },
   },
@@ -447,17 +710,24 @@ const TOOL_DEFS = [
 
 // --- Factory -----------------------------------------------------------------
 
+const INSTRUCTIONS = [
+  "Globestudio makes dotted globe and map visuals. A link carries the whole design: /looks/<id> picks a preset look and ?c= carries the settings.",
+  "To change a link the user pastes, call read_share_url, then build_share_url with share_url set to that link and only the settings to change.",
+  "Every tool builds URLs locally: nothing is stored and no account is needed.",
+].join(" ");
+
 /** Build a fully-wired Globestudio MCP Server (no transport attached). */
 export function createServer(): Server {
   const server = new Server(
     {
       name: "globestudio",
-      version: "0.1.1",
+      version: "0.2.0",
     },
     {
       capabilities: {
         tools: {},
       },
+      instructions: INSTRUCTIONS,
     },
   );
 
@@ -476,6 +746,9 @@ export function createServer(): Server {
           break;
         case "build_share_url":
           result = buildShareUrl(BuildShareUrlSchema.parse(args));
+          break;
+        case "read_share_url":
+          result = readShareUrl(ReadShareUrlSchema.parse(args));
           break;
         case "embed_snippet":
           result = embedSnippet(EmbedSnippetSchema.parse(args));
