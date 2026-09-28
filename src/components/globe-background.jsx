@@ -48,6 +48,10 @@ import { trackClientError } from "./analytics.jsx";
 const SPIN_MIN_DEG_PER_SEC = 6;
 const SPIN_MAX_DEG_PER_SEC = 120;
 
+// Frames still drawn after the last change before a frozen (reduced-motion)
+// scene stops redrawing; see the render-on-demand skip in animate.
+const FROZEN_SETTLE_FRAMES = 4;
+
 const getClientPoint = (event) => {
   const touch = event.touches?.[0] || event.changedTouches?.[0];
   const x = touch?.clientX ?? event.clientX;
@@ -656,6 +660,25 @@ export const GlobeBackground = ({
     };
     applyGlobeShellProgress(threeRef.current, morphRef.current.progress, globeSettingsRef.current);
 
+    // True until bgTarget has been rendered (cleared) since it was last
+    // allocated or last held background content; see the bg pass in animate.
+    let bgTargetDirty = true;
+
+    // Render on demand while motion is frozen (see the skip in animate).
+    // Anything that can change the picture without moving the camera marks
+    // the next frame dirty: a React commit (every prop reaches the loop
+    // through a ref), an async layer swap, a resize or a hi-res capture,
+    // both of which resize the canvas and so clear it.
+    let sceneDirty = true;
+    const invalidate = () => {
+      sceneDirty = true;
+    };
+    // Eased camera values the last drawn frame used, and how many more
+    // frames to draw before the frozen-motion skip may kick in.
+    const rendered = { x: NaN, y: NaN, fov: NaN };
+    let settleFrames = FROZEN_SETTLE_FRAMES;
+    threeRef.current.invalidate = invalidate;
+
     const resize = () => {
       const rect = mount.getBoundingClientRect();
       const width = Math.max(1, Math.floor(rect.width));
@@ -700,6 +723,8 @@ export const GlobeBackground = ({
         Math.max(1, Math.round(width * dpr)),
         Math.max(1, Math.round(height * dpr)),
       );
+      bgTargetDirty = true;
+      invalidate();
     };
 
     const observer = new ResizeObserver(resize);
@@ -843,6 +868,8 @@ export const GlobeBackground = ({
         globeGroup.scale.setScalar(breath);
       }
 
+      // Any instance re-bake below uploads new matrices, so that frame must draw.
+      let dotLayerUpdated = false;
       if (threeRef.current.dotLayer) {
         const dotLayer = threeRef.current.dotLayer;
         const progressDelta = Math.abs((dotLayer.userData.morphProgress ?? -1) - morph.progress);
@@ -852,8 +879,10 @@ export const GlobeBackground = ({
         // one full-update pass to flush any stragglers stuck a frame behind.
         if (progressDelta > 0.0005) {
           applyDotLayerMorph(dotLayer, morph.progress, morph.active);
+          dotLayerUpdated = true;
         } else if (!morph.active && wasChunkingMorph) {
           applyDotLayerMorph(dotLayer, morph.progress, false);
+          dotLayerUpdated = true;
         }
       }
       // Animated dot rotation. Advances spinAngleRef by elapsed time when
@@ -879,15 +908,47 @@ export const GlobeBackground = ({
             morph.progress,
             true,
           );
+          dotLayerUpdated = true;
         } else if (spinAngleRef.current !== 0) {
           spinAngleRef.current = 0;
           // Final non-chunked settle so every dot lands at the slider angle.
           applyDotLayerSpin(threeRef.current.dotLayer, dotRotationRef.current, morph.progress, false);
+          dotLayerUpdated = true;
         } else if ((threeRef.current.dotLayer.userData.spinChunk ?? -1) >= 0) {
           // Flush stale chunks left over from a previous spin session.
           applyDotLayerSpin(threeRef.current.dotLayer, dotRotationRef.current, morph.progress, false);
+          dotLayerUpdated = true;
         }
       }
+      // Render on demand while motion is frozen (reduced-motion preference or
+      // the Animations toggle off). Ambient time is pinned to 0 then, so when
+      // nothing invalidated the scene and the eased camera values are exactly
+      // what the last drawn frame used (the eases stop moving once they reach
+      // their floating-point fixed point), a new frame would repaint the same
+      // pixels: skip it. That saves the whole GL frame and, because the canvas
+      // doesn't change, the compositor's re-run of the canvas filters.
+      // After any change a few more frames are still drawn: the first frames
+      // with fresh GPU resources can differ slightly from the steady picture
+      // (measured on Bloom), and the settled frame must be the steady one.
+      // A canvas recorded through captureStream (WebM export) only gets a
+      // frame when it redraws, so it keeps drawing while data-streaming is set.
+      const sceneChanged =
+        sceneDirty ||
+        dotLayerUpdated ||
+        state.active ||
+        morph.active ||
+        state.currentX !== rendered.x ||
+        state.currentY !== rendered.y ||
+        camera.fov !== rendered.fov;
+      if (sceneChanged) settleFrames = FROZEN_SETTLE_FRAMES;
+      if (reducedMotionRef.current && settleFrames === 0 && !renderer.domElement.dataset.streaming) {
+        return;
+      }
+      if (settleFrames > 0) settleFrames -= 1;
+      sceneDirty = false;
+      rendered.x = state.currentX;
+      rendered.y = state.currentY;
+      rendered.fov = camera.fov;
       applyGlobeShellProgress(threeRef.current, morph.progress, currentGlobeSettings);
       // Freeze the clock that drives long-running ambient motion when reduced
       // motion is preferred. The scene still renders, it just doesn't animate.
@@ -978,9 +1039,17 @@ export const GlobeBackground = ({
         // still render the (empty / hidden mesh) scene to the target — the
         // clear color produced becomes the bg the customPass composites,
         // which gives the solid-bg case the same visual as before.
+        //
+        // With nothing visible in bgScene (solid bg, or the shaded default
+        // where the bg meshes live in the main scene) that render is just a
+        // full-screen clear to transparent, and the target already holds
+        // exactly that once it has been cleared after its last (re)allocation
+        // or its last frame with content (bgTargetDirty). Skipping the repeat
+        // saves a full-resolution clear + store every frame.
         const bgScene = threeRef.current?.bgScene;
         const bgTarget = threeRef.current?.bgTarget;
-        if (bgScene && bgTarget) {
+        const bgHasContent = Boolean(bgScene?.children.some((child) => child.visible));
+        if (bgScene && bgTarget && (bgHasContent || bgTargetDirty)) {
           const prevTarget = renderer.getRenderTarget();
           const prevAutoClear = renderer.autoClear;
           renderer.autoClear = true;
@@ -988,6 +1057,7 @@ export const GlobeBackground = ({
           renderer.render(bgScene, threeRef.current.camera);
           renderer.setRenderTarget(prevTarget);
           renderer.autoClear = prevAutoClear;
+          bgTargetDirty = bgHasContent;
         }
       }
 
@@ -1067,21 +1137,30 @@ export const GlobeBackground = ({
         const fps = (perfState.frames * 1000) / Math.max(perfState.accum, 1);
         if (now - perfState.lastAdjustAt > 2500) {
           const currentPR = renderer.getPixelRatio();
+          // The composer multiplies the size it is given by its own pixel
+          // ratio, so step that ratio too and hand it the CSS size, as
+          // resize() does. Passing w * next scaled its targets by the ratio
+          // twice: a step down never shrank the scene target, and the
+          // recovery left it at ~2.4x the pixels until the next resize.
           if (fps < 50 && currentPR > 1) {
             const next = Math.max(1, currentPR - 0.25);
             renderer.setPixelRatio(next);
+            postHandle.composer.setPixelRatio(next);
             const w = renderer.domElement.clientWidth || renderer.domElement.width;
             const h = renderer.domElement.clientHeight || renderer.domElement.height;
             renderer.setSize(w, h, false);
-            postHandle.setSize(w * next, h * next);
+            postHandle.setSize(w, h);
+            invalidate();
             perfState.lastAdjustAt = now;
           } else if (fps > 58 && currentPR < initialDpr - 0.001) {
             const next = Math.min(initialDpr, currentPR + 0.25);
             renderer.setPixelRatio(next);
+            postHandle.composer.setPixelRatio(next);
             const w = renderer.domElement.clientWidth || renderer.domElement.width;
             const h = renderer.domElement.clientHeight || renderer.domElement.height;
             renderer.setSize(w, h, false);
-            postHandle.setSize(w * next, h * next);
+            postHandle.setSize(w, h);
+            invalidate();
             perfState.lastAdjustAt = now;
           }
         }
@@ -1131,6 +1210,7 @@ export const GlobeBackground = ({
       renderer.setSize(1, 1, false);
       postHandle.setSize(1, 1);
       bgTarget.setSize(1, 1);
+      bgTargetDirty = true;
       buffersReleased = true;
     };
     const handleVisibility = () => {
@@ -1204,8 +1284,14 @@ export const GlobeBackground = ({
           restorePixelUniforms();
           renderer.setPixelRatio(originalPixelRatio);
           renderer.setSize(displayW, displayH, false);
-          refs.postHandle.setSize(displayW * originalPixelRatio, displayH * originalPixelRatio);
+          // CSS size, as resize() passes: the composer applies its own pixel
+          // ratio, so displayW * originalPixelRatio left the live preview
+          // rendering ~2.4x the pixels (and pattern cells at the wrong
+          // scale) after every hi-res export, until the next resize.
+          refs.postHandle.setSize(displayW, displayH);
           setResolutionUniforms(displayW * originalPixelRatio, displayH * originalPixelRatio);
+          // The resize cleared the canvas; the next frame must redraw it.
+          invalidate();
           frame = window.requestAnimationFrame(animate);
         };
 
@@ -1266,6 +1352,13 @@ export const GlobeBackground = ({
     };
   }, [canvasHandleRef, setSelectedDots]);
 
+  // Every commit can change something the loop reads through a ref (props,
+  // settings, theme, layers rebuilt by the effects below), so it marks the
+  // next frame dirty for the frozen-motion skip in animate.
+  useEffect(() => {
+    threeRef.current?.invalidate?.();
+  });
+
   useEffect(() => {
     const refs = threeRef.current;
     if (!refs) return;
@@ -1315,6 +1408,8 @@ export const GlobeBackground = ({
 
       refs.dotLayer = nextLayer;
       refs.globeGroup.add(nextLayer);
+      // A custom-shape swap lands after its texture loads, outside a commit.
+      refs.invalidate?.();
     };
 
     if (shape === "Custom" && customShape?.dataUrl) {
@@ -1420,6 +1515,8 @@ export const GlobeBackground = ({
         liveRefs.flatSolidMaterial.needsUpdate = true;
       }
       applyGlobeShellProgress(liveRefs, morphRef.current.progress, globeSettingsRef.current);
+      // The textures arrive after a fetch, outside a commit.
+      liveRefs.invalidate?.();
     };
 
     // Kick off the rivers + cities fetches in parallel with the countries

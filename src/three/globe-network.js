@@ -261,9 +261,15 @@ export const createGlobeNetwork = () => {
   return root;
 };
 
+// The trail's vertices depend only on headIndex and its fade never changes,
+// so both buffers are re-uploaded only when they would actually differ: the
+// head advances a curve point every few frames, and the fade is written once.
 const setTrailVertices = (trail, points, headIndex, length) => {
+  if (trail.userData.headIndex === headIndex) return;
+  trail.userData.headIndex = headIndex;
   const positionAttr = trail.geometry.attributes.position;
   const opacityAttr = trail.geometry.attributes.aOpacity;
+  const writeFade = !trail.userData.fadeWritten;
   for (let i = 0; i < length; i++) {
     const idx = headIndex - (length - 1 - i);
     const safeIdx = ((idx % points.length) + points.length) % points.length;
@@ -273,11 +279,13 @@ const setTrailVertices = (trail, points, headIndex, length) => {
     positionAttr.array[baseOffset + 1] = p.y;
     positionAttr.array[baseOffset + 2] = p.z;
     // Fade from 0 at tail to 1 at head, with a slight curve so the head feels hot.
-    const t = i / (length - 1);
-    opacityAttr.array[i] = Math.pow(t, 1.4);
+    if (writeFade) opacityAttr.array[i] = Math.pow(i / (length - 1), 1.4);
   }
   positionAttr.needsUpdate = true;
-  opacityAttr.needsUpdate = true;
+  if (writeFade) {
+    opacityAttr.needsUpdate = true;
+    trail.userData.fadeWritten = true;
+  }
 };
 
 // Applies user-picked colors to the network. Two roles, two pickers:

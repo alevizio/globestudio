@@ -117,12 +117,24 @@ export const recordCanvasToVideoBlob = (canvas, { durationMs = 4000, fps = 60, b
       return;
     }
     const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: bitsPerSecond });
+    // A captured stream only receives a frame when the canvas redraws, so
+    // flag the canvas while recording: the globe's render loop keeps drawing
+    // even when it would otherwise skip unchanged frames (frozen motion).
+    const setStreaming = (on) => {
+      if (!canvas.dataset) return;
+      if (on) canvas.dataset.streaming = "1";
+      else delete canvas.dataset.streaming;
+    };
     const chunks = [];
     recorder.ondataavailable = (event) => {
       if (event.data?.size > 0) chunks.push(event.data);
     };
-    recorder.onerror = (event) => reject(event.error || new Error("MediaRecorder error"));
+    recorder.onerror = (event) => {
+      setStreaming(false);
+      reject(event.error || new Error("MediaRecorder error"));
+    };
     recorder.onstop = () => {
+      setStreaming(false);
       const blob = new Blob(chunks, { type: mimeType });
       if (chunks.length === 0 || blob.size < MIN_VIDEO_BYTES) {
         reject(new Error(`Recording came out empty (${blob.size} bytes)`));
@@ -139,6 +151,7 @@ export const recordCanvasToVideoBlob = (canvas, { durationMs = 4000, fps = 60, b
       }, 100);
     }
 
+    setStreaming(true);
     recorder.start();
     paint?.();
     window.setTimeout(() => {
@@ -147,6 +160,7 @@ export const recordCanvasToVideoBlob = (canvas, { durationMs = 4000, fps = 60, b
       try {
         recorder.stop();
       } catch (error) {
+        setStreaming(false);
         reject(error);
       }
     }, durationMs);
