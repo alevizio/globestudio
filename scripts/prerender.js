@@ -21,6 +21,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { lookPresets } from "../src/data/look-presets.js";
 import { comparisons } from "../src/data/comparisons.js";
+import { getPresetSeo } from "../src/data/preset-seo.js";
 import { PRODUCT_CARD_ALT, lookCardAlt, shareCardUrl } from "../src/data/share-cards.js";
 import { APP_UNLOCK_PATH } from "../src/utils/route-match.js";
 
@@ -104,7 +105,11 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
     routes.push({
       route: `looks/${id}`,
       title: `${name}: dotted map & 3D globe look · Globestudio`,
-      description: `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free and open source.`,
+      // The hand-written per-look copy that preset-route.js sets after load,
+      // so crawlers and unfurlers that don't run JS get the same snippet.
+      description:
+        getPresetSeo(id)?.metaDescription ??
+        `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free and open source.`,
       url: `${SITE}/looks/${id}`,
       image,
       // og/default.png is the home product card, not a Default-look card, so
