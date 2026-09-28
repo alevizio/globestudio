@@ -31,6 +31,7 @@ import {
   makeFeatureCollection,
 } from "./utils/dot-generation.js";
 import { createDottedSvg } from "./utils/svg-markup.js";
+import { backgroundKind, exportBackground, previewBackground } from "./utils/canvas-background.js";
 import {
   buildExportFilename,
   copyTextToClipboard,
@@ -548,6 +549,15 @@ const App = () => {
 
   const dotCount = dotsVisible ? mapData.points.length : 0;
 
+  // Everything that decides the canvas background. The preview and every
+  // export read their color from utils/canvas-background.js with it, so a
+  // file matches the preview (the light theme's cream under Solid included).
+  const backgroundSettings = useMemo(
+    () => ({ background, backgroundStyle, transparent, uiTheme }),
+    [background, backgroundStyle, transparent, uiTheme],
+  );
+  const svgBackground = exportBackground("svg", backgroundSettings);
+
   const exportSvgData = useMemo(
     () =>
       createDottedSvg({
@@ -559,8 +569,8 @@ const App = () => {
         shape,
         asciiSymbol,
         dotsVisible,
-        background,
-        transparent,
+        background: svgBackground,
+        transparent: !svgBackground,
         selectedDots,
         mode: selected.mode,
         shaderSettings,
@@ -572,7 +582,6 @@ const App = () => {
       }),
     [
       asciiSymbol,
-      background,
       canvasScale,
       customShape,
       dotColor,
@@ -587,7 +596,7 @@ const App = () => {
       shaderSettings,
       shape,
       sizeVary,
-      transparent,
+      svgBackground,
     ],
   );
 
@@ -867,9 +876,10 @@ const App = () => {
     const canvas = globeCanvasRef.current;
     if (!canvas || videoStatus === "recording") return;
     const format = ["gif", "mp4"].includes(options.format) ? options.format : "webm";
-    // Same rule as the PNG path: only a solid background is CSS-only and
-    // needs painting in; transparent keeps alpha, space/flow are in-canvas.
-    const matte = !transparent && backgroundStyle === "solid" ? background : null;
+    // The color the preview shows, painted under each frame. Null keeps
+    // the canvas as is: Transparent keeps its alpha (MP4 has none, so it
+    // gets a color), and Space and Flow draw their own background.
+    const matte = exportBackground(format, backgroundSettings);
     setVideoStatus("recording");
     setVideoProgress(0);
     try {
@@ -913,7 +923,7 @@ const App = () => {
     } finally {
       setVideoProgress(0);
     }
-  }, [background, backgroundStyle, currentPresetId, selected.label, transparent, videoDurationMs, videoStatus, viewMode]);
+  }, [backgroundSettings, currentPresetId, selected.label, videoDurationMs, videoStatus, viewMode]);
 
   // Snapshot of every user-customizable visual setting. Shared between
   // exportConfig (downloads as .json) and getShareUrl (encodes into a
@@ -1119,20 +1129,22 @@ const App = () => {
   // Shared Canvas2D finishing pass for PNG exports. Two jobs:
   // 1. Solid background — the renderer is alpha:true, so the page's solid
   //    background is CSS-only and never reaches the GL buffer; captured
-  //    pixels come back transparent. Re-composite the configured color.
+  //    pixels come back transparent. Re-composite the color the preview
+  //    shows (pngBackground: the light theme's cream, not the stored color).
   //    Space/flow backgrounds render in-canvas and pass through untouched.
   // 2. Aspect + W/H — when the export dialog requests explicit dimensions,
   //    draw with cover semantics (scale to fill, center, crop the longer
   //    dimension — never distort), matching the dialog's advertised
   //    center-crop math (export-modal computeDimensions).
+  const pngBackground = exportBackground("png", backgroundSettings);
   const composePngBlob = (source, sourceW, sourceH, outW, outH) => {
     const canvas = document.createElement("canvas");
     canvas.width = outW;
     canvas.height = outH;
     const context = canvas.getContext("2d");
     if (!context) return null;
-    if (!transparent && backgroundStyle === "solid") {
-      context.fillStyle = background;
+    if (pngBackground) {
+      context.fillStyle = pngBackground;
       context.fillRect(0, 0, outW, outH);
     }
     context.imageSmoothingEnabled = true;
@@ -1162,7 +1174,7 @@ const App = () => {
       const scale = options.scale ?? exportScaleValue(canvasScale);
       const filename = buildExportFilename(selected.label, "png", viewMode);
       const target = exportTargetDims(options);
-      const needsBackground = !transparent && backgroundStyle === "solid";
+      const needsBackground = Boolean(pngBackground);
 
       // Prefer the true high-res re-render path when available — the WebGL scene
       // is rendered fresh at N× resolution so dots and stars stay crisp.
@@ -1226,8 +1238,9 @@ const App = () => {
         failPngExport(new Error("No 2D canvas for the SVG to PNG export"));
         return;
       }
-      if (!transparent) {
-        context.fillStyle = background;
+      // Rasterizes the SVG, so it takes the SVG's background.
+      if (svgBackground) {
+        context.fillStyle = svgBackground;
         context.fillRect(0, 0, canvas.width, canvas.height);
       }
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
@@ -1268,7 +1281,7 @@ const App = () => {
   const isSpaceBackground = backgroundStyle === "space";
   const isFlowBackground = backgroundStyle === "flow";
   const isTransparentBackground = backgroundStyle === "transparent" || transparent;
-  const isTransparentPreview = isTransparentBackground && !isSpaceBackground && !isFlowBackground;
+  const isTransparentPreview = backgroundKind(backgroundSettings) === "transparent";
   // In light UI theme, a solid-background look renders see-through so the
   // light page shows behind it — Halftone reads as ink on paper, not a stark
   // white box (the old theme-invert) or a low-contrast dark fill. The canvas
@@ -1369,15 +1382,7 @@ const App = () => {
         appliedLookId ? "is-preset-applying" : ""
       }`}
       style={{
-        "--preview-bg": isSpaceBackground
-          ? SPACE_BACKGROUND_BASE
-          : isFlowBackground
-            ? FLOW_BACKGROUND_BASE
-            : isTransparentBackground
-              ? "var(--bg)"
-              : isLightCanvas
-                ? "#f4f1ea"
-                : background,
+        "--preview-bg": previewBackground(backgroundSettings),
         "--map-offset-x": `${mapOffset.x}px`,
         "--map-offset-y": `${mapOffset.y}px`,
         "--map-perspective": `${1800 - mapDepth * 14}px`,
