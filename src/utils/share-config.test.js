@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { FLAT_PROJECTION_OPTIONS } from "../config/constants.js";
+import { FLAT_PROJECTION_KEYS } from "../three/world-texture.js";
 import {
   buildShareUrl,
   clearShareConfigFromUrl,
@@ -122,6 +123,12 @@ describe("share-config", () => {
     const url = buildShareUrl(config, "https://globestudio.app");
     const parsed = parseShareConfig(`?${url.split("?")[1]}`);
     expect(parsed).toMatchObject(config);
+  });
+
+  it("offers exactly the projections the renderer draws", () => {
+    // The picker's list lives apart from the renderer so the panel doesn't
+    // load three.js; this keeps the two from drifting.
+    expect(FLAT_PROJECTION_OPTIONS.map((option) => option.value)).toEqual(FLAT_PROJECTION_KEYS);
   });
 
   it("round-trips every flat projection the picker offers", () => {

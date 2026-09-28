@@ -30,6 +30,8 @@ const FLAT_PROJECTIONS = {
   winkel3: geoWinkel3,
   robinson: geoRobinson,
 };
+// For the test that keeps the picker's list in step with what renders.
+export const FLAT_PROJECTION_KEYS = Object.keys(FLAT_PROJECTIONS);
 
 // Build a Canvas2D linear gradient that spans the full texture along the
 // supplied angle. Matches the dot-color gradient math so a single gradient
