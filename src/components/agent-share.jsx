@@ -29,6 +29,7 @@ const CLIENTS = [
         label: "Claude app",
         note: "In the Claude app, open Customize, then Connectors. Press + and choose Add custom connector, then paste this URL.",
         code: MCP_URL,
+        footnote: "On Team or Enterprise, an owner adds it in Organization settings.",
       },
     ],
   },
@@ -215,6 +216,7 @@ export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) 
             <CodeBlock language={step.label} wrap={!step.code.includes("\n")}>
               {step.code}
             </CodeBlock>
+            {step.footnote && <p className="export-modal-caption">{step.footnote}</p>}
           </div>
         ))}
       </div>

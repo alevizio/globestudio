@@ -110,6 +110,7 @@ describe("AgentShare", () => {
     expect(panel.textContent).toContain("claude mcp add --transport http globestudio https://globestudio.app/mcp");
     expect(panel.textContent).toContain("Customize, then Connectors");
     expect(panel.textContent).toContain("Add custom connector");
+    expect(panel.textContent).toContain("On Team or Enterprise, an owner adds it in Organization settings.");
   });
 
   it("moves between clients with the arrow keys, taking focus along", () => {
