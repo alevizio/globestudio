@@ -41,6 +41,11 @@ export const parseDataPoints = (text, countryIndex = null) => {
   return points;
 };
 
+// The paste box text for a set of points: one "lat,lng,value" line each,
+// which parseDataPoints reads back as the same points.
+export const serializeDataPoints = (points) =>
+  Array.isArray(points) ? points.map((p) => [p.lat, p.lng, p.value].join(",")).join("\n") : "";
+
 // Map a value to a marker radius between rMin/rMax, sqrt-scaled so the marker's
 // AREA (not radius) reads proportional to the value. Returns the mid radius
 // when every value is equal.
@@ -50,3 +55,9 @@ export const valueToRadius = (value, valueMin, valueMax, rMin = 0.012, rMax = 0.
   const t = Math.sqrt((value - valueMin) / (valueMax - valueMin));
   return rMin + (rMax - rMin) * Math.max(0, Math.min(1, t));
 };
+
+// The points the markers layer should draw: none while the Data section eye
+// is off (settings.data === false). dataPoints stays as pasted, so turning
+// the eye back on brings the same markers back.
+export const visibleDataPoints = (settings) =>
+  settings?.data !== false && Array.isArray(settings?.dataPoints) ? settings.dataPoints : [];

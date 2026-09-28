@@ -25,7 +25,7 @@ import { FLAT_PROJECTION_OPTIONS } from "../three/world-texture.js";
 import { formatSvgNumber } from "../utils/math.js";
 import { ColorSwatch } from "./ui/color-swatch.jsx";
 import { extractPaletteFromImage, darkestColor } from "../utils/palette.js";
-import { parseDataPoints } from "../utils/data-points.js";
+import { parseDataPoints, serializeDataPoints } from "../utils/data-points.js";
 import { countryCentroidIndex } from "../data/geography.js";
 import { DepthControl } from "./ui/depth-control.jsx";
 import { OptionRow } from "./ui/option-row.jsx";
@@ -247,15 +247,23 @@ export const ControlPanel = ({
     img.src = url;
   };
   // Data-binding: paste lat,lng[,value] → additive markers on the globe.
-  const [dataText, setDataText] = useState(() =>
-    (globeSettings?.dataPoints || [])
-      .map((p) => [p.lat, p.lng, p.value].join(","))
-      .join("\n"),
-  );
-  const dataPointCount = (globeSettings?.dataPoints || []).length;
+  // The box holds the user's own text. dataTextPoints is the dataPoints
+  // array that text stands for: the box's own edits set both together, so
+  // typing is never rewritten. When dataPoints changes from anywhere else
+  // (share link, JSON import, look, reset) the box is refilled from it,
+  // during render so it never shows the old text for a frame.
+  const dataPoints = globeSettings?.dataPoints;
+  const [dataText, setDataText] = useState(() => serializeDataPoints(dataPoints));
+  const [dataTextPoints, setDataTextPoints] = useState(dataPoints);
+  if (dataPoints !== dataTextPoints) {
+    setDataTextPoints(dataPoints);
+    setDataText(serializeDataPoints(dataPoints));
+  }
+  const dataPointCount = (dataPoints || []).length;
   const handleDataText = (text) => {
-    setDataText(text);
     const points = parseDataPoints(text, countryCentroidIndex);
+    setDataText(text);
+    setDataTextPoints(points);
     setGlobeSettings((settings) => ({ ...settings, dataPoints: points }));
   };
 
@@ -599,51 +607,6 @@ export const ControlPanel = ({
                   />
                 ))}
               </div>
-            )}
-          </div>
-        </OptionRow>
-        <OptionRow label="Data points" stacked>
-          <div className="data-points-control">
-            <textarea
-              className="data-points-input"
-              rows={4}
-              value={dataText}
-              onChange={(event) => handleDataText(event.target.value)}
-              placeholder={"lat,lng,value  or  country,value\n40.7,-74,10\nUS,1200\nFR,800\nJP,950"}
-              aria-label="Data points: lat,lng,value or country,value per line"
-              spellCheck={false}
-            />
-            <button
-              type="button"
-              className="data-points-sample"
-              onClick={() =>
-                handleDataText("US,1200\nGB,820\nJP,950\nDE,700\nBR,540\nAU,410\nIN,880")
-              }
-            >
-              Load sample
-            </button>
-            <div className="data-points-meta">
-              <ColorSwatch
-                value={globeSettings?.dataMarkerColor || "#7edfff"}
-                onChange={(hex) =>
-                  setGlobeSettings((settings) => ({ ...settings, dataMarkerColor: hex }))
-                }
-                label="Data marker color"
-              />
-              <p className="data-points-hint">
-                {dataPointCount > 0
-                  ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted. Markers sized by value (globe + flat).`
-                  : "Paste lat,lng,value or country,value (e.g. US,1200) per line."}
-              </p>
-            </div>
-            {dataPointCount >= 2 && (
-              <ToggleControl
-                label="Connect with arcs"
-                checked={!!globeSettings?.dataArcs}
-                onChange={(value) =>
-                  setGlobeSettings((settings) => ({ ...settings, dataArcs: value }))
-                }
-              />
             )}
           </div>
         </OptionRow>
@@ -1000,6 +963,70 @@ export const ControlPanel = ({
           </OptionRow>
         </PanelSection>
       </Collapsible>
+
+      {/* Data section. Pasted points plot as additive markers in both
+          views, so unlike Network it isn't gated on globe mode. The eye
+          flips settings.data and leaves dataPoints alone, so hiding the
+          markers (and their arcs) never clears what the user pasted. */}
+      <PanelSection
+        title="Data"
+        enabled={globeSettings.data !== false}
+        onEnabledChange={(next) => updateGlobeSetting("data", next)}
+        enabledLabel="Show data markers"
+        enabledTooltip={
+          globeSettings.data !== false
+            ? "Hide data markers + arcs"
+            : "Show data markers + arcs"
+        }
+      >
+        <div className="data-points-control">
+          <textarea
+            className="data-points-input"
+            rows={4}
+            value={dataText}
+            onChange={(event) => handleDataText(event.target.value)}
+            placeholder={"lat,lng,value  or  country,value\n40.7,-74,10\nUS,1200\nFR,800\nJP,950"}
+            aria-label="Data points: lat,lng,value or country,value per line"
+            spellCheck={false}
+          />
+          <button
+            type="button"
+            className="data-points-sample"
+            onClick={() =>
+              handleDataText("US,1200\nGB,820\nJP,950\nDE,700\nBR,540\nAU,410\nIN,880")
+            }
+          >
+            Load sample
+          </button>
+          <div className="data-points-meta">
+            <ColorSwatch
+              value={globeSettings?.dataMarkerColor || "#7edfff"}
+              onChange={(hex) =>
+                setGlobeSettings((settings) => ({ ...settings, dataMarkerColor: hex }))
+              }
+              label="Data marker color"
+            />
+            <p className="data-points-hint">
+              {dataPointCount > 0
+                ? globeSettings.data === false
+                  ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"}, hidden.`
+                  : `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted. Markers sized by value (globe + flat).`
+                : "Paste lat,lng,value or country,value (e.g. US,1200) per line."}
+            </p>
+          </div>
+          {dataPointCount >= 2 && (
+            <OptionRow label="Arcs">
+              <ToggleControl
+                label="Arcs"
+                checked={!!globeSettings?.dataArcs}
+                onChange={(value) =>
+                  setGlobeSettings((settings) => ({ ...settings, dataArcs: value }))
+                }
+              />
+            </OptionRow>
+          )}
+        </div>
+      </PanelSection>
 
       {/* Animations section. No abstract "all animations" master
           toggle — each motion is its own concrete control. The

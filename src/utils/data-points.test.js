@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseDataPoints, valueToRadius } from "./data-points.js";
+import { parseDataPoints, serializeDataPoints, valueToRadius, visibleDataPoints } from "./data-points.js";
 
 describe("parseDataPoints", () => {
   it("parses lat,lng[,value]; skips header, blanks, comments, out-of-range", () => {
@@ -38,6 +38,24 @@ describe("parseDataPoints", () => {
   });
 });
 
+describe("serializeDataPoints", () => {
+  it("writes one lat,lng,value line per point that parses back to the same points", () => {
+    const points = [
+      { lat: 40.7, lng: -74, value: 10 },
+      { lat: -23.5, lng: -46.6, value: 0.25 },
+    ];
+    const text = serializeDataPoints(points);
+    expect(text).toBe("40.7,-74,10\n-23.5,-46.6,0.25");
+    expect(parseDataPoints(text)).toEqual(points);
+  });
+
+  it("returns an empty string for missing or empty points", () => {
+    expect(serializeDataPoints([])).toBe("");
+    expect(serializeDataPoints(undefined)).toBe("");
+    expect(serializeDataPoints(null)).toBe("");
+  });
+});
+
 describe("valueToRadius", () => {
   it("scales between rMin and rMax by area (sqrt)", () => {
     expect(valueToRadius(0, 0, 100, 0.01, 0.05)).toBeCloseTo(0.01);
@@ -46,5 +64,26 @@ describe("valueToRadius", () => {
   });
   it("returns the mid radius when all values are equal", () => {
     expect(valueToRadius(5, 5, 5, 0.01, 0.05)).toBeCloseTo(0.03);
+  });
+});
+
+describe("visibleDataPoints", () => {
+  const dataPoints = [{ lat: 40.7, lng: -74, value: 10 }];
+
+  it("draws the stored points while the Data eye is on or unset", () => {
+    expect(visibleDataPoints({ data: true, dataPoints })).toBe(dataPoints);
+    // Configs saved before the eye existed have no `data` key.
+    expect(visibleDataPoints({ dataPoints })).toBe(dataPoints);
+  });
+
+  it("draws nothing while the eye is off, leaving dataPoints as is", () => {
+    const settings = { data: false, dataPoints };
+    expect(visibleDataPoints(settings)).toEqual([]);
+    expect(settings.dataPoints).toEqual([{ lat: 40.7, lng: -74, value: 10 }]);
+  });
+
+  it("returns [] for missing settings or points", () => {
+    expect(visibleDataPoints(undefined)).toEqual([]);
+    expect(visibleDataPoints({ data: true })).toEqual([]);
   });
 });

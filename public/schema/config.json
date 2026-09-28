@@ -112,6 +112,24 @@
           }
         },
         "network": { "type": "boolean", "description": "City pulses + great-circle route arcs." },
+        "data": { "type": "boolean", "description": "Show the pasted data markers and their arcs. false hides them but keeps dataPoints." },
+        "dataPoints": {
+          "type": "array",
+          "description": "Data markers, one per point, sized by value. The Data paste box writes this. Points with a missing or out of range lat or lng are dropped, and only the first 250 valid points are kept.",
+          "maxItems": 250,
+          "items": {
+            "type": "object",
+            "required": ["lat", "lng"],
+            "properties": {
+              "lat": { "type": "number", "minimum": -90, "maximum": 90, "description": "Latitude in degrees." },
+              "lng": { "type": "number", "minimum": -180, "maximum": 180, "description": "Longitude in degrees." },
+              "value": { "type": "number", "default": 1, "description": "Sets the marker size. Missing or not a number reads as 1." }
+            }
+          },
+          "examples": [[{ "lat": 40.7, "lng": -74, "value": 10 }, { "lat": 51.5, "lng": -0.1, "value": 6 }]]
+        },
+        "dataArcs": { "type": "boolean", "description": "Draw an arc from each data point to the next, in list order. Needs at least 2 points; arcs show in globe view only." },
+        "dataMarkerColor": { "type": ["string", "null"], "pattern": "^#?[0-9a-fA-F]{3,8}$", "description": "Hex color for the data markers and their arcs. null uses the default cyan (#7edfff).", "examples": ["#ff8800", null] },
         "networkStrength": { "type": "number", "minimum": 0, "maximum": 100 },
         "networkArcs": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Arc density 0–100, or legacy bool (true = default density, false = hidden)." },
         "networkPulses": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Pulse density 0–100, or legacy bool (true = default density, false = hidden)." },

@@ -223,6 +223,129 @@ test.describe("with reduced motion", () => {
   });
 });
 
+test.describe("the Data section", () => {
+  test.use({ contextOptions: { reducedMotion: "reduce" } });
+
+  // Canvas pixels painted in the pure red the markers are given below. The
+  // dots, glow and background never come close to it. A clipped page shot,
+  // not an element one: in the flat view under swiftshader the element
+  // screenshot's "stable" wait timed out on this canvas.
+  const redPixels = async (page) => {
+    const clip = await page.locator(".globe-background canvas").boundingBox();
+    const png = await page.screenshot({ clip });
+    return page.evaluate(async (b64) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const context = canvas.getContext("2d");
+      context.drawImage(img, 0, 0);
+      const { data } = context.getImageData(0, 0, img.width, img.height);
+      let count = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] > 150 && data[i + 1] < 80 && data[i + 2] < 80) count += 1;
+      }
+      return count;
+    }, png.toString("base64"));
+  };
+
+  test("its paste box shows the points a share link loads and keeps them on edit", async ({ page }) => {
+    const points = [
+      { lat: 40.7, lng: -74, value: 10 },
+      { lat: 51.5, lng: -0.1, value: 10 },
+      { lat: 35.7, lng: 139.7, value: 10 },
+    ];
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { dataPoints: points } }))}`);
+    // The link is applied after the panel mounts, so the box has to pick
+    // the points up then, not only when it first renders.
+    await page.getByRole("button", { name: "Data", exact: true }).click();
+    const box = page.getByRole("textbox", { name: /Data points/ });
+    await expect(box).toHaveValue("40.7,-74,10\n51.5,-0.1,10\n35.7,139.7,10");
+
+    // Change the middle line's value one key at a time. Each key has to land
+    // where the caret was put, so the box can't be rewritten mid typing.
+    const middleLineEnd = "40.7,-74,10\n51.5,-0.1,10".length;
+    await box.evaluate((node, at) => {
+      node.focus();
+      node.setSelectionRange(at, at);
+    }, middleLineEnd);
+    await page.keyboard.press("Backspace");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("25");
+    await expect(box).toHaveValue("40.7,-74,10\n51.5,-0.1,25\n35.7,139.7,10");
+    expect(await box.evaluate((node) => node.selectionStart)).toBe(middleLineEnd);
+    await expect(page.getByText(/^3 points plotted\./)).toBeVisible();
+    // The other two points are kept in the saved settings, not just the box.
+    await expect
+      .poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("globestudio:globeSettings"))?.dataPoints))
+      .toEqual([points[0], { ...points[1], value: 25 }, points[2]]);
+  });
+
+  test("its eye hides the markers and keeps the pasted points", async ({ page }) => {
+    // Two cold canvas boots (the reload) plus pixel polls: over a minute on
+    // swiftshader locally, so give CI's slower runners the headroom.
+    test.slow();
+    // Flat view, so every marker faces the camera and none sits behind the globe.
+    const config = {
+      v: 1,
+      viewMode: "flat",
+      globeSettings: {
+        dataPoints: [
+          { lat: 40.7, lng: -74, value: 10 },
+          { lat: 51.5, lng: -0.1, value: 10 },
+          { lat: 35.7, lng: 139.7, value: 10 },
+          { lat: -23.5, lng: -46.6, value: 10 },
+        ],
+        dataMarkerColor: "#ff0000",
+      },
+    };
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify(config))}`);
+    await waitForCanvas(page);
+    await expect.poll(() => redPixels(page), { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(20);
+
+    const disclosure = page.getByRole("button", { name: "Data", exact: true });
+    await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    const eye = page.getByRole("button", { name: "Show data markers" });
+    await expect(eye).toHaveAttribute("aria-pressed", "true");
+    await eye.click();
+    await expect(eye).toHaveAttribute("aria-pressed", "false");
+    await expect.poll(() => redPixels(page), { timeout: CANVAS_TIMEOUT }).toBe(0);
+
+    // Hidden, not deleted: after a reload the eye is still off and the
+    // points are still in the paste box, ready to come back.
+    await page.reload();
+    await waitForCanvas(page);
+    await expect(eye).toHaveAttribute("aria-pressed", "false");
+    // The view isn't saved, so the reload opens in Globe view, where most
+    // markers are out of sight. Back to Flat so all four can be counted.
+    const flat = page.getByRole("button", { name: "Flat", exact: true });
+    await flat.click();
+    await expect(flat).toHaveAttribute("aria-pressed", "true");
+    await disclosure.click();
+    await expect(page.getByRole("textbox", { name: /Data points/ })).toHaveValue(/^40\.7,-74,10\n51\.5,-0\.1,10/);
+    // Close the section before counting again: its marker color swatch is
+    // the same red and sits over the canvas, so while it shows it passes for
+    // markers and the count below could never fail.
+    await disclosure.click();
+    await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    expect(await redPixels(page)).toBe(0);
+    await eye.click();
+    await expect.poll(() => redPixels(page), { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(20);
+  });
+});
+
+test("the phone sheet lists Data between Network and Animations", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const disclosures = page.locator(".control-panel .option-block-disclosure");
+  await expect(disclosures.filter({ hasText: /^Data$/ })).toHaveCount(1);
+  const titles = await disclosures.allTextContents();
+  expect(titles.indexOf("Data")).toBe(titles.indexOf("Network") + 1);
+  expect(titles.indexOf("Animations")).toBe(titles.indexOf("Data") + 1);
+});
+
 test("mobile home does not overflow horizontally", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
