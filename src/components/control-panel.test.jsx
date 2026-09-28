@@ -140,11 +140,26 @@ describe("ControlPanel Data section", () => {
     expect(latest.globeSettings.data).toBe(false);
     expect(latest.globeSettings.dataPoints).toHaveLength(7);
     expect(textarea.value).toBe(pasted);
-    expect(screen.getByText(/7 points plotted/)).toBeTruthy();
+    expect(screen.getByText("7 points, hidden.")).toBeTruthy();
 
     fireEvent.click(eye);
     expect(latest.globeSettings.data).toBe(true);
     expect(latest.globeSettings.dataPoints).toHaveLength(7);
+    expect(screen.getByText(/^7 points plotted\./)).toBeTruthy();
+  });
+
+  it("says a single hidden point in the singular, and keeps the paste prompt with no points", () => {
+    const point = { lat: 40.7, lng: -74, value: 10 };
+    const { unmount } = render(
+      <Harness initialGlobeSettings={{ ...DEFAULT_GLOBE_SETTINGS, data: false, dataPoints: [point] }} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Data" }));
+    expect(screen.getByText("1 point, hidden.")).toBeTruthy();
+    unmount();
+
+    render(<Harness initialGlobeSettings={{ ...DEFAULT_GLOBE_SETTINGS, data: false }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Data" }));
+    expect(screen.getByText(/^Paste lat,lng,value/)).toBeTruthy();
   });
 
   it("fills the paste box with points loaded after it mounted, and keeps them on edit", () => {

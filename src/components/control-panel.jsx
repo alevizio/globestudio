@@ -1008,7 +1008,9 @@ export const ControlPanel = ({
             />
             <p className="data-points-hint">
               {dataPointCount > 0
-                ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted. Markers sized by value (globe + flat).`
+                ? globeSettings.data === false
+                  ? `${dataPointCount} point${dataPointCount === 1 ? "" : "s"}, hidden.`
+                  : `${dataPointCount} point${dataPointCount === 1 ? "" : "s"} plotted. Markers sized by value (globe + flat).`
                 : "Paste lat,lng,value or country,value (e.g. US,1200) per line."}
             </p>
           </div>
