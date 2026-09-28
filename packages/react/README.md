@@ -54,10 +54,11 @@ const thumb = globestudio.thumbnailUrl("halftone");
 //          → "https://globestudio.app/looks/halftone.png"
 
 // A share config is URL-encoded JSON: the ?c= value from a link the
-// Share dialog made, or one you build yourself.
-const payload = encodeURIComponent(JSON.stringify({ v: 1, selection: "country:JPN" }));
+// Share dialog made, or one you build yourself. "v": 2 tells Globestudio
+// it was encoded once, so every value (a "%" too) arrives as written.
+const payload = encodeURIComponent(JSON.stringify({ v: 2, selection: "country:JPN" }));
 const share = globestudio.shareUrl(payload);
-//          → "https://globestudio.app/?c=%7B%22v%22%3A1%2C%22selection%22%3A%22country%3AJPN%22%7D"
+//          → "https://globestudio.app/?c=%7B%22v%22%3A2%2C%22selection%22%3A%22country%3AJPN%22%7D"
 ```
 
 Use these when you need the URL but not the iframe (e.g. Next.js `<Image src>`, server-rendered markup, OG metadata).
