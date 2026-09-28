@@ -37,8 +37,12 @@ import { getCachedWorldRivers, loadWorldRivers } from "../data/world-rivers-topo
 import { getCachedWorldCities, loadWorldCities } from "../data/world-cities-topology.js";
 import { cca3ToCcn3 } from "../data/geography.js";
 import { PerfMonitor } from "./perf-monitor.jsx";
-import { PHONE_LAYOUT_QUERY } from "../config/constants.js";
+import { PHONE_LAYOUT_QUERY, PHONE_MAP_ZOOM, defaultMapZoom } from "../config/constants.js";
+import { contentSize, flatFitDistance, frameViewOffset, phoneFrame } from "../utils/phone-frame.js";
 import { trackClientError } from "./analytics.jsx";
+
+// The camera's resting vertical field of view (degrees).
+const BASE_FOV = 42;
 
 // Per-instance dot spin animation speed range. The user-facing
 // shapeRotationSpeed slider maps 0-100 onto this range (linearly):
@@ -142,6 +146,10 @@ export const GlobeBackground = ({
   label,
   canvasHandleRef,
   panelCollapsed,
+  // Phone layout: the sheet and the top bar the scene is framed between
+  // (see utils/phone-frame.js). The embed passes neither and fills its box.
+  sheetRef = null,
+  topBarRef = null,
   perfHud = true,
 }) => {
   const mountRef = useRef(null);
@@ -201,10 +209,26 @@ export const GlobeBackground = ({
   const transformRef = useRef({ mapDepth, tiltX, tiltY });
   const [isDraggingGlobe, setIsDraggingGlobe] = useState(false);
 
+  // Phone framing state, read by the animate loop. The sheet's top is only
+  // measured when something may have moved it (a class change, a resize, its
+  // own transition or entrance, a drag), never on an idle frame. `holds`
+  // counts exports reading the canvas, which see it unframed.
+  const frameRef = useRef({
+    sheet: null,
+    topBar: null,
+    dirty: true,
+    moving: new Map(),
+    top: 0,
+    sheetTop: 0,
+    holds: 0,
+  });
+  const mapImageRef = useRef(mapData?.image);
+
   mapOffsetRef.current = mapOffset;
   mapZoomRef.current = mapZoom;
   morphModeRef.current = morphMode;
   panelCollapsedRef.current = panelCollapsed;
+  mapImageRef.current = mapData?.image;
   settingsRef.current = shaderSettings;
   globeSettingsRef.current = globeSettings;
   uiThemeRef.current = uiTheme;
@@ -260,9 +284,12 @@ export const GlobeBackground = ({
       if (Math.abs(panX) > 3 || Math.abs(panY) > 3) {
         state.moved = true;
       }
+      // The offset is in unframed canvas px, so a map drawn smaller above
+      // the phone sheet still follows the finger 1:1.
+      const scale = threeRef.current?.frameScale ?? 1;
       setMapOffset({
-        x: state.baseOffsetX + panX,
-        y: state.baseOffsetY + panY,
+        x: state.baseOffsetX + panX / scale,
+        y: state.baseOffsetY + panY / scale,
       });
       event.preventDefault();
       return;
@@ -355,10 +382,12 @@ export const GlobeBackground = ({
       const point = getClientPoint(event);
       const rect = event.currentTarget.getBoundingClientRect();
       if (point && rect.width && rect.height) {
+        // In unframed canvas px, like the offset (see the pan above).
+        const { frameScale = 1, frameShiftY = 0 } = threeRef.current ?? {};
         const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const pointerX = point.x - centerX;
-        const pointerY = point.y - centerY;
+        const centerY = rect.top + rect.height / 2 + frameShiftY;
+        const pointerX = (point.x - centerX) / frameScale;
+        const pointerY = (point.y - centerY) / frameScale;
         const zoomRatio = nextZoom / currentZoom;
         setMapOffset((offset) => ({
           x: pointerX - (pointerX - offset.x) * zoomRatio,
@@ -400,12 +429,57 @@ export const GlobeBackground = ({
     });
   }, []);
 
+  // Watch the sheet and the top bar for anything that can move the free
+  // space the phone frame fills. Declared before the renderer effect so the
+  // first frame already knows about them.
+  useEffect(() => {
+    const frame = frameRef.current;
+    const sheet = sheetRef?.current ?? null;
+    const topBar = topBarRef?.current ?? null;
+    frame.sheet = sheet;
+    frame.topBar = topBar;
+    frame.dirty = true;
+    if (!sheet) return undefined;
+    const markDirty = () => {
+      frame.dirty = true;
+    };
+    const motionKey = (event) => `${event.type.startsWith("anim") ? "a" : "t"}:${event.animationName || event.propertyName}`;
+    const onMotionStart = (event) => {
+      if (event.target === sheet) frame.moving.set(motionKey(event), window.performance.now());
+    };
+    const onMotionEnd = (event) => {
+      if (event.target !== sheet) return;
+      frame.moving.delete(motionKey(event));
+      frame.dirty = true;
+    };
+    const starts = ["transitionrun", "animationstart"];
+    const ends = ["transitionend", "transitioncancel", "animationend", "animationcancel"];
+    starts.forEach((type) => sheet.addEventListener(type, onMotionStart));
+    ends.forEach((type) => sheet.addEventListener(type, onMotionEnd));
+    const classChanges = new MutationObserver(markDirty);
+    classChanges.observe(sheet, { attributes: true, attributeFilter: ["class"] });
+    const sizes = new ResizeObserver(markDirty);
+    sizes.observe(sheet);
+    if (topBar) sizes.observe(topBar);
+    window.addEventListener("resize", markDirty);
+    return () => {
+      starts.forEach((type) => sheet.removeEventListener(type, onMotionStart));
+      ends.forEach((type) => sheet.removeEventListener(type, onMotionEnd));
+      classChanges.disconnect();
+      sizes.disconnect();
+      window.removeEventListener("resize", markDirty);
+      frame.moving.clear();
+      frame.sheet = null;
+      frame.topBar = null;
+    };
+  }, [sheetRef, topBarRef]);
+
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return undefined;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(BASE_FOV, 1, 0.1, 100);
     camera.position.set(0, 0, GLOBE_CAMERA_DISTANCE);
 
     // Procedural backgrounds live in their OWN scene (bgScene), rendered to a
@@ -699,8 +773,17 @@ export const GlobeBackground = ({
       // any time the mount node actually changes size, so this stays fresh.
       threeRef.current.canvasWidth = rect.width;
       threeRef.current.canvasHeight = rect.height;
+      threeRef.current.canvasTop = rect.top;
       // Rotating a phone resizes the mount, so this stays current too.
       threeRef.current.isPhoneLayout = window.matchMedia?.(PHONE_LAYOUT_QUERY).matches ?? width <= 620;
+      // The zoom a load or Reset starts from, and the flat distance that
+      // makes the map fit the width at it on an upright phone, where that
+      // zoom is 2.2 so the globe fills the width.
+      threeRef.current.defaultZoom = defaultMapZoom();
+      threeRef.current.phoneFlatDistance =
+        threeRef.current.defaultZoom === PHONE_MAP_ZOOM
+          ? flatFitDistance({ aspect, fov: BASE_FOV }) * PHONE_MAP_ZOOM
+          : null;
       // Re-tighten the area-aware DPR ceiling for the new viewport. Always
       // refresh the ceiling so the adaptive-FPS loop recovers to the right cap
       // for the current size; additionally clamp the live pixel ratio down if
@@ -745,10 +828,14 @@ export const GlobeBackground = ({
       // doesn't need 60fps, and halving the render rate roughly halves the
       // GPU/CPU it burns. Every rendered frame is delta-timed, so the spin
       // speed is identical at either rate.
+      const sheetFrame = frameRef.current;
+      const framing = Boolean(threeRef.current.isPhoneLayout && sheetFrame.sheet);
       const interactive =
         stateRef.current.active ||
         morphRef.current.active ||
-        now - lastInteraction < 700;
+        now - lastInteraction < 700 ||
+        // The phone frame follows the sheet at full rate while it moves.
+        (framing && (sheetFrame.moving.size > 0 || sheetFrame.sheet.classList.contains("is-dragging")));
       if (!interactive && now - lastRender < 31) return;
       lastRender = now;
       const delta = Math.min(48, now - lastTime);
@@ -810,9 +897,12 @@ export const GlobeBackground = ({
       // as a subtle dolly-zoom through space without ever losing the
       // subject. Wider clamp (60) accommodates the punched peak.
       const fovPunch = morphPulse * 5;
-      const targetFov = clampNumber(42 + (transform.mapDepth - 55) * 0.12 * flatProgress + fovPunch, 34, 60);
+      const baseFov = BASE_FOV + (transform.mapDepth - 55) * 0.12 * flatProgress;
+      const targetFov = clampNumber(baseFov + fovPunch, 34, 60);
+      // An upright phone opens at zoom 2.2 so the globe fills the width; the
+      // flat map gets a distance that fits the width at that same zoom.
       const targetDistance = THREE.MathUtils.lerp(
-        threeRef.current.flatDistance || threeRef.current.baseDistance,
+        (framing && threeRef.current.phoneFlatDistance) || threeRef.current.flatDistance || threeRef.current.baseDistance,
         threeRef.current.globeDistance || threeRef.current.baseDistance,
         rotationProgress,
       );
@@ -824,9 +914,50 @@ export const GlobeBackground = ({
       camera.updateProjectionMatrix();
 
       // Pull cached dimensions written by `resize()` instead of calling
-      // getBoundingClientRect — avoids a forced layout flush each frame.
+      // getBoundingClientRect — avoids a forced layout flush each sheetFrame.
       const rectWidth = threeRef.current.canvasWidth ?? renderer.domElement.clientWidth ?? 1;
       const rectHeight = threeRef.current.canvasHeight ?? renderer.domElement.clientHeight ?? 1;
+
+      // Phone layout: fit the picture between the top bar and the sheet,
+      // scaled against its size at the default zoom so zooming still works
+      // (see utils/phone-frame.js). Exports hold the frame off.
+      if (framing && sheetFrame.holds === 0) {
+        for (const [key, since] of sheetFrame.moving) {
+          if (now - since > 1500) sheetFrame.moving.delete(key);
+        }
+        if (sheetFrame.dirty || sheetFrame.moving.size > 0 || sheetFrame.sheet.classList.contains("is-dragging")) {
+          const canvasTop = threeRef.current.canvasTop ?? 0;
+          sheetFrame.sheetTop = sheetFrame.sheet.getBoundingClientRect().top - canvasTop;
+          if (sheetFrame.dirty) {
+            sheetFrame.top = sheetFrame.topBar ? sheetFrame.topBar.getBoundingClientRect().bottom - canvasTop : 0;
+          }
+          sheetFrame.dirty = false;
+        }
+        const image = mapImageRef.current;
+        const content = contentSize({
+          height: rectHeight,
+          fov: baseFov,
+          distance: targetDistance / (threeRef.current.defaultZoom || 1),
+          flatAspect: image?.width ? image.height / image.width : 0.5,
+          globeProgress: rotationProgress,
+        });
+        const { scale, shiftY } = phoneFrame({
+          width: rectWidth,
+          height: rectHeight,
+          top: sheetFrame.top,
+          sheetTop: sheetFrame.sheetTop,
+          content,
+          globeProgress: rotationProgress,
+        });
+        camera.setViewOffset(...frameViewOffset({ width: rectWidth, height: rectHeight, scale, shiftY }));
+        threeRef.current.frameScale = scale;
+        threeRef.current.frameShiftY = shiftY;
+      } else {
+        if (camera.view?.enabled) camera.clearViewOffset();
+        threeRef.current.frameScale = 1;
+        threeRef.current.frameShiftY = 0;
+      }
+
       const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.z;
       const visibleWidth = visibleHeight * camera.aspect;
       const offset = mapOffsetRef.current || { x: 0, y: 0 };
@@ -1248,6 +1379,15 @@ export const GlobeBackground = ({
     // the display resolution, render one frame at that resolution, capture the
     // pixels via toBlob, then restore everything. Gives 2×/3×/4× output that's
     // genuinely higher resolution rather than a Canvas2D upscale.
+    // Exports see the canvas unframed: while any hold is on, the phone frame
+    // (the view offset that fits the scene above the sheet) is cleared, so a
+    // PNG or video is framed the same whatever state the sheet is in.
+    const holdFullFrame = (on) => {
+      const sheetFrame = frameRef.current;
+      sheetFrame.holds = Math.max(0, sheetFrame.holds + (on ? 1 : -1));
+      if (sheetFrame.holds > 0 && camera.view?.enabled) camera.clearViewOffset();
+    };
+
     const captureAtScale = (scale) =>
       new Promise((resolve, reject) => {
         const refs = threeRef.current;
@@ -1256,6 +1396,7 @@ export const GlobeBackground = ({
           return;
         }
         window.cancelAnimationFrame(frame);
+        holdFullFrame(true);
         const originalPixelRatio = renderer.getPixelRatio();
         const rect = renderer.domElement.getBoundingClientRect();
         const displayW = Math.max(1, Math.floor(rect.width));
@@ -1281,6 +1422,7 @@ export const GlobeBackground = ({
           if (restored) return;
           restored = true;
           window.clearTimeout(watchdog);
+          holdFullFrame(false);
           restorePixelUniforms();
           renderer.setPixelRatio(originalPixelRatio);
           renderer.setSize(displayW, displayH, false);
@@ -1330,6 +1472,12 @@ export const GlobeBackground = ({
 
     if (canvasHandleRef) {
       renderer.domElement.captureAtScale = captureAtScale;
+      // For exports that read the live canvas (video, the PNG fallback).
+      // Turning a hold on redraws at once, so the very next read is unframed.
+      renderer.domElement.holdFullFrame = (on) => {
+        holdFullFrame(on);
+        if (on) postHandle.composer.render();
+      };
     }
 
     return () => {

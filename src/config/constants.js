@@ -6,6 +6,15 @@ export const US_COUNTRY_ID = "USA";
 // phones held sideways, which are wide but short and touch driven. Keep in
 // step with the @media blocks in styles.css that use the same query.
 export const PHONE_LAYOUT_QUERY = "(max-width: 620px), (pointer: coarse) and (max-height: 500px)";
+
+// The zoom a first load and Reset start from. Desktop frames the world at
+// 0.8. Phones held upright open the globe at 2.2 so it fills the width; on
+// the phone layout globe-background.jsx sizes the flat map to fit the width
+// at that same zoom, so switching views keeps one zoom value.
+export const PHONE_MAP_ZOOM = 2.2;
+export const DESKTOP_MAP_ZOOM = 0.8;
+export const defaultMapZoom = () =>
+  typeof window !== "undefined" && window.innerWidth < 620 ? PHONE_MAP_ZOOM : DESKTOP_MAP_ZOOM;
 export const CLICK_HIGHLIGHT = "#ffffff";
 
 export const TRACKPAD_ZOOM_IGNORE_SELECTOR = [

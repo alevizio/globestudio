@@ -380,7 +380,7 @@ test.describe("on a phone with the sheet collapsed", () => {
     await expect(page.locator(".control-rail")).toHaveClass(/is-collapsed/);
     // getByRole skips anything under aria-hidden, like a screen reader does.
     await expect(page.getByRole("button", { name: "Open export dialog" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Expand options panel" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "All options", expanded: false })).toBeVisible();
     await expectNoSeriousAxeViolations(page);
   });
 
@@ -398,7 +398,7 @@ test.describe("on a phone with the sheet open", () => {
   test("the site links at the end of the sheet are 44px targets", async ({ page }) => {
     await page.goto("/");
     await waitForCanvas(page);
-    await page.getByRole("button", { name: "Expand options panel" }).click();
+    await page.getByRole("button", { name: "All options", expanded: false }).click();
     await expect(page.locator(".control-rail")).not.toHaveClass(/is-collapsed/);
     const links = page.getByRole("navigation", { name: "Site links" }).getByRole("link");
     await expect(links).toHaveCount(7);
@@ -461,7 +461,7 @@ test.describe("on a phone, swiping the sheet", () => {
     await waitForCanvas(page);
     await expect(page.locator(".control-rail .preset-detail")).toHaveCount(1);
     const rail = page.locator(".control-rail");
-    await page.getByRole("button", { name: "Expand options panel" }).click();
+    await page.getByRole("button", { name: "All options", expanded: false }).click();
     await expect(rail).not.toHaveClass(/is-collapsed/);
     await settled(rail);
     const sheet = await box(rail);

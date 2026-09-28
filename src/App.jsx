@@ -1,5 +1,5 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PHONE_LAYOUT_QUERY, US_COUNTRY_ID } from "./config/constants.js";
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { PHONE_LAYOUT_QUERY, US_COUNTRY_ID, defaultMapZoom } from "./config/constants.js";
 import {
   DEFAULT_FLOW_SETTINGS,
   DEFAULT_SPACE_SETTINGS,
@@ -272,12 +272,9 @@ const App = () => {
   const [viewTransition, setViewTransition] = useState(null);
   const viewTransitionTimeoutRef = useRef(0);
   // Default map zoom — desktop starts at 0.8 for a "looking at the world"
-  // framing. Mobile gets 1.5 so the globe actually fills the visible
-  // canvas area above the bottom sheet instead of feeling small.
-  const [mapZoom, setMapZoom] = useState(() => {
-    if (typeof window === "undefined") return 0.8;
-    return window.innerWidth < 620 ? 2.2 : 0.8;
-  });
+  // framing, phones at 2.2 so the globe fills the width (see
+  // defaultMapZoom). Reset goes back to the same value.
+  const [mapZoom, setMapZoom] = useState(defaultMapZoom);
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const mapZoomRef = useRef(mapZoom);
   const viewModeRef = useRef(viewMode);
@@ -378,12 +375,25 @@ const App = () => {
     return () => mq.removeEventListener("change", onChange);
   }, []);
   const railRef = useRef(null);
+  // Phones: the bar with Flat/Globe and Export, which the globe is framed
+  // under (GlobeBackground reads both refs).
+  const topBarRef = useRef(null);
   const { handleProps: sheetHandleProps } = useSheetDrag({
     railRef,
     panelCollapsed,
     setPanelCollapsed,
     enabled: isMobileSheet,
   });
+  // Collapsing the phone sheet makes everything below its looks inert. If
+  // focus was in there (the H key, a screen reader), hand it to the grabber
+  // before the browser drops it back to the page.
+  useLayoutEffect(() => {
+    if (!isMobileSheet || !panelCollapsed) return;
+    const rail = railRef.current;
+    if (rail?.querySelector(".control-rail-body")?.contains(document.activeElement)) {
+      rail.querySelector(".mobile-drag-handle")?.focus();
+    }
+  }, [isMobileSheet, panelCollapsed]);
   const [animationsEnabled, setAnimationsEnabled] = usePersistedState("animationsEnabled", true);
   // UI theme: "dark" (default) or "light". Only swaps the panel/picker tokens —
   // the canvas/globe rendering stays on its dark base because the artwork
@@ -632,7 +642,7 @@ const App = () => {
     setViewMode("globe");
     setViewTransition(null);
     window.clearTimeout(viewTransitionTimeoutRef.current);
-    setMapZoom(0.8);
+    setMapZoom(defaultMapZoom());
     setMapOffset({ x: 0, y: 0 });
     setMapDepth(55);
     setTiltX(0);
@@ -900,6 +910,9 @@ const App = () => {
     const matte = exportBackground(format, backgroundSettings);
     setVideoStatus("recording");
     setVideoProgress(0);
+    // Recorders read the live canvas: hold the phone framing off so the
+    // video has the full-canvas framing whatever state the sheet is in.
+    canvas.holdFullFrame?.(true);
     try {
       const durationMs = options.durationMs ?? videoDurationMs;
       let blob;
@@ -939,6 +952,7 @@ const App = () => {
       setVideoStatus("error");
       trackClientError(`export-${format}`, error);
     } finally {
+      canvas.holdFullFrame?.(false);
       setVideoProgress(0);
     }
   }, [backgroundSettings, currentPresetId, selected.label, videoDurationMs, videoStatus, viewMode]);
@@ -1240,6 +1254,8 @@ const App = () => {
 
       // Fallback: Canvas2D upscale of the current framebuffer. Lower quality at
       // higher scales, and it fails when the browser won't allocate the canvas.
+      // Read unframed, like captureAtScale, whatever state the phone sheet is in.
+      activeGlobeCanvas.holdFullFrame?.(true);
       try {
         const pngBlob = composePngBlob(
           activeGlobeCanvas,
@@ -1253,6 +1269,8 @@ const App = () => {
         flashPngSaved(scale);
       } catch (error) {
         failPngExport(error);
+      } finally {
+        activeGlobeCanvas.holdFullFrame?.(false);
       }
       return;
     }
@@ -1407,6 +1425,9 @@ const App = () => {
       run: () => setAboutOpen(true),
     },
   ];
+
+  // Rendered in one of two places in the sheet, see below.
+  const looksBar = <LooksBar onPick={applyLook} appliedId={appliedLookId} currentId={currentPresetId} />;
 
   return (
     <main
@@ -1605,13 +1626,29 @@ const App = () => {
             reducedMotion={motionFrozen}
             canvasHandleRef={globeCanvasRef}
             panelCollapsed={panelCollapsed}
+            sheetRef={railRef}
+            topBarRef={topBarRef}
             label={`${selected.label} dotted ${viewMode === "globe" ? "globe" : "map"} background`}
           />
         </Suspense>
       </ErrorBoundary>
       )}
 
-      <ViewModeSwitch viewMode={viewMode} setViewMode={changeViewMode} />
+      {/* On phones a slim bar across the top holds the view switch and
+          Export in every sheet state; elsewhere it adds no box. */}
+      <div className="top-bar" ref={topBarRef}>
+        <ViewModeSwitch viewMode={viewMode} setViewMode={changeViewMode} />
+        {isMobileSheet && (
+          <button
+            type="button"
+            className="panel-icon-button panel-icon-button--primary top-bar-export"
+            onClick={() => setExportModalOpen(true)}
+            aria-label="Open export dialog"
+          >
+            <Download size={16} />
+          </button>
+        )}
+      </div>
       <MapZoomControls value={mapZoom} onChange={setMapZoom} />
 
       <a
@@ -1657,7 +1694,9 @@ const App = () => {
         // aria-hidden alone leaves the rail's ~80 controls in the Tab order
         // when collapsed; inert removes them from focus + hit-testing too.
         // Desktop only: the mobile collapsed sheet is an interactive peek,
-        // so it stays in the accessibility tree too (Export, looks, region).
+        // so its grabber and looks stay in the accessibility tree too (the
+        // rest goes inert with control-rail-body below).
+        aria-label="Options panel"
         aria-hidden={(panelCollapsed && !isMobileSheet) || undefined}
         inert={(panelCollapsed && !isMobileSheet) || undefined}
       >
@@ -1665,190 +1704,207 @@ const App = () => {
           type="button"
           className="mobile-drag-handle"
           {...sheetHandleProps}
-          aria-label={panelCollapsed ? "Expand options panel" : "Collapse options panel"}
+          aria-label="All options"
+          aria-expanded={!panelCollapsed}
+          aria-controls="options-panel-body"
         >
           <span className="mobile-drag-handle-bar" aria-hidden="true" />
         </button>
-        <div className="panel-header">
-          <div className="panel-meta">
-            <span
-              className={`panel-meta-icon ${appliedLookId ? "is-rippling" : ""}`}
-              role="img"
-              aria-label={`${selected.label}: ${
-                dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
-              }`}
-              title={`${selected.label}: ${
-                dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
-              }`}
-            >
-              <DottedGlobe size={56} />
-            </span>
+        {/* Phones: the peek is the grabber and the looks, so the looks come
+            first in the sheet, for the eye and for focus order alike. */}
+        {isMobileSheet && looksBar}
+        {/* Everything below the looks. In the phone peek it sits under the
+            screen edge, so it leaves the focus order and the accessibility
+            tree until the sheet opens. */}
+        <div
+          id="options-panel-body"
+          className="control-rail-body"
+          inert={(isMobileSheet && panelCollapsed) || undefined}
+        >
+          <div className="panel-header">
+            <div className="panel-meta">
+              <span
+                className={`panel-meta-icon ${appliedLookId ? "is-rippling" : ""}`}
+                role="img"
+                aria-label={`${selected.label}: ${
+                  dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
+                }`}
+                title={`${selected.label}: ${
+                  dotsVisible ? `${dotCount.toLocaleString()} dots` : "dots off"
+                }`}
+              >
+                <DottedGlobe size={56} />
+              </span>
+            </div>
+            <div className="panel-header-actions">
+              <button
+                type="button"
+                className="panel-icon-button"
+                onClick={toggleTheme}
+                aria-label={uiTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+                aria-pressed={uiTheme === "light"}
+                data-tooltip={uiTheme === "dark" ? "Switch to light UI" : "Switch to dark UI"}
+              >
+                {uiTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+              <button
+                type="button"
+                className="panel-icon-button"
+                onClick={() => setAboutOpen(true)}
+                aria-label="About Globestudio"
+                data-tooltip="About"
+              >
+                <Info size={16} />
+              </button>
+              <button
+                type="button"
+                className="panel-icon-button panel-icon-button--keyboard"
+                onClick={() => setShortcutsOpen(true)}
+                aria-label="Show keyboard shortcuts"
+                data-tooltip="Keyboard shortcuts (?)"
+              >
+                <Keyboard size={16} />
+              </button>
+              <button
+                type="button"
+                className="panel-icon-button panel-icon-button--hide-panel"
+                onClick={() => setPanelCollapsed(true)}
+                aria-label="Hide panel"
+                data-tooltip="Hide panel (H)"
+              >
+                <PanelLeftClose size={16} />
+              </button>
+              {/* Phones have Export in the top bar instead. */}
+              {!isMobileSheet && (
+                <button
+                  type="button"
+                  className="panel-icon-button panel-icon-button--primary"
+                  onClick={() => setExportModalOpen(true)}
+                  aria-label="Open export dialog"
+                  data-tooltip="Export (D)"
+                >
+                  <Download size={16} />
+                </button>
+              )}
+            </div>
           </div>
-          <div className="panel-header-actions">
-            <button
-              type="button"
-              className="panel-icon-button"
-              onClick={toggleTheme}
-              aria-label={uiTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-              aria-pressed={uiTheme === "light"}
-              data-tooltip={uiTheme === "dark" ? "Switch to light UI" : "Switch to dark UI"}
-            >
-              {uiTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-            <button
-              type="button"
-              className="panel-icon-button"
-              onClick={() => setAboutOpen(true)}
-              aria-label="About Globestudio"
-              data-tooltip="About"
-            >
-              <Info size={16} />
-            </button>
-            <button
-              type="button"
-              className="panel-icon-button panel-icon-button--keyboard"
-              onClick={() => setShortcutsOpen(true)}
-              aria-label="Show keyboard shortcuts"
-              data-tooltip="Keyboard shortcuts (?)"
-            >
-              <Keyboard size={16} />
-            </button>
-            <button
-              type="button"
-              className="panel-icon-button panel-icon-button--hide-panel"
-              onClick={() => setPanelCollapsed(true)}
-              aria-label="Hide panel"
-              data-tooltip="Hide panel (H)"
-            >
-              <PanelLeftClose size={16} />
-            </button>
-            <button
-              type="button"
-              className="panel-icon-button panel-icon-button--primary"
-              onClick={() => setExportModalOpen(true)}
-              aria-label="Open export dialog"
-              data-tooltip="Export (D)"
-            >
-              <Download size={16} />
-            </button>
-          </div>
-        </div>
-        <LooksBar onPick={applyLook} appliedId={appliedLookId} currentId={currentPresetId} />
+          {!isMobileSheet && looksBar}
 
-        <ControlPanel
-            selection={selection}
-            setSelection={(value) => {
-              handleSelectionChange(value);
-              setSelectedDots(new Set());
-            }}
-            stateSelection={stateSelection}
-            setStateSelection={(value) => {
-              setStateSelection(value);
-              setSelectedDots(new Set());
-            }}
-            background={background}
-            setBackground={setBackground}
-            transparent={transparent}
-            setTransparent={setTransparent}
-            backgroundStyle={backgroundStyle}
-            setBackgroundStyle={setBackgroundStyle}
-            shadeBackground={shadeBackground}
-            setShadeBackground={setShadeBackground}
-            spaceSettings={spaceSettings}
-            setSpaceSettings={setSpaceSettings}
-            flowSettings={flowSettings}
-            setFlowSettings={setFlowSettings}
-            mapDepth={mapDepth}
-            setMapDepth={setMapDepth}
-            tiltX={tiltX}
-            setTiltX={setTiltX}
-            tiltY={tiltY}
-            setTiltY={setTiltY}
-            density={density}
-            setDensity={setDensity}
-            dotSize={dotSize}
-            setDotSize={setDotSize}
-            dotColor={dotColor}
-            setDotColor={setDotColor}
-            dotColorAlpha={dotColorAlpha}
-            setDotColorAlpha={setDotColorAlpha}
-            dotGradient={dotGradient}
-            setDotGradient={setDotGradient}
-            dotsVisible={dotsVisible}
-            setDotsVisible={setDotsVisible}
-            shape={shape}
-            dotRotation={dotRotation}
-            setShape={setShape}
-            setDotRotation={setDotRotation}
-            shapeRotationSpeed={shapeRotationSpeed}
-            setShapeRotationSpeed={setShapeRotationSpeed}
-            sizeVary={sizeVary}
-            setSizeVary={setSizeVary}
-            asciiSymbol={asciiSymbol}
-            customShape={customShape}
-            setCustomShape={setCustomShape}
-            setAsciiSymbol={setAsciiSymbol}
-            renderMode={renderMode}
-            setRenderMode={handleRenderModeChange}
-            worldFill={worldFill}
-            setWorldFill={setWorldFill}
-            worldFillAlpha={worldFillAlpha}
-            setWorldFillAlpha={setWorldFillAlpha}
-            worldFillGradient={worldFillGradient}
-            setWorldFillGradient={setWorldFillGradient}
-            worldFillVisible={worldFillVisible}
-            setWorldFillVisible={setWorldFillVisible}
-            worldStroke={worldStroke}
-            setWorldStroke={setWorldStroke}
-            worldStrokeAlpha={worldStrokeAlpha}
-            setWorldStrokeAlpha={setWorldStrokeAlpha}
-            worldStrokeGradient={worldStrokeGradient}
-            setWorldStrokeGradient={setWorldStrokeGradient}
-            worldStrokeVisible={worldStrokeVisible}
-            setWorldStrokeVisible={setWorldStrokeVisible}
-            worldStrokeWidth={worldStrokeWidth}
-            setWorldStrokeWidth={setWorldStrokeWidth}
-            flatProjection={flatProjection}
-            setFlatProjection={handleProjectionChange}
-            riversVisible={riversVisible}
-            setRiversVisible={handleRiversToggle}
-            citiesVisible={citiesVisible}
-            setCitiesVisible={handleCitiesToggle}
-            citiesMinPop={citiesMinPop}
-            setCitiesMinPop={setCitiesMinPop}
-            customTopologyRaw={customTopologyRaw}
-            setCustomTopologyRaw={setCustomTopologyRaw}
-            customTopology={customTopology}
-            customTopologyVisible={customTopologyVisible}
-            setCustomTopologyVisible={setCustomTopologyVisible}
-            shaderSettings={shaderSettings}
-            setShaderSettings={setShaderSettings}
-            globeSettings={globeSettings}
-            setGlobeSettings={setGlobeSettings}
-            animationsEnabled={animationsEnabled}
-            setAnimationsEnabled={setAnimationsEnabled}
-            viewMode={viewMode}
-            usStates={usStates}
-          />
-        {/* Phones: the look's copy ends the sheet's list, so the page never
-            grows past the screen (see the below-the-fold one further down). */}
-        {currentPresetId && isMobileSheet && (
-          <PresetDetail preset={lookPresets.find((p) => p.id === currentPresetId)} />
-        )}
-        {/* The studio's own links to the rest of the site, so crawlers that
-            run JS reach every page from "/" (the prerendered body's
-            TakeoverFooter is replaced on mount). Plain anchors like the
-            takeover pages use: each page is its own document. Inside the
-            rail, so the mobile sheet carries them too. */}
-        <nav className="takeover-footer-links panel-links" aria-label="Site links">
-          <a href="/gallery">Gallery</a>
-          <a href="/docs">Docs</a>
-          <a href="/integrations">Integrations</a>
-          <a href="/examples">Examples</a>
-          <a href="/compare/cobe">vs cobe</a>
-          <a href="/compare/geolayers">vs GEOlayers</a>
-          <a href="/changelog">Changelog</a>
-        </nav>
+          <ControlPanel
+              selection={selection}
+              setSelection={(value) => {
+                handleSelectionChange(value);
+                setSelectedDots(new Set());
+              }}
+              stateSelection={stateSelection}
+              setStateSelection={(value) => {
+                setStateSelection(value);
+                setSelectedDots(new Set());
+              }}
+              background={background}
+              setBackground={setBackground}
+              transparent={transparent}
+              setTransparent={setTransparent}
+              backgroundStyle={backgroundStyle}
+              setBackgroundStyle={setBackgroundStyle}
+              shadeBackground={shadeBackground}
+              setShadeBackground={setShadeBackground}
+              spaceSettings={spaceSettings}
+              setSpaceSettings={setSpaceSettings}
+              flowSettings={flowSettings}
+              setFlowSettings={setFlowSettings}
+              mapDepth={mapDepth}
+              setMapDepth={setMapDepth}
+              tiltX={tiltX}
+              setTiltX={setTiltX}
+              tiltY={tiltY}
+              setTiltY={setTiltY}
+              density={density}
+              setDensity={setDensity}
+              dotSize={dotSize}
+              setDotSize={setDotSize}
+              dotColor={dotColor}
+              setDotColor={setDotColor}
+              dotColorAlpha={dotColorAlpha}
+              setDotColorAlpha={setDotColorAlpha}
+              dotGradient={dotGradient}
+              setDotGradient={setDotGradient}
+              dotsVisible={dotsVisible}
+              setDotsVisible={setDotsVisible}
+              shape={shape}
+              dotRotation={dotRotation}
+              setShape={setShape}
+              setDotRotation={setDotRotation}
+              shapeRotationSpeed={shapeRotationSpeed}
+              setShapeRotationSpeed={setShapeRotationSpeed}
+              sizeVary={sizeVary}
+              setSizeVary={setSizeVary}
+              asciiSymbol={asciiSymbol}
+              customShape={customShape}
+              setCustomShape={setCustomShape}
+              setAsciiSymbol={setAsciiSymbol}
+              renderMode={renderMode}
+              setRenderMode={handleRenderModeChange}
+              worldFill={worldFill}
+              setWorldFill={setWorldFill}
+              worldFillAlpha={worldFillAlpha}
+              setWorldFillAlpha={setWorldFillAlpha}
+              worldFillGradient={worldFillGradient}
+              setWorldFillGradient={setWorldFillGradient}
+              worldFillVisible={worldFillVisible}
+              setWorldFillVisible={setWorldFillVisible}
+              worldStroke={worldStroke}
+              setWorldStroke={setWorldStroke}
+              worldStrokeAlpha={worldStrokeAlpha}
+              setWorldStrokeAlpha={setWorldStrokeAlpha}
+              worldStrokeGradient={worldStrokeGradient}
+              setWorldStrokeGradient={setWorldStrokeGradient}
+              worldStrokeVisible={worldStrokeVisible}
+              setWorldStrokeVisible={setWorldStrokeVisible}
+              worldStrokeWidth={worldStrokeWidth}
+              setWorldStrokeWidth={setWorldStrokeWidth}
+              flatProjection={flatProjection}
+              setFlatProjection={handleProjectionChange}
+              riversVisible={riversVisible}
+              setRiversVisible={handleRiversToggle}
+              citiesVisible={citiesVisible}
+              setCitiesVisible={handleCitiesToggle}
+              citiesMinPop={citiesMinPop}
+              setCitiesMinPop={setCitiesMinPop}
+              customTopologyRaw={customTopologyRaw}
+              setCustomTopologyRaw={setCustomTopologyRaw}
+              customTopology={customTopology}
+              customTopologyVisible={customTopologyVisible}
+              setCustomTopologyVisible={setCustomTopologyVisible}
+              shaderSettings={shaderSettings}
+              setShaderSettings={setShaderSettings}
+              globeSettings={globeSettings}
+              setGlobeSettings={setGlobeSettings}
+              animationsEnabled={animationsEnabled}
+              setAnimationsEnabled={setAnimationsEnabled}
+              viewMode={viewMode}
+              usStates={usStates}
+            />
+          {/* Phones: the look's copy ends the sheet's list, so the page never
+              grows past the screen (see the below-the-fold one further down). */}
+          {currentPresetId && isMobileSheet && (
+            <PresetDetail preset={lookPresets.find((p) => p.id === currentPresetId)} />
+          )}
+          {/* The studio's own links to the rest of the site, so crawlers that
+              run JS reach every page from "/" (the prerendered body's
+              TakeoverFooter is replaced on mount). Plain anchors like the
+              takeover pages use: each page is its own document. Inside the
+              rail, so the mobile sheet carries them too. */}
+          <nav className="takeover-footer-links panel-links" aria-label="Site links">
+            <a href="/gallery">Gallery</a>
+            <a href="/docs">Docs</a>
+            <a href="/integrations">Integrations</a>
+            <a href="/examples">Examples</a>
+            <a href="/compare/cobe">vs cobe</a>
+            <a href="/compare/geolayers">vs GEOlayers</a>
+            <a href="/changelog">Changelog</a>
+          </nav>
+        </div>
       </section>
 
       <ExportModal

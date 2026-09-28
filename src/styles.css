@@ -2788,16 +2788,6 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
 .embed-view[data-transparent="true"] .globe-background::before {
   display: none;
 }
-/* The mobile breakpoint crops .globe-background up by 210px to clear the
-   app's control-rail bottom sheet. The embed has no control rail, so when
-   an embed iframe is narrower than that breakpoint (small dashboard cards,
-   mobile) that crop wrongly collapses the globe to a ~30px sliver. The
-   embed globe must always fill its iframe — this higher-specificity rule
-   beats the mobile crop at every width. */
-.embed-view .globe-background {
-  inset: 0;
-}
-
 .embed-view-placeholder {
   position: fixed;
   inset: 0;
@@ -5382,6 +5372,21 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   display: none;
 }
 
+/* Wrappers that only mean something on phones (the top bar, and the part
+   of the sheet that goes inert in the peek); elsewhere they add no box. */
+.top-bar,
+.control-rail-body {
+  display: contents;
+}
+
+/* Registered so getComputedStyle hands useSheetDrag the peek in px even
+   though the phone value adds the home indicator inset. */
+@property --sheet-peek {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 /* Accordion wrapper used by the panel sections that appear/disappear
    when the user flips between Flat and Globe view modes. Uses the
    grid-template-rows 0fr → 1fr technique so the wrapper animates to
@@ -7868,19 +7873,6 @@ input[type="range"]:active::-moz-range-thumb {
     opacity: 0.012;
   }
 
-  /* Crop the scene container to clear the bottom-sheet's peek (~200px)
-     plus a 10px gap. Sized for the peek state — the state users see
-     90% of the time. When the user drags the sheet open the globe gets
-     partially covered, which is fine: at that point they're interacting
-     with controls, not looking at the canvas.
-     Tracking the rail's live height dynamically caused a drag glitch
-     (transition on `bottom` fought the 1:1 finger tracking), so the
-     value is intentionally static. */
-  .globe-background,
-  .map-background {
-    bottom: 210px;
-  }
-
   /* Mobile bottom-sheet pattern — control-rail is pinned to the bottom of
      the viewport and slides up/down. Drag handle replaces the desktop
      panel-toggle chip. Looks bar stays visible in the peek state so
@@ -7895,7 +7887,10 @@ input[type="range"]:active::-moz-range-thumb {
     left: max(10px, env(safe-area-inset-left));
     right: max(10px, env(safe-area-inset-right));
     width: auto;
-    max-height: 82svh;
+    /* Open detent: the sheet never takes more than about half the screen,
+       so the globe stays in view above it. */
+    max-height: 55vh;
+    max-height: 55svh;
     margin-top: 0;
     /* No top padding: the sticky grabber is the sheet's top edge. */
     padding: 0 10px;
@@ -7922,9 +7917,21 @@ input[type="range"]:active::-moz-range-thumb {
        chaining to the page. */
     overscroll-behavior: contain;
     z-index: 8;
-    /* How much of the sheet the collapsed peek shows: grabber, header and
-       looks bar. useSheetDrag reads it to know the sheet's travel. */
-    --sheet-peek: 200px;
+    /* How much of the sheet the collapsed peek shows: the grabber and the
+       looks bar, above the home indicator. useSheetDrag reads it to know
+       the sheet's travel (registered with @property, so it reads in px). */
+    --sheet-peek: calc(86px + env(safe-area-inset-bottom));
+    /* The desktop entrance slides the rail with transform, which would
+       show the sheet fully open until it ends. This one rises with the
+       separate translate property, so the sheet arrives at its peek. */
+    animation-name: sheet-rise-in;
+  }
+
+  @keyframes sheet-rise-in {
+    from {
+      opacity: 0;
+      translate: 0 24px;
+    }
   }
 
   /* The look's long-form copy closes the sheet's list on phones instead of
@@ -7966,8 +7973,8 @@ input[type="range"]:active::-moz-range-thumb {
   }
 
   /* On mobile, "collapsed" doesn't shrink-and-fade — it slides down to a
-     small peek showing the drag handle + panel header + the looks bar
-     for quick preset switching. Drag up to reveal the dropdown and
+     small peek showing the drag handle and the looks bar for quick preset
+     switching. Drag up to reveal the dropdown and
      the rest of the panel. The --drag-offset CSS var carries any live
      finger delta during a drag so the sheet follows the touch 1:1. */
   .control-rail.is-collapsed {
@@ -7981,6 +7988,15 @@ input[type="range"]:active::-moz-range-thumb {
     min-width: 44px;
     min-height: 44px;
     justify-content: center;
+  }
+
+  /* Below the looks the peek would show the top of the header in the home
+     indicator strip, so it hides once the sheet has settled there. It shows
+     at once when a drag starts or the sheet opens (App.jsx also makes it
+     inert in the peek). */
+  .control-rail.is-collapsed:not(.is-dragging) .control-rail-body > * {
+    visibility: hidden;
+    transition: visibility 0s linear 360ms;
   }
 
   /* The desktop full-bleed rule fades the looks bar out when the panel is
@@ -8060,19 +8076,13 @@ input[type="range"]:active::-moz-range-thumb {
     display: none;
   }
 
-  /* GitHub + bug-report links sit above the bottom sheet's collapsed peek
-     line (200px + the sheet's 10px floating gap) so they stay visible at
-     rest. When the user expands the sheet they're hidden under it, which
-     is the same behavior as desktop when a modal opens — they reappear
-     once the sheet collapses again. */
-  .social-links {
-    bottom: 224px;
-    right: max(14px, env(safe-area-inset-right));
-  }
-
-  .bug-link {
-    bottom: 224px;
-    left: max(14px, env(safe-area-inset-left));
+  /* The GitHub and bug-report links would float over the globe above the
+     slim peek, and the zoom buttons sat under the sheet: phones leave all
+     three out (About links to GitHub; iOS zooms with a pinch). */
+  .social-links,
+  .bug-link,
+  .map-zoom-controls {
+    display: none;
   }
 
   .top-actions {
@@ -8081,13 +8091,60 @@ input[type="range"]:active::-moz-range-thumb {
     left: 10px;
   }
 
-  /* Clear of the status bar and, held sideways, the notch. */
-  .view-mode-switch {
-    top: calc(16px + env(safe-area-inset-top));
+  /* The top bar: Flat/Globe and Export, 44px tall, in every sheet state,
+     clear of the status bar and, held sideways, the notch. The canvas
+     fills the screen; globe-background.jsx fits the scene between this bar
+     and the sheet (utils/phone-frame.js). */
+  .top-bar {
+    position: fixed;
+    top: calc(8px + env(safe-area-inset-top));
     right: max(10px, env(safe-area-inset-right));
     left: max(10px, env(safe-area-inset-left));
+    z-index: 4;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    height: 44px;
+  }
+
+  /* The switch takes the bar up to a comfortable width (held sideways the
+     bar is wide). Its buttons fill its full 44px height; the pill is inset
+     4px instead of the switch being padded. */
+  .top-bar .view-mode-switch {
+    position: static;
+    flex: 0 1 360px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    padding: 0;
     transform: none;
+  }
+
+  .top-bar .view-mode-indicator {
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 8px);
+  }
+
+  .top-bar .view-mode-switch[data-active="globe"] .view-mode-indicator {
+    transform: translateX(calc(100% + 8px));
+  }
+
+  .top-bar .view-mode-button {
+    min-height: 44px;
+  }
+
+  /* The desktop full-bleed mode fades the switch out with the panel; the
+     phone peek keeps it. */
+  .app-shell.is-panel-collapsed .view-mode-switch {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  .top-bar-export {
+    flex: none;
   }
 
   /* Perf HUD lives in the top-right corner on desktop. On mobile that
@@ -8097,11 +8154,6 @@ input[type="range"]:active::-moz-range-thumb {
   .perf-monitor {
     top: 76px;
     right: 10px;
-  }
-
-  .map-zoom-controls {
-    bottom: 10px;
-    grid-template-columns: 38px 62px 48px 38px;
   }
 
   .option-row {
@@ -8134,6 +8186,19 @@ input[type="range"]:active::-moz-range-thumb {
 @media (hover: none) {
   .follow-tooltip {
     display: none !important;
+  }
+}
+
+/* Reduced motion: the phone sheet arrives and settles in place, with no
+   entrance and no delay before the peek hides what sits below the looks. */
+@media (prefers-reduced-motion: reduce) and (max-width: 620px),
+  (prefers-reduced-motion: reduce) and (pointer: coarse) and (max-height: 500px) {
+  .control-rail {
+    animation: none;
+  }
+
+  .control-rail.is-collapsed:not(.is-dragging) .control-rail-body > * {
+    transition: none;
   }
 }
 
