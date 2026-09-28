@@ -174,8 +174,15 @@ const INTEGRATIONS = [
     bg: "#1e1e22",
     fg: "#ffffff",
     blurb:
-      "Add Globestudio as a Model Context Protocol tool in Claude Code, Claude Desktop, Cursor, Cody or any MCP client. Then ask in chat: \"make me a clean dotted globe with cyan dots\" and Claude builds the share URL for you.",
-    snippet: `claude mcp add globestudio -- npx -y @globestudio/mcp`,
+      "Globestudio runs a hosted Model Context Protocol server, so there is nothing to install. In the Claude app, paste this URL under Customize, Connectors, Add custom connector. Claude Code, Codex and Cursor take the lines below. Then ask in chat: \"make me a clean dotted globe with cyan dots\" and your agent builds the share URL for you.",
+    snippet: `https://globestudio.app/mcp`,
+    // One block per client, so each Copy button copies a single command.
+    more: [
+      { label: "Claude Code", code: `claude mcp add --transport http globestudio https://globestudio.app/mcp` },
+      { label: "Codex", code: `codex mcp add globestudio --url https://globestudio.app/mcp` },
+      { label: "Cursor mcp.json", code: `{ "mcpServers": { "globestudio": { "url": "https://globestudio.app/mcp" } } }` },
+      { label: "Local server", code: `claude mcp add globestudio -- npx -y @globestudio/mcp` },
+    ],
     cta: { href: "https://www.npmjs.com/package/@globestudio/mcp", label: "View on npm" },
   },
   {
@@ -332,6 +339,11 @@ export const IntegrationsPage = () => {
             >
               {tool.snippet}
             </CodeBlock>
+            {tool.more?.map((item) => (
+              <CodeBlock key={item.label} language={item.label}>
+                {item.code}
+              </CodeBlock>
+            ))}
             {tool.cta && (
               <p className="integrations-recipe">
                 <a

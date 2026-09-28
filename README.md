@@ -182,13 +182,25 @@ wordpress.org listing comes after launch) ·
 
 ## Use it from AI tools (MCP)
 
-Globestudio ships a [Model Context Protocol](https://modelcontextprotocol.io)
-server, so Claude, Cursor, and any MCP-compatible assistant can generate
-globes, build share URLs, and grab embed snippets straight from a chat:
+Globestudio runs a hosted [Model Context Protocol](https://modelcontextprotocol.io)
+server at **`https://globestudio.app/mcp`** (streamable HTTP, nothing to
+install, no account). Claude, Codex, Cursor and any MCP client can list looks,
+build share URLs, read a share link you paste (`read_share_url`) and grab embed
+snippets straight from a chat.
 
-```bash
-claude mcp add globestudio -- npx -y @globestudio/mcp
-```
+| Client | Connect |
+|---|---|
+| Claude app (claude.ai, Desktop) | Customize, Connectors, then **+** and **Add custom connector**. Paste the URL. |
+| Claude Code | `claude mcp add --transport http globestudio https://globestudio.app/mcp` |
+| Codex | `codex mcp add globestudio --url https://globestudio.app/mcp` |
+| Cursor | In `~/.cursor/mcp.json`: `{ "mcpServers": { "globestudio": { "url": "https://globestudio.app/mcp" } } }` |
+
+The same tools run locally over stdio:
+`claude mcp add globestudio -- npx -y @globestudio/mcp`.
+
+No MCP client? The Share tab of the export dialog has **Copy for AI**: a prompt
+with your share link, its settings and what an agent can do with it, ready to
+paste into any chat. The same tab has the connect line for each client.
 
 Full tool list and setup in [`packages/mcp/README.md`](packages/mcp/README.md).
 
