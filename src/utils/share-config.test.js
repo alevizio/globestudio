@@ -123,10 +123,93 @@ describe("share-config", () => {
     expect(parsed).not.toHaveProperty("version");
   });
 
+  describe("values with a % sign", () => {
+    const roundTrip = (config) => parseShareConfig(new URL(buildShareUrl(config, "https://globestudio.app")).search);
+
+    it("round-trips % in the ASCII symbol", () => {
+      for (const asciiSymbol of ["%", "100%", "%41", "%25", "%%"]) {
+        expect(roundTrip({ shape: "ASCII", asciiSymbol, density: 55 }), asciiSymbol).toEqual({
+          shape: "ASCII",
+          asciiSymbol,
+          density: 55,
+        });
+      }
+    });
+
+    it("round-trips an SVG custom shape, whose data URL is percent encoded", () => {
+      const svgSource = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><text>50%</text><circle cx="5" cy="5" r="4"/></svg>`;
+      const customShape = {
+        name: "Dot",
+        type: "image/svg+xml",
+        svgSource,
+        dataUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgSource)}`,
+      };
+      expect(roundTrip({ shape: "Custom", customShape })).toEqual({ shape: "Custom", customShape });
+    });
+
+    it("round-trips % in the state selection text", () => {
+      expect(roundTrip({ selection: "country:USA", stateSelection: "50% off %E2" })).toEqual({
+        selection: "country:USA",
+        stateSelection: "50% off %E2",
+      });
+    });
+
+    it("marks new links v2 and reads them with a single decode", () => {
+      const url = new URL(buildShareUrl({ asciiSymbol: "%41" }, "https://globestudio.app"));
+      expect(JSON.parse(url.searchParams.get("c"))).toEqual({ v: 2, asciiSymbol: "%41" });
+    });
+
+    it("reads a v2 token encoded twice, as @globestudio/react and embed.js pass it", () => {
+      const url = new URL(buildShareUrl({ shape: "ASCII", asciiSymbol: "%" }, "https://globestudio.app"));
+      const token = url.search.slice("?c=".length);
+      const embed = new URLSearchParams({ c: token, source: "react" });
+      expect(parseShareConfig(`?${embed}`)).toEqual({ shape: "ASCII", asciiSymbol: "%" });
+    });
+  });
+
+  describe("links in the old v1 format", () => {
+    // Built by the encoder of 39d9382, the last commit before v2; expected
+    // is what that commit's parser returned. See the fixture's _comment.
+    const legacyPath = resolve(dirname(fileURLToPath(import.meta.url)), "fixtures/legacy-share-links.json");
+    const { links } = JSON.parse(readFileSync(legacyPath, "utf8"));
+
+    it("covers the formats that matter", () => {
+      expect(links.length).toBeGreaterThanOrEqual(50);
+      const names = links.map((link) => link.name).join("\n");
+      for (const part of ["studio link", "embed", "teaser", "encoded twice", "custom SVG", "hand written", "copied from the app"]) {
+        expect(names).toContain(part);
+      }
+    });
+
+    it("open exactly as before", () => {
+      for (const { name, url, expected, now } of links) {
+        if (now) continue;
+        expect(parseShareConfig(new URL(url).search), name).toEqual(expected);
+      }
+    });
+
+    it("that used to open with nothing now open with the sender's config", () => {
+      const rescued = links.filter((link) => link.now);
+      expect(rescued.map((link) => link.name)).toEqual([
+        "asciiSymbol %",
+        "asciiSymbol 100%",
+        "stateSelection with %",
+        "custom SVG shape",
+        "React config with % from searchParams.get (encoded once)",
+      ]);
+      for (const { name, url, expected, now } of rescued) {
+        expect(expected, name).toBe(null);
+        expect(parseShareConfig(new URL(url).search), name).toEqual(now);
+      }
+    });
+  });
+
   it("returns null for missing or malformed config", () => {
     expect(parseShareConfig("")).toBe(null);
     expect(parseShareConfig("?other=value")).toBe(null);
     expect(parseShareConfig("?c=not-valid-base64-json")).toBe(null);
+    // A value Number() cannot convert throws inside normalizeConfig.
+    expect(parseShareConfig(`?c=${encodeURIComponent('{"v":2,"density":{"valueOf":1,"toString":1}}')}`)).toBe(null);
     expect(parseShareConfig(null)).toBe(null);
     expect(parseShareConfig(undefined)).toBe(null);
   });
