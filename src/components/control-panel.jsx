@@ -176,6 +176,14 @@ export const ControlPanel = ({
   // or "space" depending on what the user had set before hiding.
   const lastBgStyleRef = useRef(backgroundStyle && backgroundStyle !== "transparent" ? backgroundStyle : "solid");
   if (backgroundStyle && backgroundStyle !== "transparent") lastBgStyleRef.current = backgroundStyle;
+  // A look can pair transparent: true with the solid style (Wireframe does),
+  // and App previews and exports that as transparent, so the control does too.
+  const bgStyle = backgroundStyle ?? "solid";
+  const bgChoice = transparent && bgStyle === "solid" ? "transparent" : bgStyle;
+  const selectBackground = (next) => {
+    setBackgroundStyle(next);
+    setTransparent(next === "transparent");
+  };
 
   const updateShaderSetting = (key, value) => {
     setShaderSettings((settings) => ({
@@ -1215,52 +1223,32 @@ export const ControlPanel = ({
 
       <PanelSection
         title="Background"
-        // Background "hidden" maps to backgroundStyle: "transparent"
-        // (which already exists and shows the page bg through). Eye
-        // off → set to transparent. Eye on → restore the last
-        // non-transparent style (solid or space).
-        enabled={backgroundStyle !== "transparent"}
-        onEnabledChange={(next) => {
-          if (next) {
-            const restore = lastBgStyleRef.current ?? "solid";
-            setBackgroundStyle(restore);
-            setTransparent(false);
-          } else {
-            if (backgroundStyle && backgroundStyle !== "transparent") {
-              lastBgStyleRef.current = backgroundStyle;
-            }
-            setBackgroundStyle("transparent");
-            setTransparent(true);
-          }
-        }}
+        // The eye is a shortcut for the Transparent option below: eye
+        // off selects Transparent, eye on restores the last other style
+        // (solid or space).
+        enabled={bgChoice !== "transparent"}
+        onEnabledChange={(next) => selectBackground(next ? lastBgStyleRef.current : "transparent")}
+        // Transparent is a background choice, not a hidden layer, so the
+        // header stays at full strength; the eye alone shows it.
+        dimWhenOff={false}
         enabledLabel="Toggle background"
         enabledTooltip={
-          backgroundStyle !== "transparent"
+          bgChoice !== "transparent"
             ? "Make background transparent"
             : "Restore background"
         }
       >
-        {/* Solid/Space segmented sits at the top of the section as
-            a binary choice — same idiom as Glow/No glow in the Globe
-            section. The "transparent" 3rd option is gone from the
-            visible control since the header eye now owns it. When
-            the user is in transparent mode (eye closed), the
-            segmented still highlights whichever non-transparent style
-            they'd return to on re-enable, derived from
-            lastBgStyleRef. */}
         <SegmentedToggle
-          value={backgroundStyle === "transparent" ? (lastBgStyleRef.current ?? "solid") : (backgroundStyle ?? "solid")}
-          onChange={(next) => {
-            setBackgroundStyle(next);
-            setTransparent(false);
-          }}
+          value={bgChoice}
+          onChange={selectBackground}
           options={[
             { value: "solid", label: "Solid" },
             { value: "space", label: "Space" },
+            { value: "transparent", label: "Transparent" },
           ]}
           ariaLabel="Background style"
         />
-        {backgroundStyle === "solid" && (
+        {bgChoice === "solid" && (
           <OptionRow label="Color">
             <ColorSwatch value={background} onChange={setBackground} label="Select background color" />
           </OptionRow>

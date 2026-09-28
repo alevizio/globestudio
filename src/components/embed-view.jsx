@@ -56,6 +56,10 @@ const parseParams = (search) => {
     if (v == null) return fallback;
     return v === "1" || v === "true";
   };
+  // `background=transparent` is the natural spelling of `transparent=1`;
+  // as a hex it became "#transparent", and the embed stayed opaque.
+  const bg = params.get("background");
+  const clearBg = bg === "transparent";
   return {
     look: params.get("look") || "default",
     density: sizeNum("density", 40, 1, 90),
@@ -73,13 +77,13 @@ const parseParams = (search) => {
     // canvas mode so the static preview doesn't burn frames.
     staticMode: bool("static", false),
     source: params.get("source") || "embed",
-    background: params.get("background") ? `#${params.get("background").replace(/^#/, "")}` : "#0a0a0a",
+    background: bg && !clearBg ? `#${bg.replace(/^#/, "")}` : "#0a0a0a",
     // Whether the host explicitly asked for a page background. The visible
     // page color comes from the --preview-bg CSS var cascade (not the
     // GlobeBackground prop), so the embed root only paints it when asked —
     // see the root div's style below.
-    hasBackground: Boolean(params.get("background")),
-    transparent: bool("transparent", false),
+    hasBackground: Boolean(bg) && !clearBg,
+    transparent: clearBg || bool("transparent", false),
     // Render theme. The globe's default palette (glow, grid, surface) is
     // tuned for dark backgrounds; `theme=light` flips it to a graphite-on-
     // cream palette so a transparent embed reads cleanly on a light host

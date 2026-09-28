@@ -36,7 +36,9 @@ const MAX_ASCII_SYMBOL_LENGTH = 12;
 const enumValues = (items) => new Set(items.map((item) => item.value ?? item));
 const SHAPES = enumValues(dotShapeOptions);
 const SHADER_EFFECTS = enumValues(shaderEffectOptions);
-const BACKGROUND_STYLES = new Set(["solid", "space", "flow"]);
+// "transparent" is the panel's Transparent option. Dropping it made a shared
+// transparent look open on whatever style the recipient last used.
+const BACKGROUND_STYLES = new Set(["solid", "space", "flow", "transparent"]);
 const RENDER_MODES = new Set(["dots", "solid"]);
 const VIEW_MODES = new Set(["globe", "flat"]);
 const GLOBE_LOOKS = new Set(["classic", "borderless"]);
@@ -163,6 +165,9 @@ export const normalizeConfig = (config) => {
   apply(next, "background", normalizeHex(config.background));
   apply(next, "transparent", normalizeBoolean(config.transparent));
   apply(next, "backgroundStyle", normalizeEnum(config.backgroundStyle, BACKGROUND_STYLES));
+  // The panel always sets the flag with the Transparent style. Without it,
+  // SVG export and the embed read the config as opaque.
+  if (next.backgroundStyle === "transparent") next.transparent = true;
   apply(next, "density", normalizeNumber(config.density, 1, 100));
   apply(next, "dotSize", normalizeNumber(config.dotSize, 0.1, 30));
   apply(next, "dotColor", normalizeHex(config.dotColor));

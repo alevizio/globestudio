@@ -1,6 +1,6 @@
-// Compact two-option segmented control for use inside the panel. Same
-// visual language as the canvas-level ViewModeSwitch (sliding pill
-// indicator behind two pressable buttons) but sized to sit at the top
+// Compact two- or three-option segmented control for use inside the panel.
+// Same visual language as the canvas-level ViewModeSwitch (sliding pill
+// indicator behind the pressable buttons) but sized to sit at the top
 // of a PanelSection rather than as a fixed-position toolbar.
 
 export const SegmentedToggle = ({ value, onChange, options, ariaLabel }) => {
@@ -12,7 +12,7 @@ export const SegmentedToggle = ({ value, onChange, options, ariaLabel }) => {
     <div
       className="segmented-toggle"
       data-active={value}
-      style={{ "--active-index": activeIndex }}
+      style={{ "--active-index": activeIndex, "--segment-count": options.length }}
       role="group"
       aria-label={ariaLabel}
     >

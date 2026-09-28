@@ -197,6 +197,9 @@ export const ExportModal = ({
   copyStatus,
   exportVideo,
   mp4Supported = false,
+  // The background is Transparent: MP4 can't keep it and GIF keeps it with
+  // hard edges, so both say so.
+  transparent = false,
   videoStatus,
   videoProgress,
   videoDurationMs,
@@ -424,10 +427,16 @@ export const ExportModal = ({
                   GIF plays everywhere (Slack, X, Keynote, iOS). Capped to ~20fps and 640px so the file stays light.
                 </p>
               )}
+              {videoFormat === "gif" && transparent && (
+                <p className="export-modal-caption">GIF transparency has hard edges. Use WebM or PNG for soft ones.</p>
+              )}
               {videoFormat === "mp4" && (
                 <p className="export-modal-caption">
                   MP4 (H.264) plays everywhere WebM can't: Safari/iOS, social, Keynote. Capped to 1024px.
                 </p>
+              )}
+              {videoFormat === "mp4" && transparent && (
+                <p className="export-modal-caption">MP4 has no transparency. Use WebM or PNG.</p>
               )}
               {/* No Aspect, Quality or size controls here: every video
                   format records the live canvas frame (MP4 and GIF then cap
