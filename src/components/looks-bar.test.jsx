@@ -48,3 +48,32 @@ describe("LooksBar", () => {
     expect(onPick).toHaveBeenCalledWith(lookPresets.find(({ id }) => id === "risograph"));
   });
 });
+
+describe("LooksBar scrolling", () => {
+  it("centres the page's look inside the bar only, so late looks aren't off screen", () => {
+    const scrollTo = vi.fn();
+    const scrollIntoView = vi.fn();
+    const rect = (left, width) => ({ left, width, right: left + width, top: 0, bottom: 36, height: 36 });
+    const barBox = vi.spyOn(HTMLUListElement.prototype, "getBoundingClientRect").mockReturnValue(rect(0, 400));
+    const chipBox = vi.spyOn(HTMLButtonElement.prototype, "getBoundingClientRect").mockImplementation(function chip() {
+      return this.textContent.includes("Metal") ? rect(1500, 100) : rect(0, 100);
+    });
+    Element.prototype.scrollTo = scrollTo;
+    Element.prototype.scrollIntoView = scrollIntoView;
+    Object.defineProperty(HTMLUListElement.prototype, "scrollWidth", { configurable: true, get: () => 3000 });
+    Object.defineProperty(HTMLUListElement.prototype, "clientWidth", { configurable: true, get: () => 400 });
+    try {
+      render(<LooksBar onPick={() => {}} currentId="metal" />);
+      // 1500 + 100/2 - 400/2 = 1350, clamped to 0..2600.
+      expect(scrollTo).toHaveBeenCalledWith({ left: 1350, behavior: "auto" });
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    } finally {
+      barBox.mockRestore();
+      chipBox.mockRestore();
+      delete Element.prototype.scrollTo;
+      delete Element.prototype.scrollIntoView;
+      delete HTMLUListElement.prototype.scrollWidth;
+      delete HTMLUListElement.prototype.clientWidth;
+    }
+  });
+});

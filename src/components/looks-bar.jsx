@@ -31,15 +31,43 @@ export const LooksBar = ({ onPick, appliedId = null, currentId = null }) => {
     };
   }, []);
 
+  // Centre a chip by scrolling only the bar. scrollIntoView also scrolls
+  // ancestors, and on a /looks/<id> load it ran while chip widths were still
+  // settling (label font, thumbs), so late looks like Metal ended up off
+  // screen: past the end on desktop, never scrolled inside the phone sheet.
+  const centerChip = (id, behavior) => {
+    const node = ref.current;
+    const chip = id ? chipRefs.current.get(id) : null;
+    if (!node || !chip) return;
+    const chipBox = chip.getBoundingClientRect();
+    const barBox = node.getBoundingClientRect();
+    const target = node.scrollLeft + chipBox.left - barBox.left - (barBox.width - chipBox.width) / 2;
+    const left = Math.max(0, Math.min(target, node.scrollWidth - node.clientWidth));
+    if (typeof node.scrollTo === "function") node.scrollTo({ left, behavior });
+    else node.scrollLeft = left;
+  };
+
+  // Show the page's look on arrival (a shared /looks/<id> link), again once
+  // the label font has loaded and the widths are final.
+  useEffect(() => {
+    if (!currentId) return undefined;
+    let cancelled = false;
+    centerChip(currentId, "auto");
+    document.fonts?.ready?.then(() => {
+      if (!cancelled) centerChip(currentId, "auto");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentId]);
+
   // When the applied look changes (e.g. via Shuffle keyboard shortcut), scroll
   // its chip into view so the user sees which preset is now active. Without
   // this the chip can land off-screen and the change feels invisible.
   useEffect(() => {
     if (!appliedId) return;
-    const chip = chipRefs.current.get(appliedId);
-    if (chip && typeof chip.scrollIntoView === "function") {
-      chip.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-    }
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    centerChip(appliedId, reduce ? "auto" : "smooth");
   }, [appliedId]);
 
   return (
