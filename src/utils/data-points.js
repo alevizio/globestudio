@@ -50,3 +50,9 @@ export const valueToRadius = (value, valueMin, valueMax, rMin = 0.012, rMax = 0.
   const t = Math.sqrt((value - valueMin) / (valueMax - valueMin));
   return rMin + (rMax - rMin) * Math.max(0, Math.min(1, t));
 };
+
+// The points the markers layer should draw: none while the Data section eye
+// is off (settings.data === false). dataPoints stays as pasted, so turning
+// the eye back on brings the same markers back.
+export const visibleDataPoints = (settings) =>
+  settings?.data !== false && Array.isArray(settings?.dataPoints) ? settings.dataPoints : [];

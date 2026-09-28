@@ -234,6 +234,7 @@ export const normalizeConfig = (config) => {
     surfaceStrength: percent,
     surfaceColor: normalizeHex,
     surfaceGradient: normalizeGradient,
+    data: normalizeBoolean,
     dataPoints: normalizeDataPoints,
     dataArcs: normalizeBoolean,
     dataMarkerColor: hexOrNull,

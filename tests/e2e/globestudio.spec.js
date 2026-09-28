@@ -223,6 +223,76 @@ test.describe("with reduced motion", () => {
   });
 });
 
+test.describe("the Data section", () => {
+  test.use({ contextOptions: { reducedMotion: "reduce" } });
+
+  // Canvas pixels painted in the pure red the markers are given below. The
+  // dots, glow and background never come close to it. A clipped page shot,
+  // not an element one: in the flat view under swiftshader the element
+  // screenshot's "stable" wait timed out on this canvas.
+  const redPixels = async (page) => {
+    const clip = await page.locator(".globe-background canvas").boundingBox();
+    const png = await page.screenshot({ clip });
+    return page.evaluate(async (b64) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const context = canvas.getContext("2d");
+      context.drawImage(img, 0, 0);
+      const { data } = context.getImageData(0, 0, img.width, img.height);
+      let count = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] > 150 && data[i + 1] < 80 && data[i + 2] < 80) count += 1;
+      }
+      return count;
+    }, png.toString("base64"));
+  };
+
+  test("its eye hides the markers and keeps the pasted points", async ({ page }) => {
+    // Two cold canvas boots (the reload) plus pixel polls: over a minute on
+    // swiftshader locally, so give CI's slower runners the headroom.
+    test.slow();
+    // Flat view, so every marker faces the camera and none sits behind the globe.
+    const config = {
+      v: 1,
+      viewMode: "flat",
+      globeSettings: {
+        dataPoints: [
+          { lat: 40.7, lng: -74, value: 10 },
+          { lat: 51.5, lng: -0.1, value: 10 },
+          { lat: 35.7, lng: 139.7, value: 10 },
+          { lat: -23.5, lng: -46.6, value: 10 },
+        ],
+        dataMarkerColor: "#ff0000",
+      },
+    };
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify(config))}`);
+    await waitForCanvas(page);
+    await expect.poll(() => redPixels(page), { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(20);
+
+    const disclosure = page.getByRole("button", { name: "Data", exact: true });
+    await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    const eye = page.getByRole("button", { name: "Show data markers" });
+    await expect(eye).toHaveAttribute("aria-pressed", "true");
+    await eye.click();
+    await expect(eye).toHaveAttribute("aria-pressed", "false");
+    await expect.poll(() => redPixels(page), { timeout: CANVAS_TIMEOUT }).toBe(0);
+
+    // Hidden, not deleted: after a reload the eye is still off and the
+    // points are still in the paste box, ready to come back.
+    await page.reload();
+    await waitForCanvas(page);
+    await expect(eye).toHaveAttribute("aria-pressed", "false");
+    await disclosure.click();
+    await expect(page.getByRole("textbox", { name: /Data points/ })).toHaveValue(/^40\.7,-74,10\n51\.5,-0\.1,10/);
+    await eye.click();
+    await expect.poll(() => redPixels(page), { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(20);
+  });
+});
+
 test("the phone sheet lists Data between Network and Animations", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");

@@ -85,11 +85,31 @@ describe("ControlPanel Data section", () => {
     }
   });
 
-  it("renders collapsed", () => {
+  it("renders collapsed with its eye on even when there is no data", () => {
     const { container } = render(<Harness />);
     const disclosure = screen.getByRole("button", { name: "Data" });
     expect(disclosure.getAttribute("aria-expanded")).toBe("false");
     expect(container.querySelector(`#${disclosure.getAttribute("aria-controls")}`).hidden).toBe(true);
+    const eye = screen.getByRole("button", { name: "Show data markers" });
+    expect(eye.getAttribute("aria-pressed")).toBe("true");
+    expect(eye.getAttribute("aria-disabled")).toBeNull();
+    expect(eye.title).toBe("Hide data markers + arcs");
+  });
+
+  it("has the same header semantics as the other sections", () => {
+    const { container } = render(<Harness />);
+    const headerShape = (section) => {
+      const disclosure = section.querySelector(".option-block-disclosure");
+      const eye = section.querySelector(".option-block-eye");
+      return {
+        disclosure: [disclosure.tagName, disclosure.type, disclosure.hasAttribute("aria-expanded"), disclosure.hasAttribute("aria-controls")],
+        eye: [eye.tagName, eye.type, eye.hasAttribute("aria-pressed"), eye.hasAttribute("aria-label"), eye.hasAttribute("title")],
+      };
+    };
+    const network = [...container.querySelectorAll(".option-block")].find(
+      (node) => node.querySelector(".option-block-disclosure").textContent === "Network",
+    );
+    expect(headerShape(dataSection(container))).toEqual(headerShape(network));
   });
 
   it("moves the paste box out of Surface", () => {
@@ -99,6 +119,34 @@ describe("ControlPanel Data section", () => {
     );
     expect(surface.querySelector(".data-points-control")).toBeNull();
     expect(dataSection(container).querySelector(".data-points-control")).not.toBeNull();
+  });
+
+  it("hides the markers with the eye without clearing the pasted text", () => {
+    const latest = {};
+    render(<Harness latest={latest} />);
+    fireEvent.click(screen.getByRole("button", { name: "Data" }));
+    fireEvent.click(screen.getByRole("button", { name: "Load sample" }));
+    const textarea = screen.getByRole("textbox", { name: /Data points/ });
+    const pasted = textarea.value;
+    expect(latest.globeSettings.dataPoints).toHaveLength(7);
+
+    const eye = screen.getByRole("button", { name: "Show data markers" });
+    fireEvent.click(eye);
+    expect(eye.getAttribute("aria-pressed")).toBe("false");
+    expect(eye.title).toBe("Show data markers + arcs");
+    expect(latest.globeSettings.data).toBe(false);
+    expect(latest.globeSettings.dataPoints).toHaveLength(7);
+    expect(textarea.value).toBe(pasted);
+    expect(screen.getByText(/7 points plotted/)).toBeTruthy();
+
+    fireEvent.click(eye);
+    expect(latest.globeSettings.data).toBe(true);
+    expect(latest.globeSettings.dataPoints).toHaveLength(7);
+  });
+
+  it("shows a saved hidden state as the eye off", () => {
+    render(<Harness initialGlobeSettings={{ ...DEFAULT_GLOBE_SETTINGS, data: false }} />);
+    expect(screen.getByRole("button", { name: "Show data markers" }).getAttribute("aria-pressed")).toBe("false");
   });
 
   it("has no axe violations with the section open", async () => {

@@ -65,6 +65,26 @@ describe("share-config", () => {
     expect(parsed.globeSettings.dataMarkerColor).toBe("#ff8800");
   });
 
+  it("round-trips a hidden Data layer with its points kept", () => {
+    const config = {
+      globeSettings: {
+        data: false,
+        dataPoints: [{ lat: 40.7, lng: -74, value: 10 }],
+      },
+    };
+    const url = buildShareUrl(config, "https://globestudio.app");
+    const parsed = parseShareConfig(`?${url.split("?")[1]}`);
+    expect(parsed.globeSettings.data).toBe(false);
+    expect(parsed.globeSettings.dataPoints).toEqual([{ lat: 40.7, lng: -74, value: 10 }]);
+    // A saved config or JSON export goes through the same normalizer.
+    expect(normalizeConfig(JSON.parse(JSON.stringify(config))).globeSettings.data).toBe(false);
+    // Links made before the eye existed keep showing their markers.
+    const legacy = normalizeConfig({ globeSettings: { dataPoints: config.globeSettings.dataPoints } });
+    expect(legacy.globeSettings.data).toBe(true);
+    // Non boolean values are dropped back to the default.
+    expect(normalizeConfig({ globeSettings: { data: "no", dataArcs: true } }).globeSettings.data).toBe(true);
+  });
+
   it("round-trips view state + overlay settings", () => {
     const config = {
       viewMode: "flat",

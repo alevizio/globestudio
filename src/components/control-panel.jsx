@@ -957,8 +957,20 @@ export const ControlPanel = ({
       </Collapsible>
 
       {/* Data section. Pasted points plot as additive markers in both
-          views, so unlike Network it isn't gated on globe mode. */}
-      <PanelSection title="Data">
+          views, so unlike Network it isn't gated on globe mode. The eye
+          flips settings.data and leaves dataPoints alone, so hiding the
+          markers (and their arcs) never clears what the user pasted. */}
+      <PanelSection
+        title="Data"
+        enabled={globeSettings.data !== false}
+        onEnabledChange={(next) => updateGlobeSetting("data", next)}
+        enabledLabel="Show data markers"
+        enabledTooltip={
+          globeSettings.data !== false
+            ? "Hide data markers + arcs"
+            : "Show data markers + arcs"
+        }
+      >
         <div className="data-points-control">
           <textarea
             className="data-points-input"

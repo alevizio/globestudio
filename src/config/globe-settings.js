@@ -20,6 +20,9 @@ export const DEFAULT_GLOBE_SETTINGS = {
   autoSpinSpeed: 35,
   // Data-binding: optional [{ lat, lng, value }] rendered as an additive
   // markers layer (size ∝ value). Set via the panel's Data section.
+  // `data` is that section's eye: false hides the markers + arcs but
+  // keeps dataPoints, same idea as `grid` / `network` below.
+  data: true,
   dataPoints: [],
   dataMarkerColor: null,
   dataArcs: false,

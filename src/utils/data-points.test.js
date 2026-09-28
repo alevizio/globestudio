@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseDataPoints, valueToRadius } from "./data-points.js";
+import { parseDataPoints, valueToRadius, visibleDataPoints } from "./data-points.js";
 
 describe("parseDataPoints", () => {
   it("parses lat,lng[,value]; skips header, blanks, comments, out-of-range", () => {
@@ -46,5 +46,26 @@ describe("valueToRadius", () => {
   });
   it("returns the mid radius when all values are equal", () => {
     expect(valueToRadius(5, 5, 5, 0.01, 0.05)).toBeCloseTo(0.03);
+  });
+});
+
+describe("visibleDataPoints", () => {
+  const dataPoints = [{ lat: 40.7, lng: -74, value: 10 }];
+
+  it("draws the stored points while the Data eye is on or unset", () => {
+    expect(visibleDataPoints({ data: true, dataPoints })).toBe(dataPoints);
+    // Configs saved before the eye existed have no `data` key.
+    expect(visibleDataPoints({ dataPoints })).toBe(dataPoints);
+  });
+
+  it("draws nothing while the eye is off, leaving dataPoints as is", () => {
+    const settings = { data: false, dataPoints };
+    expect(visibleDataPoints(settings)).toEqual([]);
+    expect(settings.dataPoints).toEqual([{ lat: 40.7, lng: -74, value: 10 }]);
+  });
+
+  it("returns [] for missing settings or points", () => {
+    expect(visibleDataPoints(undefined)).toEqual([]);
+    expect(visibleDataPoints({ data: true })).toEqual([]);
   });
 });

@@ -112,6 +112,7 @@
           }
         },
         "network": { "type": "boolean", "description": "City pulses + great-circle route arcs." },
+        "data": { "type": "boolean", "description": "Show the pasted data markers and their arcs. false hides them but keeps dataPoints." },
         "networkStrength": { "type": "number", "minimum": 0, "maximum": 100 },
         "networkArcs": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Arc density 0–100, or legacy bool (true = default density, false = hidden)." },
         "networkPulses": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Pulse density 0–100, or legacy bool (true = default density, false = hidden)." },

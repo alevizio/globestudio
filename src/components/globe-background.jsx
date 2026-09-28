@@ -26,6 +26,7 @@ import {
 } from "../three/globe.js";
 import { createGlobeNetwork, setNetworkColors, updateGlobeNetwork } from "../three/globe-network.js";
 import { createDataMarkers } from "../three/data-markers.js";
+import { visibleDataPoints } from "../utils/data-points.js";
 import { createSpaceBackgroundMesh } from "../three/space-mesh.js";
 import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, scalePixelUniforms, updatePostEffects } from "../three/post-effects.js";
@@ -1336,7 +1337,10 @@ export const GlobeBackground = ({
       disposeThreeObject(refs.dataMarkers);
       refs.dataMarkers = null;
     }
-    const points = Array.isArray(globeSettings?.dataPoints) ? globeSettings.dataPoints : [];
+    // Empty while the Data section eye is off: the layer isn't built at all
+    // (rather than hidden), so it holds no geometry and costs no per-frame
+    // morph work. dataPoints itself is left alone.
+    const points = visibleDataPoints(globeSettings);
     if (points.length) {
       const layer = createDataMarkers(points, {
         color: globeSettings?.dataMarkerColor || "#7edfff",
@@ -1347,7 +1351,7 @@ export const GlobeBackground = ({
       refs.globeGroup.add(layer);
     }
     return undefined;
-  }, [globeSettings?.dataPoints, globeSettings?.dataMarkerColor, globeSettings?.dataArcs, mapData]);
+  }, [globeSettings?.data, globeSettings?.dataPoints, globeSettings?.dataMarkerColor, globeSettings?.dataArcs, mapData]);
 
   useEffect(() => {
     const refs = threeRef.current;
