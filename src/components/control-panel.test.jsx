@@ -10,7 +10,7 @@ const noop = () => {};
 
 // Holds the background state the way App does, so a click in the panel
 // re-renders the panel with the new values.
-const Harness = ({ initialStyle = "solid", initialTransparent = false }) => {
+const Harness = ({ initialStyle = "solid", initialTransparent = false, dotsVisible = true }) => {
   const [backgroundStyle, setBackgroundStyle] = useState(initialStyle);
   const [transparent, setTransparent] = useState(initialTransparent);
   return (
@@ -57,7 +57,7 @@ const Harness = ({ initialStyle = "solid", initialTransparent = false }) => {
         setWorldFill={noop}
         worldStroke="#f6f2ea"
         setWorldStroke={noop}
-        dotsVisible
+        dotsVisible={dotsVisible}
         setDotsVisible={noop}
         shaderSettings={DEFAULT_SHADER_SETTINGS}
         setShaderSettings={noop}
@@ -75,6 +75,7 @@ const styleGroup = () => screen.getByRole("group", { name: "Background style", h
 const option = (name) => within(styleGroup()).getByRole("button", { name, hidden: true });
 const eye = () => screen.getByRole("button", { name: "Toggle background", hidden: true });
 const colorRow = () => screen.queryByRole("button", { name: /select background color/i, hidden: true });
+const section = (title) => screen.getByRole("button", { name: title, exact: true, hidden: true }).closest("section");
 
 describe("ControlPanel background", () => {
   it("offers Solid, Space and Transparent", () => {
@@ -111,6 +112,18 @@ describe("ControlPanel background", () => {
     fireEvent.click(eye());
     expect(state()).toBe("space:false");
     expect(option("Space").getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("keeps the Background header at full strength on Transparent, with the eye off", () => {
+    render(<Harness />);
+    fireEvent.click(option("Transparent"));
+    expect(eye().getAttribute("aria-pressed")).toBe("false");
+    expect(section("Background").classList.contains("is-layer-disabled")).toBe(false);
+  });
+
+  it("still dims the header of a section whose layer is hidden", () => {
+    render(<Harness dotsVisible={false} />);
+    expect(section("Surface").classList.contains("is-layer-disabled")).toBe(true);
   });
 
   it("reads a look that pairs transparent with the solid style as Transparent", () => {

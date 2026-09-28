@@ -1201,6 +1201,9 @@ export const ControlPanel = ({
         // (solid or space).
         enabled={bgChoice !== "transparent"}
         onEnabledChange={(next) => selectBackground(next ? lastBgStyleRef.current : "transparent")}
+        // Transparent is a background choice, not a hidden layer, so the
+        // header stays at full strength; the eye alone shows it.
+        dimWhenOff={false}
         enabledLabel="Toggle background"
         enabledTooltip={
           bgChoice !== "transparent"

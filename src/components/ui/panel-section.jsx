@@ -14,11 +14,15 @@ export const PanelSection = ({
   // — useful when there's nothing to toggle yet (e.g. the Shaders
   // section when no effect is picked).
   // `enabledTooltip` overrides the default hover tooltip.
+  // `dimWhenOff={false}` keeps the header at full strength while the eye
+  // is off, for a section where off is a choice rather than a hidden layer
+  // (Background: the eye off means Transparent).
   enabled,
   onEnabledChange,
   enabledLabel,
   enabledDisabled = false,
   enabledTooltip,
+  dimWhenOff = true,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const hasEnableToggle = typeof onEnabledChange === "function";
@@ -33,7 +37,7 @@ export const PanelSection = ({
 
   return (
     <section
-      className={`option-block ${hasEnableToggle && !enabled ? "is-layer-disabled" : ""}`}
+      className={`option-block ${hasEnableToggle && !enabled && dimWhenOff ? "is-layer-disabled" : ""}`}
       data-open={isOpen ? "true" : "false"}
     >
       <div
