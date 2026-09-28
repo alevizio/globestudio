@@ -23,6 +23,16 @@
 .gallery-back:hover {
   color: #fff;
 }
+/* Phones: a 44px tap target for the way back (same query as the app's
+   phone layout in styles.css). */
+@media (max-width: 620px), (pointer: coarse) and (max-height: 500px) {
+  .gallery-back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-bottom: 0;
+  }
+}
 .gallery-title {
   margin: 0 0 8px;
   font-size: clamp(28px, 4vw, 44px);

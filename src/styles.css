@@ -5254,10 +5254,20 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   }
 }
 
-/* Phones: opaque, so the control sheet can't show through the text. */
+/* Phones: opaque, so the control sheet can't show through the text, and
+   44px tap targets for the choice pills and the close button. */
 @media (max-width: 620px), (pointer: coarse) and (max-height: 500px) {
   .export-modal {
     background: linear-gradient(var(--panel), var(--panel)), var(--bg);
+  }
+
+  .export-modal-pill {
+    min-height: 44px;
+  }
+
+  .export-modal-close {
+    width: 44px;
+    height: 44px;
   }
 }
 
@@ -8068,6 +8078,23 @@ input[type="range"]:active::-moz-range-thumb {
     grid-template-columns: minmax(88px, 104px) minmax(0, 1fr);
     gap: 10px;
     padding: 9px 12px;
+  }
+
+  /* 44px tap targets, Apple's minimum. The header's theme, about and
+     export buttons grow to 44px. The section eyes keep their 22px look and
+     take the rest as padding, pulled back with negative margins so the
+     section rows don't grow; the hover fill stays on the 22px icon box. */
+  .panel-icon-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .option-block-header .option-block-eye {
+    width: 44px;
+    height: 44px;
+    margin: -11px -11px -11px auto;
+    padding: 11px;
+    background-clip: content-box;
   }
 }
 
