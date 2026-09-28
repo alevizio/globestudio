@@ -6,8 +6,10 @@ import { Check, Clipboard } from "../icons.jsx";
 // glyph for 1.5s after a successful copy, then resets. Falls back to
 // document.execCommand on browsers without the async clipboard API
 // (rare in 2026 but cheap to support — covers locked-down corp Macs).
+// `copyText` is what Copy writes when the children are markup rather than
+// the plain string itself.
 
-export const CodeBlock = ({ children, language, className = "" }) => {
+export const CodeBlock = ({ children, language, className = "", copyText = children }) => {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef(0);
 
@@ -21,10 +23,10 @@ export const CodeBlock = ({ children, language, className = "" }) => {
   const onCopy = async () => {
     try {
       if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(children);
+        await navigator.clipboard.writeText(copyText);
       } else {
         const ta = document.createElement("textarea");
-        ta.value = children;
+        ta.value = copyText;
         ta.style.position = "fixed";
         ta.style.opacity = "0";
         document.body.appendChild(ta);
