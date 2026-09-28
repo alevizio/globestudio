@@ -589,6 +589,15 @@ button {
   white-space: pre;
 }
 
+/* CodeBlock wrap: break between arguments only. */
+.code-block.is-wrap code {
+  white-space: pre-wrap;
+}
+
+.code-block-arg {
+  white-space: nowrap;
+}
+
 /* Slim scrollbar styling for the horizontal overflow when a snippet
    exceeds the column width. Keeps the chrome quiet so long lines feel
    intentional, not broken. */

@@ -62,13 +62,9 @@
   margin: 0;
 }
 
-/* Commands wrap on a phone sheet instead of scrolling sideways, only
-   between arguments (see Args in agent-share.jsx). Copy still copies the
-   exact text. */
+/* The mcp.json block wraps on a phone sheet instead of scrolling
+   sideways. One-line commands use CodeBlock's wrap, which keeps each
+   argument whole. Copy still copies the exact text. */
 .agent-share .code-block .code-block-pre code {
   white-space: pre-wrap;
-}
-
-.agent-share-arg {
-  white-space: nowrap;
 }

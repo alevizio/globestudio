@@ -1,4 +1,4 @@
-import { Fragment, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { Check, Clipboard, Plus } from "./icons.jsx";
 import { CodeBlock } from "./ui/code-block.jsx";
 import { track } from "./analytics.jsx";
@@ -56,16 +56,6 @@ const CLIENTS = [
     ],
   },
 ];
-
-// One-line commands wrap only between arguments. Left alone, a phone would
-// break "--url" after its dashes and the command would read wrong.
-const Args = ({ text }) =>
-  text.split(" ").map((arg, index) => (
-    <Fragment key={index}>
-      {index > 0 && " "}
-      <span className="agent-share-arg">{arg}</span>
-    </Fragment>
-  ));
 
 const readConfig = (shareUrl) => {
   try {
@@ -216,8 +206,8 @@ export const AgentShare = ({ getShareUrl, lookName, regionName }) => {
         {client.steps.map((step) => (
           <div key={step.label} className="agent-share-step">
             {step.note && <p className="export-modal-caption">{step.note}</p>}
-            <CodeBlock language={step.label} copyText={step.code}>
-              {step.code.includes("\n") ? step.code : <Args text={step.code} />}
+            <CodeBlock language={step.label} wrap={!step.code.includes("\n")}>
+              {step.code}
             </CodeBlock>
           </div>
         ))}

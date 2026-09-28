@@ -177,6 +177,7 @@ const INTEGRATIONS = [
       "Globestudio runs a hosted Model Context Protocol server, so there is nothing to install. In the Claude app, paste this URL under Customize, Connectors, Add custom connector. Claude Code, Codex and Cursor take the lines below. Then ask in chat: \"make me a clean dotted globe with cyan dots\" and your agent builds the share URL for you.",
     snippet: `https://globestudio.app/mcp`,
     // One block per client, so each Copy button copies a single command.
+    // They wrap between arguments on a phone instead of scrolling.
     more: [
       { label: "Claude Code", code: `claude mcp add --transport http globestudio https://globestudio.app/mcp` },
       { label: "Codex", code: `codex mcp add globestudio --url https://globestudio.app/mcp` },
@@ -340,7 +341,7 @@ export const IntegrationsPage = () => {
               {tool.snippet}
             </CodeBlock>
             {tool.more?.map((item) => (
-              <CodeBlock key={item.label} language={item.label}>
+              <CodeBlock key={item.label} language={item.label} wrap>
                 {item.code}
               </CodeBlock>
             ))}
