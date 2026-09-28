@@ -7866,17 +7866,21 @@ input[type="range"]:active::-moz-range-thumb {
      the viewport and slides up/down. Drag handle replaces the desktop
      panel-toggle chip. Looks bar stays visible in the peek state so
      designers can still cycle presets without expanding the full sheet. */
+  /* Safe areas (index.html sets viewport-fit=cover): held sideways the sheet
+     keeps clear of the notch, and scrolled to its end the last control
+     clears the home indicator. */
   .control-rail {
     position: fixed;
     top: auto;
     bottom: 10px;
-    left: 10px;
-    right: 10px;
+    left: max(10px, env(safe-area-inset-left));
+    right: max(10px, env(safe-area-inset-right));
     width: auto;
     max-height: 82svh;
     margin-top: 0;
     /* No top padding: the sticky grabber is the sheet's top edge. */
-    padding: 0 10px 18px;
+    padding: 0 10px;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
     border: 1px solid var(--border);
     border-radius: 14px;
     /* Opaque on phones: the translucent panel relied on the unprefixed
@@ -8038,12 +8042,12 @@ input[type="range"]:active::-moz-range-thumb {
      once the sheet collapses again. */
   .social-links {
     bottom: 224px;
-    right: 14px;
+    right: max(14px, env(safe-area-inset-right));
   }
 
   .bug-link {
     bottom: 224px;
-    left: 14px;
+    left: max(14px, env(safe-area-inset-left));
   }
 
   .top-actions {
@@ -8052,10 +8056,11 @@ input[type="range"]:active::-moz-range-thumb {
     left: 10px;
   }
 
+  /* Clear of the status bar and, held sideways, the notch. */
   .view-mode-switch {
-    top: 16px;
-    right: 10px;
-    left: 10px;
+    top: calc(16px + env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    left: max(10px, env(safe-area-inset-left));
     grid-template-columns: repeat(2, minmax(0, 1fr));
     transform: none;
   }
