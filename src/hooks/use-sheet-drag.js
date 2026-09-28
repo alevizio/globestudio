@@ -17,6 +17,7 @@ export const useSheetDrag = (panelCollapsed, setPanelCollapsed) => {
   const dragStartRef = useRef({ y: 0, wasCollapsed: false });
   const dragOffsetRef = useRef(0);
   const draggedRef = useRef(false);
+  const draggingRef = useRef(false);
 
   const onPointerDown = useCallback(
     (event) => {
@@ -25,6 +26,7 @@ export const useSheetDrag = (panelCollapsed, setPanelCollapsed) => {
       dragStartRef.current = { y: event.clientY, wasCollapsed: panelCollapsed };
       dragOffsetRef.current = 0;
       draggedRef.current = false;
+      draggingRef.current = true;
       setIsDragging(true);
       setDragOffset(0);
     },
@@ -32,6 +34,11 @@ export const useSheetDrag = (panelCollapsed, setPanelCollapsed) => {
   );
 
   const onPointerMove = useCallback((event) => {
+    // Only a pressed pointer drags. A mouse passing over the grabber used to
+    // move the sheet by its distance from the last press: on iPhone SE,
+    // opening from the peek and then hovering the open grabber sent the
+    // sheet 347 px up, off the top of the screen.
+    if (!draggingRef.current) return;
     const delta = event.clientY - dragStartRef.current.y;
     if (Math.abs(delta) > 6) draggedRef.current = true;
     dragOffsetRef.current = delta;
@@ -39,6 +46,8 @@ export const useSheetDrag = (panelCollapsed, setPanelCollapsed) => {
   }, []);
 
   const onPointerUp = useCallback(() => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
     setIsDragging(false);
     if (draggedRef.current) {
       const snapThreshold = 60;
