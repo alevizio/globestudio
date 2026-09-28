@@ -2,9 +2,9 @@
   "trailingSlash": false,
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/:path(.*)",
       "has": [{ "type": "host", "value": "globestudio.vercel.app" }],
-      "destination": "https://globestudio.app/:path*",
+      "destination": "https://globestudio.app/:path",
       "permanent": true
     },
     { "source": "/looks/print", "destination": "/looks/halftone", "permanent": true }

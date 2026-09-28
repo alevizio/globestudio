@@ -49,10 +49,13 @@ describe("vercel.json", () => {
     // Vercel adds noindex to preview URLs but not to this alias, so without
     // the redirect it serves a full, indexable copy of the site. Preview
     // hosts (globestudio-git-*.vercel.app) don't match the host condition.
+    // "/:path(.*)", not "/:path*": Vercel compiles "/:path*" to
+    // ^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?$, which doesn't match "/", so the
+    // alias's home page would stay a 200 copy of the site.
     expect(vercelConfig.redirects).toContainEqual({
-      source: "/:path*",
+      source: "/:path(.*)",
       has: [{ type: "host", value: "globestudio.vercel.app" }],
-      destination: "https://globestudio.app/:path*",
+      destination: "https://globestudio.app/:path",
       permanent: true,
     });
   });
