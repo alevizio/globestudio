@@ -1796,6 +1796,7 @@ const App = () => {
         copyStatus={copyStatus}
         exportVideo={exportVideo}
         mp4Supported={mp4Supported}
+        transparent={isTransparentPreview}
         videoStatus={videoStatus}
         videoProgress={videoProgress}
         videoDurationMs={videoDurationMs}

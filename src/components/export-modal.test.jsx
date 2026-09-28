@@ -76,6 +76,33 @@ describe("ExportModal", () => {
     expect(screen.getByRole("button", { name: /Export WebM/ }).disabled).toBe(false);
   });
 
+  it("says MP4 can't keep a transparent background, and only then", () => {
+    const note = "MP4 has no transparency. Use WebM or PNG.";
+    const { rerender } = renderModal({ mp4Supported: true, transparent: true });
+    fireEvent.click(screen.getByRole("tab", { name: "Video" }));
+    expect(screen.queryByText(note)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "MP4" }));
+    expect(screen.getByText(note)).toBeTruthy();
+
+    rerender(
+      <ExportModal
+        open
+        onClose={vi.fn()}
+        canvasWidth={1200}
+        canvasHeight={800}
+        exportVideo={vi.fn()}
+        mp4Supported
+        transparent={false}
+        videoSupported
+        videoStatus="idle"
+        videoProgress={0}
+        videoDurationMs={5000}
+        setVideoDurationMs={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(note)).toBeNull();
+  });
+
   it("says so when a PNG export fails, next to the button that retries it", () => {
     const exportPng = vi.fn();
     renderModal({ exportPng, pngStatus: "error" });

@@ -197,6 +197,8 @@ export const ExportModal = ({
   copyStatus,
   exportVideo,
   mp4Supported = false,
+  // The background is Transparent: MP4 is the one format that can't keep it.
+  transparent = false,
   videoStatus,
   videoProgress,
   videoDurationMs,
@@ -428,6 +430,9 @@ export const ExportModal = ({
                 <p className="export-modal-caption">
                   MP4 (H.264) plays everywhere WebM can't: Safari/iOS, social, Keynote. Capped to 1024px.
                 </p>
+              )}
+              {videoFormat === "mp4" && transparent && (
+                <p className="export-modal-caption">MP4 has no transparency. Use WebM or PNG.</p>
               )}
               {/* No Aspect, Quality or size controls here: every video
                   format records the live canvas frame (MP4 and GIF then cap
