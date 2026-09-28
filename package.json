@@ -16,6 +16,7 @@
     "sitemap": "node scripts/generate-sitemap.js",
     "og:generate": "node scripts/generate-og-default.js",
     "og:animate": "node scripts/generate-og-animated.js",
+    "thumbs:generate": "node scripts/generate-look-thumbs.js",
     "check:bundle": "node scripts/check-bundle-size.js",
     "check": "npm run test && npm run build && npm run check:bundle"
   },

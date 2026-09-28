@@ -59,6 +59,22 @@ Easiest workflow:
    },
    ```
 
+## Small thumbnails
+
+The looks bar chips, the command palette and the docs preset catalog
+don't load these PNGs. They use `thumbs/<id>@2x.webp` (56 px) and
+`thumbs/<id>@3x.webp` (84 px), downsampled with Lanczos so dot and
+halftone patterns don't alias into noise. After adding or recapturing
+a PNG here, run:
+
+```
+npm run thumbs:generate            # every preset
+npm run thumbs:generate -- <id>    # one preset
+```
+
+and commit the files in `thumbs/`. `src/utils/look-thumbs.test.js`
+fails if a preset is missing its thumbs.
+
 ## Fallback
 
 If `previewImage` is missing **or** the file 404s, the chip falls
