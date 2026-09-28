@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { injectSiteFacts } from "./scripts/site-facts.js";
+import { stripCssComments } from "./scripts/strip-css-comments.js";
 import { swapInTeaserCard } from "./src/data/share-cards.js";
 
 const projectDir = dirname(fileURLToPath(import.meta.url));
@@ -73,6 +74,22 @@ const siteFactsPlugin = () => ({
   transformIndexHtml: injectSiteFacts,
 });
 
+// cssMinify stays off (see build below), so the shipped CSS carried every
+// source comment. This drops the comments and nothing else, after Vite has
+// written the stylesheets, so each rule ships byte for byte as written.
+const stripCssCommentsPlugin = () => ({
+  name: "strip-css-comments",
+  apply: "build",
+  enforce: "post",
+  generateBundle(_, bundle) {
+    for (const file of Object.values(bundle)) {
+      if (file.type === "asset" && file.fileName.endsWith(".css")) {
+        file.source = stripCssComments(String(file.source));
+      }
+    }
+  },
+});
+
 const slimCountriesPlugin = () => {
   const virtualId = "virtual:slim-countries";
   const resolvedId = `\0${virtualId}`;
@@ -95,7 +112,7 @@ export default defineConfig({
   // lib through a lazy chunk. Pre-bundle it so the first teaser load doesn't
   // 504 on an on-demand optimize-dep re-run.
   optimizeDeps: { include: ["@paper-design/shaders-react"] },
-  plugins: [react(), slimCountriesPlugin(), siteFactsPlugin(), teaserNoindexPlugin()],
+  plugins: [react(), slimCountriesPlugin(), siteFactsPlugin(), teaserNoindexPlugin(), stripCssCommentsPlugin()],
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.{js,jsx}"],

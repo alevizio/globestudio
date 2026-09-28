@@ -278,9 +278,17 @@ describe("share-config", () => {
     });
 
     it("open exactly as before", () => {
+      // The Data section added globeSettings.data after 39d9382, defaulting
+      // to true (markers shown). An old link can't carry it, so the parser
+      // fills the default; strip it to compare with what 39d9382 returned.
+      const withoutNewDefaults = (config) => {
+        if (config?.globeSettings?.data !== true) return config;
+        const { data, ...globeSettings } = config.globeSettings;
+        return { ...config, globeSettings };
+      };
       for (const { name, url, expected, now } of links) {
         if (now) continue;
-        expect(parseShareConfig(new URL(url).search), name).toEqual(expected);
+        expect(withoutNewDefaults(parseShareConfig(new URL(url).search)), name).toEqual(expected);
       }
     });
 

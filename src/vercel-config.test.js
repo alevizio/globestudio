@@ -27,6 +27,7 @@ describe("vercel.json", () => {
       "/assets/index-deadbeef.js",
       "/data/world-cities.json",
       "/api/subscribe",
+      "/looks/thumbs/halftone@2x.webp",
     ]) {
       expect(rewrites.some((source) => source.test(path)), path).toBe(false);
     }
@@ -105,6 +106,18 @@ describe("vercel.json", () => {
       key: "Cache-Control",
       value: "public, max-age=86400, stale-while-revalidate=604800",
     });
+  });
+
+  it("caches look thumbnails for a day and revalidates in the background", () => {
+    // Not content-hashed: `npm run thumbs:generate` rewrites them in place
+    // when a look changes, so a year of `immutable` would pin stale chips.
+    const cache = headersFor("/looks/thumbs/halftone@2x.webp").find(
+      ({ key }) => key === "Cache-Control",
+    );
+    expect(cache?.value).toBe("public, max-age=86400, stale-while-revalidate=604800");
+    expect(headersFor("/looks/halftone")).not.toContainEqual(
+      expect.objectContaining({ key: "Cache-Control" }),
+    );
   });
 
   it("keeps /embed out of the index for crawlers that don't run JS", () => {

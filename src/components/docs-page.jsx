@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { lookPresets } from "../data/look-presets.js";
+import { lookThumbProps } from "../utils/look-thumbs.js";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { PagePager } from "./ui/page-pager.jsx";
 import { DottedGlobe, Github } from "./icons.jsx";
@@ -194,9 +195,12 @@ export const DocsPage = () => {
                     aria-hidden="true"
                   >
                     <img
-                      src={`/looks/${preset.id}.png`}
+                      {...lookThumbProps(preset.id, "44px")}
                       alt=""
+                      width={44}
+                      height={44}
                       loading="lazy"
+                      decoding="async"
                       draggable="false"
                       onError={(event) => {
                         event.currentTarget.style.display = "none";

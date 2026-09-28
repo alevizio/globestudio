@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
+import { lookThumbProps } from "../utils/look-thumbs.js";
 import { X } from "./icons.jsx";
 import { KbdKey } from "./ui/kbd-key.jsx";
 
@@ -160,13 +161,19 @@ export const CommandPalette = ({ open, onClose, actions }) => {
               // render the real-canvas thumbnail captured by
               // scripts/capture-thumbnails.js. Defaults to /looks/{id}.png
               // unless the preset overrides previewImage. Same convention
-              // as look-preview.jsx.
+              // as look-preview.jsx. The default image is served from the
+              // downsampled /looks/thumbs/ set, same URLs as the looks bar
+              // chips, so opening the palette hits the memory cache.
               const preset = action.preset;
               const thumbSrc = preset
                 ? preset.previewImage === undefined
                   ? `/looks/${preset.id}.png`
                   : preset.previewImage
                 : null;
+              const thumbProps =
+                thumbSrc && thumbSrc === `/looks/${preset.id}.png`
+                  ? lookThumbProps(preset.id, "28px")
+                  : { src: thumbSrc };
               return (
                 <li
                   key={action.id}
@@ -182,9 +189,12 @@ export const CommandPalette = ({ open, onClose, actions }) => {
                   {thumbSrc && (
                     <span className="command-palette-thumb" aria-hidden="true">
                       <img
-                        src={thumbSrc}
+                        {...thumbProps}
                         alt=""
+                        width={28}
+                        height={28}
                         loading="lazy"
+                        decoding="async"
                         draggable="false"
                         onError={(event) => {
                           event.currentTarget.style.display = "none";

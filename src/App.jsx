@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { US_COUNTRY_ID } from "./config/constants.js";
+import { PHONE_LAYOUT_QUERY, US_COUNTRY_ID } from "./config/constants.js";
 import {
   DEFAULT_FLOW_SETTINGS,
   DEFAULT_SPACE_SETTINGS,
@@ -356,28 +356,34 @@ const App = () => {
   const [globeSettings, setGlobeSettings] = usePersistedState("globeSettings", DEFAULT_GLOBE_SETTINGS);
   // First-time mobile visitors land on the globe with the panel hidden so the
   // visual is the first impression. Returning users keep their saved choice.
+  // Phones held sideways are wider than 720px but get the phone layout too.
   const [panelCollapsed, setPanelCollapsed] = usePersistedState(
     "panelCollapsed",
-    typeof window !== "undefined" && window.innerWidth < 720,
+    typeof window !== "undefined" &&
+      (window.innerWidth < 720 || Boolean(window.matchMedia?.(PHONE_LAYOUT_QUERY).matches)),
   );
-  const { dragOffset, isDragging, handlers: sheetHandlers } = useSheetDrag(
-    panelCollapsed,
-    setPanelCollapsed,
-  );
-  // Mirrors the styles.css 620px bottom-sheet breakpoint. Collapsing fully
+  // Mirrors the styles.css bottom-sheet query (narrow screens and phones held
+  // sideways, see PHONE_LAYOUT_QUERY). Collapsing fully
   // hides the rail on desktop (so it can go inert), but on mobile the
   // collapsed rail is a touchable peek — drag handle + looks bar stay live.
   const [isMobileSheet, setIsMobileSheet] = useState(() => {
     if (typeof window === "undefined" || !window.matchMedia) return false;
-    return window.matchMedia("(max-width: 620px)").matches;
+    return window.matchMedia(PHONE_LAYOUT_QUERY).matches;
   });
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return undefined;
-    const mq = window.matchMedia("(max-width: 620px)");
+    const mq = window.matchMedia(PHONE_LAYOUT_QUERY);
     const onChange = (event) => setIsMobileSheet(event.matches);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
+  const railRef = useRef(null);
+  const { handleProps: sheetHandleProps } = useSheetDrag({
+    railRef,
+    panelCollapsed,
+    setPanelCollapsed,
+    enabled: isMobileSheet,
+  });
   const [animationsEnabled, setAnimationsEnabled] = usePersistedState("animationsEnabled", true);
   // UI theme: "dark" (default) or "light". Only swaps the panel/picker tokens —
   // the canvas/globe rendering stays on its dark base because the artwork
@@ -1631,8 +1637,10 @@ const App = () => {
       )}
 
       <section
-        className={`control-rail ${panelCollapsed ? "is-collapsed" : ""} ${isDragging ? "is-dragging" : ""}`}
-        style={{ "--drag-offset": `${dragOffset}px` }}
+        ref={railRef}
+        // is-dragging and --drag-offset are written by useSheetDrag straight
+        // to the element, so a drag doesn't re-render the app.
+        className={`control-rail ${panelCollapsed ? "is-collapsed" : ""}`}
         // aria-hidden alone leaves the rail's ~80 controls in the Tab order
         // when collapsed; inert removes them from focus + hit-testing too.
         // Desktop only: the mobile collapsed sheet is an interactive peek,
@@ -1643,7 +1651,7 @@ const App = () => {
         <button
           type="button"
           className="mobile-drag-handle"
-          {...sheetHandlers}
+          {...sheetHandleProps}
           aria-label={panelCollapsed ? "Expand options panel" : "Collapse options panel"}
         >
           <span className="mobile-drag-handle-bar" aria-hidden="true" />
@@ -1809,6 +1817,11 @@ const App = () => {
             viewMode={viewMode}
             usStates={usStates}
           />
+        {/* Phones: the look's copy ends the sheet's list, so the page never
+            grows past the screen (see the below-the-fold one further down). */}
+        {currentPresetId && isMobileSheet && (
+          <PresetDetail preset={lookPresets.find((p) => p.id === currentPresetId)} />
+        )}
         {/* The studio's own links to the rest of the site, so crawlers that
             run JS reach every page from "/" (the prerendered body's
             TakeoverFooter is replaced on mount). Plain anchors like the
@@ -1876,8 +1889,9 @@ const App = () => {
           preset is applied (i.e. on /looks/:id URLs). Drives SEO Phase 4
           — each preset URL gets 200+ words of unique designer-facing
           content + a "When to use this" section. See docs/plans/
-          seo-rollout.md Phase 4 and src/data/preset-seo.js for the copy. */}
-      {currentPresetId && (
+          seo-rollout.md Phase 4 and src/data/preset-seo.js for the copy.
+          On phones it renders inside the sheet instead (above). */}
+      {currentPresetId && !isMobileSheet && (
         <PresetDetail preset={lookPresets.find((p) => p.id === currentPresetId)} />
       )}
     </main>

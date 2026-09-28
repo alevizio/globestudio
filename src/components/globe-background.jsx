@@ -37,6 +37,7 @@ import { getCachedWorldRivers, loadWorldRivers } from "../data/world-rivers-topo
 import { getCachedWorldCities, loadWorldCities } from "../data/world-cities-topology.js";
 import { cca3ToCcn3 } from "../data/geography.js";
 import { PerfMonitor } from "./perf-monitor.jsx";
+import { PHONE_LAYOUT_QUERY } from "../config/constants.js";
 import { trackClientError } from "./analytics.jsx";
 
 // Per-instance dot spin animation speed range. The user-facing
@@ -675,6 +676,8 @@ export const GlobeBackground = ({
       // any time the mount node actually changes size, so this stays fresh.
       threeRef.current.canvasWidth = rect.width;
       threeRef.current.canvasHeight = rect.height;
+      // Rotating a phone resizes the mount, so this stays current too.
+      threeRef.current.isPhoneLayout = window.matchMedia?.(PHONE_LAYOUT_QUERY).matches ?? width <= 620;
       // Re-tighten the area-aware DPR ceiling for the new viewport. Always
       // refresh the ceiling so the adaptive-FPS loop recovers to the right cap
       // for the current size; additionally clamp the live pixel ratio down if
@@ -804,11 +807,11 @@ export const GlobeBackground = ({
       const offset = mapOffsetRef.current || { x: 0, y: 0 };
       // narrow viewports + open desktop panel → shift the globe horizontally
       // so it sits in the dead area NEXT to the panel rather than half-
-      // covered by it. On mobile (viewport ≤ 620px) the panel is a bottom
+      // covered by it. On phones (PHONE_LAYOUT_QUERY) the panel is a bottom
       // sheet, not a left-side rail, so this horizontal nudge is the wrong
-      // axis and just shoves the globe off-center. Gate the nudge on a
-      // desktop-only width check.
-      const isMobileLayout = rectWidth <= 620;
+      // axis and just shoves the globe off-center. Gate the nudge on the
+      // phone layout.
+      const isMobileLayout = threeRef.current.isPhoneLayout ?? rectWidth <= 620;
       const narrowFocus = isMobileLayout ? 0 : clampNumber((760 - rectWidth) / 260, 0, 1);
       const panelFocusPixels = panelCollapsedRef.current ? 0 : narrowFocus * 104;
       const globeFocusOffset = (panelFocusPixels / Math.max(rectWidth, 1)) * visibleWidth;

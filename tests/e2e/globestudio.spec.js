@@ -434,6 +434,65 @@ test.describe("on a short phone screen", () => {
   });
 });
 
+test.describe("on a phone, swiping the sheet", () => {
+  test.use({ viewport: { width: 390, height: 664 }, isMobile: true, hasTouch: true });
+
+  // Real touch input through Chromium's gesture pipeline, so native scrolling
+  // and scroll chaining happen exactly as they would under a finger.
+  const swipe = async (page, x, y, dy) => {
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+    for (let i = 1; i <= 12; i += 1) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y + (dy * i) / 12 }] });
+      await page.waitForTimeout(16);
+    }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  };
+  // Waits out the sheet's open/close spring so boxes are read at rest.
+  const settled = (locator) =>
+    expect.poll(() => locator.evaluate((el) => el.getAnimations().length)).toBe(0);
+  const box = (locator) => locator.evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, height: rect.height };
+  });
+
+  test("keeps the look's copy in the sheet and the page still", async ({ page }) => {
+    await page.goto("/looks/halftone");
+    await waitForCanvas(page);
+    await expect(page.locator(".control-rail .preset-detail")).toHaveCount(1);
+    const rail = page.locator(".control-rail");
+    await page.getByRole("button", { name: "Expand options panel" }).click();
+    await expect(rail).not.toHaveClass(/is-collapsed/);
+    await settled(rail);
+    const sheet = await box(rail);
+    for (let i = 0; i < 3; i += 1) await swipe(page, sheet.x, sheet.y + 120, -300);
+    await expect.poll(() => rail.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    expect(await page.evaluate(() => [window.scrollY, document.scrollingElement.scrollHeight - window.innerHeight])).toEqual([0, 0]);
+    // The grabber stays on top of the list scrolling under it.
+    const grabber = await box(page.locator(".mobile-drag-handle"));
+    const onTop = await page.evaluate(({ x, y }) => Boolean(document.elementFromPoint(x, y)?.closest(".mobile-drag-handle")), grabber);
+    expect(onTop).toBe(true);
+  });
+
+  test("opens from the peek and closes from the list, with a 44px grabber", async ({ page }) => {
+    await page.goto("/");
+    await waitForCanvas(page);
+    const rail = page.locator(".control-rail");
+    const grabber = page.locator(".mobile-drag-handle");
+    await expect(rail).toHaveClass(/is-collapsed/);
+    await settled(rail);
+    expect((await box(grabber)).height).toBe(44);
+    const looks = await box(page.locator(".looks-bar"));
+    await swipe(page, looks.x, looks.y, -200);
+    await expect(rail).not.toHaveClass(/is-collapsed/);
+    await settled(rail);
+    const section = await box(page.locator(".option-block-header").first());
+    await swipe(page, section.x, section.y, 200);
+    await expect(rail).toHaveClass(/is-collapsed/);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  });
+});
+
 for (const path of ["/", "/docs", "/brand", "/privacy"]) {
   test(`axe has no serious violations on ${path}`, async ({ page }) => {
     await page.goto(path);
