@@ -54,9 +54,17 @@ describe("share-config", () => {
     const schemaPath = resolve(dirname(fileURLToPath(import.meta.url)), "../../public/schema/config.json");
     const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
     for (const style of schema.properties.backgroundStyle.enum) {
-      expect(normalizeConfig({ backgroundStyle: style })).toEqual({ backgroundStyle: style });
+      expect(normalizeConfig({ backgroundStyle: style })).toMatchObject({ backgroundStyle: style });
     }
     expect(schema.properties.backgroundStyle.enum).toContain("transparent");
+  });
+
+  it("turns the transparent flag on for the Transparent style, even when a config leaves it off", () => {
+    // A hand written config naming only the style previewed see-through but
+    // exported an opaque SVG and embedded on a solid page.
+    expect(normalizeConfig({ backgroundStyle: "transparent" })).toEqual({ backgroundStyle: "transparent", transparent: true });
+    expect(normalizeConfig({ backgroundStyle: "transparent", transparent: false }).transparent).toBe(true);
+    expect(normalizeConfig({ backgroundStyle: "space" })).toEqual({ backgroundStyle: "space" });
   });
 
   it("round-trips data-binding (points + arcs + marker color) and drops invalid points", () => {

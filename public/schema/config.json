@@ -26,7 +26,7 @@
 
     "background": { "type": "string", "description": "Canvas background — hex color.", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
     "transparent": { "type": "boolean", "description": "Use transparent background instead of `background`." },
-    "backgroundStyle": { "type": "string", "enum": ["solid", "space", "flow", "transparent"], "description": "`solid` paints a flat color; `space` paints a starfield-and-nebula scene; `flow` paints an animated gradient-mesh shader; `transparent` paints nothing (pair it with `transparent: true`)." },
+    "backgroundStyle": { "type": "string", "enum": ["solid", "space", "flow", "transparent"], "description": "`solid` paints a flat color; `space` paints a starfield-and-nebula scene; `flow` paints an animated gradient-mesh shader; `transparent` paints nothing and implies `transparent: true`." },
 
     "density": { "type": "number", "minimum": 1, "maximum": 100, "description": "Dot density across the visible area." },
     "dotSize": { "type": "number", "minimum": 0.1, "maximum": 30, "description": "Dot radius." },

@@ -165,6 +165,9 @@ export const normalizeConfig = (config) => {
   apply(next, "background", normalizeHex(config.background));
   apply(next, "transparent", normalizeBoolean(config.transparent));
   apply(next, "backgroundStyle", normalizeEnum(config.backgroundStyle, BACKGROUND_STYLES));
+  // The panel always sets the flag with the Transparent style. Without it,
+  // SVG export and the embed read the config as opaque.
+  if (next.backgroundStyle === "transparent") next.transparent = true;
   apply(next, "density", normalizeNumber(config.density, 1, 100));
   apply(next, "dotSize", normalizeNumber(config.dotSize, 0.1, 30));
   apply(next, "dotColor", normalizeHex(config.dotColor));
