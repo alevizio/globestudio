@@ -84,7 +84,9 @@ The first public release. This section sums up everything that ships in
 - Analytics loads on every page except `/embed`.
 - Look chips use downsampled thumbnails: smooth at every screen density,
   72 KB for the whole bar instead of 3.5 MB.
-- Phones: the page no longer scrolls behind the editor, the sheet drags
+- Phones: the globe stays whole above the controls, the sheet has two
+  heights (looks only, or options at about half the screen), and Flat/Globe
+  and Export sit in a top bar. The page no longer scrolls behind the editor, the sheet drags
   without re-rendering the app and a tap on its grabber opens or closes it,
   landscape phones get the phone layout, tap targets are 44 px, and the
   notch and home indicator are respected.

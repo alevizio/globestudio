@@ -23,7 +23,7 @@ const ENTRIES = [
       "Use with AI: Copy for AI hands your design to any agent, and globestudio.app/mcp connects Claude, Codex or Cursor with nothing to install",
       "Transparent backgrounds: Solid, Space or Transparent, with a checkerboard preview; PNG, SVG and WebM keep the transparency",
       "Your data gets its own Data section, with an eye to hide the markers without losing them",
-      "Phones: the page stays still behind the controls, the sheet drags smoothly and closes with a tap, and landscape works",
+      "Phones: the globe stays whole above the controls, the page stays still behind them, the sheet drags smoothly and closes with a tap, and landscape works",
       "Smooth look thumbnails, 72 KB instead of 3.5 MB",
       "Lighter on your GPU: a still globe draws nothing, and Aurora and Bloom use about a fifth of the GPU time they did",
       "Share links keep every setting, even custom SVG dots; old links open as before",

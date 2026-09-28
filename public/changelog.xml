@@ -17,7 +17,7 @@
   <li>Use with AI: Copy for AI hands your design to any agent, and globestudio.app/mcp connects Claude, Codex or Cursor with nothing to install</li>
   <li>Transparent backgrounds: Solid, Space or Transparent, with a checkerboard preview; PNG, SVG and WebM keep the transparency</li>
   <li>Your data gets its own Data section, with an eye to hide the markers without losing them</li>
-  <li>Phones: the page stays still behind the controls, the sheet drags smoothly and closes with a tap, and landscape works</li>
+  <li>Phones: the globe stays whole above the controls, the page stays still behind them, the sheet drags smoothly and closes with a tap, and landscape works</li>
   <li>Smooth look thumbnails, 72 KB instead of 3.5 MB</li>
   <li>Lighter on your GPU: a still globe draws nothing, and Aurora and Bloom use about a fifth of the GPU time they did</li>
   <li>Share links keep every setting, even custom SVG dots; old links open as before</li>
