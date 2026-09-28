@@ -156,7 +156,7 @@ as parsed in [`src/components/embed-view.jsx`](src/components/embed-view.jsx):
 | `autoSpin` | `1` · `0` | `1` | Auto-rotate the globe |
 | `static` | `1` · `0` | `0` | Freeze all motion (static previews in design-tool canvases) |
 | `view` | `globe` · `flat` | `globe` | 3D globe or flat map |
-| `background` | hex, `#` optional | unset | Page background behind the canvas (only painted when set) |
+| `background` | hex, `#` optional, or `transparent` | unset | Page background behind the canvas (only painted when set). `transparent` is the same as `transparent=1` |
 | `theme` | `dark` · `light` | `dark` | Globe chrome palette — `light` reads cleanly on light host pages |
 | `transparent` | `1` · `0` | `0` | See-through document, composites onto the host page |
 | `plugin` | `figma` | unset | Figma plugin shell: Look, Country or region, Density and View (Globe or Flat) pickers above an Insert button. Globe inserts a PNG; Flat inserts editable vectors, or a PNG past 2,500 dots or with the solid Bloom look |
