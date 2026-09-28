@@ -25,6 +25,7 @@ const ENTRIES = [
       "Your data gets its own Data section, with an eye to hide the markers without losing them",
       "Phones: the page stays still behind the controls, the sheet drags smoothly and closes with a tap, and landscape works",
       "Smooth look thumbnails, 72 KB instead of 3.5 MB",
+      "Lighter on your GPU: a still globe draws nothing, and Aurora and Bloom use about a fifth of the GPU time they did",
       "Share links keep every setting, even custom SVG dots; old links open as before",
       "@globestudio/element on npm: <globe-studio>, a framework-free web component",
     ],

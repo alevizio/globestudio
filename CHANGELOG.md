@@ -94,6 +94,9 @@ The first public release. This section sums up everything that ships in
   JavaScript, unknown URLs return a real 404, duplicate URLs redirect to
   the canonical one, and subpages carry breadcrumbs.
 - Shipped CSS drops its comments, 60 KB lighter.
+- Lighter on the GPU: with Animations off or reduced motion the globe draws
+  no frames, the glow halo is skipped where it can't show, and the space
+  background skips empty star cells. Every look renders exactly as before.
 - README, ROADMAP, and launch docs rewritten to match what ships.
 
 ### Fixed
