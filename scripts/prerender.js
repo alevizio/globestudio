@@ -6,7 +6,11 @@
 // dist/index.html into a per-route file with route-specific <head> meta
 // injected, so /looks/:id, /compare/:slug, /gallery, and the static pages
 // (/docs, /integrations, /examples, /brand, /changelog, /privacy) get unique,
-// rich cards — and, critically, self-referencing canonicals.
+// rich cards — and, critically, self-referencing canonicals. Each file's
+// <div id="root"> also gets the page's content as static HTML
+// (scripts/static-bodies.jsx), hidden for visitors with JS and replaced by
+// React on mount, so crawlers that don't run JS read more than a noscript
+// blurb.
 //
 // These files ARE the routes: vercel.json has no catch-all rewrite, so a path
 // with no file here gets dist/404.html (written below) with a real 404
@@ -27,7 +31,8 @@ import { breadcrumbLd, lookBreadcrumb } from "../src/utils/preset-route.js";
 import { APP_UNLOCK_PATH } from "../src/utils/route-match.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
-const distDir = resolve(dir, "../dist");
+// PRERENDER_DIST_DIR lets the build test prerender a throwaway build.
+const distDir = resolve(process.env.PRERENDER_DIST_DIR ?? resolve(dir, "../dist"));
 const SITE = "https://globestudio.app";
 
 const esc = (s) =>
@@ -270,6 +275,61 @@ export const renderPage = (template, meta, { teaser = TEASER } = {}) => {
   return [html, misses];
 };
 
+// The static body is for crawlers and visitors without JS. With JS, a head
+// script flags <html data-js> before the body parses, so the block never
+// paints, and React's first render replaces everything in #root: no flash,
+// no layout shift. Without JS the canvas app's scroll lock is lifted so the
+// text can be read. The noscript notice stays, minus the old blurb's H1.
+const STATIC_HEAD = `    <script>document.documentElement.setAttribute("data-js", "")</script>
+    <style>
+      html[data-js] #gs-static { display: none; }
+      html:not([data-js]) body { overflow: auto; }
+      #gs-static { max-width: 760px; margin: 0 auto; padding: 32px 20px; font: 16px/1.6 system-ui, -apple-system, sans-serif; }
+      #gs-static a { color: inherit; }
+      #gs-static .preset-detail { margin-top: 0; }
+    </style>
+  </head>`;
+
+const NOSCRIPT_NOTICE =
+  '<noscript><p>JavaScript is required to render the interactive globe and map. Please enable JavaScript and reload, or visit <a href="https://github.com/alevizio/globestudio">the GitHub repo</a> for source, screenshots, and contribution docs.</p></noscript>';
+
+const ROOT = /<div id="root">[\s\S]*?<\/noscript>\s*<\/div>/;
+
+export const injectStaticBody = (html, body) => {
+  if (html.includes('id="gs-static"')) {
+    throw new Error("prerender: dist/index.html already has a static body. Run `vite build` first.");
+  }
+  if (!ROOT.test(html)) throw new Error("prerender: no <div id=\"root\"> with a noscript in the template.");
+  return html
+    .replace(ROOT, () => `<div id="root"><div id="gs-static">${body}${NOSCRIPT_NOTICE}</div></div>`)
+    .replace("</head>", STATIC_HEAD);
+};
+
+// The home JSON-LD's featureList: the home static body lists it.
+const homeFacts = (template) =>
+  JSON.parse(template.match(LD_JSON)[2])["@graph"].find((node) => node["@type"] === "SoftwareApplication")
+    ?.featureList ?? [];
+
+// Loads scripts/static-bodies.jsx through Vite, which compiles the JSX and
+// the components' CSS imports, and returns its renderStaticBody.
+const loadStaticBodies = async () => {
+  const { createServer } = await import("vite");
+  const server = await createServer({
+    root: resolve(dir, ".."),
+    appType: "custom",
+    logLevel: "error",
+    server: { middlewareMode: true, hmr: false, ws: false },
+    optimizeDeps: { noDiscovery: true },
+  });
+  try {
+    const { renderStaticBody } = await server.ssrLoadModule("/scripts/static-bodies.jsx");
+    return { renderStaticBody, close: () => server.close() };
+  } catch (error) {
+    await server.close();
+    throw error;
+  }
+};
+
 const writeFile = (routePath, html) => {
   const outDir = resolve(distDir, routePath);
   mkdirSync(outDir, { recursive: true });
@@ -286,7 +346,7 @@ export const notFoundHtml = (template) =>
     .replace(/\s*<meta\s+property="og:url"[^>]*>/, "")
     .replace("</head>", '    <meta name="robots" content="noindex" />\n  </head>');
 
-const main = () => {
+const main = async () => {
   let template;
   try {
     template = readFileSync(resolve(distDir, "index.html"), "utf8");
@@ -295,18 +355,33 @@ const main = () => {
     process.exit(0);
   }
 
+  // Teaser builds render the waitlist on every route, so there is no page
+  // content to prerender: they keep the template body as it was.
+  const bodies = TEASER ? null : await loadStaticBodies();
+  const withBody = (html, route, options) =>
+    bodies ? injectStaticBody(html, bodies.renderStaticBody(route, options)) : html;
+
   let totalMisses = 0;
   const routes = pageRoutes({
     cardExists: (id) => existsSync(resolve(distDir, "og", `${id}.png`)),
   });
-  for (const meta of routes) {
-    const [html, misses] = renderPage(template, meta);
-    writeFile(meta.route, html);
-    totalMisses += misses;
-  }
+  try {
+    for (const meta of routes) {
+      const [html, misses] = renderPage(template, meta);
+      writeFile(meta.route, withBody(html, meta.route));
+      totalMisses += misses;
+    }
 
-  for (const route of shellRoutes) writeFile(route, template);
-  writeFileSync(resolve(distDir, "404.html"), notFoundHtml(template));
+    // The shells keep the template exactly as built.
+    for (const route of shellRoutes) writeFile(route, template);
+    writeFileSync(resolve(distDir, "404.html"), withBody(notFoundHtml(template), "404"));
+    writeFileSync(
+      resolve(distDir, "index.html"),
+      withBody(template, "", { facts: homeFacts(template) }),
+    );
+  } finally {
+    await bodies?.close();
+  }
 
   if (totalMisses > 0) {
     console.warn(
@@ -314,10 +389,15 @@ const main = () => {
     );
   }
   console.log(
-    `✓ Prerendered ${routes.length} routes with per-route meta → dist/{looks,compare,gallery,static pages}/, plus ${shellRoutes.length} app shells and 404.html`,
+    `✓ Prerendered ${routes.length} routes with per-route meta${bodies ? " and static bodies" : ""} → dist/{looks,compare,gallery,static pages}/, plus ${shellRoutes.length} app shells and 404.html`,
   );
 };
 
 // Run only as a script (the postbuild step); the parity test imports the
 // route list without writing anything.
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
