@@ -33,6 +33,8 @@ describe("index.html site facts", () => {
 
   it("lists every look in the JSON-LD ItemList", () => {
     const list = graphNode("ItemList");
+    // schema.org only defines the ItemListOrderType URLs, not bare words.
+    expect(list.itemListOrder).toBe("https://schema.org/ItemListUnordered");
     expect(list.numberOfItems).toBe(lookPresets.length);
     expect(list.itemListElement).toEqual(
       lookPresets.map((preset, index) => ({
