@@ -6,31 +6,34 @@
 // dist/index.html into a per-route file with route-specific <head> meta
 // injected, so /looks/:id, /compare/:slug, /gallery, and the static pages
 // (/docs, /integrations, /examples, /brand, /changelog, /privacy) get unique,
-// rich cards — and, critically, self-referencing canonicals.
+// rich cards — and, critically, self-referencing canonicals. Each file's
+// <div id="root"> also gets the page's content as static HTML
+// (scripts/static-bodies.jsx), hidden for visitors with JS and replaced by
+// React on mount, so crawlers that don't run JS read more than a noscript
+// blurb.
 //
-// PURELY ADDITIVE: Vercel applies vercel.json `rewrites` only as a fallback
-// after the filesystem, so these static files are served for their routes; if
-// they weren't, the SPA fallback (current behavior) kicks in — no regression.
-// The SPA still boots from each file and renders the live app on top.
+// These files ARE the routes: vercel.json has no catch-all rewrite, so a path
+// with no file here gets dist/404.html (written below) with a real 404
+// status instead of a 200 copy of the home page. The two pages the router
+// renders client-side only, /embed and the teaser unlock path, get an
+// untouched copy of the app shell. The SPA still boots from each file and
+// renders the live app on top. src/site-routes.test.js keeps this list, the
+// sitemap and the router (src/utils/route-match.js) in step.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { lookPresets } from "../src/data/look-presets.js";
 import { comparisons } from "../src/data/comparisons.js";
+import { getPresetSeo } from "../src/data/preset-seo.js";
 import { PRODUCT_CARD_ALT, lookCardAlt, shareCardUrl } from "../src/data/share-cards.js";
+import { breadcrumbLd, lookBreadcrumb } from "../src/utils/preset-route.js";
+import { APP_UNLOCK_PATH } from "../src/utils/route-match.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
-const distDir = resolve(dir, "../dist");
+// PRERENDER_DIST_DIR lets the build test prerender a throwaway build.
+const distDir = resolve(process.env.PRERENDER_DIST_DIR ?? resolve(dir, "../dist"));
 const SITE = "https://globestudio.app";
-
-let template;
-try {
-  template = readFileSync(resolve(distDir, "index.html"), "utf8");
-} catch {
-  console.error("prerender: dist/index.html not found — run after `vite build`.");
-  process.exit(0);
-}
 
 const esc = (s) =>
   String(s)
@@ -94,127 +97,308 @@ const buildHead = (html, { title, description, url, image, imageAlt }) => {
 // keeps the homepage crawlable). Reverts once VITE_TEASER=0 (1 = teaser).
 const TEASER = process.env.VITE_TEASER === "1";
 
-const writeRoute = (routePath, meta) => {
-  let [html, misses] = buildHead(template, meta);
-  if (TEASER) {
-    html = html.replace(
-      "</head>",
-      '    <meta name="robots" content="noindex, nofollow" />\n  </head>',
-    );
+// Every prerendered page, as { route, ...head meta }. `route` is the dist
+// folder, so the URL path without its leading slash. `cardExists` says
+// whether dist/og/<id>.png was built, so a look without a card keeps the
+// template's default og:image.
+export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) => {
+  const routes = [];
+
+  for (const preset of lookPresets) {
+    const id = preset.id;
+    const name = preset.name || id;
+    const image = cardExists(id) ? shareCardUrl(id) : null;
+    routes.push({
+      route: `looks/${id}`,
+      title: `${name}: dotted map & 3D globe look · Globestudio`,
+      // The hand-written per-look copy that preset-route.js sets after load,
+      // so crawlers and unfurlers that don't run JS get the same snippet.
+      description:
+        getPresetSeo(id)?.metaDescription ??
+        `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free and open source.`,
+      url: `${SITE}/looks/${id}`,
+      image,
+      // og/default.png is the home product card, not a Default-look card, so
+      // lookCardAlt describes it as such. Set even in teaser mode, where the
+      // template alt describes the teaser card instead.
+      imageAlt: image ? lookCardAlt(preset) : null,
+      // The same list preset-route.js writes on client navigation.
+      breadcrumb: lookBreadcrumb(preset),
+    });
   }
+
+  // Home > this page, for every page that isn't a look.
+  const crumbs = (name, url) =>
+    breadcrumbLd([
+      { name: "Home", item: `${SITE}/` },
+      { name, item: url },
+    ]);
+
+  // Compare pages are product-vs-product, so the default product card (the
+  // dotted globe) is the honest share image — every per-look card carries
+  // look-specific copy + a /looks/:id URL, which would mislead on /compare.
+  // Set explicitly (not via template fallback) so the card survives template
+  // drift; in teaser mode the template already swapped in og/teaser.png
+  // (teaserNoindexPlugin), so leave the fallback to keep that card.
+  const productCard = teaser ? null : shareCardUrl("default");
+
+  for (const c of Object.values(comparisons)) {
+    routes.push({
+      route: `compare/${c.slug}`,
+      title: c.title,
+      description: c.metaDescription,
+      url: `${SITE}/compare/${c.slug}`,
+      image: productCard,
+      imageAlt: productCard ? PRODUCT_CARD_ALT : null,
+      // Rendered visibly by ComparePage, so it's marked up here, in the
+      // static head, where crawlers that don't run JS see it too.
+      faq: c.faq,
+      breadcrumb: crumbs(`Globestudio vs ${c.competitor}`, `${SITE}/compare/${c.slug}`),
+    });
+  }
+
+  routes.push({
+    route: "gallery",
+    title: "Looks gallery: dotted map & 3D globe styles · Globestudio",
+    description: `Browse all ${lookPresets.length} Globestudio looks. Open one to make a dotted map or animated 3D globe, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free, open source.`,
+    url: `${SITE}/gallery`,
+    image: null,
+    // The gallery lists every look, so it keeps the home ItemList of looks.
+    itemList: true,
+    breadcrumb: crumbs("Looks", `${SITE}/gallery`),
+  });
+
+  // Static pages. These are all in the sitemap, but without a prerendered file
+  // they serve the shared index.html — whose canonical points at the homepage —
+  // so search engines treated all six as duplicates of "/" and skipped them.
+  // Self-canonicals (plus each page's real title/description, mirrored from the
+  // client-side meta in src/components/*-page.jsx) make them indexable.
+  const staticRoutes = [
+    {
+      route: "docs",
+      crumb: "Docs",
+      title: "Docs · Globestudio",
+      description:
+        "Globestudio documentation: embed snippet, shareable config URLs, keyboard shortcuts, preset catalog, JSON schema.",
+    },
+    {
+      route: "integrations",
+      crumb: "Integrations",
+      title: "Integrations · Globestudio",
+      description:
+        "Add Globestudio to Webflow, Framer, Figma, Notion, WordPress, plain HTML, React or an MCP client like Claude. Copy-paste setup for each.",
+    },
+    {
+      route: "examples",
+      crumb: "Examples",
+      title: "Examples · Globestudio",
+      description:
+        "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style heroes to a retro game screen and a newspaper front page.",
+    },
+    {
+      route: "brand",
+      crumb: "Press kit",
+      title: "Brand · Globestudio",
+      description:
+        "Globestudio press kit: logo, OG cards, color palette, taglines. Free to use for editorial coverage.",
+    },
+    {
+      route: "changelog",
+      crumb: "Changelog",
+      title: "Changelog · Globestudio",
+      description:
+        "Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.",
+    },
+    {
+      route: "privacy",
+      crumb: "Privacy",
+      title: "Privacy · Globestudio",
+      description:
+        "What Globestudio does and doesn't collect. Cookieless analytics, no fingerprinting, no third-party advertisers.",
+    },
+  ];
+
+  for (const { route, crumb, title, description } of staticRoutes) {
+    const url = `${SITE}/${route}`;
+    routes.push({ route, title, description, url, image: null, breadcrumb: crumbs(crumb, url) });
+  }
+
+  return routes;
+};
+
+// Pages the router renders client-side only. They get the app shell as is:
+// /embed keeps the exact bytes an embed iframe loaded before, and the unlock
+// path is swapped for "/" by App.jsx on load.
+export const shellRoutes = ["embed", APP_UNLOCK_PATH.slice(1)];
+
+const NOINDEX = '    <meta name="robots" content="noindex, nofollow" />\n  </head>';
+
+// Rewrites the template's JSON-LD @graph for one page. The site-wide nodes
+// (WebSite, SoftwareApplication, SoftwareSourceCode, Person) stay on every
+// page. The ItemList of looks describes the home page's content, so only the
+// gallery, which shows the same list, keeps it. Compare pages add a FAQPage
+// for the FAQ they render.
+const LD_JSON = /(<script type="application\/ld\+json">)([\s\S]*?)(<\/script>)/;
+
+const editGraph = (html, { url, itemList, faq }) =>
+  html.replace(LD_JSON, (_, open, json, close) => {
+    const data = JSON.parse(json);
+    const graph = data["@graph"].filter((node) => itemList || node["@type"] !== "ItemList");
+    if (faq) {
+      graph.push({
+        "@type": "FAQPage",
+        "@id": `${url}#faq`,
+        mainEntity: faq.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: { "@type": "Answer", text: a },
+        })),
+      });
+    }
+    const out = JSON.stringify({ ...data, "@graph": graph }).replace(/<\//g, "<\\/");
+    return `${open}${out}${close}`;
+  });
+
+// One page's HTML from the built template. Returns [html, misses], where
+// misses counts head tags the template didn't have.
+export const renderPage = (template, meta, { teaser = TEASER } = {}) => {
+  let [html, misses] = buildHead(template, meta);
+  html = editGraph(html, meta);
+  // Its own script with the id preset-route.js looks for, so client
+  // navigation between looks updates this one instead of adding a second.
+  const breadcrumb = JSON.stringify(meta.breadcrumb).replace(/<\//g, "<\\/");
+  // A replacer function, so a "$" in a name is never read as a pattern.
+  html = html.replace(
+    "</head>",
+    () => `    <script type="application/ld+json" id="breadcrumb-ld">${breadcrumb}</script>\n  </head>`,
+  );
+  if (teaser) html = html.replace("</head>", NOINDEX);
+  return [html, misses];
+};
+
+// The static body is for crawlers and visitors without JS. With JS, a head
+// script flags <html data-js> before the body parses, so the block never
+// paints, and React's first render replaces everything in #root: no flash,
+// no layout shift. Without JS the canvas app's scroll lock is lifted so the
+// text can be read. The noscript notice stays, minus the old blurb's H1.
+const STATIC_HEAD = `    <script>document.documentElement.setAttribute("data-js", "")</script>
+    <style>
+      html[data-js] #gs-static { display: none; }
+      html:not([data-js]) body { overflow: auto; }
+      #gs-static { max-width: 760px; margin: 0 auto; padding: 32px 20px; font: 16px/1.6 system-ui, -apple-system, sans-serif; }
+      #gs-static a { color: inherit; }
+      #gs-static .preset-detail { margin-top: 0; }
+    </style>
+  </head>`;
+
+const NOSCRIPT_NOTICE =
+  '<noscript><p>JavaScript is required to render the interactive globe and map. Please enable JavaScript and reload, or visit <a href="https://github.com/alevizio/globestudio">the GitHub repo</a> for source, screenshots, and contribution docs.</p></noscript>';
+
+const ROOT = /<div id="root">[\s\S]*?<\/noscript>\s*<\/div>/;
+
+export const injectStaticBody = (html, body) => {
+  if (html.includes('id="gs-static"')) {
+    throw new Error("prerender: dist/index.html already has a static body. Run `vite build` first.");
+  }
+  if (!ROOT.test(html)) throw new Error("prerender: no <div id=\"root\"> with a noscript in the template.");
+  return html
+    .replace(ROOT, () => `<div id="root"><div id="gs-static">${body}${NOSCRIPT_NOTICE}</div></div>`)
+    .replace("</head>", STATIC_HEAD);
+};
+
+// The home JSON-LD's featureList: the home static body lists it.
+const homeFacts = (template) =>
+  JSON.parse(template.match(LD_JSON)[2])["@graph"].find((node) => node["@type"] === "SoftwareApplication")
+    ?.featureList ?? [];
+
+// Loads scripts/static-bodies.jsx through Vite, which compiles the JSX and
+// the components' CSS imports, and returns its renderStaticBody.
+const loadStaticBodies = async () => {
+  const { createServer } = await import("vite");
+  const server = await createServer({
+    root: resolve(dir, ".."),
+    appType: "custom",
+    logLevel: "error",
+    server: { middlewareMode: true, hmr: false, ws: false },
+    optimizeDeps: { noDiscovery: true },
+  });
+  try {
+    const { renderStaticBody } = await server.ssrLoadModule("/scripts/static-bodies.jsx");
+    return { renderStaticBody, close: () => server.close() };
+  } catch (error) {
+    await server.close();
+    throw error;
+  }
+};
+
+const writeFile = (routePath, html) => {
   const outDir = resolve(distDir, routePath);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(resolve(outDir, "index.html"), html);
-  return misses;
 };
 
-let totalMisses = 0;
-let count = 0;
+// Vercel serves dist/404.html, with a 404 status, for every path that has no
+// file. The SPA boots on it and renders NotFoundPage for the requested URL.
+// No canonical or og:url: a not-found page has no URL of its own.
+export const notFoundHtml = (template) =>
+  template
+    .replace(/<title>[^<]*<\/title>/, "<title>Not found · Globestudio</title>")
+    .replace(/\s*<link\s+rel="canonical"[^>]*>/, "")
+    .replace(/\s*<meta\s+property="og:url"[^>]*>/, "")
+    .replace("</head>", '    <meta name="robots" content="noindex" />\n  </head>');
 
-for (const preset of lookPresets) {
-  const id = preset.id;
-  const name = preset.name || id;
-  const image = existsSync(resolve(distDir, "og", `${id}.png`))
-    ? shareCardUrl(id)
-    : null; // fall back to the default og:image already in the template
-  totalMisses += writeRoute(`looks/${id}`, {
-    title: `${name}: dotted map & 3D globe look · Globestudio`,
-    description: `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free and open source.`,
-    url: `${SITE}/looks/${id}`,
-    image,
-    // og/default.png is the home product card, not a Default-look card, so
-    // lookCardAlt describes it as such. Set even in teaser mode, where the
-    // template alt describes the teaser card instead.
-    imageAlt: image ? lookCardAlt(preset) : null,
+const main = async () => {
+  let template;
+  try {
+    template = readFileSync(resolve(distDir, "index.html"), "utf8");
+  } catch {
+    console.error("prerender: dist/index.html not found — run after `vite build`.");
+    process.exit(0);
+  }
+
+  // Teaser builds render the waitlist on every route, so there is no page
+  // content to prerender: they keep the template body as it was.
+  const bodies = TEASER ? null : await loadStaticBodies();
+  const withBody = (html, route, options) =>
+    bodies ? injectStaticBody(html, bodies.renderStaticBody(route, options)) : html;
+
+  let totalMisses = 0;
+  const routes = pageRoutes({
+    cardExists: (id) => existsSync(resolve(distDir, "og", `${id}.png`)),
   });
-  count += 1;
-}
+  try {
+    for (const meta of routes) {
+      const [html, misses] = renderPage(template, meta);
+      writeFile(meta.route, withBody(html, meta.route));
+      totalMisses += misses;
+    }
 
-// Compare pages are product-vs-product, so the default product card (the
-// dotted globe) is the honest share image — every per-look card carries
-// look-specific copy + a /looks/:id URL, which would mislead on /compare.
-// Set explicitly (not via template fallback) so the card survives template
-// drift; in teaser mode the template already swapped in og/teaser.png
-// (teaserNoindexPlugin), so leave the fallback to keep that card.
-const productCard = TEASER ? null : shareCardUrl("default");
+    // The shells keep the template exactly as built.
+    for (const route of shellRoutes) writeFile(route, template);
+    writeFileSync(resolve(distDir, "404.html"), withBody(notFoundHtml(template), "404"));
+    writeFileSync(
+      resolve(distDir, "index.html"),
+      withBody(template, "", { facts: homeFacts(template) }),
+    );
+  } finally {
+    await bodies?.close();
+  }
 
-for (const c of Object.values(comparisons)) {
-  totalMisses += writeRoute(`compare/${c.slug}`, {
-    title: c.title,
-    description: c.metaDescription,
-    url: `${SITE}/compare/${c.slug}`,
-    image: productCard,
-    imageAlt: productCard ? PRODUCT_CARD_ALT : null,
-  });
-  count += 1;
-}
-
-totalMisses += writeRoute("gallery", {
-  title: "Looks gallery: dotted map & 3D globe styles · Globestudio",
-  description:
-    "Browse every built-in Globestudio look. Open one to generate a dotted map or animated 3D globe and export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free, open source.",
-  url: `${SITE}/gallery`,
-  image: null,
-});
-count += 1;
-
-// Static pages. These are all in the sitemap, but without a prerendered file
-// they serve the shared index.html — whose canonical points at the homepage —
-// so search engines treated all six as duplicates of "/" and skipped them.
-// Self-canonicals (plus each page's real title/description, mirrored from the
-// client-side meta in src/components/*-page.jsx) make them indexable.
-const staticRoutes = [
-  {
-    route: "docs",
-    title: "Docs · Globestudio",
-    description:
-      "Globestudio documentation: embed snippet, shareable config URLs, keyboard shortcuts, preset catalog, JSON schema.",
-  },
-  {
-    route: "integrations",
-    title: "Integrations · Globestudio",
-    description:
-      "Drop Globestudio into Webflow, Framer, Figma, Notion, WordPress, plain HTML, or React. Copy-paste snippets, no install.",
-  },
-  {
-    route: "examples",
-    title: "Examples · Globestudio",
-    description:
-      "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style product heroes to a retro game screen and a newspaper front page.",
-  },
-  {
-    route: "brand",
-    title: "Brand · Globestudio",
-    description:
-      "Globestudio press kit: logo, OG cards, color palette, taglines. Free to use for editorial coverage.",
-  },
-  {
-    route: "changelog",
-    title: "Changelog · Globestudio",
-    description:
-      "Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.",
-  },
-  {
-    route: "privacy",
-    title: "Privacy · Globestudio",
-    description:
-      "What Globestudio does and doesn't collect. Cookieless analytics, no fingerprinting, no third-party advertisers.",
-  },
-];
-
-for (const { route, title, description } of staticRoutes) {
-  totalMisses += writeRoute(route, {
-    title,
-    description,
-    url: `${SITE}/${route}`,
-    image: null,
-  });
-  count += 1;
-}
-
-if (totalMisses > 0) {
-  console.warn(
-    `⚠ prerender: ${totalMisses} <head> tag(s) didn't match the template — those routes kept default meta. Check index.html tag formatting.`,
+  if (totalMisses > 0) {
+    console.warn(
+      `⚠ prerender: ${totalMisses} <head> tag(s) didn't match the template — those routes kept default meta. Check index.html tag formatting.`,
+    );
+  }
+  console.log(
+    `✓ Prerendered ${routes.length} routes with per-route meta${bodies ? " and static bodies" : ""} → dist/{looks,compare,gallery,static pages}/, plus ${shellRoutes.length} app shells and 404.html`,
   );
+};
+
+// Run only as a script (the postbuild step); the parity test imports the
+// route list without writing anything.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
 }
-console.log(`✓ Prerendered ${count} routes with per-route meta → dist/{looks,compare,gallery,static pages}/`);

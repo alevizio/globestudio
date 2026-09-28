@@ -55,7 +55,7 @@ pass, low complexity. Establishes the pattern for the rest.
 - [ ] Add `renderBayerOverlay()` to `src/components/look-preview.jsx`
       so the chip preview shows the characteristic 4×4 grid.
 - [ ] Bake a `public/looks/bayer.png` preview image once it looks
-      right (use the workflow doc `public/looks/README.md`).
+      right (use the workflow doc `docs/looks-chip-images.md`).
 - [ ] Wire `previewImage: "/looks/bayer.png"` on the preset.
 - [ ] Run `npm test` + `npm run build`. Manual: switch between Halftone
       and Bayer to confirm visual distinction.

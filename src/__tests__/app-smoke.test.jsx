@@ -13,7 +13,8 @@
 // VITE_TEASER picks the studio or the teaser as the build does.
 
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import { matchRoute } from "../utils/route-match.js";
 
 // jsdom doesn't ship matchMedia or ResizeObserver; both are called
 // during App's first render (usePrefersReducedMotion, looks-bar scroll
@@ -58,6 +59,42 @@ describe("App smoke", () => {
     // Full-app mount (canvas shell, observers, lazy route wiring) is heavy
     // in jsdom and flaky at the 5s default under CI load — this test only
     // guards "doesn't throw", not timing, so give it room.
+  }, 20000);
+
+  it("gives each look page its own H1 instead of the home one", async () => {
+    window.history.pushState({}, "", "/looks/halftone");
+    try {
+      const { default: App } = await import("../App.jsx");
+      render(<App />);
+      const headings = screen.getAllByRole("heading", { level: 1 });
+      expect(headings.map((h) => h.textContent)).toEqual(["Halftone dotted map and 3D globe look"]);
+    } finally {
+      window.history.pushState({}, "", "/");
+    }
+  }, 20000);
+
+  it("links the site's pages from the panel on the home page", async () => {
+    // The studio is what "/" renders once JS runs, so without these a
+    // crawler that renders the page finds no path to the rest of the site.
+    window.history.pushState({}, "", "/");
+    const { default: App } = await import("../App.jsx");
+    render(<App />);
+    const nav = screen.getByRole("navigation", { name: "Site links" });
+    const links = within(nav).getAllByRole("link");
+    expect(links.map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
+      ["Gallery", "/gallery"],
+      ["Docs", "/docs"],
+      ["Integrations", "/integrations"],
+      ["Examples", "/examples"],
+      ["vs cobe", "/compare/cobe"],
+      ["vs GEOlayers", "/compare/geolayers"],
+      ["Changelog", "/changelog"],
+    ]);
+    for (const link of links) {
+      // Same tab, like every other internal link, and to a page that exists.
+      expect(link.hasAttribute("target"), link.textContent).toBe(false);
+      expect(matchRoute(link.getAttribute("href")).page, link.textContent).not.toMatch(/not-found|redirect/);
+    }
   }, 20000);
 
   it("serves the teaser instead of the studio only when VITE_TEASER is 1", async () => {

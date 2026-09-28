@@ -2722,6 +2722,12 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   pointer-events: none;
 }
 
+.preset-detail-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .preset-detail-back {
   color: var(--text);
   text-decoration: none;
@@ -3701,6 +3707,12 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   opacity: 0;
   filter: blur(6px);
   pointer-events: none;
+}
+
+.panel-links {
+  gap: 10px 16px;
+  padding: 4px 12px;
+  font-size: 12px;
 }
 
 .panel-header-actions {
@@ -7910,6 +7922,12 @@ input[type="range"]:active::-moz-range-thumb {
     opacity: 1;
     filter: none;
     pointer-events: auto;
+  }
+
+  .panel-links a {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
   }
 
   /* The desktop full-bleed rule fades the looks bar out when the panel is

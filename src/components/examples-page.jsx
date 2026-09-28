@@ -1146,7 +1146,7 @@ const NewsShowcase = () => {
     <div className="news-paper">
       <header className="news-masthead">
         <div className="news-mast-side">Est.<br />MMXXVI</div>
-        <h1 className="news-title">The Globe Dispatch</h1>
+        <h2 className="news-title">The Globe Dispatch</h2>
         <div className="news-mast-side">World<br />Edition</div>
       </header>
       <div className="news-dateline">
@@ -1289,7 +1289,7 @@ const NewsShowcase = () => {
               support for the planet’s rotation while declining, as ever, to
               take any personal credit for it.
             </p>
-            <h4 className="news-subhead">No End in Sight</h4>
+            <h3 className="news-subhead">No End in Sight</h3>
             <p>
               The Institute for Obvious Phenomena released a four-hundred-page
               study whose abstract read, in its entirety: “Yes.”
@@ -2516,7 +2516,7 @@ export const ExamplesPage = () => {
     };
     setMeta(
       'meta[name="description"]',
-      "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style product heroes to a retro game screen and a newspaper front page.",
+      "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style heroes to a retro game screen and a newspaper front page.",
     );
   }, []);
 

@@ -2,14 +2,17 @@ import { comparisons } from "../data/comparisons.js";
 import { TakeoverFooter } from "./takeover-footer.jsx";
 import "./compare-page.css";
 
-// Lazy takeover route for /compare/:slug — a factual decision-aid comparison.
-// Includes FAQPage JSON-LD (deprecated for Google rich snippets but still
-// parsed by AI assistants) and a real HTML table (AI parses tables well).
-export const ComparePage = () => {
-  const slug =
-    typeof window !== "undefined"
-      ? window.location.pathname.replace(/\/+$/, "").split("/").pop()
-      : "";
+const slugFromLocation = () =>
+  typeof window !== "undefined"
+    ? window.location.pathname.replace(/\/+$/, "").split("/").pop()
+    : "";
+
+// Lazy takeover route for /compare/:slug — a factual decision-aid comparison,
+// with a real HTML table (AI parses tables well). Its FAQPage JSON-LD is in
+// the prerendered <head> (scripts/prerender.js), so crawlers that don't run
+// JS get it and the page carries one FAQPage, not two.
+// The router only renders it for known slugs (src/utils/route-match.js).
+export const ComparePage = ({ slug = slugFromLocation() }) => {
   const data = comparisons[slug];
 
   if (!data) {
@@ -22,19 +25,8 @@ export const ComparePage = () => {
     );
   }
 
-  const faqLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: data.faq.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  };
-
   return (
     <main className="compare-page">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <header className="compare-header">
         <a className="compare-back" href="/">← Globestudio</a>
         <h1 className="compare-title">Globestudio vs {data.competitor}</h1>

@@ -10,7 +10,7 @@
 // Generating from source means it can never drift again.
 
 import { writeFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, resolve } from "node:path";
 import { lookPresets } from "../src/data/look-presets.js";
 import { comparisonSlugs } from "../src/data/comparisons.js";
@@ -19,59 +19,63 @@ const SITE_URL = "https://globestudio.app";
 
 const TEASER = process.env.VITE_TEASER === "1";
 
+// Every indexable URL. Exported for src/site-routes.test.js, which checks it
+// against the prerendered files and the router.
+export const sitemapEntries = () => [
+  {
+    loc: `${SITE_URL}/`,
+    changefreq: "weekly",
+    priority: "1.0",
+  },
+  {
+    loc: `${SITE_URL}/docs`,
+    changefreq: "monthly",
+    priority: "0.7",
+  },
+  {
+    loc: `${SITE_URL}/integrations`,
+    changefreq: "monthly",
+    priority: "0.7",
+  },
+  {
+    loc: `${SITE_URL}/examples`,
+    changefreq: "monthly",
+    priority: "0.7",
+  },
+  {
+    loc: `${SITE_URL}/gallery`,
+    changefreq: "weekly",
+    priority: "0.7",
+  },
+  ...comparisonSlugs.map((slug) => ({
+    loc: `${SITE_URL}/compare/${slug}`,
+    changefreq: "monthly",
+    priority: "0.7",
+  })),
+  {
+    loc: `${SITE_URL}/brand`,
+    changefreq: "monthly",
+    priority: "0.5",
+  },
+  {
+    loc: `${SITE_URL}/changelog`,
+    changefreq: "weekly",
+    priority: "0.6",
+  },
+  {
+    loc: `${SITE_URL}/privacy`,
+    changefreq: "yearly",
+    priority: "0.3",
+  },
+  ...lookPresets.map((preset) => ({
+    loc: `${SITE_URL}/looks/${preset.id}`,
+    changefreq: "monthly",
+    priority: "0.8",
+  })),
+];
+
 const buildSitemap = () => {
-  const allEntries = [
-    {
-      loc: `${SITE_URL}/`,
-      changefreq: "weekly",
-      priority: "1.0",
-    },
-    {
-      loc: `${SITE_URL}/docs`,
-      changefreq: "monthly",
-      priority: "0.7",
-    },
-    {
-      loc: `${SITE_URL}/integrations`,
-      changefreq: "monthly",
-      priority: "0.7",
-    },
-    {
-      loc: `${SITE_URL}/examples`,
-      changefreq: "monthly",
-      priority: "0.7",
-    },
-    {
-      loc: `${SITE_URL}/gallery`,
-      changefreq: "weekly",
-      priority: "0.7",
-    },
-    ...comparisonSlugs.map((slug) => ({
-      loc: `${SITE_URL}/compare/${slug}`,
-      changefreq: "monthly",
-      priority: "0.7",
-    })),
-    {
-      loc: `${SITE_URL}/brand`,
-      changefreq: "monthly",
-      priority: "0.5",
-    },
-    {
-      loc: `${SITE_URL}/changelog`,
-      changefreq: "weekly",
-      priority: "0.6",
-    },
-    {
-      loc: `${SITE_URL}/privacy`,
-      changefreq: "yearly",
-      priority: "0.3",
-    },
-    ...lookPresets.map((preset) => ({
-      loc: `${SITE_URL}/looks/${preset.id}`,
-      changefreq: "monthly",
-      priority: "0.8",
-    })),
-  ];
+  const allEntries = sitemapEntries();
 
   // Pre-launch teaser: only the homepage is indexable (the rest are noindexed
   // at prerender, or canonical to "/"), so ship a single-URL sitemap and don't
@@ -98,9 +102,13 @@ ${urlBlocks}
   };
 };
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const outputPath = resolve(__dirname, "..", "public", "sitemap.xml");
-const sitemap = buildSitemap();
-writeFileSync(outputPath, sitemap.xml, "utf8");
+// Run only as a script (the prebuild step), so importing the entries doesn't
+// rewrite public/sitemap.xml.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const outputPath = resolve(__dirname, "..", "public", "sitemap.xml");
+  const sitemap = buildSitemap();
+  writeFileSync(outputPath, sitemap.xml, "utf8");
 
-console.log(`✓ Generated sitemap with ${sitemap.count} URLs → ${outputPath}`);
+  console.log(`✓ Generated sitemap with ${sitemap.count} URLs → ${outputPath}`);
+}

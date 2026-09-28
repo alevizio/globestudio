@@ -1,6 +1,6 @@
 # Looks bar chip preview images
 
-Bitmap previews used by the chips at the top of the side panel.
+Bitmap previews in `public/looks/`, used by the chips at the top of the side panel.
 The chip renders this image instead of the SVG approximation when
 a preset in `src/data/look-presets.js` carries a `previewImage`
 field that points here.

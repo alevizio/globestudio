@@ -21,16 +21,31 @@ const setMeta = (selector, content) => {
   if (el) el.setAttribute("content", content);
 };
 
-const updateBreadcrumbLd = (preset, absoluteUrl) => {
-  const breadcrumb = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://globestudio.app/" },
-      { "@type": "ListItem", position: 2, name: "Looks", item: "https://globestudio.app/#looks-list" },
-      { "@type": "ListItem", position: 3, name: preset.name, item: absoluteUrl },
-    ],
-  };
+// BreadcrumbList JSON-LD from [{ name, item }] crumbs, first to last.
+// scripts/prerender.js writes the same markup into each page's static head.
+export const breadcrumbLd = (crumbs) => ({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: crumbs.map(({ name, item }, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    name,
+    item,
+  })),
+});
+
+// Home > Looks (the gallery, which lists them all) > this look.
+export const lookBreadcrumb = (preset) =>
+  breadcrumbLd([
+    { name: "Home", item: "https://globestudio.app/" },
+    { name: "Looks", item: "https://globestudio.app/gallery" },
+    { name: preset.name, item: `https://globestudio.app/looks/${preset.id}` },
+  ]);
+
+// Reuses the prerendered #breadcrumb-ld script when there is one, so a look
+// page never carries two BreadcrumbLists.
+const updateBreadcrumbLd = (preset) => {
+  const breadcrumb = lookBreadcrumb(preset);
   let script = document.getElementById("breadcrumb-ld");
   if (!script) {
     script = document.createElement("script");
@@ -74,5 +89,5 @@ export const updatePresetRoute = (preset) => {
   const canonical = document.querySelector('link[rel="canonical"]');
   if (canonical) canonical.setAttribute("href", absoluteUrl);
 
-  updateBreadcrumbLd(preset, absoluteUrl);
+  updateBreadcrumbLd(preset);
 };

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import vercelConfig from "../vercel.json";
+import { RETIRED_LOOKS } from "./utils/route-match.js";
 
 // vercel.json `source` values are path-to-regexp strings. The ones used here
 // are plain regex groups, so anchoring them matches the same paths.
@@ -11,32 +12,82 @@ const headersFor = (path) =>
     .flatMap(({ headers }) => headers);
 
 describe("vercel.json", () => {
-  const spaRewrite = toRegExp(
-    vercelConfig.rewrites.find(({ destination }) => destination === "/index.html").source,
-  );
+  const rewrites = (vercelConfig.rewrites ?? []).map(({ source }) => toRegExp(source));
 
-  it("serves the SPA shell for app routes", () => {
-    for (const path of ["/", "/looks/halftone", "/compare/cobe", "/gallery", "/embed"]) {
-      expect(spaRewrite.test(path), path).toBe(true);
+  it("has no catch-all rewrite, so unknown paths get 404.html with a 404 status", () => {
+    // Every page is a prerendered file (site-routes.test.js checks that), so
+    // a rewrite to index.html would only turn missing URLs into 200 copies of
+    // the home page. A tab opened before a deploy also asks for chunk hashes
+    // that no longer exist; an HTML 200 there breaks the lazy import instead
+    // of letting the vite:preloadError reload recover.
+    for (const path of [
+      "/nope",
+      "/looks/nope",
+      "/compare/nope",
+      "/assets/index-deadbeef.js",
+      "/data/world-cities.json",
+      "/api/subscribe",
+    ]) {
+      expect(rewrites.some((source) => source.test(path)), path).toBe(false);
     }
   });
 
-  it("lets missing chunks, data files and API routes 404 instead of returning index.html", () => {
-    // A tab opened before a deploy asks for chunk hashes that no longer
-    // exist; an HTML 200 there breaks the lazy import instead of letting
-    // the vite:preloadError reload recover.
-    for (const path of ["/assets/index-deadbeef.js", "/data/world-cities.json", "/api/subscribe"]) {
-      expect(spaRewrite.test(path), path).toBe(false);
-    }
+  it("redirects trailing-slash URLs to the canonical slashless form", () => {
+    // Every canonical and sitemap URL has no trailing slash; without this
+    // /docs/ and /looks/halftone/ answer 200 as duplicates.
+    expect(vercelConfig.trailingSlash).toBe(false);
   });
 
-  it("sends /mcp to the MCP function before the SPA fallback, uncached", () => {
-    // Rewrites apply in order and the SPA pattern also matches /mcp, so the
-    // MCP rewrite has to come first or MCP clients get index.html.
+  it("sends the retired Print look to Halftone, which replaced it", () => {
+    expect(vercelConfig.redirects).toContainEqual({
+      source: "/looks/print",
+      destination: "/looks/halftone",
+      permanent: true,
+    });
+  });
+
+  it("sends the retired Particles and ASCII looks to the gallery, like the router", () => {
+    // Neither has a replacement look, so the gallery of current ones is the
+    // closest page. The router mirrors these (RETIRED_LOOKS) for hosts
+    // without vercel.json; other unknown look ids stay a 404.
+    expect(Object.keys(RETIRED_LOOKS).sort()).toEqual(["ascii", "particles"]);
+    for (const [id, destination] of Object.entries(RETIRED_LOOKS)) {
+      expect(vercelConfig.redirects).toContainEqual({
+        source: `/looks/${id}`,
+        destination,
+        permanent: true,
+      });
+    }
+    const pathRedirects = vercelConfig.redirects
+      .filter(({ has }) => !has)
+      .map(({ source }) => toRegExp(source));
+    expect(pathRedirects.some((source) => source.test("/looks/nope"))).toBe(false);
+  });
+
+  it("sends the production vercel.app alias to the apex domain", () => {
+    // Vercel adds noindex to preview URLs but not to this alias, so without
+    // the redirect it serves a full, indexable copy of the site. Preview
+    // hosts (globestudio-git-*.vercel.app) don't match the host condition.
+    // "/:path(.*)", not "/:path*": Vercel compiles "/:path*" to
+    // ^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?$, which doesn't match "/", so the
+    // alias's home page would stay a 200 copy of the site.
+    expect(vercelConfig.redirects).toContainEqual({
+      source: "/:path(.*)",
+      has: [{ type: "host", value: "globestudio.vercel.app" }],
+      destination: "https://globestudio.app/:path",
+      permanent: true,
+    });
+  });
+
+  it("sends /mcp to the MCP function, uncached, with no SPA fallback to shadow it", () => {
+    // Every page is prerendered and unknown paths must 404, so there is no
+    // catch-all rewrite. If one comes back it has to sit after /mcp, or MCP
+    // clients get index.html.
     const indexOf = (destination) =>
       vercelConfig.rewrites.findIndex((rewrite) => rewrite.destination === destination);
     expect(vercelConfig.rewrites[indexOf("/api/mcp")]?.source).toBe("/mcp");
-    expect(indexOf("/api/mcp")).toBeLessThan(indexOf("/index.html"));
+    const spa = indexOf("/index.html");
+    if (spa !== -1) expect(indexOf("/api/mcp")).toBeLessThan(spa);
     expect(headersFor("/mcp")).toContainEqual({ key: "Cache-Control", value: "no-store" });
   });
 
@@ -44,6 +95,15 @@ describe("vercel.json", () => {
     expect(headersFor("/assets/index-deadbeef.js")).toContainEqual({
       key: "Cache-Control",
       value: "public, max-age=31536000, immutable",
+    });
+  });
+
+  it("lets unhashed data files update within a day", () => {
+    // /data/world-cities.json and world-rivers.json are fetched by fixed
+    // URL, so "immutable" would pin a stale copy for a year.
+    expect(headersFor("/data/world-cities.json")).toContainEqual({
+      key: "Cache-Control",
+      value: "public, max-age=86400, stale-while-revalidate=604800",
     });
   });
 

@@ -73,6 +73,23 @@ test("preset routes apply the requested look", async ({ page }) => {
   await expect(page.getByText(/Applied Halftone/i)).toBeVisible();
 });
 
+test("retired look URLs land on the gallery", async ({ page }) => {
+  // vercel.json 308s these before the app loads. The dev server has no
+  // redirects, so this checks the router sends them to the same place.
+  for (const look of ["particles", "ascii"]) {
+    await page.goto(`/looks/${look}`);
+    await expect(page).toHaveURL(/\/gallery$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Looks gallery" })).toBeVisible();
+  }
+});
+
+test("the panel ends with links to the site's pages", async ({ page }) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Site links" });
+  await expect(nav.getByRole("link")).toHaveCount(7);
+  await expect(nav).toBeInViewport();
+});
+
 test("embed route renders canvas-only output", async ({ page }) => {
   await page.goto("/embed?look=halftone&density=60&autoSpin=1");
   await waitForCanvas(page);
@@ -372,6 +389,25 @@ test.describe("on a phone with the sheet collapsed", () => {
     await waitForCanvas(page);
     const stops = await walkTabStops(page, 12);
     expect(stops.filter((stop) => stop.opacity < 0.1).map((stop) => stop.label)).toEqual([]);
+  });
+});
+
+test.describe("on a phone with the sheet open", () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test("the site links at the end of the sheet are 44px targets", async ({ page }) => {
+    await page.goto("/");
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Expand options panel" }).click();
+    await expect(page.locator(".control-rail")).not.toHaveClass(/is-collapsed/);
+    const links = page.getByRole("navigation", { name: "Site links" }).getByRole("link");
+    await expect(links).toHaveCount(7);
+    for (const link of await links.all()) {
+      await link.scrollIntoViewIfNeeded();
+      await expect(link).toBeInViewport();
+      const box = await link.boundingBox();
+      expect(Math.min(box.width, box.height), await link.textContent()).toBeGreaterThanOrEqual(44);
+    }
   });
 });
 

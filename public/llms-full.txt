@@ -1,8 +1,8 @@
-# Globestudio — Full LLM Reference
+# Globestudio: Full LLM Reference
 
 > Open-source, designer-first generator of dotted-style world maps and 3D
 > globes that runs entirely in the browser. React + Three.js (WebGL2), 21
-> shader looks, 5 flat projections for solid maps (dotted maps use Mercator),
+> looks, 5 flat projections for solid maps (dotted maps use Mercator),
 > custom GeoJSON, PNG / SVG / WebM / MP4 / GIF / JSON export and embeds. MIT
 > licensed. Targets WCAG 2.2 AA. NOT a GIS tool: a visual generator that
 > an AI assistant can drive programmatically.
@@ -14,7 +14,7 @@ This is the expanded reference. The short version is at
 
 The most direct path: build an `/embed?…` URL and drop it into an iframe, open
 it for a screenshot, or hand it to the user. The `/embed` route is the canvas
-only (no app chrome) and works in any client — no MCP required.
+only (no app chrome) and works in any client. No MCP required.
 
 ```
 https://globestudio.app/embed?look=halftone&density=50&selection=continent:Europe&autoSpin=1
@@ -22,7 +22,7 @@ https://globestudio.app/embed?look=halftone&density=50&selection=continent:Europ
 
 For full control, encode a complete config object and pass it as `?c=<json>`
 (the same payload the in-app Share dialog produces). A JSON Schema for that
-config is published at <https://globestudio.app/schema/config.json> — editors
+config is published at <https://globestudio.app/schema/config.json>. Editors
 that read `$schema` autocomplete + validate it.
 
 ### MCP server
@@ -49,14 +49,14 @@ settings, and what an agent can do with them.
 
 ### Common URL parameters
 
-- `look` — a preset id (see the catalog below), e.g. `look=crt`.
-- `selection` — what to draw (see Selection reference below).
-- `density` — dot density, 1–90 (invalid values fall back to the preset's).
-- `autoSpin` — `1` to auto-rotate the globe, `0` to hold still.
-- `theme` — `light` flips the globe chrome (glow, grid, surface) to a
+- `look`: a preset id (see the catalog below), e.g. `look=crt`.
+- `selection`: what to draw (see Selection reference below).
+- `density`: dot density, 1–90 (invalid values fall back to the preset's).
+- `autoSpin`: `1` to auto-rotate the globe, `0` to hold still.
+- `theme`: `light` flips the globe chrome (glow, grid, surface) to a
   graphite-on-cream palette for light host pages; anything else stays dark.
-- `motion` — accepted (0–100) but currently inert: parsed, no effect yet.
-- `c` — the share-config payload: a full URL-encoded config JSON, the same
+- `motion`: accepted (0–100) but currently inert: parsed, no effect yet.
+- `c`: the share-config payload, a full URL-encoded config JSON, the same
   object the in-app Share dialog produces. It overrides the preset and the
   simple params above. The complete parameter table lives at
   <https://github.com/alevizio/globestudio/blob/main/README.md#embed-parameters>.
@@ -65,46 +65,46 @@ settings, and what an agent can do with them.
 
 `selection` takes one of these prefixes:
 
-- `world` — the whole planet.
-- `country:<ISO3>` — one country by 3-letter ISO 3166-1 alpha-3 code
+- `world`: the whole planet.
+- `country:<ISO3>`: one country by 3-letter ISO 3166-1 alpha-3 code
   (`USA`, `FRA`, `JPN`, `BRA`, `DEU`, …).
-- `continent:<Name>` — `Africa`, `Asia`, `Europe`, `North America`,
+- `continent:<Name>`: `Africa`, `Asia`, `Europe`, `North America`,
   `South America`, `Oceania`, `Antarctica`.
-- `subregion:<Name>` — a UN subregion, e.g. `Western Europe`, `South-Eastern Asia`.
+- `subregion:<Name>`: a UN subregion, e.g. `Western Europe`, `South-Eastern Asia`.
 
 ## Preset catalog (21 looks)
 
 Each is at `https://globestudio.app/looks/<id>` (marketing page) or
 `https://globestudio.app/embed?look=<id>` (canvas only):
 
-- `default` — Default: clean cartography.
-- `halftone` — Halftone: newspaper print, browser-rendered.
-- `risograph` — Risograph: pink + cyan ink, misregistered on purpose.
-- `newsprint` — Newsprint: CMYK, four plates, rotated like the pros.
-- `aurora` — Aurora: northern-lights bands across the planet.
-- `pixel` — Pixel: an 8-bit world atlas.
-- `bayer` — Bayer: classic-Mac threshold dither.
-- `atkinson` — Atkinson: Atkinson dither, sparser than Bayer.
-- `wireframe` — Wireframe: edge-traced, like a hand-pulled print.
-- `crt` — CRT: cathode-ray phosphor glow.
-- `glitch` — Glitch: signal break, RGB split.
-- `badtv` — Bad TV: analog tape decay.
-- `bloom` — Bloom: atmosphere on fire.
-- `metal` — Metal: liquid chrome, soft reflections.
-- `iridescent` — Iridescent: holographic foil sticker.
-- `pencil` — Pencil: pencil-traced continents.
-- `corrupt` — Corrupt: datamosh corruption, on purpose.
-- `toon` — Toon: cel-shaded pop-art world.
-- `threshold` — Threshold: pure two-tone binary.
-- `vapor` — Vapor: synthwave horizon, pastel split.
-- `topographic` — Topographic: contour rings, only rings.
+- `default`: Default, clean cartography.
+- `halftone`: Halftone, newspaper print, browser-rendered.
+- `risograph`: Risograph, pink + cyan ink, misregistered on purpose.
+- `newsprint`: Newsprint, CMYK, four plates, rotated like the pros.
+- `aurora`: Aurora, northern-lights bands across the planet.
+- `pixel`: Pixel, an 8-bit world atlas.
+- `bayer`: Bayer, classic-Mac threshold dither.
+- `atkinson`: Atkinson, Atkinson dither, sparser than Bayer.
+- `wireframe`: Wireframe, edge-traced, like a hand-pulled print.
+- `crt`: CRT, cathode-ray phosphor glow.
+- `glitch`: Glitch, signal break, RGB split.
+- `badtv`: Bad TV, analog tape decay.
+- `bloom`: Bloom, atmosphere on fire.
+- `metal`: Metal, liquid chrome, soft reflections.
+- `iridescent`: Iridescent, holographic foil sticker.
+- `pencil`: Pencil, pencil-traced continents.
+- `corrupt`: Corrupt, datamosh corruption, on purpose.
+- `toon`: Toon, cel-shaded pop-art world.
+- `threshold`: Threshold, pure two-tone binary.
+- `vapor`: Vapor, synthwave horizon, pastel split.
+- `topographic`: Topographic, contour rings, only rings.
 
 ## Exports
 
-From the in-app export dialog: PNG (high-res, rendered at its own scale — not
+From the in-app export dialog: PNG (high-res, rendered at its own scale, not
 the on-screen DPR), SVG, WebM and MP4 video, GIF, and a JSON config (the same
 payload as `?c=`). Rendering is client-side; there is no server-side image
-endpoint (yet) — for a screenshot, point a headless browser at an `/embed?…`
+endpoint (yet). For a screenshot, point a headless browser at an `/embed?…`
 URL.
 
 ## Docs + code
@@ -132,3 +132,67 @@ URL.
 - MIT licensed. The visuals you export are yours; redistributing the source or
   built bundle requires keeping the LICENSE + NOTICE files (NOTICE credits
   Pixelarticons and the open atlases the tool relies on).
+
+## FAQ
+
+### What is Globestudio?
+
+Globestudio is a designer-first, open-source web tool for creating dotted maps
+and animated 3D globes. Pick any country, region, or US state, customize dot
+shapes, gradients, and WebGL shader effects, then export PNG, SVG, WebM, MP4 or
+GIF, a JSON config, or an embed. It runs in the browser with no account or
+install.
+
+### Is Globestudio free to use commercially?
+
+Yes. Globestudio is MIT-licensed, so you can use it commercially without
+paying. MIT requires you to keep the LICENSE + NOTICE files when redistributing
+the source or built bundle (NOTICE credits Pixelarticons and the open atlases
+the tool relies on). The visuals you export (PNG, SVG, WebM, MP4, GIF, JSON)
+are yours; no attribution needed on the exports themselves. Rendering and
+exports run client-side in your browser; your designs are never uploaded.
+
+### How do I export a dotted globe?
+
+Press D or click the Export button to open the export dialog. PNG exports
+re-render the canvas at up to 4x resolution; SVG exports produce vector output
+for print or further editing; WebM, MP4 and GIF exports record the live
+animation; JSON exports save the full config so others can reproduce your look.
+
+### Does Globestudio work on mobile?
+
+Yes. Globestudio works on modern mobile browsers (iOS Safari 15.4+, Chrome for
+Android, Samsung Internet) that support WebGL 2. The interface adapts to small
+viewports; the panel hides on first visit so the visual is the first
+impression.
+
+### What design tools does Globestudio integrate with?
+
+The Globestudio Figma plugin, in the Figma Community, inserts a globe into your
+file. For websites, paste the iframe or the one-line script embed into Webflow,
+Framer or plain HTML, or the embed URL into Notion; it works in WordPress via a
+Custom HTML embed. React apps can use @globestudio/react, and AI assistants can
+use the @globestudio/mcp server. PNG and SVG exports drop into any design tool:
+Figma, Sketch, Adobe Illustrator, Affinity Designer.
+
+### Can I animate the globe?
+
+Yes. The globe view supports auto-spin, dot rotation, twinkle, size variance,
+and animated network arcs. WebM, MP4 and GIF exports capture the live
+animation; all motion respects the user's prefers-reduced-motion preference
+automatically.
+
+### What browsers are supported?
+
+Globestudio requires WebGL 2 (~95% global support as of 2026). Chrome 56+,
+Firefox 51+, Safari 15.2+, Edge 79+, Samsung Internet 7.2+, and Chrome for
+Android 58+ all work. On older hardware (e.g. Intel HD 3000) WebGL 2 may not be
+available; in that case the tool shows a fallback message.
+
+### How is Globestudio different from a generic map library?
+
+Globestudio is not a GIS tool. It is a curated motion-design tool focused on
+one aesthetic, dotted maps and animated globes, with deep control over visual
+styling (shaders, gradients, shapes). Generic libraries like Mapbox or Leaflet
+target geocoding, tile servers, and routing; Globestudio targets designers
+shipping landing pages, decks, and motion graphics.

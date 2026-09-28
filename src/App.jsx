@@ -14,6 +14,7 @@ import {
 import { areaOptionByValue, areaOptions } from "./data/geography.js";
 import { lookPresets } from "./data/look-presets.js";
 import { PRODUCT_CARD_ALT, shareCardUrl } from "./data/share-cards.js";
+import { pageHeading } from "./data/preset-seo.js";
 import { presetTags } from "./data/preset-tags.js";
 import { useUsStatesLoader } from "./hooks/use-us-states-loader.js";
 import { useShareConfigImport } from "./hooks/use-share-config-import.js";
@@ -54,6 +55,7 @@ import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { NoWebGLFallback } from "./components/no-webgl-fallback.jsx";
 import { PresetDetail } from "./components/preset-detail.jsx";
 import { updatePresetRoute } from "./utils/preset-route.js";
+import { APP_UNLOCK_PATH, matchRoute } from "./utils/route-match.js";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { AboutOverlay } from "./components/about-overlay.jsx";
@@ -124,14 +126,13 @@ const TeaserSkeleton = () => (
 );
 
 // With VITE_TEASER=1 the pre-launch teaser is the index everywhere. The app
-// is then reached only via the secret unlock path below (or ?preview) —
+// is then reached only via the secret APP_UNLOCK_PATH (or ?preview) —
 // visiting it flips a persisted `gs_preview` flag that reveals the app from
 // then on, and drops the token from the URL. `?teaser` re-locks (handy for
 // previewing the teaser again). Any other value, unset included, serves the
 // app: the same `=== "1"` test as vite.config.js, prerender.js and
 // generate-sitemap.js, so the client and the build never disagree. Launch
 // sets VITE_TEASER=0 (1 = teaser) on the deploy.
-const APP_UNLOCK_PATH = "/studio-d74dea52";
 const TEASER_MODE = import.meta.env.VITE_TEASER === "1";
 
 // Run once at module load: if the URL is the secret unlock path, persist the
@@ -197,45 +198,44 @@ const App = () => {
   }
 
   if (typeof window !== "undefined") {
-    // Strip an optional trailing `/index.html` first, then a trailing
-    // slash. This lets static hosts that serve the SPA at the literal
-    // file path (Lighthouse CI's local server, certain S3 setups, file://
-    // previews) resolve to home instead of falling through to NotFound.
-    const path = window.location.pathname
-      .replace(/\/index\.html$/, "")
-      .replace(/\/$/, "") || "/";
-    if (path === "/brand") return <BrandPage />;
-    if (path === "/docs") return <DocsPage />;
-    if (path === "/changelog") return <ChangelogPage />;
-    if (path === "/integrations") return <IntegrationsPage />;
-    if (path === "/examples")
+    // Home, /looks/:id (known ids only) and /embed fall through to the
+    // canvas app; see src/utils/route-match.js.
+    const { page, to } = matchRoute(window.location.pathname);
+    // A retired look: go where vercel.json's 308 sends it, keeping the query
+    // and hash like a browser following that redirect does.
+    if (page === "redirect") {
+      window.location.replace(`${to}${window.location.search}${window.location.hash}`);
+      return null;
+    }
+    if (page === "brand") return <BrandPage />;
+    if (page === "docs") return <DocsPage />;
+    if (page === "changelog") return <ChangelogPage />;
+    if (page === "integrations") return <IntegrationsPage />;
+    if (page === "examples")
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh", background: "#0b0b0c" }} />}>
           <ExamplesPage />
         </Suspense>
       );
-    if (path === "/gallery")
+    if (page === "gallery")
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
           <GalleryPage />
         </Suspense>
       );
-    if (/^\/compare\/[\w-]+$/.test(path))
+    if (page === "compare")
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
           <ComparePage />
         </Suspense>
       );
-    if (path === "/privacy")
+    if (page === "privacy")
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
           <PrivacyPage />
         </Suspense>
       );
-    const isHome = path === "/";
-    const isPresetRoute = /^\/looks\/[\w-]+$/.test(path);
-    const isEmbed = path === "/embed";
-    if (!isHome && !isPresetRoute && !isEmbed) return <NotFoundPage />;
+    if (page === "not-found") return <NotFoundPage />;
   }
 
   const globeCanvasRef = useRef(null);
@@ -775,7 +775,7 @@ const App = () => {
       window.history.pushState({}, "", "/");
       // Restore the homepage SEO + share metadata (mirrors the applyLook block
       // above). Keeps link previews accurate when users navigate back to root.
-      const homeTitle = "Globestudio: Open-Source Dotted Maps and 3D Globes for Designers";
+      const homeTitle = "Globestudio: Open-Source Dotted Maps and 3D Globes";
       const homeDescription = "Designer-first tool for dotted maps and animated 3D globes. Pick any country, region, or US state. Customize shapes, gradients, shader effects. Export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Open source under MIT.";
       const homeImage = shareCardUrl("default");
       document.title = homeTitle;
@@ -1478,7 +1478,7 @@ const App = () => {
           so keyboard users don't have to tab through chrome to reach the
           globe. WCAG 2.4.1 Bypass Blocks (Level A). */}
       <a href="#globe-canvas" className="skip-link">Skip to globe</a>
-      <h1 className="visually-hidden">Free dotted map and 3D globe generator: export PNG, SVG, WebM, MP4, GIF or an embed, no watermark</h1>
+      <h1 className="visually-hidden">{pageHeading(lookPresets.find((p) => p.id === currentPresetId))}</h1>
       <div className="visually-hidden" role="status" aria-live="polite">{statusMessage}</div>
       {/* Persistent screen-reader description of canvas state. The existing
           aria-live status above narrates *changes*; this proxy gives
@@ -1809,6 +1809,20 @@ const App = () => {
             viewMode={viewMode}
             usStates={usStates}
           />
+        {/* The studio's own links to the rest of the site, so crawlers that
+            run JS reach every page from "/" (the prerendered body's
+            TakeoverFooter is replaced on mount). Plain anchors like the
+            takeover pages use: each page is its own document. Inside the
+            rail, so the mobile sheet carries them too. */}
+        <nav className="takeover-footer-links panel-links" aria-label="Site links">
+          <a href="/gallery">Gallery</a>
+          <a href="/docs">Docs</a>
+          <a href="/integrations">Integrations</a>
+          <a href="/examples">Examples</a>
+          <a href="/compare/cobe">vs cobe</a>
+          <a href="/compare/geolayers">vs GEOlayers</a>
+          <a href="/changelog">Changelog</a>
+        </nav>
       </section>
 
       <ExportModal

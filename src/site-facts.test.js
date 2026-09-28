@@ -33,6 +33,8 @@ describe("index.html site facts", () => {
 
   it("lists every look in the JSON-LD ItemList", () => {
     const list = graphNode("ItemList");
+    // schema.org only defines the ItemListOrderType URLs, not bare words.
+    expect(list.itemListOrder).toBe("https://schema.org/ItemListUnordered");
     expect(list.numberOfItems).toBe(lookPresets.length);
     expect(list.itemListElement).toEqual(
       lookPresets.map((preset, index) => ({
@@ -71,9 +73,15 @@ describe.each(["public/llms.txt", "public/llms-full.txt"])("%s", (path) => {
   const text = read(path).replace(/\n>?\s*/g, " ");
 
   it("states the look count and scopes the projections claim", () => {
-    expect(text).toContain(`${lookPresets.length} shader looks`);
+    // "looks", not "shader looks": Default has no shader effect.
+    expect(text).toContain(`${lookPresets.length} looks`);
+    expect(text).not.toMatch(/shader looks/);
     expect(text).toContain("5 flat projections for solid maps (dotted maps use Mercator)");
     expect(text).not.toMatch(/5 projections/);
+  });
+
+  it("uses no em dashes as punctuation", () => {
+    expect(text).not.toContain("—");
   });
 
   it("names every export format", () => {
@@ -126,7 +134,7 @@ describe("share cards", () => {
 
 describe("icons", () => {
   // Crawlers, link unfurlers and iOS request these paths even when no tag
-  // links them; without the files the SPA rewrite answers with index.html.
+  // links them; without the files those requests 404.
   it("ships favicon.ico and a 180px apple-touch-icon, and links both", () => {
     const ico = readFileSync(resolve(repoRoot, "public/favicon.ico"));
     expect(ico.readUInt16LE(2)).toBe(1); // ICO resource type

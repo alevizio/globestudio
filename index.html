@@ -53,7 +53,7 @@
       })();
     </script>
 
-    <title>Globestudio: Open-Source Dotted Maps and 3D Globes for Designers</title>
+    <title>Globestudio: Open-Source Dotted Maps and 3D Globes</title>
     <meta
       name="description"
       content="Open-source dotted maps and animated 3D globes for designers. Pick any country, choose from __GS_LOOK_COUNT__ looks, export PNG, SVG, WebM, MP4, GIF, JSON or an embed."
@@ -69,7 +69,7 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Globestudio" />
-    <meta property="og:title" content="Globestudio: Open-Source Dotted Maps and 3D Globes for Designers" />
+    <meta property="og:title" content="Globestudio: Open-Source Dotted Maps and 3D Globes" />
     <meta
       property="og:description"
       content="Designer-first tool for dotted maps and animated 3D globes. Gradients, shader effects, presets, and clean exports for landing pages, decks, and launches. Open source."
@@ -106,7 +106,7 @@
          unfurlers and iOS request by path whether or not they're linked:
          /favicon.ico (16/32/48) and /apple-touch-icon.png (180, opaque).
          Both are built from favicon.svg and must ship in /public, or
-         Vercel's SPA rewrite answers those paths with index.html. -->
+         those requests 404. -->
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -186,81 +186,11 @@
             ]
           },
           {
-            "@type": "FAQPage",
-            "@id": "https://globestudio.app/#faq",
-            "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "What is Globestudio?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Globestudio is a designer-first, open-source web tool for creating dotted maps and animated 3D globes. Pick any country, region, or US state, customize dot shapes, gradients, and WebGL shader effects, then export PNG, SVG, WebM, MP4 or GIF, a JSON config, or an embed. It runs in the browser with no account or install."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Is Globestudio free to use commercially?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Yes. Globestudio is MIT-licensed, so you can use it commercially without paying. MIT requires you to keep the LICENSE + NOTICE files when redistributing the source or built bundle (NOTICE credits Pixelarticons and the open atlases the tool relies on). The visuals you export (PNG, SVG, WebM, MP4, GIF, JSON) are yours; no attribution needed on the exports themselves. The whole tool runs client-side in your browser; nothing is sent to a server."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "How do I export a dotted globe?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Press D or click the Export button to open the export dialog. PNG exports re-render the canvas at up to 4x resolution; SVG exports produce vector output for print or further editing; WebM, MP4 and GIF exports record the live animation; JSON exports save the full config so others can reproduce your look."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Does Globestudio work on mobile?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Yes. Globestudio works on modern mobile browsers (iOS Safari 15.4+, Chrome for Android, Samsung Internet) that support WebGL 2. The interface adapts to small viewports; the panel hides on first visit so the visual is the first impression."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "What design tools does Globestudio integrate with?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "The Globestudio Figma plugin, in the Figma Community, inserts a globe into your file. For websites, paste the iframe or the one-line script embed into Webflow, Framer or plain HTML, or the embed URL into Notion; it works in WordPress via a Custom HTML embed. React apps can use @globestudio/react, and AI assistants can use the @globestudio/mcp server. PNG and SVG exports drop into any design tool: Figma, Sketch, Adobe Illustrator, Affinity Designer."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Can I animate the globe?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Yes. The globe view supports auto-spin, dot rotation, twinkle, size variance, and animated network arcs. WebM, MP4 and GIF exports capture the live animation; all motion respects the user's prefers-reduced-motion preference automatically."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "What browsers are supported?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Globestudio requires WebGL 2 (~95% global support as of 2026). Chrome 56+, Firefox 51+, Safari 15.2+, Edge 79+, Samsung Internet 7.2+, and Chrome for Android 58+ all work. On older hardware (e.g. Intel HD 3000) WebGL 2 may not be available; in that case the tool shows a fallback message."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "How is Globestudio different from a generic map library?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Globestudio is not a GIS tool. It is a curated motion-design tool focused on one aesthetic, dotted maps and animated globes, with deep control over visual styling (shaders, gradients, shapes). Generic libraries like Mapbox or Leaflet target geocoding, tile servers, and routing; Globestudio targets designers shipping landing pages, decks, and motion graphics."
-                }
-              }
-            ]
-          },
-          {
             "@type": "ItemList",
             "@id": "https://globestudio.app/#looks-list",
             "name": "Look presets",
             "description": "Visual aesthetics shipped with Globestudio, each with its own shareable URL.",
-            "itemListOrder": "Unordered",
+            "itemListOrder": "https://schema.org/ItemListUnordered",
             "numberOfItems": "__GS_LOOK_COUNT__",
             "itemListElement": "__GS_LOOKS_ITEMLIST__"
           }
