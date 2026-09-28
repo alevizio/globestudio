@@ -374,3 +374,32 @@ test("build_share_url reports config keys the app would drop", async () => {
   assert.deepEqual(json.ignored, ["bogus", "density", "globeSettings.nope"]);
   assert.deepEqual(appConfigOf(json.share_url), { globeSettings: { ...DEFAULT_GLOBE_SETTINGS, autoSpin: false } });
 });
+
+test("build_share_url and read_share_url leave out values a link cannot carry", async () => {
+  // The app decodes ?c= twice, so "%" in a value voids the whole link and an
+  // SVG custom shape (its data URL is percent encoded) never survives one.
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5"/></svg>`;
+  const { json } = await callTool("build_share_url", {
+    look: "default",
+    dotColor: "#ff0000",
+    config: {
+      shape: "ASCII",
+      asciiSymbol: "%",
+      customShape: { type: "image/svg+xml", dataUrl: `data:image/svg+xml,${encodeURIComponent(svg)}` },
+    },
+  });
+  assert.deepEqual(json.ignored, ["asciiSymbol", "customShape"]);
+  assert.match(json.ignored_note, /% sign/);
+  assert.deepEqual(json.config, { dotColor: "#ff0000", shape: "ASCII" });
+  assert.deepEqual(appConfigOf(json.share_url), { dotColor: "#ff0000", shape: "ASCII" });
+  assert.deepEqual(appConfigOf(json.embed_url), { shape: "ASCII" });
+
+  // A link whose ?c= was encoded twice does hand the app a "%": report it as
+  // the app applies it, and keep it out of the links handed back.
+  const twice = encodeURIComponent(encodeURIComponent(JSON.stringify({ v: 1, asciiSymbol: "%", density: 55 })));
+  const read = await callTool("read_share_url", { url: `${SITE}/?c=${twice}` });
+  assert.deepEqual(read.json.config, appConfigOf(`${SITE}/?c=${twice}`));
+  assert.equal(read.json.config.asciiSymbol, "%");
+  assert.deepEqual(read.json.ignored, ["asciiSymbol"]);
+  assert.deepEqual(appConfigOf(read.json.share_url), { density: 55 });
+});

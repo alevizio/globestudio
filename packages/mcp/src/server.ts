@@ -443,6 +443,24 @@ const embedUrl = (look: string | null, config: ShareConfig, options: Record<stri
   return params.length > 0 ? `${SITE_URL}/embed?${params.join("&")}` : `${SITE_URL}/embed`;
 };
 
+// The app decodes ?c= twice (URLSearchParams, then decodeURIComponent in
+// parseShareConfig), so a "%" inside a value comes back changed or, as in an
+// SVG custom shape's data URL, makes the app drop the whole config. Links
+// leave such keys out rather than open with none of their settings.
+const splitLinkable = (config: ShareConfig) => {
+  const kept: ShareConfig = {};
+  const dropped: string[] = [];
+  for (const [key, value] of Object.entries(config)) {
+    if (JSON.stringify(value).includes("%")) dropped.push(key);
+    else kept[key] = value;
+  }
+  return { kept, dropped };
+};
+
+const IGNORED_NOTE = "Globestudio does not accept these keys or values, so they were left out.";
+const UNLINKABLE_NOTE =
+  "Left out because Globestudio does not accept them or a link cannot carry them: Globestudio misreads a % sign inside a link, which also rules out SVG custom shapes.";
+
 const NESTED = new Set<string>(NESTED_KEYS);
 
 // Keys (and nested keys) of a requested config the app would drop.
@@ -487,15 +505,15 @@ const buildShareUrl = (input: z.infer<typeof BuildShareUrlSchema>) => {
   const changes = normalizeConfig(requested);
 
   const look = input.look ?? base?.look ?? null;
-  const config = mergeConfig(base?.config ?? {}, changes);
-  const ignored = input.config ? ignoredKeys(input.config, changes) : [];
+  const { kept: config, dropped } = splitLinkable(mergeConfig(base?.config ?? {}, changes));
+  const ignored = [...(input.config ? ignoredKeys(input.config, changes) : []), ...dropped];
 
   return {
     share_url: studioUrl(look, config),
     embed_url: embedUrl(look, config, base?.embedOptions ?? {}),
     look,
     config,
-    ...(ignored.length > 0 ? { ignored, ignored_note: "Globestudio does not accept these keys or values, so they were left out." } : {}),
+    ...(ignored.length > 0 ? { ignored, ignored_note: dropped.length > 0 ? UNLINKABLE_NOTE : IGNORED_NOTE } : {}),
   };
 };
 
@@ -523,6 +541,7 @@ const summarize = (look: string | null, config: ShareConfig) => {
 const readShareUrl = (input: z.infer<typeof ReadShareUrlSchema>) => {
   const link = parseLink(input.url);
   const empty = Object.keys(link.config).length === 0;
+  const { kept, dropped } = splitLinkable(link.config);
   return {
     kind: link.kind,
     look: link.look,
@@ -530,8 +549,9 @@ const readShareUrl = (input: z.infer<typeof ReadShareUrlSchema>) => {
     summary: summarize(link.look, link.config),
     config: link.config,
     ...(Object.keys(link.embedOptions).length > 0 ? { embed_options: link.embedOptions } : {}),
-    share_url: studioUrl(link.look, link.config),
-    embed_url: embedUrl(link.look, link.config, link.embedOptions),
+    share_url: studioUrl(link.look, kept),
+    embed_url: embedUrl(link.look, kept, link.embedOptions),
+    ...(dropped.length > 0 ? { ignored: dropped, ignored_note: UNLINKABLE_NOTE } : {}),
     note: link.kind === "studio"
       ? (empty
           ? "This link carries no settings, so it opens the studio as it is."
