@@ -35,9 +35,11 @@ const describeBackground = (config) => {
 
 // Short "Label: value" lines, one per setting a person would name when
 // describing the design. Settings the config doesn't carry are skipped.
-export const describeDesign = ({ lookName, regionName, config = {} }) => {
+// A look the design has been edited away from is where it started, not
+// what it is, so the agent doesn't rebuild the plain look.
+export const describeDesign = ({ lookName, lookEdited = false, regionName, config = {} }) => {
   const lines = [];
-  if (lookName) lines.push(`Look: ${lookName}`);
+  if (lookName) lines.push(`${lookEdited ? "Started from" : "Look"}: ${lookName}`);
   if (regionName) lines.push(`Region: ${regionName}`);
   lines.push(`View: ${config.viewMode === "flat" ? "flat map" : "3D globe"}`);
   if (config.renderMode === "solid") {
@@ -53,13 +55,13 @@ export const describeDesign = ({ lookName, regionName, config = {} }) => {
   return lines;
 };
 
-export const buildAgentPrompt = ({ shareUrl, lookName, regionName, config }) =>
+export const buildAgentPrompt = ({ shareUrl, lookName, lookEdited, regionName, config }) =>
   [
     "I made this globe with Globestudio (globestudio.app), an open source tool for dotted maps and 3D globes.",
     "",
     `Link: ${shareUrl}`,
     "",
-    ...describeDesign({ lookName, regionName, config }),
+    ...describeDesign({ lookName, lookEdited, regionName, config }),
     "",
     "The link opens this exact design. Its c parameter is URL encoded JSON that follows globestudio.app/schema/config.json.",
     "",

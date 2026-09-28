@@ -91,7 +91,7 @@ const writeClipboard = async (text) => {
   if (!copied) throw new Error("Copy refused");
 };
 
-export const AgentShare = ({ getShareUrl, lookName, regionName }) => {
+export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) => {
   const id = useId();
   const [status, setStatus] = useState("idle");
   const [clientId, setClientId] = useState(CLIENTS[0].id);
@@ -103,7 +103,13 @@ export const AgentShare = ({ getShareUrl, lookName, regionName }) => {
     // Same link the Copy share link button copies, read at click time so
     // the prompt always matches what is on screen.
     const shareUrl = typeof getShareUrl === "function" ? getShareUrl() : window.location.href;
-    const prompt = buildAgentPrompt({ shareUrl, lookName, regionName, config: readConfig(shareUrl) });
+    const prompt = buildAgentPrompt({
+      shareUrl,
+      lookName,
+      lookEdited: typeof isLookEdited === "function" && isLookEdited(),
+      regionName,
+      config: readConfig(shareUrl),
+    });
     try {
       await writeClipboard(prompt);
       setStatus("copied");

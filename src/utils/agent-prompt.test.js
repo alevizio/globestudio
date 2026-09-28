@@ -41,6 +41,13 @@ describe("buildAgentPrompt", () => {
     expect(prompt).toContain("Effect: Risograph");
   });
 
+  it("says where the design started once it has been edited from the look", () => {
+    const { prompt } = promptFor(busyConfig, { lookEdited: true });
+    expect(prompt).toContain("Started from: Risograph");
+    expect(prompt).not.toContain("Look: Risograph");
+    expect(promptFor(busyConfig, { lookEdited: false }).prompt).toContain("Look: Risograph");
+  });
+
   it("says what the agent can do and where the MCP server is", () => {
     const { prompt } = promptFor(busyConfig);
     expect(prompt).toMatch(/1\. Edit the design and give me a new link\./);
@@ -51,7 +58,7 @@ describe("buildAgentPrompt", () => {
   });
 
   it("keeps the words around the link under the budget", () => {
-    const { shareUrl, prompt } = promptFor(busyConfig);
+    const { shareUrl, prompt } = promptFor(busyConfig, { lookEdited: true });
     expect(prompt.length - shareUrl.length).toBeLessThanOrEqual(AGENT_PROMPT_BUDGET);
   });
 

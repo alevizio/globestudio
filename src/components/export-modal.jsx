@@ -214,6 +214,7 @@ export const ExportModal = ({
   importConfig,
   getShareUrl,
   lookName,
+  isLookEdited,
   regionName,
 }) => {
   const [tab, setTab] = useState("image");
@@ -535,7 +536,12 @@ export const ExportModal = ({
               </button>
               <ErrorBoundary fallback={null}>
                 <Suspense fallback={null}>
-                  <AgentShare getShareUrl={getShareUrl} lookName={lookName} regionName={regionName} />
+                  <AgentShare
+                    getShareUrl={getShareUrl}
+                    lookName={lookName}
+                    isLookEdited={isLookEdited}
+                    regionName={regionName}
+                  />
                 </Suspense>
               </ErrorBoundary>
               <button

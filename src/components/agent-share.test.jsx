@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { AgentShare } from "./agent-share.jsx";
+import { track } from "./analytics.jsx";
 
 vi.mock("./analytics.jsx", () => ({ track: vi.fn() }));
 
@@ -42,6 +43,22 @@ describe("AgentShare", () => {
     expect(screen.getByRole("status").textContent).toBe("Prompt copied to clipboard");
     // The button stays mounted, so keyboard focus stays where it was.
     expect(button).toBeTruthy();
+  });
+
+  it("says Started from when the design was edited after the look applied", async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    stubClipboard(writeText);
+    const isLookEdited = vi.fn(() => true);
+    renderBlock({ isLookEdited });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Copy for AI/ }));
+    });
+    // Asked at click time, so the label matches the canvas right then.
+    expect(isLookEdited).toHaveBeenCalledTimes(1);
+    const prompt = writeText.mock.calls[0][0];
+    expect(prompt).toContain("Started from: Halftone");
+    expect(prompt).not.toContain("Look: Halftone");
+    expect(track).toHaveBeenCalledWith("share_clicked", { method: "ai" });
   });
 
   it("falls back to execCommand without the Clipboard API, keeping focus on the button", async () => {

@@ -328,6 +328,48 @@ test.describe("Share tab, Use with AI", () => {
     expect(prompt).toContain("Connect the Globestudio MCP server for full control: https://globestudio.app/mcp");
   });
 
+  test("Copy for AI names the look until the design is edited, then says where it started", async ({ page }) => {
+    const copyPrompt = async () => {
+      await page.keyboard.press("d");
+      const dialog = page.getByRole("dialog", { name: /export/i });
+      await dialog.getByRole("tab", { name: "Share" }).click();
+      await dialog.getByRole("button", { name: "Copy for AI" }).click();
+      await expect(dialog.getByRole("button", { name: "Prompt copied to clipboard" })).toBeVisible();
+      const prompt = await page.evaluate(() => navigator.clipboard.readText());
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      return prompt;
+    };
+
+    await page.goto("/looks/halftone");
+    await waitForCanvas(page);
+    await expect(page.getByText(/Applied Halftone/i)).toBeVisible();
+    expect(await copyPrompt()).toContain("Look: Halftone");
+
+    await page.keyboard.press("g");
+    await expect(page.getByText(/Switched to flat view/i)).toBeVisible();
+    const edited = await copyPrompt();
+    expect(edited).toContain("Started from: Halftone");
+    expect(edited).not.toContain("Look: Halftone");
+
+    // An imported configuration replaces the look's settings too.
+    await page.goto("/looks/halftone");
+    await waitForCanvas(page);
+    await expect(page.getByText(/Applied Halftone/i)).toBeVisible();
+    await page.keyboard.press("d");
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await dialog.getByRole("tab", { name: "Share" }).click();
+    await dialog.locator('input[type="file"]').setInputFiles({
+      name: "globe.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify({ version: 1, density: 77 })),
+    });
+    await expect(page.getByText(/Configuration imported/i)).toBeVisible();
+    await dialog.getByRole("button", { name: "Copy for AI" }).click();
+    await expect(dialog.getByRole("button", { name: "Prompt copied to clipboard" })).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("Started from: Halftone");
+  });
+
   test("each Connect tab shows its command for the hosted server", async ({ page }) => {
     const dialog = await openShareTab(page);
     const panel = dialog.getByRole("tabpanel");
