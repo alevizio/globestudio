@@ -112,3 +112,67 @@ URL.
 - MIT licensed. The visuals you export are yours; redistributing the source or
   built bundle requires keeping the LICENSE + NOTICE files (NOTICE credits
   Pixelarticons and the open atlases the tool relies on).
+
+## FAQ
+
+### What is Globestudio?
+
+Globestudio is a designer-first, open-source web tool for creating dotted maps
+and animated 3D globes. Pick any country, region, or US state, customize dot
+shapes, gradients, and WebGL shader effects, then export PNG, SVG, WebM, MP4 or
+GIF, a JSON config, or an embed. It runs in the browser with no account or
+install.
+
+### Is Globestudio free to use commercially?
+
+Yes. Globestudio is MIT-licensed, so you can use it commercially without
+paying. MIT requires you to keep the LICENSE + NOTICE files when redistributing
+the source or built bundle (NOTICE credits Pixelarticons and the open atlases
+the tool relies on). The visuals you export (PNG, SVG, WebM, MP4, GIF, JSON)
+are yours; no attribution needed on the exports themselves. Rendering and
+exports run client-side in your browser; your designs are never uploaded.
+
+### How do I export a dotted globe?
+
+Press D or click the Export button to open the export dialog. PNG exports
+re-render the canvas at up to 4x resolution; SVG exports produce vector output
+for print or further editing; WebM, MP4 and GIF exports record the live
+animation; JSON exports save the full config so others can reproduce your look.
+
+### Does Globestudio work on mobile?
+
+Yes. Globestudio works on modern mobile browsers (iOS Safari 15.4+, Chrome for
+Android, Samsung Internet) that support WebGL 2. The interface adapts to small
+viewports; the panel hides on first visit so the visual is the first
+impression.
+
+### What design tools does Globestudio integrate with?
+
+The Globestudio Figma plugin, in the Figma Community, inserts a globe into your
+file. For websites, paste the iframe or the one-line script embed into Webflow,
+Framer or plain HTML, or the embed URL into Notion; it works in WordPress via a
+Custom HTML embed. React apps can use @globestudio/react, and AI assistants can
+use the @globestudio/mcp server. PNG and SVG exports drop into any design tool:
+Figma, Sketch, Adobe Illustrator, Affinity Designer.
+
+### Can I animate the globe?
+
+Yes. The globe view supports auto-spin, dot rotation, twinkle, size variance,
+and animated network arcs. WebM, MP4 and GIF exports capture the live
+animation; all motion respects the user's prefers-reduced-motion preference
+automatically.
+
+### What browsers are supported?
+
+Globestudio requires WebGL 2 (~95% global support as of 2026). Chrome 56+,
+Firefox 51+, Safari 15.2+, Edge 79+, Samsung Internet 7.2+, and Chrome for
+Android 58+ all work. On older hardware (e.g. Intel HD 3000) WebGL 2 may not be
+available; in that case the tool shows a fallback message.
+
+### How is Globestudio different from a generic map library?
+
+Globestudio is not a GIS tool. It is a curated motion-design tool focused on
+one aesthetic, dotted maps and animated globes, with deep control over visual
+styling (shaders, gradients, shapes). Generic libraries like Mapbox or Leaflet
+target geocoding, tile servers, and routing; Globestudio targets designers
+shipping landing pages, decks, and motion graphics.

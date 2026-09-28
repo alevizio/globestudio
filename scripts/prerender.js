@@ -135,6 +135,9 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
       url: `${SITE}/compare/${c.slug}`,
       image: productCard,
       imageAlt: productCard ? PRODUCT_CARD_ALT : null,
+      // Rendered visibly by ComparePage, so it's marked up here, in the
+      // static head, where crawlers that don't run JS see it too.
+      faq: c.faq,
     });
   }
 
@@ -144,6 +147,8 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
     description: `Browse all ${lookPresets.length} Globestudio looks. Open one to make a dotted map or animated 3D globe, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free, open source.`,
     url: `${SITE}/gallery`,
     image: null,
+    // The gallery lists every look, so it keeps the home ItemList of looks.
+    itemList: true,
   });
 
   // Static pages. These are all in the sitemap, but without a prerendered file
@@ -204,6 +209,41 @@ export const shellRoutes = ["embed", APP_UNLOCK_PATH.slice(1)];
 
 const NOINDEX = '    <meta name="robots" content="noindex, nofollow" />\n  </head>';
 
+// Rewrites the template's JSON-LD @graph for one page. The site-wide nodes
+// (WebSite, SoftwareApplication, SoftwareSourceCode, Person) stay on every
+// page. The ItemList of looks describes the home page's content, so only the
+// gallery, which shows the same list, keeps it. Compare pages add a FAQPage
+// for the FAQ they render.
+const LD_JSON = /(<script type="application\/ld\+json">)([\s\S]*?)(<\/script>)/;
+
+const editGraph = (html, { url, itemList, faq }) =>
+  html.replace(LD_JSON, (_, open, json, close) => {
+    const data = JSON.parse(json);
+    const graph = data["@graph"].filter((node) => itemList || node["@type"] !== "ItemList");
+    if (faq) {
+      graph.push({
+        "@type": "FAQPage",
+        "@id": `${url}#faq`,
+        mainEntity: faq.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: { "@type": "Answer", text: a },
+        })),
+      });
+    }
+    const out = JSON.stringify({ ...data, "@graph": graph }).replace(/<\//g, "<\\/");
+    return `${open}${out}${close}`;
+  });
+
+// One page's HTML from the built template. Returns [html, misses], where
+// misses counts head tags the template didn't have.
+export const renderPage = (template, meta, { teaser = TEASER } = {}) => {
+  let [html, misses] = buildHead(template, meta);
+  html = editGraph(html, meta);
+  if (teaser) html = html.replace("</head>", NOINDEX);
+  return [html, misses];
+};
+
 const writeFile = (routePath, html) => {
   const outDir = resolve(distDir, routePath);
   mkdirSync(outDir, { recursive: true });
@@ -234,8 +274,7 @@ const main = () => {
     cardExists: (id) => existsSync(resolve(distDir, "og", `${id}.png`)),
   });
   for (const meta of routes) {
-    let [html, misses] = buildHead(template, meta);
-    if (TEASER) html = html.replace("</head>", NOINDEX);
+    const [html, misses] = renderPage(template, meta);
     writeFile(meta.route, html);
     totalMisses += misses;
   }
