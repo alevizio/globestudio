@@ -32,6 +32,7 @@ import {
   makeFeatureCollection,
 } from "./utils/dot-generation.js";
 import { createDottedSvg } from "./utils/svg-markup.js";
+import { centerOfPoints } from "./utils/face-points.js";
 import { backgroundKind, exportBackground, previewBackground } from "./utils/canvas-background.js";
 import {
   buildExportFilename,
@@ -574,6 +575,31 @@ const App = () => {
 
   const dotCount = dotsVisible ? mapData.points.length : 0;
 
+  // Picking a country, continent or state turns the globe to face it, the
+  // same whether it came from the panel, a share link or an agent. A link
+  // that carries its own tilt keeps the view it was shared with.
+  const skipFaceSelectionRef = useRef(false);
+  useEffect(() => {
+    if (skipFaceSelectionRef.current) {
+      skipFaceSelectionRef.current = false;
+      return undefined;
+    }
+    if (selection === "world" && selected.mode !== "state") return undefined;
+    const center = centerOfPoints(mapData.points);
+    if (!center) return undefined;
+    let frame = 0;
+    let tries = 0;
+    const face = () => {
+      const canvas = globeCanvasRef.current;
+      if (canvas?.faceLatLng) canvas.faceLatLng(center.lat, center.lng);
+      else if (tries++ < 300) frame = requestAnimationFrame(face);
+    };
+    face();
+    return () => cancelAnimationFrame(frame);
+    // Only a new selection turns the globe; density or shape changes don't.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selection, stateSelection, selected.mode]);
+
   // Everything that decides the canvas background. The preview and every
   // export read their color from utils/canvas-background.js with it, so a
   // file matches the preview (the light theme's cream under Solid included).
@@ -1069,6 +1095,11 @@ const App = () => {
     const set = (key, setter) => {
       if (safeConfig[key] !== undefined) setter(safeConfig[key]);
     };
+    if (safeConfig.selection !== undefined && (safeConfig.tiltX !== undefined || safeConfig.tiltY !== undefined)) {
+      skipFaceSelectionRef.current = true;
+      // If the selection didn't change, no effect consumes the flag: clear it.
+      window.setTimeout(() => { skipFaceSelectionRef.current = false; }, 1000);
+    }
     set("selection", setSelection);
     set("stateSelection", setStateSelection);
     set("background", setBackground);

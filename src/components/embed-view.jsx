@@ -10,6 +10,7 @@ import { DEFAULT_GLOBE_SETTINGS, GLOBE_MORPH_DURATION } from "../config/globe-se
 import { effectPresets, DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { areaOptions } from "../data/geography.js";
 import { createCountryMapData } from "../utils/dot-generation.js";
+import { centerOfPoints } from "../utils/face-points.js";
 import { createDottedSvg } from "../utils/svg-markup.js";
 import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
 import { parseShareConfig } from "../utils/share-config.js";
@@ -184,6 +185,25 @@ export const EmbedView = () => {
   // Set by GlobeBackground after the renderer mounts. Used by the Figma
   // plugin's Insert flow to read the live canvas pixels.
   const canvasHandleRef = useRef(null);
+  // A selected country, continent or subregion turns to face the viewer,
+  // like in the studio, unless the share config brings its own tilt.
+  useEffect(() => {
+    if (!effectiveSelection || effectiveSelection === "world") return undefined;
+    if (shareConfig && (shareConfig.tiltX !== undefined || shareConfig.tiltY !== undefined)) return undefined;
+    const center = centerOfPoints(mapData.points);
+    if (!center) return undefined;
+    let frame = 0;
+    let tries = 0;
+    const face = () => {
+      const canvas = canvasHandleRef.current;
+      if (canvas?.faceLatLng) canvas.faceLatLng(center.lat, center.lng);
+      else if (tries++ < 300) frame = requestAnimationFrame(face);
+    };
+    face();
+    return () => cancelAnimationFrame(frame);
+    // Only a new selection turns the globe.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveSelection]);
   const [inserting, setInserting] = useState(false);
   const isSpaceBackground = settings.backgroundStyle === "space";
   const isFlowBackground = settings.backgroundStyle === "flow";

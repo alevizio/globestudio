@@ -1474,6 +1474,22 @@ export const GlobeBackground = ({
       renderer.domElement.captureAtScale = captureAtScale;
       // For exports that read the live canvas (video, the PNG fallback).
       // Turning a hold on redraws at once, so the very next read is unframed.
+      // Turn the globe so a latitude/longitude faces the camera, the short
+      // way round, by moving the same eased target a drag or autospin moves.
+      // A point faces the camera at Y rotation -90deg - lng and X rotation lat
+      // (see latLngToVector3); the saved tilts already count toward that.
+      renderer.domElement.faceLatLng = (lat, lng) => {
+        const state = stateRef.current;
+        const { tiltX = 0, tiltY = 0 } = transformRef.current;
+        const wantY = THREE.MathUtils.degToRad(-90 - lng - tiltY);
+        const wantX = clampNumber(THREE.MathUtils.degToRad(lat - tiltX), -1.18, 1.18);
+        state.targetY = wantY + Math.round((state.targetY - wantY) / (Math.PI * 2)) * Math.PI * 2;
+        state.targetX = wantX;
+        if (reducedMotionRef.current) {
+          state.currentY = state.targetY;
+          state.currentX = state.targetX;
+        }
+      };
       renderer.domElement.holdFullFrame = (on) => {
         holdFullFrame(on);
         if (on) postHandle.composer.render();
