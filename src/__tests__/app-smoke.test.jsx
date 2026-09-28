@@ -60,6 +60,18 @@ describe("App smoke", () => {
     // guards "doesn't throw", not timing, so give it room.
   }, 20000);
 
+  it("gives each look page its own H1 instead of the home one", async () => {
+    window.history.pushState({}, "", "/looks/halftone");
+    try {
+      const { default: App } = await import("../App.jsx");
+      render(<App />);
+      const headings = screen.getAllByRole("heading", { level: 1 });
+      expect(headings.map((h) => h.textContent)).toEqual(["Halftone dotted map and 3D globe look"]);
+    } finally {
+      window.history.pushState({}, "", "/");
+    }
+  }, 20000);
+
   it("serves the teaser instead of the studio only when VITE_TEASER is 1", async () => {
     // TEASER_MODE is read at module load, so re-import App with the flag set.
     vi.stubEnv("VITE_TEASER", "1");

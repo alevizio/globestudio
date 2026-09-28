@@ -273,3 +273,11 @@ export const presetSeo = {
 };
 
 export const getPresetSeo = (presetId) => presetSeo[presetId] || null;
+
+// The page's one H1: the look's name on /looks/:id, the generator pitch on
+// "/". App.jsx renders it visually hidden over the canvas, so each look page
+// gets its own H1 instead of sharing the home one.
+export const pageHeading = (preset) =>
+  preset
+    ? `${preset.name} dotted map and 3D globe look`
+    : "Free dotted map and 3D globe generator: export PNG, SVG, WebM, MP4, GIF or an embed, no watermark";
