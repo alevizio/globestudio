@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Check, Clipboard } from "../icons.jsx";
 
 // Reusable <pre> wrapper with a click-to-copy button. Used in /docs for
@@ -6,8 +6,20 @@ import { Check, Clipboard } from "../icons.jsx";
 // glyph for 1.5s after a successful copy, then resets. Falls back to
 // document.execCommand on browsers without the async clipboard API
 // (rare in 2026 but cheap to support — covers locked-down corp Macs).
+// `wrap` is for one-line commands: on a phone they wrap between arguments
+// instead of scrolling sideways, and no argument breaks inside itself
+// (Chrome would split "--url" after its dashes). Copy still writes the
+// plain string.
 
-export const CodeBlock = ({ children, language, className = "" }) => {
+const Args = ({ text }) =>
+  text.split(" ").map((arg, index) => (
+    <Fragment key={index}>
+      {index > 0 && " "}
+      <span className="code-block-arg">{arg}</span>
+    </Fragment>
+  ));
+
+export const CodeBlock = ({ children, language, className = "", wrap = false }) => {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef(0);
 
@@ -41,7 +53,7 @@ export const CodeBlock = ({ children, language, className = "" }) => {
   };
 
   return (
-    <div className={`code-block ${className}`.trim()} data-language={language}>
+    <div className={`code-block ${wrap ? "is-wrap " : ""}${className}`.trim()} data-language={language}>
       <div className="code-block-header">
         {language && (
           <span className="code-block-language">{language}</span>
@@ -61,7 +73,7 @@ export const CodeBlock = ({ children, language, className = "" }) => {
         </button>
       </div>
       <pre className="code-block-pre">
-        <code>{children}</code>
+        <code>{wrap ? <Args text={children} /> : children}</code>
       </pre>
     </div>
   );

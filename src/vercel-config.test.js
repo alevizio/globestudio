@@ -30,6 +30,16 @@ describe("vercel.json", () => {
     }
   });
 
+  it("sends /mcp to the MCP function before the SPA fallback, uncached", () => {
+    // Rewrites apply in order and the SPA pattern also matches /mcp, so the
+    // MCP rewrite has to come first or MCP clients get index.html.
+    const indexOf = (destination) =>
+      vercelConfig.rewrites.findIndex((rewrite) => rewrite.destination === destination);
+    expect(vercelConfig.rewrites[indexOf("/api/mcp")]?.source).toBe("/mcp");
+    expect(indexOf("/api/mcp")).toBeLessThan(indexOf("/index.html"));
+    expect(headersFor("/mcp")).toContainEqual({ key: "Cache-Control", value: "no-store" });
+  });
+
   it("caches content-hashed assets for a year", () => {
     expect(headersFor("/assets/index-deadbeef.js")).toContainEqual({
       key: "Cache-Control",

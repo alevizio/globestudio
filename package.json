@@ -20,6 +20,7 @@
     "check": "npm run test && npm run build && npm run check:bundle"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.1",
     "@paper-design/shaders-react": "^0.0.76",
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.4.0",
@@ -34,7 +35,8 @@
     "three": "^0.184.0",
     "topojson-client": "^3.1.0",
     "us-atlas": "^3.0.1",
-    "world-atlas": "^2.0.2"
+    "world-atlas": "^2.0.2",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

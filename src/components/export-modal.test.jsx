@@ -137,6 +137,15 @@ describe("ExportModal", () => {
     expect(exportPng).toHaveBeenCalledTimes(1);
   });
 
+  it("loads the Use with AI block on the Share tab, after the link and React buttons", async () => {
+    renderModal({ getShareUrl: () => "https://globestudio.app/?c=%7B%7D" });
+    fireEvent.click(screen.getByRole("tab", { name: "Share" }));
+    const heading = await screen.findByRole("heading", { name: "Use with AI" });
+    const react = screen.getByRole("button", { name: /Copy as React/ });
+    expect(react.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Copy for AI/ })).toBeTruthy();
+  });
+
   describe("importing a configuration file", () => {
     const importText = (container, text) => {
       fireEvent.click(screen.getByRole("tab", { name: "Share" }));

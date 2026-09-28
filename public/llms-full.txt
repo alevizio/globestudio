@@ -25,8 +25,27 @@ For full control, encode a complete config object and pass it as `?c=<json>`
 config is published at <https://globestudio.app/schema/config.json> — editors
 that read `$schema` autocomplete + validate it.
 
-There is also an MCP server, **`@globestudio/mcp`** (`npx -y @globestudio/mcp`),
-that exposes tools to build configs, share URLs, and embed snippets in chat.
+### MCP server
+
+Globestudio runs a hosted MCP server at **`https://globestudio.app/mcp`**
+(streamable HTTP, stateless, no install, no auth). Connect it by URL:
+
+- Claude app (claude.ai, Desktop): Customize, Connectors, then + and Add custom
+  connector. Paste the URL.
+- Claude Code: `claude mcp add --transport http globestudio https://globestudio.app/mcp`
+- Codex: `codex mcp add globestudio --url https://globestudio.app/mcp`
+- Cursor: `{ "mcpServers": { "globestudio": { "url": "https://globestudio.app/mcp" } } }`
+  in `~/.cursor/mcp.json`.
+
+Tools: `list_presets`, `find_presets`, `build_share_url`, `embed_snippet`,
+`preview_url`, and `read_share_url`, which decodes a share link the user pastes
+(`/?c=…`, `/looks/<id>?c=…` or an `/embed` URL) into its look and settings so
+you can change it and hand back a new link. The same tools run locally as
+**`@globestudio/mcp`** (`npx -y @globestudio/mcp`).
+
+A user without an MCP client can press **Copy for AI** in the export dialog's
+Share tab. It copies a plain text prompt with the share link, the key
+settings, and what an agent can do with them.
 
 ### Common URL parameters
 
@@ -96,7 +115,8 @@ URL.
 - Integrations (Webflow / Framer / Figma / Notion / WordPress / plain HTML /
   React, per-tool setup): <https://globestudio.app/integrations>
 - WordPress: works via a Custom HTML embed (<https://globestudio.app/integrations>). A block plugin is in the repo, not yet on wordpress.org: <https://github.com/alevizio/globestudio/blob/main/wordpress-plugin/globestudio/README.md>
-- MCP server: <https://github.com/alevizio/globestudio/blob/main/packages/mcp/README.md>
+- MCP server: hosted at <https://globestudio.app/mcp>; tool list + setup at
+  <https://github.com/alevizio/globestudio/blob/main/packages/mcp/README.md>
 - JSON Schema: <https://globestudio.app/schema/config.json>
 - React component (`npm i @globestudio/react`): <https://www.npmjs.com/package/@globestudio/react>
 - Script-tag loader: <https://globestudio.app/embed.js>

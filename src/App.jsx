@@ -456,6 +456,15 @@ const App = () => {
     const match = window.location.pathname.match(/^\/looks\/([\w-]+)/);
     return match ? match[1] : null;
   });
+  // Whether the design has changed since the current look applied, for the
+  // Copy for AI prompt ("Started from: <look>" vs "Look: <look>"). The
+  // baseline is the config as the render that applied the look left it:
+  // applyLook marks it pending under a new count, and the effect after
+  // buildCurrentConfig takes the snapshot on that render. An import clears
+  // it, since what a share link or JSON file loads is not the look.
+  const lookApplyCountRef = useRef(0);
+  const [lookApplyCount, setLookApplyCount] = useState(0);
+  const lookBaselineRef = useRef(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -702,6 +711,9 @@ const App = () => {
     setSelectedDots(new Set());
     setAppliedLookId(preset.id);
     setCurrentPresetId(preset.id);
+    lookApplyCountRef.current += 1;
+    lookBaselineRef.current = { pending: lookApplyCountRef.current };
+    setLookApplyCount(lookApplyCountRef.current);
     setStatusMessage(`Applied ${preset.name}`);
     window.setTimeout(() => setAppliedLookId((id) => (id === preset.id ? null : id)), 700);
     // URL + per-preset SEO/share metadata (document.title, meta tags,
@@ -984,6 +996,20 @@ const App = () => {
     ],
   );
 
+  // Takes the look baseline on the render that applied the look (see
+  // lookBaselineRef), never on a later edit.
+  useEffect(() => {
+    if (lookBaselineRef.current?.pending === lookApplyCount) {
+      lookBaselineRef.current = JSON.stringify(buildCurrentConfig());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lookApplyCount]);
+  // Read at click time, like getShareUrl, so it always matches the canvas.
+  const isLookEdited = useCallback(
+    () => lookBaselineRef.current !== JSON.stringify(buildCurrentConfig()),
+    [buildCurrentConfig],
+  );
+
   const exportConfig = () => {
     // Prepend a $schema reference so editors (VS Code, Cursor, WebStorm)
     // pick up autocomplete + validation when the user opens the
@@ -1019,6 +1045,7 @@ const App = () => {
       setStatusMessage("Configuration could not be imported");
       return false;
     }
+    lookBaselineRef.current = null;
     const set = (key, setter) => {
       if (safeConfig[key] !== undefined) setter(safeConfig[key]);
     };
@@ -1810,6 +1837,9 @@ const App = () => {
         exportConfig={exportConfig}
         importConfig={importConfig}
         getShareUrl={getShareUrl}
+        lookName={lookPresets.find((p) => p.id === currentPresetId)?.name}
+        isLookEdited={isLookEdited}
+        regionName={selected.label}
       />
 
       <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />

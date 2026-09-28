@@ -80,6 +80,11 @@ const BUDGETS = [
   { prefix: "compare-page-",     ext: ".css", raw:   3_500,  gzip:   1_500, lazy: true },
   // Look, region, density and view pickers, fetched only by /embed?plugin=figma.
   { prefix: "figma-plugin-pickers-", ext: ".js", raw: 2_000, gzip: 1_000, lazy: true },
+  // "Use with AI" in the export dialog's Share tab (Copy for AI prompt +
+  // MCP connect commands), fetched only when that tab opens. Its CSS rides
+  // along so the critical stylesheet doesn't grow.
+  { prefix: "agent-share-",      ext: ".js",  raw:   6_500,  gzip:   3_000, lazy: true },
+  { prefix: "agent-share-",      ext: ".css", raw:   2_000,  gzip:   1_000, lazy: true },
   // Config defaults split into shared chunks once look-presets is imported by
   // a lazy route (gallery) as well as the main app.
   { prefix: "globe-settings-",   ext: ".js",  raw:   3_000,  gzip:   1_500, lazy: false },

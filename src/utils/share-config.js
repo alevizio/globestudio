@@ -18,6 +18,26 @@
 // (LZ-string) could halve URL length but adds 3kb of runtime weight —
 // not worth it for a v1 share feature where typical configs land at
 // 800-1500 chars. Most chat/social platforms handle that fine.
+//
+// Versions. The payload's `v` says how to decode it. v1 links (every link
+// made before v2) were read with URLSearchParams AND a second
+// decodeURIComponent, so a "%" in any value (an ASCII symbol, text, the
+// percent-encoded data URL of an SVG custom shape) came back changed or
+// threw and lost the whole config. v2 links are read with URLSearchParams
+// alone, the exact inverse of the single encodeURIComponent above.
+//
+// The marker is unambiguous: no encoder ever wrote `"v":2` before v2
+// existed (the app and the MCP server wrote 1, hand-written links 1 or
+// nothing). So a payload that parses after one decode AND says v2 is
+// read that way; anything else takes the v1 path, byte for byte the old
+// reader, so every old link opens as it always did. That also covers a
+// token encoded twice (@globestudio/react, @globestudio/element and
+// embed.js re-encode what they are given), which fails the one-decode
+// parse and reads correctly after two. Only when the v1 path throws, as
+// a v1 link with a "%" did, does the one-decode parse stand in: those
+// links used to open with nothing, and now open with the sender's config.
+// Old readers (the MCP server before v2, an old tab) still open v2 links
+// that carry no "%", since a second decode of those changes nothing.
 
 import { CUSTOM_SHAPE_MAX_BYTES, dotShapeOptions } from "../config/constants.js";
 import { DEFAULT_FLOW_SETTINGS, DEFAULT_SPACE_SETTINGS } from "../config/backgrounds.js";
@@ -27,7 +47,8 @@ import { sanitizeSvgSource } from "./custom-shape.js";
 import { clampNumber } from "./math.js";
 
 const PARAM_KEY = "c";
-const VERSION = 1;
+// See "Versions" above: v2 payloads are decoded once, v1 twice.
+const VERSION = 2;
 const HEX_RE = /^#?[0-9a-fA-F]{3,8}$/;
 const ALLOWED_IMAGE_DATA_RE = /^data:image\/(?:png|jpe?g|webp);base64,/i;
 const ALLOWED_ENCODED_SVG_RE = /^data:image\/svg\+xml(?:;charset=[^;,]+)?,/i;
@@ -289,6 +310,26 @@ export const buildShareUrl = (config, origin, pathname = "/") => {
   return `${base}${pathname}?${PARAM_KEY}=${encoded}${teaser}`;
 };
 
+const parseJson = (text) => {
+  try {
+    return JSON.parse(text);
+  } catch (_err) {
+    return undefined;
+  }
+};
+
+// `raw` is the ?c= value after URLSearchParams' own decode. See
+// "Versions" at the top for why each branch exists.
+const decodePayload = (raw) => {
+  const once = parseJson(raw);
+  if (once?.v === VERSION) return once;
+  try {
+    return JSON.parse(decodeURIComponent(raw));
+  } catch (_err) {
+    return once;
+  }
+};
+
 // Decode the share config from a window.location.search string. Returns
 // null if no config is present or the payload is malformed (importConfig
 // is null-safe on its end too — defensive double-guard).
@@ -298,7 +339,7 @@ export const parseShareConfig = (search) => {
   const raw = params.get(PARAM_KEY);
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(decodeURIComponent(raw));
+    const parsed = decodePayload(raw);
     if (!parsed || typeof parsed !== "object") return null;
     // Strip the version marker before handing off to importConfig — it
     // doesn't know about `v` and would warn on the unknown key.
