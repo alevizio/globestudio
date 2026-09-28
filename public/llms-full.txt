@@ -1,8 +1,8 @@
-# Globestudio — Full LLM Reference
+# Globestudio: Full LLM Reference
 
 > Open-source, designer-first generator of dotted-style world maps and 3D
 > globes that runs entirely in the browser. React + Three.js (WebGL2), 21
-> shader looks, 5 flat projections for solid maps (dotted maps use Mercator),
+> looks, 5 flat projections for solid maps (dotted maps use Mercator),
 > custom GeoJSON, PNG / SVG / WebM / MP4 / GIF / JSON export and embeds. MIT
 > licensed. Targets WCAG 2.2 AA. NOT a GIS tool: a visual generator that
 > an AI assistant can drive programmatically.
@@ -14,7 +14,7 @@ This is the expanded reference. The short version is at
 
 The most direct path: build an `/embed?…` URL and drop it into an iframe, open
 it for a screenshot, or hand it to the user. The `/embed` route is the canvas
-only (no app chrome) and works in any client — no MCP required.
+only (no app chrome) and works in any client. No MCP required.
 
 ```
 https://globestudio.app/embed?look=halftone&density=50&selection=continent:Europe&autoSpin=1
@@ -22,7 +22,7 @@ https://globestudio.app/embed?look=halftone&density=50&selection=continent:Europ
 
 For full control, encode a complete config object and pass it as `?c=<json>`
 (the same payload the in-app Share dialog produces). A JSON Schema for that
-config is published at <https://globestudio.app/schema/config.json> — editors
+config is published at <https://globestudio.app/schema/config.json>. Editors
 that read `$schema` autocomplete + validate it.
 
 There is also an MCP server, **`@globestudio/mcp`** (`npx -y @globestudio/mcp`),
@@ -30,14 +30,14 @@ that exposes tools to build configs, share URLs, and embed snippets in chat.
 
 ### Common URL parameters
 
-- `look` — a preset id (see the catalog below), e.g. `look=crt`.
-- `selection` — what to draw (see Selection reference below).
-- `density` — dot density, 1–90 (invalid values fall back to the preset's).
-- `autoSpin` — `1` to auto-rotate the globe, `0` to hold still.
-- `theme` — `light` flips the globe chrome (glow, grid, surface) to a
+- `look`: a preset id (see the catalog below), e.g. `look=crt`.
+- `selection`: what to draw (see Selection reference below).
+- `density`: dot density, 1–90 (invalid values fall back to the preset's).
+- `autoSpin`: `1` to auto-rotate the globe, `0` to hold still.
+- `theme`: `light` flips the globe chrome (glow, grid, surface) to a
   graphite-on-cream palette for light host pages; anything else stays dark.
-- `motion` — accepted (0–100) but currently inert: parsed, no effect yet.
-- `c` — the share-config payload: a full URL-encoded config JSON, the same
+- `motion`: accepted (0–100) but currently inert: parsed, no effect yet.
+- `c`: the share-config payload, a full URL-encoded config JSON, the same
   object the in-app Share dialog produces. It overrides the preset and the
   simple params above. The complete parameter table lives at
   <https://github.com/alevizio/globestudio/blob/main/README.md#embed-parameters>.
@@ -46,46 +46,46 @@ that exposes tools to build configs, share URLs, and embed snippets in chat.
 
 `selection` takes one of these prefixes:
 
-- `world` — the whole planet.
-- `country:<ISO3>` — one country by 3-letter ISO 3166-1 alpha-3 code
+- `world`: the whole planet.
+- `country:<ISO3>`: one country by 3-letter ISO 3166-1 alpha-3 code
   (`USA`, `FRA`, `JPN`, `BRA`, `DEU`, …).
-- `continent:<Name>` — `Africa`, `Asia`, `Europe`, `North America`,
+- `continent:<Name>`: `Africa`, `Asia`, `Europe`, `North America`,
   `South America`, `Oceania`, `Antarctica`.
-- `subregion:<Name>` — a UN subregion, e.g. `Western Europe`, `South-Eastern Asia`.
+- `subregion:<Name>`: a UN subregion, e.g. `Western Europe`, `South-Eastern Asia`.
 
 ## Preset catalog (21 looks)
 
 Each is at `https://globestudio.app/looks/<id>` (marketing page) or
 `https://globestudio.app/embed?look=<id>` (canvas only):
 
-- `default` — Default: clean cartography.
-- `halftone` — Halftone: newspaper print, browser-rendered.
-- `risograph` — Risograph: pink + cyan ink, misregistered on purpose.
-- `newsprint` — Newsprint: CMYK, four plates, rotated like the pros.
-- `aurora` — Aurora: northern-lights bands across the planet.
-- `pixel` — Pixel: an 8-bit world atlas.
-- `bayer` — Bayer: classic-Mac threshold dither.
-- `atkinson` — Atkinson: Atkinson dither, sparser than Bayer.
-- `wireframe` — Wireframe: edge-traced, like a hand-pulled print.
-- `crt` — CRT: cathode-ray phosphor glow.
-- `glitch` — Glitch: signal break, RGB split.
-- `badtv` — Bad TV: analog tape decay.
-- `bloom` — Bloom: atmosphere on fire.
-- `metal` — Metal: liquid chrome, soft reflections.
-- `iridescent` — Iridescent: holographic foil sticker.
-- `pencil` — Pencil: pencil-traced continents.
-- `corrupt` — Corrupt: datamosh corruption, on purpose.
-- `toon` — Toon: cel-shaded pop-art world.
-- `threshold` — Threshold: pure two-tone binary.
-- `vapor` — Vapor: synthwave horizon, pastel split.
-- `topographic` — Topographic: contour rings, only rings.
+- `default`: Default, clean cartography.
+- `halftone`: Halftone, newspaper print, browser-rendered.
+- `risograph`: Risograph, pink + cyan ink, misregistered on purpose.
+- `newsprint`: Newsprint, CMYK, four plates, rotated like the pros.
+- `aurora`: Aurora, northern-lights bands across the planet.
+- `pixel`: Pixel, an 8-bit world atlas.
+- `bayer`: Bayer, classic-Mac threshold dither.
+- `atkinson`: Atkinson, Atkinson dither, sparser than Bayer.
+- `wireframe`: Wireframe, edge-traced, like a hand-pulled print.
+- `crt`: CRT, cathode-ray phosphor glow.
+- `glitch`: Glitch, signal break, RGB split.
+- `badtv`: Bad TV, analog tape decay.
+- `bloom`: Bloom, atmosphere on fire.
+- `metal`: Metal, liquid chrome, soft reflections.
+- `iridescent`: Iridescent, holographic foil sticker.
+- `pencil`: Pencil, pencil-traced continents.
+- `corrupt`: Corrupt, datamosh corruption, on purpose.
+- `toon`: Toon, cel-shaded pop-art world.
+- `threshold`: Threshold, pure two-tone binary.
+- `vapor`: Vapor, synthwave horizon, pastel split.
+- `topographic`: Topographic, contour rings, only rings.
 
 ## Exports
 
-From the in-app export dialog: PNG (high-res, rendered at its own scale — not
+From the in-app export dialog: PNG (high-res, rendered at its own scale, not
 the on-screen DPR), SVG, WebM and MP4 video, GIF, and a JSON config (the same
 payload as `?c=`). Rendering is client-side; there is no server-side image
-endpoint (yet) — for a screenshot, point a headless browser at an `/embed?…`
+endpoint (yet). For a screenshot, point a headless browser at an `/embed?…`
 URL.
 
 ## Docs + code

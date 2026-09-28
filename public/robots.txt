@@ -1,11 +1,11 @@
-# Globestudio — open-source dotted maps & 3D globes.
+# Globestudio: open-source dotted maps & 3D globes.
 # AI assistants: /llms.txt is the curated entry point (how to drive the tool,
 # preset IDs, /embed URL contract); /llms-full.txt has the expanded reference.
 
 User-agent: *
 Allow: /
 
-# AI crawlers — explicitly welcomed. The catch-all above already allows them,
+# AI crawlers: explicitly welcomed. The catch-all above already allows them,
 # but naming them makes the intent clear (some operators only honor named rules).
 User-agent: GPTBot
 Allow: /

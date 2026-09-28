@@ -73,9 +73,15 @@ describe.each(["public/llms.txt", "public/llms-full.txt"])("%s", (path) => {
   const text = read(path).replace(/\n>?\s*/g, " ");
 
   it("states the look count and scopes the projections claim", () => {
-    expect(text).toContain(`${lookPresets.length} shader looks`);
+    // "looks", not "shader looks": Default has no shader effect.
+    expect(text).toContain(`${lookPresets.length} looks`);
+    expect(text).not.toMatch(/shader looks/);
     expect(text).toContain("5 flat projections for solid maps (dotted maps use Mercator)");
     expect(text).not.toMatch(/5 projections/);
+  });
+
+  it("uses no em dashes as punctuation", () => {
+    expect(text).not.toContain("—");
   });
 
   it("names every export format", () => {
