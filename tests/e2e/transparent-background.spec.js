@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 // The Background section's Transparent option: panel sync, the PNG it
 // exports, share links and the embed's background=transparent spelling.
+// Plus the light theme's Solid PNG, which takes the cream the preview shows.
 const CANVAS_TIMEOUT = process.env.CI ? 40_000 : 20_000;
 
 const waitForCanvas = async (page) => {
@@ -21,6 +22,37 @@ const openBackgroundSection = async (page) => {
   await press(page.getByRole("button", { name: "Background", exact: true }));
   return page.getByRole("group", { name: "Background style" });
 };
+
+// Keep every PNG the app hands to a download so the test can read it back.
+const keepPngs = (page) =>
+  page.addInitScript(() => {
+    window.__pngs = [];
+    const create = URL.createObjectURL.bind(URL);
+    URL.createObjectURL = (blob) => {
+      if (blob?.type === "image/png") window.__pngs.push(blob);
+      return create(blob);
+    };
+  });
+
+const exportPng = async (page) => {
+  await page.keyboard.press("d");
+  await press(page.getByRole("dialog", { name: /export/i }).getByRole("button", { name: /export png/i }));
+  await expect(page.locator('.visually-hidden[role="status"]'))
+    .toHaveText(/PNG saved/i, { timeout: process.env.CI ? 45_000 : 30_000 });
+};
+
+// RGBA of the four corners of the last PNG saved.
+const lastPngCorners = (page) =>
+  page.evaluate(async () => {
+    const bitmap = await createImageBitmap(window.__pngs.at(-1));
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const context = canvas.getContext("2d");
+    context.drawImage(bitmap, 0, 0);
+    const pixel = (x, y) => [...context.getImageData(x, y, 1, 1).data];
+    return [pixel(0, 0), pixel(bitmap.width - 1, 0), pixel(0, bitmap.height - 1), pixel(bitmap.width - 1, bitmap.height - 1)];
+  });
 
 test("Transparent is a Background option that stays in sync with the eye", async ({ page }) => {
   await page.goto("/");
@@ -47,36 +79,30 @@ test("Transparent is a Background option that stays in sync with the eye", async
 });
 
 test("a PNG exported with a Transparent background has see-through corners", async ({ page }) => {
-  // Keep every PNG the app hands to a download so the test can read it back.
-  await page.addInitScript(() => {
-    window.__pngs = [];
-    const create = URL.createObjectURL.bind(URL);
-    URL.createObjectURL = (blob) => {
-      if (blob?.type === "image/png") window.__pngs.push(blob);
-      return create(blob);
-    };
-  });
+  await keepPngs(page);
   await page.goto("/");
   await waitForCanvas(page);
   const styles = await openBackgroundSection(page);
   await press(styles.getByRole("button", { name: "Transparent" }));
 
-  await page.keyboard.press("d");
-  await press(page.getByRole("dialog", { name: /export/i }).getByRole("button", { name: /export png/i }));
-  await expect(page.locator('.visually-hidden[role="status"]'))
-    .toHaveText(/PNG saved/i, { timeout: process.env.CI ? 45_000 : 30_000 });
+  await exportPng(page);
+  const corners = await lastPngCorners(page);
+  expect(corners.map(([, , , alpha]) => alpha)).toEqual([0, 0, 0, 0]);
+});
 
-  const corners = await page.evaluate(async () => {
-    const bitmap = await createImageBitmap(window.__pngs.at(-1));
-    const canvas = document.createElement("canvas");
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
-    const context = canvas.getContext("2d");
-    context.drawImage(bitmap, 0, 0);
-    const alpha = (x, y) => context.getImageData(x, y, 1, 1).data[3];
-    return [alpha(0, 0), alpha(bitmap.width - 1, 0), alpha(0, bitmap.height - 1), alpha(bitmap.width - 1, bitmap.height - 1)];
-  });
-  expect(corners).toEqual([0, 0, 0, 0]);
+test("a Solid PNG exported in the light theme has the cream the preview shows", async ({ page }) => {
+  await keepPngs(page);
+  // Light UI, Solid, and the stored background left at its dark default:
+  // the preview shows cream, so the file has to as well.
+  await page.addInitScript(() => localStorage.setItem("globestudio:uiTheme", JSON.stringify("light")));
+  await page.goto("/");
+  await waitForCanvas(page);
+  const preview = await page.locator(".globe-background").evaluate((node) => getComputedStyle(node).backgroundColor);
+  expect(preview).toBe("rgb(244, 241, 234)");
+
+  await exportPng(page);
+  const corners = await lastPngCorners(page);
+  expect(corners).toEqual(Array(4).fill([244, 241, 234, 255]));
 });
 
 test("a share link keeps Transparent, even for someone whose last style was Space", async ({ browser, page }) => {
