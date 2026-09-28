@@ -64,6 +64,15 @@ describe("vercel.json", () => {
     });
   });
 
+  it("lets unhashed data files update within a day", () => {
+    // /data/world-cities.json and world-rivers.json are fetched by fixed
+    // URL, so "immutable" would pin a stale copy for a year.
+    expect(headersFor("/data/world-cities.json")).toContainEqual({
+      key: "Cache-Control",
+      value: "public, max-age=86400, stale-while-revalidate=604800",
+    });
+  });
+
   it("keeps /embed out of the index for crawlers that don't run JS", () => {
     // embed-view.jsx adds a robots meta only after hydration, and the raw
     // HTML canonicals to "/", so the header is the only signal non-JS
