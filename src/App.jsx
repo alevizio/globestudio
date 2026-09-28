@@ -1262,6 +1262,7 @@ const App = () => {
   const isSpaceBackground = backgroundStyle === "space";
   const isFlowBackground = backgroundStyle === "flow";
   const isTransparentBackground = backgroundStyle === "transparent" || transparent;
+  const isTransparentPreview = isTransparentBackground && !isSpaceBackground && !isFlowBackground;
   // In light UI theme, a solid-background look renders see-through so the
   // light page shows behind it — Halftone reads as ink on paper, not a stark
   // white box (the old theme-invert) or a low-contrast dark fill. The canvas
@@ -1347,7 +1348,7 @@ const App = () => {
       className={`app-shell ${viewMode === "globe" ? "is-globe-mode" : "is-flat-mode"} ${
         globeSettings.look === "borderless" ? "is-borderless-globe" : ""
       } ${
-        isTransparentBackground && !isSpaceBackground && !isFlowBackground ? "is-transparent-preview" : ""
+        isTransparentPreview ? "is-transparent-preview" : ""
       } ${
         isSpaceBackground ? "is-space-background" : ""
       } ${
@@ -1367,7 +1368,7 @@ const App = () => {
           : isFlowBackground
             ? FLOW_BACKGROUND_BASE
             : isTransparentBackground
-              ? "#f4f4f4"
+              ? "var(--bg)"
               : isLightCanvas
                 ? "#f4f1ea"
                 : background,

@@ -3452,18 +3452,14 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
 .app-shell.is-transparent-preview,
 .app-shell.is-transparent-preview .map-background,
 .app-shell.is-transparent-preview .globe-background {
-  background-color: #f4f4f4;
-  background-image: conic-gradient(#b8b8b8 25%, #f2f2f2 0 50%, #b8b8b8 0 75%, #f2f2f2 0);
-  background-position: 0 0;
-  background-size: 20px 20px;
+  /* 8px checks in the UI theme's own faint wash */
+  background: conic-gradient(var(--surface-active) 25%, #0000 0 50%, var(--surface-active) 0 75%, #0000 0) 0 0 / 16px 16px var(--bg);
 }
 
 .app-shell.is-transparent-preview::after,
 .app-shell.is-transparent-preview.is-globe-mode::after,
 .app-shell.is-transparent-preview.is-borderless-globe::after {
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.18), transparent 24%, transparent 76%, rgba(0, 0, 0, 0.06)),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 46%, rgba(0, 0, 0, 0.04));
+  background: none;
 }
 
 .app-shell.is-globe-mode::after {
