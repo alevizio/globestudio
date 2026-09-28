@@ -1280,7 +1280,11 @@ export const GlobeBackground = ({
           restorePixelUniforms();
           renderer.setPixelRatio(originalPixelRatio);
           renderer.setSize(displayW, displayH, false);
-          refs.postHandle.setSize(displayW * originalPixelRatio, displayH * originalPixelRatio);
+          // CSS size, as resize() passes: the composer applies its own pixel
+          // ratio, so displayW * originalPixelRatio left the live preview
+          // rendering ~2.4x the pixels (and pattern cells at the wrong
+          // scale) after every hi-res export, until the next resize.
+          refs.postHandle.setSize(displayW, displayH);
           setResolutionUniforms(displayW * originalPixelRatio, displayH * originalPixelRatio);
           // The resize cleared the canvas; the next frame must redraw it.
           invalidate();
