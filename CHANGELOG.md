@@ -8,7 +8,7 @@ All notable changes to Globestudio are tracked here. Format follows
 
 Nothing yet.
 
-## [1.0.0] - 2026-09-29
+## [1.0.0] - 2026-09-28
 
 The first public release. This section sums up everything that ships in
 1.0.0; the detailed May 2026 notes further down are part of it too.
@@ -48,6 +48,18 @@ The first public release. This section sums up everything that ships in
   insert. The panel remembers its picks for the session.
 - `favicon.ico`, `apple-touch-icon.png`, and a shared footer that links
   `/gallery` and the compare pages.
+- **Use with AI**: the Share tab copies a ready-to-paste prompt for any
+  agent, and shows how to connect Claude, Codex and Cursor. The MCP server is
+  hosted at `https://globestudio.app/mcp` (streamable HTTP, no install), and
+  `@globestudio/mcp` 0.2.0 adds `read_share_url` so an agent can open a link
+  you paste, change it, and hand back a new one.
+- **Transparent backgrounds**: Background is Solid, Space or Transparent,
+  with a checkerboard that follows the UI theme. PNG, SVG and WebM keep the
+  transparency, GIF keeps it with hard edges, and MP4 says it can't.
+  `/embed?background=transparent` works.
+- **Data section**: pasted data points have their own section with an eye
+  that hides the markers and arcs without clearing them.
+- The studio panel links every page of the site.
 
 ### Changed
 
@@ -70,10 +82,30 @@ The first public release. This section sums up everything that ships in
 - The Video tab no longer shows Aspect, Quality and size controls, which
   never changed the recording.
 - Analytics loads on every page except `/embed`.
+- Look chips use downsampled thumbnails: smooth at every screen density,
+  72 KB for the whole bar instead of 3.5 MB.
+- Phones: the page no longer scrolls behind the editor, the sheet drags
+  without re-rendering the app and a tap on its grabber opens or closes it,
+  landscape phones get the phone layout, tap targets are 44 px, and the
+  notch and home indicator are respected.
+- Exports use the background the preview shows, including the light
+  theme's cream.
+- Every page ships its own content in the HTML for crawlers that don't run
+  JavaScript, unknown URLs return a real 404, duplicate URLs redirect to
+  the canonical one, and subpages carry breadcrumbs.
+- Shipped CSS drops its comments, 60 KB lighter.
 - README, ROADMAP, and launch docs rewritten to match what ships.
 
 ### Fixed
 
+- Share links keep every setting when a value contains `%` (custom SVG dot
+  shapes, `%` as the symbol); they used to lose all of them. Links made
+  before the fix open exactly as before.
+- Data points loaded from a share link or a JSON file show up in the paste
+  box instead of being overwritten by the next edit.
+- WebM, GIF and MP4 exports use the solid background color, and share links
+  keep the Transparent style.
+- A `/looks/<id>` link shows its look in the looks bar, even late in the list.
 - Shader-on-background composite paints instead of sampling transparent
   black in every "Skip" state.
 - PNG export composites the solid background and honors aspect and size.
@@ -165,7 +197,7 @@ The first public release. This section sums up everything that ships in
 - Preset crossfade: applying a preset fades the canvas opacity 1 → 0.4
   → 1 over 460 ms so the swap reads as a deliberate transition
 - Looks-bar hover lift + accent ring + sheen sweep on the current chip
-- Modal frosted-glass: backdrop wash + card-only `backdrop-filter`
+- Modal frosted-glass: card-only `backdrop-filter`
   blur (28 / 36 px), card opacity 0.62 so the blur reads against the
   live canvas behind
 - Export modal: sliding tab indicator (CSS vars driven by refs) + body
@@ -181,8 +213,6 @@ The first public release. This section sums up everything that ships in
   README: MIT requires preserving `LICENSE` + `NOTICE` when redistributing
   source/builds. The exported PNG/SVG/WebM/JSON artifacts remain
   attribution-free
-- Modal backdrop wash removed; cards drop to 0.62 alpha so the
-  `backdrop-filter` blur reads against the canvas behind
 - `cssMinify: false` in `vite.config.js` — the build's CSS minifier was
   dropping `-webkit-backdrop-filter` / `backdrop-filter` pairs as
   duplicates, breaking the frosted-glass effect across browsers (Chrome
@@ -214,7 +244,7 @@ The first public release. This section sums up everything that ships in
   rounded corners at value extremes (input inset by half the thumb
   width on each side)
 - Control-rail bottom padding bumped from 10 → 18 px so focus outlines
-  + native hover shadows don't get clipped against the rail's inner edge
+  and native hover shadows don't get clipped against the rail's inner edge
 
 ---
 

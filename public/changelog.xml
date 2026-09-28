@@ -6,16 +6,21 @@
     <atom:link href="https://globestudio.app/changelog.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 29 Sep 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 28 Sep 2026 12:00:00 GMT</lastBuildDate>
     <item>
       <title>Launch</title>
       <link>https://globestudio.app/changelog</link>
       <guid isPermaLink="false">https://globestudio.app/changelog#launch</guid>
-      <pubDate>Tue, 29 Sep 2026 12:00:00 GMT</pubDate>
+      <pubDate>Mon, 28 Sep 2026 12:00:00 GMT</pubDate>
       <description><![CDATA[<ul>
   <li>Globestudio opens to everyone, no waitlist: 21 looks, PNG, SVG, WebM, MP4 and GIF export, JSON configs and embeds, free and MIT licensed</li>
+  <li>Use with AI: Copy for AI hands your design to any agent, and globestudio.app/mcp connects Claude, Codex or Cursor with nothing to install</li>
+  <li>Transparent backgrounds: Solid, Space or Transparent, with a checkerboard preview; PNG, SVG and WebM keep the transparency</li>
+  <li>Your data gets its own Data section, with an eye to hide the markers without losing them</li>
+  <li>Phones: the page stays still behind the controls, the sheet drags smoothly and closes with a tap, and landscape works</li>
+  <li>Smooth look thumbnails, 72 KB instead of 3.5 MB</li>
+  <li>Share links keep every setting, even custom SVG dots; old links open as before</li>
   <li>@globestudio/element on npm: &lt;globe-studio&gt;, a framework-free web component</li>
-  <li>Fresh share cards for every look, and /privacy covers the launch waitlist</li>
 </ul>]]></description>
     </item>
     <item>

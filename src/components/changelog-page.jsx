@@ -17,11 +17,16 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 const ENTRIES = [
   {
     label: "Launch",
-    date: "29 September 2026",
+    date: "28 September 2026",
     items: [
       "Globestudio opens to everyone, no waitlist: 21 looks, PNG, SVG, WebM, MP4 and GIF export, JSON configs and embeds, free and MIT licensed",
+      "Use with AI: Copy for AI hands your design to any agent, and globestudio.app/mcp connects Claude, Codex or Cursor with nothing to install",
+      "Transparent backgrounds: Solid, Space or Transparent, with a checkerboard preview; PNG, SVG and WebM keep the transparency",
+      "Your data gets its own Data section, with an eye to hide the markers without losing them",
+      "Phones: the page stays still behind the controls, the sheet drags smoothly and closes with a tap, and landscape works",
+      "Smooth look thumbnails, 72 KB instead of 3.5 MB",
+      "Share links keep every setting, even custom SVG dots; old links open as before",
       "@globestudio/element on npm: <globe-studio>, a framework-free web component",
-      "Fresh share cards for every look, and /privacy covers the launch waitlist",
     ],
   },
   {
