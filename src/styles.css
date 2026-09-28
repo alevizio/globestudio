@@ -7862,7 +7862,8 @@ input[type="range"]:active::-moz-range-thumb {
     width: auto;
     max-height: 82svh;
     margin-top: 0;
-    padding: 6px 10px 18px;
+    /* No top padding: the sticky grabber is the sheet's top edge. */
+    padding: 0 10px 18px;
     border: 1px solid var(--border);
     border-radius: 14px;
     /* Opaque on phones: the translucent panel relied on the unprefixed
@@ -7885,11 +7886,17 @@ input[type="range"]:active::-moz-range-thumb {
        chaining to the page. */
     overscroll-behavior: contain;
     z-index: 8;
+    /* How much of the sheet the collapsed peek shows: grabber, header and
+       looks bar. useSheetDrag reads it to know the sheet's travel. */
+    --sheet-peek: 200px;
   }
 
   /* The look's long-form copy closes the sheet's list on phones instead of
      sitting a screen below the canvas, where it made the page scrollable. */
   .control-rail .preset-detail {
+    /* The desktop lift above the canvas would put it over the sticky
+       grabber as the list scrolls under it. */
+    z-index: auto;
     margin: 12px 0 0;
     max-width: none;
     padding: 20px 8px 8px;
@@ -7910,15 +7917,9 @@ input[type="range"]:active::-moz-range-thumb {
     height: 44px;
   }
 
-  /* The desktop sticky behavior conflicts with the mobile drag handle:
-     the handle is position: absolute; top: 0; height: 32px; z-index: 2
-     and the sticky panel-header has z-index: 3, so it would steal the
-     pointer events for the drag gesture. On mobile we drop sticky
-     entirely (the rail is a bottom sheet, not a long-scrolling list,
-     so a sticky header doesn't add value) and let the header flow
-     beneath the drag bar in its natural position. Also drop the
-     negative margins that pulled the header up into the drag-handle
-     zone. */
+  /* The desktop sticky header would fight the sticky grabber for the top
+     of the sheet, so on phones the header flows under the grabber like
+     the rest of the list. */
   .panel-header {
     position: static;
     margin: 0;
@@ -7926,9 +7927,6 @@ input[type="range"]:active::-moz-range-thumb {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     background: transparent;
-    /* Push the header below the 32px drag-handle strip so the handle
-       gets the first 32px of pointer events uncontested. */
-    margin-top: 28px;
   }
 
   /* On mobile, "collapsed" doesn't shrink-and-fade — it slides down to a
@@ -7937,7 +7935,7 @@ input[type="range"]:active::-moz-range-thumb {
      the rest of the panel. The --drag-offset CSS var carries any live
      finger delta during a drag so the sheet follows the touch 1:1. */
   .control-rail.is-collapsed {
-    transform: translateY(calc(100% - 200px + var(--drag-offset, 0px)));
+    transform: translateY(calc(100% - var(--sheet-peek) + var(--drag-offset, 0px)));
     opacity: 1;
     filter: none;
     pointer-events: auto;
@@ -7960,21 +7958,23 @@ input[type="range"]:active::-moz-range-thumb {
     transition: none;
   }
 
-  /* The drag handle is the entire top strip — wide tap target for the
-     thumb-driven mobile flow. Override the default display:none from the
-     desktop block so the handle is actually visible at the small viewport. */
+  /* The grabber is the sheet's whole top strip, 44px tall and edge to
+     edge, and it sticks to the top while the list scrolls, so there is
+     always something to drag or tap to close. It paints the sheet's own
+     surface to cover the list scrolling under it, and its negative bottom
+     margin cancels the grid gap so the header keeps its spacing. */
   .mobile-drag-handle {
-    display: block;
-    position: absolute;
+    display: flex;
+    align-items: center;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
-    height: 32px;
-    background: transparent;
-    border: 0;
-    padding: 0;
-    cursor: grab;
     z-index: 2;
+    height: 44px;
+    margin: 0 -10px -10px;
+    padding: 0;
+    border: 0;
+    background: linear-gradient(var(--panel), var(--panel)), var(--bg);
+    cursor: grab;
     touch-action: none;
   }
 
@@ -7989,7 +7989,7 @@ input[type="range"]:active::-moz-range-thumb {
     display: block;
     width: 56px;
     height: 5px;
-    margin: 12px auto 0;
+    margin: 0 auto;
     border-radius: 3px;
     background: var(--muted);
     opacity: 0.7;

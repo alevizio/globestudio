@@ -359,10 +359,6 @@ const App = () => {
     "panelCollapsed",
     typeof window !== "undefined" && window.innerWidth < 720,
   );
-  const { dragOffset, isDragging, handlers: sheetHandlers } = useSheetDrag(
-    panelCollapsed,
-    setPanelCollapsed,
-  );
   // Mirrors the styles.css 620px bottom-sheet breakpoint. Collapsing fully
   // hides the rail on desktop (so it can go inert), but on mobile the
   // collapsed rail is a touchable peek — drag handle + looks bar stay live.
@@ -377,6 +373,13 @@ const App = () => {
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
+  const railRef = useRef(null);
+  const { handleProps: sheetHandleProps } = useSheetDrag({
+    railRef,
+    panelCollapsed,
+    setPanelCollapsed,
+    enabled: isMobileSheet,
+  });
   const [animationsEnabled, setAnimationsEnabled] = usePersistedState("animationsEnabled", true);
   // UI theme: "dark" (default) or "light". Only swaps the panel/picker tokens —
   // the canvas/globe rendering stays on its dark base because the artwork
@@ -1592,8 +1595,10 @@ const App = () => {
       )}
 
       <section
-        className={`control-rail ${panelCollapsed ? "is-collapsed" : ""} ${isDragging ? "is-dragging" : ""}`}
-        style={{ "--drag-offset": `${dragOffset}px` }}
+        ref={railRef}
+        // is-dragging and --drag-offset are written by useSheetDrag straight
+        // to the element, so a drag doesn't re-render the app.
+        className={`control-rail ${panelCollapsed ? "is-collapsed" : ""}`}
         // aria-hidden alone leaves the rail's ~80 controls in the Tab order
         // when collapsed; inert removes them from focus + hit-testing too.
         // Desktop only: the mobile collapsed sheet is an interactive peek,
@@ -1604,7 +1609,7 @@ const App = () => {
         <button
           type="button"
           className="mobile-drag-handle"
-          {...sheetHandlers}
+          {...sheetHandleProps}
           aria-label={panelCollapsed ? "Expand options panel" : "Collapse options panel"}
         >
           <span className="mobile-drag-handle-bar" aria-hidden="true" />
