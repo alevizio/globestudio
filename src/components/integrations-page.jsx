@@ -284,7 +284,7 @@ export const IntegrationsPage = () => {
     };
     setMeta(
       'meta[name="description"]',
-      "Drop Globestudio into Webflow, Framer, Figma, Notion, WordPress, plain HTML, or React. Copy-paste snippets, no install.",
+      "Add Globestudio to Webflow, Framer, Figma, Notion, WordPress, plain HTML, React or an MCP client like Claude. Copy-paste setup for each.",
     );
   }, []);
 
