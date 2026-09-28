@@ -72,10 +72,12 @@ const FRAGMENT_SHADER = /* glsl */ `
           vec2 nOff = vec2(float(i), float(j));
           vec2 nId = cellId + nOff;
           float r1 = rand(nId);
+          // Dead cell (two in three): its star would contribute exactly 0,
+          // so skip the maths. Same pixels, far fewer sin/exp per fragment.
+          if (r1 < 0.66) continue;
           float r2 = rand(nId + vec2(2.3, 0.7));
           float r3 = rand(nId + vec2(5.1, 8.9));
           float r4 = rand(nId + vec2(0.5, 3.2));
-          float alive = step(0.66, r1);
 
           vec2 pPos = vec2(r2, r3) + vec2(
             sin(t * (0.2 + r3 * 0.4) + r1 * 6.28),
@@ -92,7 +94,7 @@ const FRAGMENT_SHADER = /* glsl */ `
           float core = exp(-d2 / (size * size + 0.0003));
           float halo = exp(-d2 / (size * size * 4.0 + 0.0003)) * 0.25;
           float mag = pow(r3, 1.8);
-          float intensity = (core + halo) * twinkle * alive * mag;
+          float intensity = (core + halo) * twinkle * mag;
 
           vec3 cool = vec3(0.86, 0.92, 1.0);
           vec3 warm = vec3(1.0, 0.9, 0.75);
@@ -117,10 +119,11 @@ const FRAGMENT_SHADER = /* glsl */ `
           vec2 nOff = vec2(float(i), float(j));
           vec2 nId = cellId + nOff;
           float r1 = rand(nId + vec2(7.0, 11.0));
+          // Dead cell (seven in eight): contributes exactly 0, skip it.
+          if (r1 < 0.88) continue;
           float r2 = rand(nId + vec2(4.4, 3.3));
           float r3 = rand(nId + vec2(9.9, 1.1));
           float r4 = rand(nId + vec2(2.1, 6.6));
-          float alive = step(0.88, r1);
 
           vec2 pPos = vec2(r2, r3);
           vec2 dvec = cellFrac - nOff - pPos;
@@ -135,7 +138,7 @@ const FRAGMENT_SHADER = /* glsl */ `
           float spikeH = exp(-abs(dvec.y) * 90.0) * exp(-abs(dvec.x) * 5.5) * 0.55 * mag;
           float spikeV = exp(-abs(dvec.x) * 90.0) * exp(-abs(dvec.y) * 5.5) * 0.55 * mag;
 
-          float intensity = (core + halo + spikeH + spikeV) * twinkle * alive * (0.5 + mag);
+          float intensity = (core + halo + spikeH + spikeV) * twinkle * (0.5 + mag);
 
           vec3 tint = mix(
             vec3(1.0, 0.88, 0.72),
