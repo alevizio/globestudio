@@ -53,6 +53,7 @@ import { ErrorBoundary } from "./components/error-boundary.jsx";
 import { NoWebGLFallback } from "./components/no-webgl-fallback.jsx";
 import { PresetDetail } from "./components/preset-detail.jsx";
 import { updatePresetRoute } from "./utils/preset-route.js";
+import { matchRoute } from "./utils/route-match.js";
 import { ExportModal } from "./components/export-modal.jsx";
 import { LooksBar } from "./components/looks-bar.jsx";
 import { AboutOverlay } from "./components/about-overlay.jsx";
@@ -196,45 +197,38 @@ const App = () => {
   }
 
   if (typeof window !== "undefined") {
-    // Strip an optional trailing `/index.html` first, then a trailing
-    // slash. This lets static hosts that serve the SPA at the literal
-    // file path (Lighthouse CI's local server, certain S3 setups, file://
-    // previews) resolve to home instead of falling through to NotFound.
-    const path = window.location.pathname
-      .replace(/\/index\.html$/, "")
-      .replace(/\/$/, "") || "/";
-    if (path === "/brand") return <BrandPage />;
-    if (path === "/docs") return <DocsPage />;
-    if (path === "/changelog") return <ChangelogPage />;
-    if (path === "/integrations") return <IntegrationsPage />;
-    if (path === "/examples")
+    // Home, /looks/:id (known ids only) and /embed fall through to the
+    // canvas app; see src/utils/route-match.js.
+    const { page } = matchRoute(window.location.pathname);
+    if (page === "brand") return <BrandPage />;
+    if (page === "docs") return <DocsPage />;
+    if (page === "changelog") return <ChangelogPage />;
+    if (page === "integrations") return <IntegrationsPage />;
+    if (page === "examples")
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh", background: "#0b0b0c" }} />}>
           <ExamplesPage />
         </Suspense>
       );
-    if (path === "/gallery")
+    if (page === "gallery")
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
           <GalleryPage />
         </Suspense>
       );
-    if (/^\/compare\/[\w-]+$/.test(path))
+    if (page === "compare")
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh", background: "#06070d" }} />}>
           <ComparePage />
         </Suspense>
       );
-    if (path === "/privacy")
+    if (page === "privacy")
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
           <PrivacyPage />
         </Suspense>
       );
-    const isHome = path === "/";
-    const isPresetRoute = /^\/looks\/[\w-]+$/.test(path);
-    const isEmbed = path === "/embed";
-    if (!isHome && !isPresetRoute && !isEmbed) return <NotFoundPage />;
+    if (page === "not-found") return <NotFoundPage />;
   }
 
   const globeCanvasRef = useRef(null);
