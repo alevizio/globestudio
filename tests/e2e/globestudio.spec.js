@@ -299,3 +299,58 @@ test("axe passes with export modal open and focus returns on close", async ({ pa
   await expect(page.getByRole("dialog", { name: /export/i })).toBeHidden();
   await expect(trigger).toBeFocused();
 });
+
+test.describe("Share tab, Use with AI", () => {
+  test.use({ permissions: ["clipboard-read", "clipboard-write"] });
+
+  const openShareTab = async (page) => {
+    await page.goto("/");
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await dialog.getByRole("tab", { name: "Share" }).click();
+    await expect(dialog.getByRole("heading", { name: "Use with AI" })).toBeVisible();
+    return dialog;
+  };
+
+  test("Copy for AI puts a prompt with the current share link on the clipboard", async ({ page }) => {
+    const dialog = await openShareTab(page);
+
+    await dialog.getByRole("button", { name: "Copy share link" }).click();
+    await expect(dialog.getByRole("button", { name: "Link copied to clipboard" })).toBeVisible();
+    const shareUrl = await page.evaluate(() => navigator.clipboard.readText());
+    expect(shareUrl).toContain("?c=");
+
+    await dialog.getByRole("button", { name: "Copy for AI" }).click();
+    await expect(dialog.getByRole("button", { name: "Prompt copied to clipboard" })).toBeVisible();
+    const prompt = await page.evaluate(() => navigator.clipboard.readText());
+    expect(prompt).toContain(`Link: ${shareUrl}`);
+    expect(prompt).toContain("Connect the Globestudio MCP server for full control: https://globestudio.app/mcp");
+  });
+
+  test("each Connect tab shows its command for the hosted server", async ({ page }) => {
+    const dialog = await openShareTab(page);
+    const panel = dialog.getByRole("tabpanel");
+
+    await expect(dialog.getByRole("tab", { name: "Claude" })).toHaveAttribute("aria-selected", "true");
+    await expect(panel).toContainText("claude mcp add --transport http globestudio https://globestudio.app/mcp");
+    await expect(panel).toContainText("Add custom connector");
+
+    await dialog.getByRole("tab", { name: "Codex" }).click();
+    await expect(panel).toContainText("codex mcp add globestudio --url https://globestudio.app/mcp");
+
+    await dialog.getByRole("tab", { name: "Cursor" }).click();
+    await expect(panel).toContainText('"url": "https://globestudio.app/mcp"');
+    await expect(dialog.getByRole("link", { name: "Add to Cursor" })).toHaveAttribute(
+      "href",
+      /^cursor:\/\/anysphere\.cursor-deeplink\/mcp\/install\?name=globestudio&config=/,
+    );
+
+    // Arrow keys move between clients, like the dialog's own tabs.
+    await dialog.getByRole("tab", { name: "Cursor" }).press("ArrowRight");
+    await expect(dialog.getByRole("tab", { name: "Claude" })).toBeFocused();
+    await expect(panel).toContainText("claude mcp add");
+
+    await expectNoSeriousAxeViolations(page);
+  });
+});

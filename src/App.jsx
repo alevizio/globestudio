@@ -1797,6 +1797,8 @@ const App = () => {
         exportConfig={exportConfig}
         importConfig={importConfig}
         getShareUrl={getShareUrl}
+        lookName={lookPresets.find((p) => p.id === currentPresetId)?.name}
+        regionName={selected.label}
       />
 
       <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
