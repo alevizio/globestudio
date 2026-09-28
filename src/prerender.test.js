@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { pageRoutes, renderPage } from "../scripts/prerender.js";
 import { comparisons } from "./data/comparisons.js";
+import { lookBreadcrumb } from "./utils/preset-route.js";
 import { lookPresets } from "./data/look-presets.js";
 import { getPresetSeo } from "./data/preset-seo.js";
 
@@ -57,5 +58,28 @@ describe("prerendered JSON-LD", () => {
     }
     const [docs] = renderPage(indexHtml, byRoute.docs, { teaser: false });
     expect(typesOf(docs)).not.toContain("FAQPage");
+  });
+});
+
+const breadcrumbOf = (html) =>
+  JSON.parse(html.match(/<script type="application\/ld\+json" id="breadcrumb-ld">([\s\S]*?)<\/script>/)[1]);
+
+describe("prerendered breadcrumbs", () => {
+  it("give every subpage a BreadcrumbList that ends at the page itself", () => {
+    for (const meta of routes) {
+      const [html] = renderPage(indexHtml, meta, { teaser: false });
+      expect(html.match(/id="breadcrumb-ld"/g), meta.route).toHaveLength(1);
+      const items = breadcrumbOf(html).itemListElement;
+      expect(items[0].item, meta.route).toBe("https://globestudio.app/");
+      expect(items.at(-1).item, meta.route).toBe(meta.url);
+    }
+  });
+
+  it("put looks under the gallery, as client navigation does", () => {
+    for (const preset of lookPresets) {
+      const [html] = renderPage(indexHtml, byRoute[`looks/${preset.id}`], { teaser: false });
+      expect(breadcrumbOf(html)).toEqual(lookBreadcrumb(preset));
+      expect(breadcrumbOf(html).itemListElement[1].item).toBe("https://globestudio.app/gallery");
+    }
   });
 });

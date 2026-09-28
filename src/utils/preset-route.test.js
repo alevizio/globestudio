@@ -36,3 +36,18 @@ describe("updatePresetRoute share card", () => {
     expect(meta('meta[name="twitter:image:alt"]')).toBe(PRODUCT_CARD_ALT);
   });
 });
+
+describe("updatePresetRoute breadcrumb", () => {
+  it("updates the prerendered BreadcrumbList instead of adding a second one", () => {
+    document.head.innerHTML = '<script type="application/ld+json" id="breadcrumb-ld">{}</script>';
+    updatePresetRoute(lookPresets.find((preset) => preset.id === "halftone"));
+    const scripts = document.head.querySelectorAll('script[type="application/ld+json"]');
+    expect(scripts).toHaveLength(1);
+    const items = JSON.parse(scripts[0].textContent).itemListElement;
+    expect(items.map((item) => item.item)).toEqual([
+      "https://globestudio.app/",
+      "https://globestudio.app/gallery",
+      "https://globestudio.app/looks/halftone",
+    ]);
+  });
+});

@@ -23,6 +23,7 @@ import { lookPresets } from "../src/data/look-presets.js";
 import { comparisons } from "../src/data/comparisons.js";
 import { getPresetSeo } from "../src/data/preset-seo.js";
 import { PRODUCT_CARD_ALT, lookCardAlt, shareCardUrl } from "../src/data/share-cards.js";
+import { breadcrumbLd, lookBreadcrumb } from "../src/utils/preset-route.js";
 import { APP_UNLOCK_PATH } from "../src/utils/route-match.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
@@ -116,8 +117,17 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
       // lookCardAlt describes it as such. Set even in teaser mode, where the
       // template alt describes the teaser card instead.
       imageAlt: image ? lookCardAlt(preset) : null,
+      // The same list preset-route.js writes on client navigation.
+      breadcrumb: lookBreadcrumb(preset),
     });
   }
+
+  // Home > this page, for every page that isn't a look.
+  const crumbs = (name, url) =>
+    breadcrumbLd([
+      { name: "Home", item: `${SITE}/` },
+      { name, item: url },
+    ]);
 
   // Compare pages are product-vs-product, so the default product card (the
   // dotted globe) is the honest share image — every per-look card carries
@@ -138,6 +148,7 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
       // Rendered visibly by ComparePage, so it's marked up here, in the
       // static head, where crawlers that don't run JS see it too.
       faq: c.faq,
+      breadcrumb: crumbs(`Globestudio vs ${c.competitor}`, `${SITE}/compare/${c.slug}`),
     });
   }
 
@@ -149,6 +160,7 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
     image: null,
     // The gallery lists every look, so it keeps the home ItemList of looks.
     itemList: true,
+    breadcrumb: crumbs("Looks", `${SITE}/gallery`),
   });
 
   // Static pages. These are all in the sitemap, but without a prerendered file
@@ -159,44 +171,51 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
   const staticRoutes = [
     {
       route: "docs",
+      crumb: "Docs",
       title: "Docs · Globestudio",
       description:
         "Globestudio documentation: embed snippet, shareable config URLs, keyboard shortcuts, preset catalog, JSON schema.",
     },
     {
       route: "integrations",
+      crumb: "Integrations",
       title: "Integrations · Globestudio",
       description:
         "Add Globestudio to Webflow, Framer, Figma, Notion, WordPress, plain HTML, React or an MCP client like Claude. Copy-paste setup for each.",
     },
     {
       route: "examples",
+      crumb: "Examples",
       title: "Examples · Globestudio",
       description:
         "Globestudio in product marketing: four full-screen hero showcases, from Stripe and Vercel style heroes to a retro game screen and a newspaper front page.",
     },
     {
       route: "brand",
+      crumb: "Press kit",
       title: "Brand · Globestudio",
       description:
         "Globestudio press kit: logo, OG cards, color palette, taglines. Free to use for editorial coverage.",
     },
     {
       route: "changelog",
+      crumb: "Changelog",
       title: "Changelog · Globestudio",
       description:
         "Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.",
     },
     {
       route: "privacy",
+      crumb: "Privacy",
       title: "Privacy · Globestudio",
       description:
         "What Globestudio does and doesn't collect. Cookieless analytics, no fingerprinting, no third-party advertisers.",
     },
   ];
 
-  for (const { route, title, description } of staticRoutes) {
-    routes.push({ route, title, description, url: `${SITE}/${route}`, image: null });
+  for (const { route, crumb, title, description } of staticRoutes) {
+    const url = `${SITE}/${route}`;
+    routes.push({ route, title, description, url, image: null, breadcrumb: crumbs(crumb, url) });
   }
 
   return routes;
@@ -240,6 +259,13 @@ const editGraph = (html, { url, itemList, faq }) =>
 export const renderPage = (template, meta, { teaser = TEASER } = {}) => {
   let [html, misses] = buildHead(template, meta);
   html = editGraph(html, meta);
+  // Its own script with the id preset-route.js looks for, so client
+  // navigation between looks updates this one instead of adding a second.
+  const breadcrumb = JSON.stringify(meta.breadcrumb).replace(/<\//g, "<\\/");
+  html = html.replace(
+    "</head>",
+    `    <script type="application/ld+json" id="breadcrumb-ld">${breadcrumb}</script>\n  </head>`,
+  );
   if (teaser) html = html.replace("</head>", NOINDEX);
   return [html, misses];
 };
