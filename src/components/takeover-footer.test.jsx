@@ -4,10 +4,12 @@ import { TakeoverFooter } from "./takeover-footer.jsx";
 import { comparisonSlugs } from "../data/comparisons.js";
 
 describe("TakeoverFooter", () => {
-  it("links the gallery and every compare page, which nothing else links", () => {
+  it("links every site page and every compare page", () => {
     render(<TakeoverFooter />);
     const hrefs = screen.getAllByRole("link").map((link) => link.getAttribute("href"));
-    expect(hrefs).toContain("/gallery");
+    for (const page of ["/gallery", "/docs", "/integrations", "/examples", "/changelog", "/brand", "/privacy"]) {
+      expect(hrefs).toContain(page);
+    }
     expect(hrefs.filter((href) => href.startsWith("/compare/")).sort()).toEqual(
       comparisonSlugs.map((slug) => `/compare/${slug}`).sort(),
     );

@@ -13,7 +13,9 @@ export const TakeoverFooter = () => (
     </a>
     <nav className="takeover-footer-links" aria-label="Site links">
       <a href="/docs">Docs</a>
+      <a href="/integrations">Integrations</a>
       <a href="/gallery">Gallery</a>
+      <a href="/examples">Examples</a>
       <a href="/compare/cobe">vs cobe</a>
       <a href="/compare/geolayers">vs GEOlayers</a>
       <a href="/changelog">Changelog</a>
