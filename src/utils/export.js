@@ -82,14 +82,36 @@ export const MIN_VIDEO_BYTES = 1024;
 // Uses the browser's MediaRecorder pulling frames at `fps` from the canvas
 // stream. Bitrate is generous so the post-effects (bloom, chromatic, twinkle)
 // don't get smeared by compression.
-export const recordCanvasToVideoBlob = (canvas, { durationMs = 4000, fps = 60, bitsPerSecond = 12_000_000, onProgress } = {}) => {
+//
+// Every recorder takes `background`: the solid color to paint under the
+// frame, or null to keep the canvas alpha. The GL canvas is see-through
+// wherever the page's solid background shows (that color is CSS only), so
+// without it a Solid export came out transparent in WebM and black in GIF
+// and MP4. Chrome's VP8/VP9 MediaRecorder keeps alpha, so a null background
+// gives a transparent WebM.
+export const recordCanvasToVideoBlob = (canvas, { durationMs = 4000, fps = 60, bitsPerSecond = 12_000_000, background = null, onProgress } = {}) => {
   return new Promise((resolve, reject) => {
     const mimeType = pickVideoMimeType();
     if (!mimeType) {
       reject(new Error("Browser doesn't support video recording"));
       return;
     }
-    const stream = canvas.captureStream?.(fps);
+    let source = canvas;
+    let paint = null;
+    let paintFrame = 0;
+    if (background) {
+      source = document.createElement("canvas");
+      source.width = canvas.width;
+      source.height = canvas.height;
+      const ctx = source.getContext("2d");
+      paint = () => {
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, source.width, source.height);
+        ctx.drawImage(canvas, 0, 0);
+        paintFrame = requestAnimationFrame(paint);
+      };
+    }
+    const stream = source.captureStream?.(fps);
     if (!stream) {
       reject(new Error("Canvas can't be captured as stream"));
       return;
@@ -118,8 +140,10 @@ export const recordCanvasToVideoBlob = (canvas, { durationMs = 4000, fps = 60, b
     }
 
     recorder.start();
+    paint?.();
     window.setTimeout(() => {
       if (interval) window.clearInterval(interval);
+      cancelAnimationFrame(paintFrame);
       try {
         recorder.stop();
       } catch (error) {
@@ -135,7 +159,7 @@ export const recordCanvasToVideoBlob = (canvas, { durationMs = 4000, fps = 60, b
 // when a GIF export is actually requested (stays off the initial bundle).
 export const recordCanvasToGifBlob = async (
   canvas,
-  { durationMs = 4000, fps = 15, maxSize = 640, onProgress } = {},
+  { durationMs = 4000, fps = 15, maxSize = 640, background = null, onProgress } = {},
 ) => {
   const { GIFEncoder, quantize, applyPalette } = await import("gifenc");
   const scale = Math.min(1, maxSize / Math.max(canvas.width, canvas.height));
@@ -149,14 +173,34 @@ export const recordCanvasToGifBlob = async (
   const encoder = GIFEncoder();
   const frameCount = Math.max(1, Math.round((durationMs / 1000) * fps));
   const delay = Math.round(1000 / fps);
+  // Settled on the first frame, so every frame shares one disposal mode: a
+  // Space or Flow canvas has no see-through pixels and stays a plain GIF.
+  let transparent = !background;
   for (let i = 0; i < frameCount; i += 1) {
     const tick = performance.now();
     ctx.clearRect(0, 0, w, h);
+    if (background) {
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, w, h);
+    }
     ctx.drawImage(canvas, 0, 0, w, h);
     const { data } = ctx.getImageData(0, 0, w, h);
-    const palette = quantize(data, 256);
+    const palette = quantize(data, 255);
     const index = applyPalette(data, palette);
-    encoder.writeFrame(index, w, h, { palette, delay });
+    // GIF transparency is 1-bit: pixels under half opacity map to one extra
+    // palette entry that the frame marks as transparent.
+    const transparentIndex = palette.push([0, 0, 0]) - 1;
+    let cleared = false;
+    if (transparent) {
+      for (let p = 0; p < index.length; p += 1) {
+        if (data[p * 4 + 3] < 128) {
+          index[p] = transparentIndex;
+          cleared = true;
+        }
+      }
+    }
+    if (i === 0) transparent = cleared;
+    encoder.writeFrame(index, w, h, { palette, delay, transparent, transparentIndex });
     onProgress?.((i + 1) / frameCount);
     // Space captures across real time so the GIF samples the live animation.
     const elapsed = performance.now() - tick;
@@ -198,7 +242,7 @@ export const probeMp4Support = async () => {
 
 export const recordCanvasToMp4Blob = async (
   canvas,
-  { durationMs = 4000, fps = 30, bitrate = MP4_BITRATE, maxSize = 1024, onProgress } = {},
+  { durationMs = 4000, fps = 30, bitrate = MP4_BITRATE, maxSize = 1024, background = null, onProgress } = {},
 ) => {
   if (!supportsMp4Export()) {
     throw new Error("This browser can't encode MP4 (no WebCodecs). Try WebM or GIF.");
@@ -245,6 +289,11 @@ export const recordCanvasToMp4Blob = async (
     if (encodeError) throw encodeError;
     const tick = performance.now();
     ctx.clearRect(0, 0, width, height);
+    // H.264 has no alpha: without a background, see-through pixels turn black.
+    if (background) {
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, width, height);
+    }
     ctx.drawImage(canvas, 0, 0, width, height);
     const frame = new window.VideoFrame(off, {
       timestamp: Math.round(i * frameDurUs),

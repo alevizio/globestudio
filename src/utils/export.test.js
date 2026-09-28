@@ -4,9 +4,33 @@ import {
   exportScaleValue,
   MIN_VIDEO_BYTES,
   probeMp4Support,
+  recordCanvasToGifBlob,
   recordCanvasToMp4Blob,
   recordCanvasToVideoBlob,
 } from "./export.js";
+
+// gifenc stand-in: records each frame, and maps bright pixels to palette
+// entry 1 and dark ones to entry 0.
+const gifFrames = vi.hoisted(() => []);
+vi.mock("gifenc", () => ({
+  GIFEncoder: () => ({
+    writeFrame: (...args) => gifFrames.push(args),
+    finish() {},
+    bytesView: () => new Uint8Array(1),
+  }),
+  quantize: () => [[0, 0, 0], [255, 255, 255]],
+  applyPalette: (data) => Uint8Array.from({ length: data.length / 4 }, (_, i) => (data[i * 4] > 127 ? 1 : 0)),
+}));
+
+// A 2D context stand-in for the capture canvas jsdom can't draw on.
+const withContext = async (ctx, run) => {
+  const getContext = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(ctx);
+  try {
+    await run();
+  } finally {
+    getContext.mockRestore();
+  }
+};
 
 describe("exportScaleValue", () => {
   it("parses the leading number out of '2x'", () => {
@@ -72,6 +96,63 @@ describe("recordCanvasToVideoBlob", () => {
       const blob = await recordCanvasToVideoBlob(canvas, { durationMs: 1 });
       expect(blob.size).toBe(MIN_VIDEO_BYTES * 4);
     });
+  });
+
+  it("records a copy painted over a solid background, since WebM would keep the alpha", async () => {
+    const gl = { width: 4, height: 4, captureStream: vi.fn(() => ({})) };
+    const ctx = { fillRect: vi.fn(), drawImage: vi.fn() };
+    const captureStream = vi.fn(() => ({}));
+    HTMLCanvasElement.prototype.captureStream = captureStream;
+    try {
+      await withContext(ctx, () =>
+        withRecorder([new Blob([new Uint8Array(MIN_VIDEO_BYTES * 4)])], () =>
+          recordCanvasToVideoBlob(gl, { durationMs: 1, background: "#ffffff" }),
+        ),
+      );
+    } finally {
+      delete HTMLCanvasElement.prototype.captureStream;
+    }
+    expect(gl.captureStream).not.toHaveBeenCalled();
+    expect(captureStream).toHaveBeenCalledTimes(1);
+    expect(ctx.fillStyle).toBe("#ffffff");
+    expect(ctx.drawImage).toHaveBeenCalledWith(gl, 0, 0);
+  });
+});
+
+describe("recordCanvasToGifBlob", () => {
+  // One clear pixel, one opaque white pixel.
+  const pixels = new Uint8ClampedArray([0, 0, 0, 0, 255, 255, 255, 255]);
+  const context = () => ({ clearRect: vi.fn(), fillRect: vi.fn(), drawImage: vi.fn(), getImageData: () => ({ data: pixels }) });
+  const canvas = { width: 2, height: 1 };
+
+  it("marks see-through pixels transparent when the background is Transparent", async () => {
+    gifFrames.length = 0;
+    const ctx = context();
+    await withContext(ctx, () => recordCanvasToGifBlob(canvas, { durationMs: 1, fps: 1 }));
+    const [index, , , options] = gifFrames[0];
+    expect(options.transparent).toBe(true);
+    expect(index[0]).toBe(options.transparentIndex);
+    expect(index[1]).not.toBe(options.transparentIndex);
+    expect(ctx.fillRect).not.toHaveBeenCalled();
+  });
+
+  it("keeps an opaque canvas (Space, Flow) a plain GIF", async () => {
+    gifFrames.length = 0;
+    const opaque = new Uint8ClampedArray([10, 10, 10, 255, 255, 255, 255, 255]);
+    await withContext({ ...context(), getImageData: () => ({ data: opaque }) }, () =>
+      recordCanvasToGifBlob(canvas, { durationMs: 200, fps: 10 }),
+    );
+    expect(gifFrames).toHaveLength(2);
+    for (const [, , , options] of gifFrames) expect(options.transparent).toBe(false);
+  });
+
+  it("paints a solid background under the frame instead of leaving it black", async () => {
+    gifFrames.length = 0;
+    const ctx = context();
+    await withContext(ctx, () => recordCanvasToGifBlob(canvas, { durationMs: 1, fps: 1, background: "#ff0044" }));
+    expect(ctx.fillStyle).toBe("#ff0044");
+    expect(ctx.fillRect).toHaveBeenCalled();
+    expect(gifFrames[0][3].transparent).toBe(false);
   });
 });
 

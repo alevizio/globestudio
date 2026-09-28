@@ -867,6 +867,9 @@ const App = () => {
     const canvas = globeCanvasRef.current;
     if (!canvas || videoStatus === "recording") return;
     const format = ["gif", "mp4"].includes(options.format) ? options.format : "webm";
+    // Same rule as the PNG path: only a solid background is CSS-only and
+    // needs painting in; transparent keeps alpha, space/flow are in-canvas.
+    const matte = !transparent && backgroundStyle === "solid" ? background : null;
     setVideoStatus("recording");
     setVideoProgress(0);
     try {
@@ -877,18 +880,21 @@ const App = () => {
           durationMs,
           // GIF is heavy per-frame; cap fps so a 5s loop stays reasonable.
           fps: Math.min(options.fps ?? 15, 20),
+          background: matte,
           onProgress: setVideoProgress,
         });
       } else if (format === "mp4") {
         blob = await recordCanvasToMp4Blob(canvas, {
           durationMs,
           fps: options.fps ?? 30,
+          background: matte,
           onProgress: setVideoProgress,
         });
       } else {
         blob = await recordCanvasToVideoBlob(canvas, {
           durationMs,
           fps: options.fps ?? 60,
+          background: matte,
           onProgress: setVideoProgress,
         });
       }
@@ -907,7 +913,7 @@ const App = () => {
     } finally {
       setVideoProgress(0);
     }
-  }, [currentPresetId, selected.label, videoDurationMs, videoStatus, viewMode]);
+  }, [background, backgroundStyle, currentPresetId, selected.label, transparent, videoDurationMs, videoStatus, viewMode]);
 
   // Snapshot of every user-customizable visual setting. Shared between
   // exportConfig (downloads as .json) and getShareUrl (encodes into a
