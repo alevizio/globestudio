@@ -13,6 +13,16 @@ const waitForCanvas = async (page) => {
     .toBe(true);
 };
 
+// Home with glow off, for the tests here that don't look at the glow. Its six
+// drop-shadow blurs on the full-screen canvas are composited in software on a
+// 2 CPU Linux runner: with them, the export and share tests took 2 to 4
+// minutes there, and after the first test closed its page the next one waited
+// about 2 minutes for a new one. The Data eye test in globestudio.spec.js
+// turns glow off for the same reason. The halo never reaches a PNG, and the
+// corners checked sit far outside the globe's own glow, so they read the
+// same with it on.
+const HOME_WITHOUT_GLOW = `/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`;
+
 // The globe repaints every frame, which can stall Playwright's actionability
 // checks under software GL, so clicks go straight to the element (same as
 // the export tests in globestudio.spec.js).
@@ -55,7 +65,7 @@ const lastPngCorners = (page) =>
   });
 
 test("Transparent is a Background option that stays in sync with the eye", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(HOME_WITHOUT_GLOW);
   await waitForCanvas(page);
   const shell = page.locator("main.app-shell");
   const styles = await openBackgroundSection(page);
@@ -80,7 +90,7 @@ test("Transparent is a Background option that stays in sync with the eye", async
 
 test("a PNG exported with a Transparent background has see-through corners", async ({ page }) => {
   await keepPngs(page);
-  await page.goto("/");
+  await page.goto(HOME_WITHOUT_GLOW);
   await waitForCanvas(page);
   const styles = await openBackgroundSection(page);
   await press(styles.getByRole("button", { name: "Transparent" }));
@@ -95,7 +105,7 @@ test("a Solid PNG exported in the light theme has the cream the preview shows", 
   // Light UI, Solid, and the stored background left at its dark default:
   // the preview shows cream, so the file has to as well.
   await page.addInitScript(() => localStorage.setItem("globestudio:uiTheme", JSON.stringify("light")));
-  await page.goto("/");
+  await page.goto(HOME_WITHOUT_GLOW);
   await waitForCanvas(page);
   const preview = await page.locator(".globe-background").evaluate((node) => getComputedStyle(node).backgroundColor);
   expect(preview).toBe("rgb(244, 241, 234)");
@@ -112,7 +122,8 @@ test("a share link keeps Transparent, even for someone whose last style was Spac
       value: { writeText: async (text) => { window.__copied = text; } },
     });
   });
-  await page.goto("/");
+  // The link it copies carries glow off, so the recipient's page skips it too.
+  await page.goto(HOME_WITHOUT_GLOW);
   await waitForCanvas(page);
   const styles = await openBackgroundSection(page);
   await press(styles.getByRole("button", { name: "Transparent" }));
