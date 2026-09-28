@@ -44,20 +44,48 @@ const recordInserts = (page) =>
         svg: typeof event.data.svg === "string",
         // Counted the way figma-plugin/code.js counts before its 2,500 limit.
         dots: (event.data.svg?.match(/data-dot-id=/g) || []).length,
-        // The PNG hashed like frameSignature, to compare with a canvas frame.
-        frame: (() => {
+        // The PNG as a data URL, to compare pixels with a canvas frame.
+        url: (() => {
           let binary = "";
           for (let index = 0; index < event.data.bytes.length; index += 0x8000) {
             binary += String.fromCharCode(...event.data.bytes.subarray(index, index + 0x8000));
           }
-          const url = `data:image/png;base64,${btoa(binary)}`;
-          let hash = 0;
-          for (let index = 0; index < url.length; index += 1) hash = (hash * 31 + url.charCodeAt(index)) | 0;
-          return `${url.length}:${hash}`;
+          return `data:image/png;base64,${btoa(binary)}`;
         })(),
       });
     });
   });
+
+// Share of pixels that differ between two same-size PNG data URLs, counting
+// a pixel when any channel is off by more than 16. Software GL (CI) can land
+// a handful of pixels differently on two draws of the same settled scene, so
+// an exact byte match is too strict; a frame caught mid-morph differs far more.
+const pixelDiff = (page, a, b) =>
+  page.evaluate(async ([first, second]) => {
+    const read = async (url) => {
+      const img = new Image();
+      img.src = url;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const context = canvas.getContext("2d");
+      context.drawImage(img, 0, 0);
+      return context.getImageData(0, 0, img.width, img.height);
+    };
+    const [x, y] = await Promise.all([read(first), read(second)]);
+    if (x.width !== y.width || x.height !== y.height) return 1;
+    let differing = 0;
+    for (let index = 0; index < x.data.length; index += 4) {
+      for (let channel = 0; channel < 4; channel += 1) {
+        if (Math.abs(x.data[index + channel] - y.data[index + channel]) > 16) {
+          differing += 1;
+          break;
+        }
+      }
+    }
+    return differing / (x.width * x.height);
+  }, [a, b]);
 
 // The line above Insert that says what Insert adds. The Density readout is
 // an <output>, also a status, so match on the text.
@@ -231,7 +259,10 @@ test("figma plugin Globe and Flat toggle changes the preview and only Flat sends
       return settledFrame === previous;
     }, { timeout: CANVAS_TIMEOUT })
     .toBe(true);
-  expect(backInsert.frame).toBe(settledFrame);
+  const settledUrl = await canvas.evaluate((node) => node.toDataURL("image/png"));
+  // The settled globe, give or take a few pixels, and nothing like the flat map.
+  expect(await pixelDiff(page, backInsert.url, settledUrl)).toBeLessThan(0.01);
+  expect(await pixelDiff(page, backInsert.url, flatInsert.url)).toBeGreaterThan(0.05);
 });
 
 test("figma plugin Flat with the solid Bloom look inserts a PNG, not dotted vectors", async ({ page }) => {

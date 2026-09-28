@@ -305,10 +305,14 @@ test.describe("the Data section", () => {
     // swiftshader locally, so give CI's slower runners the headroom.
     test.slow();
     // Flat view, so every marker faces the camera and none sits behind the globe.
+    // Glow off: its six drop-shadow blurs on the full-screen canvas made one
+    // page screenshot take over a minute in software compositing on a 2 CPU
+    // Linux runner, longer than the pixel polls wait. The markers don't need it.
     const config = {
       v: 1,
       viewMode: "flat",
       globeSettings: {
+        glow: false,
         dataPoints: [
           { lat: 40.7, lng: -74, value: 10 },
           { lat: 51.5, lng: -0.1, value: 10 },
