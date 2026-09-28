@@ -45,6 +45,18 @@ describe("vercel.json", () => {
     });
   });
 
+  it("sends the production vercel.app alias to the apex domain", () => {
+    // Vercel adds noindex to preview URLs but not to this alias, so without
+    // the redirect it serves a full, indexable copy of the site. Preview
+    // hosts (globestudio-git-*.vercel.app) don't match the host condition.
+    expect(vercelConfig.redirects).toContainEqual({
+      source: "/:path*",
+      has: [{ type: "host", value: "globestudio.vercel.app" }],
+      destination: "https://globestudio.app/:path*",
+      permanent: true,
+    });
+  });
+
   it("caches content-hashed assets for a year", () => {
     expect(headersFor("/assets/index-deadbeef.js")).toContainEqual({
       key: "Cache-Control",
