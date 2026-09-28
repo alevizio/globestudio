@@ -39,12 +39,6 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Run browser smoke tests
-        run: npm run test:e2e
-
       - name: Build
         run: npm run build
         env:
@@ -61,6 +55,35 @@ jobs:
           name: dist
           path: dist
           retention-days: 7
+
+  e2e:
+    # The browser tests render the globe in software (no GPU on the runner),
+    # so one machine took about an hour and heavy tests hit their timeouts.
+    # Three shards run side by side.
+    name: Browser tests (${{ matrix.shard }}/3)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: npx playwright test --shard=${{ matrix.shard }}/3
 
   packages:
     name: Packages (mcp, react, element)

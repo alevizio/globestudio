@@ -9,8 +9,9 @@ export default defineConfig({
   // first paint compiles the three.js graph through the dev server, and a
   // context can stall when the previous test left the GPU-less renderer busy.
   // Give each test room and lean on retries rather than chasing flakes.
-  timeout: process.env.CI ? 120_000 : 60_000,
-  expect: { timeout: process.env.CI ? 20_000 : 10_000 },
+  // Exports and pixel checks in software GL on a CI runner can take minutes.
+  timeout: process.env.CI ? 240_000 : 60_000,
+  expect: { timeout: process.env.CI ? 45_000 : 10_000 },
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
@@ -20,8 +21,8 @@ export default defineConfig({
     baseURL: e2eBaseUrl,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
-    actionTimeout: process.env.CI ? 30_000 : 0,
-    navigationTimeout: process.env.CI ? 60_000 : 30_000,
+    actionTimeout: process.env.CI ? 60_000 : 0,
+    navigationTimeout: process.env.CI ? 90_000 : 30_000,
   },
   projects: [
     {
