@@ -73,8 +73,10 @@ npm run thumbs:generate            # every preset
 npm run thumbs:generate -- <id>    # one preset
 ```
 
-and commit the files in `thumbs/`. `src/utils/look-thumbs.test.js`
-fails if a preset is missing its thumbs.
+and commit the files in `thumbs/`. The same run writes `<id>.webp` next
+to each PNG, a lossless copy the `/gallery` cards load; commit those
+too. `src/utils/look-thumbs.test.js` fails if a preset is missing its
+thumbs or its gallery copy.
 
 ## Fallback
 

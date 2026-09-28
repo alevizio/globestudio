@@ -35,6 +35,14 @@ describe("look thumbnails", () => {
     }
   });
 
+  it("has a lossless 512 px gallery copy of every capture", () => {
+    // gallery-page.jsx loads /looks/<id>.webp; a missing file hides the card.
+    for (const preset of lookPresets) {
+      const file = resolve(thumbsDir, "..", `${preset.id}.webp`);
+      expect(readWebpSize(file), preset.id).toEqual({ width: 512, height: 512 });
+    }
+  });
+
   it("builds a width-described srcset the browser can pick from per slot size", () => {
     expect(lookThumbProps("halftone", "28px")).toEqual({
       src: "/looks/thumbs/halftone@2x.webp",

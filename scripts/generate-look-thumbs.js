@@ -22,6 +22,10 @@
 // Risograph pink/cyan misregistration out to grey at this size; lossless
 // keeps every resampled pixel and still lands at 2-12 KB per file.
 //
+// The /gallery cards show the capture at full size, so each look also gets
+// public/looks/<id>.webp: the 512 px PNG re-encoded as lossless WebP. Same
+// pixels, about 40 % fewer bytes. The PNGs stay for the share pipeline.
+//
 // Requires an ffmpeg built with libzimg for the zscale filter (most packaged
 // builds are) on PATH, or FFMPEG=/path/to/ffmpeg. Commit the output:
 // the thumbs are static assets served from public/.
@@ -96,6 +100,30 @@ for (const preset of presets) {
     }
     console.log(`  ✓ looks/thumbs/${preset.id}@${density}.webp (${width}px)`);
   }
+  // Gallery copy: no resize, and bgra so libwebp keeps RGB instead of 4:2:0.
+  const galleryOutput = resolve(sourceDir, `${preset.id}.webp`);
+  const gallery = spawnSync(
+    FFMPEG,
+    [
+      "-v", "error",
+      "-y",
+      "-i", source,
+      "-pix_fmt", "bgra",
+      "-c:v", "libwebp",
+      "-lossless", "1",
+      "-compression_level", "6",
+      "-map_metadata", "-1",
+      "-fflags", "+bitexact",
+      galleryOutput,
+    ],
+    { encoding: "utf8" },
+  );
+  if (gallery.error || gallery.status !== 0) {
+    console.error(`  ✗ ${preset.id}.webp: ${gallery.error?.message ?? gallery.stderr.trim()}`);
+    failed += 1;
+    continue;
+  }
+  console.log(`  ✓ looks/${preset.id}.webp (gallery)`);
 }
 
 if (failed > 0) process.exit(1);
