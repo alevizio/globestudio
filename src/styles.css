@@ -7796,6 +7796,21 @@ input[type="range"]:active::-moz-range-thumb {
     overflow: auto;
   }
 
+  /* The editor never scrolls the page on phones. The sheet scrolls its own
+     list and nothing sits below the fold (App.jsx renders PresetDetail
+     inside the sheet here), so a swipe can't collapse the address bar or
+     slide the page under the Flat/Globe switch. overscroll-behavior also
+     stops the iOS bounce and Chrome's pull to refresh for swipes that start
+     outside the sheet. /gallery and /compare keep the page scroll above. */
+  :root:has(.app-shell) {
+    overscroll-behavior: none;
+  }
+
+  body:has(.app-shell) {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
   .app-shell {
     min-height: 100svh;
     padding: 10px;
@@ -7859,7 +7874,24 @@ input[type="range"]:active::-moz-range-thumb {
       opacity 220ms var(--ease),
       filter 220ms var(--ease);
     overflow: hidden auto;
+    /* Scrolling past either end of the list stays in the sheet instead of
+       chaining to the page. */
+    overscroll-behavior: contain;
     z-index: 8;
+  }
+
+  /* The look's long-form copy closes the sheet's list on phones instead of
+     sitting a screen below the canvas, where it made the page scrollable. */
+  .control-rail .preset-detail {
+    margin: 12px 0 0;
+    max-width: none;
+    padding: 20px 8px 8px;
+    font-size: 14px;
+    background: none;
+  }
+
+  .control-rail .preset-detail-share code {
+    overflow-wrap: anywhere;
   }
 
   /* Shrink the brand-mark logo in the panel header on mobile so the

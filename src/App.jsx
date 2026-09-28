@@ -1770,6 +1770,11 @@ const App = () => {
             viewMode={viewMode}
             usStates={usStates}
           />
+        {/* Phones: the look's copy ends the sheet's list, so the page never
+            grows past the screen (see the below-the-fold one further down). */}
+        {currentPresetId && isMobileSheet && (
+          <PresetDetail preset={lookPresets.find((p) => p.id === currentPresetId)} />
+        )}
       </section>
 
       <ExportModal
@@ -1819,8 +1824,9 @@ const App = () => {
           preset is applied (i.e. on /looks/:id URLs). Drives SEO Phase 4
           — each preset URL gets 200+ words of unique designer-facing
           content + a "When to use this" section. See docs/plans/
-          seo-rollout.md Phase 4 and src/data/preset-seo.js for the copy. */}
-      {currentPresetId && (
+          seo-rollout.md Phase 4 and src/data/preset-seo.js for the copy.
+          On phones it renders inside the sheet instead (above). */}
+      {currentPresetId && !isMobileSheet && (
         <PresetDetail preset={lookPresets.find((p) => p.id === currentPresetId)} />
       )}
     </main>
