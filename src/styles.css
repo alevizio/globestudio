@@ -3781,7 +3781,9 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
 /* Real-canvas thumbnail rendered on the left of each chip. Same
    pixel-corner notch as the kbd / command-palette-thumb surfaces;
    without the explicit width the <img> would render at its natural
-   size and blow up the chip. */
+   size and blow up the chip. The cell is the thumbnails' own dark
+   backdrop in both themes (not --bg, which is cream in light), so there
+   is no cream flash before a thumbnail paints. */
 .looks-chip-thumb {
   flex: 0 0 auto;
   display: inline-flex;
@@ -3789,7 +3791,7 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: var(--bg);
+  background: #0b0b0c;
   clip-path: polygon(
     0 4px, 4px 4px, 4px 0,
     calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
