@@ -1133,22 +1133,29 @@ export const GlobeBackground = ({
         const fps = (perfState.frames * 1000) / Math.max(perfState.accum, 1);
         if (now - perfState.lastAdjustAt > 2500) {
           const currentPR = renderer.getPixelRatio();
+          // The composer multiplies the size it is given by its own pixel
+          // ratio, so step that ratio too and hand it the CSS size, as
+          // resize() does. Passing w * next scaled its targets by the ratio
+          // twice: a step down never shrank the scene target, and the
+          // recovery left it at ~2.4x the pixels until the next resize.
           if (fps < 50 && currentPR > 1) {
             const next = Math.max(1, currentPR - 0.25);
             renderer.setPixelRatio(next);
+            postHandle.composer.setPixelRatio(next);
             const w = renderer.domElement.clientWidth || renderer.domElement.width;
             const h = renderer.domElement.clientHeight || renderer.domElement.height;
             renderer.setSize(w, h, false);
-            postHandle.setSize(w * next, h * next);
+            postHandle.setSize(w, h);
             invalidate();
             perfState.lastAdjustAt = now;
           } else if (fps > 58 && currentPR < initialDpr - 0.001) {
             const next = Math.min(initialDpr, currentPR + 0.25);
             renderer.setPixelRatio(next);
+            postHandle.composer.setPixelRatio(next);
             const w = renderer.domElement.clientWidth || renderer.domElement.width;
             const h = renderer.domElement.clientHeight || renderer.domElement.height;
             renderer.setSize(w, h, false);
-            postHandle.setSize(w * next, h * next);
+            postHandle.setSize(w, h);
             invalidate();
             perfState.lastAdjustAt = now;
           }
