@@ -434,13 +434,7 @@ export const GlobeBackground = ({
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
-      // No MSAA on the canvas: every frame goes through the composer, so the
-      // scene itself renders into the composer's (single-sample) targets and
-      // the only thing ever drawn to the canvas is the final full-screen
-      // post pass. A multisampled default framebuffer would anti-alias
-      // nothing, yet cost 4x the canvas in GPU memory plus a resolve per
-      // frame.
-      antialias: false,
+      antialias: true,
       // Only the export-capable instances (main app download, Figma Insert)
       // need the buffer preserved for read-back; plain embeds page-flip.
       preserveDrawingBuffer: exportable,
