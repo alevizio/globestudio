@@ -22,7 +22,7 @@ of restating dates. Times are UTC first, then Pacific (PDT, UTC−7).
 | Tue 29 Sep | **14:00** | **07:00** | **Show HN** ([`launch/show-hn.md`](launch/show-hn.md)); stay in the thread for 4 to 6 hours |
 | Tue 29 Sep | once HN has traction | | X thread and Mastodon ([`launch/social-threads.md`](launch/social-threads.md)); record the 20 to 30 s demo and 3 export GIFs |
 | Wed 30 Sep | | | three.js forum Showcase and r/threejs; final waitlist export, junk review, Resend import, Broadcast draft; schedule Product Hunt; send the outreach emails ([`launch/outreach-email.md`](launch/outreach-email.md)) |
-| Wed 30 Sep | by 20:00 | by 13:00 | One deploy with the week's fixes, checked on its preview first. `/api/subscribe` retires after the final export |
+| Wed 30 Sep | by 20:00 | by 13:00 | One deploy with the week's fixes, checked on its preview first. |
 | Thu 1 Oct | **07:01** | **00:01** | **Product Hunt** goes live ([`launch/product-hunt.md`](launch/product-hunt.md)); post the maker comment; send the [one waitlist email](#waitlist-one-email) |
 | Thu 1 Oct | during the day | | LinkedIn post; answer every PH comment |
 | Fri 2 Oct | | | Lobsters (if invited); r/web_design and r/InternetIsBeautiful, one post each; follow-ups |
