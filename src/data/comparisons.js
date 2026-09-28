@@ -40,7 +40,7 @@ export const comparisons = {
   geolayers: {
     slug: "geolayers",
     competitor: "GEOlayers",
-    title: "Globestudio vs GEOlayers: animated maps in the browser vs After Effects",
+    title: "Globestudio vs GEOlayers: browser globes vs After Effects",
     metaDescription:
       "GEOlayers is a paid After Effects plugin for animated cartographic maps. Globestudio makes stylized dotted maps and 3D globes free in the browser and exports WebM/MP4/GIF. Honest comparison.",
     tagline: "Stylized maps in the browser vs. cartographic maps in After Effects.",
