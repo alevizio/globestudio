@@ -6,9 +6,11 @@
   <title>Globestudio</title>
   <style>
     html, body { margin: 0; padding: 0; height: 100vh; background: #0a0a0c; }
+    body { display: flex; flex-direction: column; }
     iframe {
       width: 100%;
-      height: 100%;
+      flex: 1;
+      min-height: 0;
       border: 0;
       display: block;
       color-scheme: dark;
@@ -16,8 +18,7 @@
     /* "Use my Figma colors" — a thin strip of the file's color variables.
        Hidden until variables arrive. Clicking one recolors the globe dots. */
     #brandbar {
-      position: absolute;
-      top: 0; left: 0; right: 0;
+      flex: none;
       display: none;
       gap: 6px;
       flex-wrap: wrap;
@@ -43,7 +44,7 @@
   <div id="brandbar" aria-label="Your Figma colors"></div>
   <iframe
     id="embed"
-    title="Globestudio embed"
+    title="Globestudio studio"
     allow="cross-origin-isolated"
     referrerpolicy="no-referrer-when-downgrade"
   ></iframe>
@@ -54,12 +55,8 @@
     // Policy. A unique query param guarantees a fresh fetch each open; the
     // server sends no-store, so this never bloats the cache.
     var embedEl = document.getElementById("embed");
-    // Current dot-color override (from a clicked Figma variable), if any.
-    var dotColorOverride = null;
     function buildEmbedSrc() {
-      var url = "https://globestudio.app/embed?plugin=figma&autoSpin=true";
-      if (dotColorOverride) url += "&dotColor=" + dotColorOverride.replace(/^#/, "");
-      return url + "&cb=" + Date.now();
+      return "https://globestudio.app/?plugin=figma&app=1&cb=" + Date.now();
     }
     embedEl.src = buildEmbedSrc();
 
@@ -80,10 +77,9 @@
         var b = document.createElement("button");
         b.className = "bswatch";
         b.style.background = v.hex;
-        b.title = v.name + " — apply to dots";
+        b.title = v.name + ": apply to dots";
         b.onclick = function () {
-          dotColorOverride = v.hex;
-          embedEl.src = buildEmbedSrc(); // reload the globe with this dot color
+          embedEl.contentWindow.postMessage({ type: "globestudio-set-dot-color", hex: v.hex }, "https://globestudio.app");
         };
         bar.appendChild(b);
       });

@@ -14,7 +14,7 @@
 //      currently selected Globestudio frame in place).
 //   5. Notify + close-or-stay-open.
 
-figma.showUI(__html__, { width: 380, height: 620, themeColors: true });
+figma.showUI(__html__, { width: 400, height: 720, themeColors: true });
 
 // "Use my Figma colors": read the file's local COLOR variables and send them
 // to the UI as { name, hex } so the user can apply one as the globe's dot
@@ -134,7 +134,7 @@ figma.ui.onmessage = async function (msg) {
     // window so a runaway scrollHeight from inside the iframe doesn't
     // explode the panel.
     const height = Math.max(320, Math.min(900, Math.round(msg.height) || 620));
-    figma.ui.resize(380, height);
+    figma.ui.resize(400, height);
   } else if (msg.type === "get-variables") {
     sendColorVariables();
   } else if (msg.type === "close") {
