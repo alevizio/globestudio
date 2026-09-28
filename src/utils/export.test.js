@@ -73,6 +73,19 @@ describe("recordCanvasToVideoBlob", () => {
       expect(blob.size).toBe(MIN_VIDEO_BYTES * 4);
     });
   });
+
+  it("flags the canvas as streaming only while it records", async () => {
+    const element = document.createElement("canvas");
+    element.captureStream = () => ({});
+    let flagWhileRecording;
+    await withRecorder([new Blob([new Uint8Array(MIN_VIDEO_BYTES * 4)])], async () => {
+      const recording = recordCanvasToVideoBlob(element, { durationMs: 1 });
+      flagWhileRecording = element.dataset.streaming;
+      await recording;
+    });
+    expect(flagWhileRecording).toBe("1");
+    expect(element.dataset.streaming).toBeUndefined();
+  });
 });
 
 describe("probeMp4Support", () => {
