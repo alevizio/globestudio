@@ -183,6 +183,19 @@ const GlobeBackground = lazy(() =>
   import("./components/globe-background.jsx").then((m) => ({ default: m.GlobeBackground })),
 );
 
+// Saved keys that don't change the design: UI theme, onboarding, export
+// scale, and what other pages (teaser, examples, the Figma embed) keep.
+const NON_DESIGN_KEYS = new Set([
+  "hasSeenOnboarding",
+  "uiTheme",
+  "canvasScale",
+  "figma-picks",
+  "stripe-globe-tune",
+  "teaser-globe-pos",
+  "tv-fit",
+  "vercel-globe-tune",
+]);
+
 const App = () => {
   // Static-page routes — /brand and /docs are takeover pages, not the
   // canvas + panel app. /looks/:id and / fall through to the canvas
@@ -478,6 +491,23 @@ const App = () => {
     if (typeof window === "undefined") return null;
     const match = window.location.pathname.match(/^\/looks\/([\w-]+)/);
     return match ? match[1] : null;
+  });
+  // A first visit to "/" shows exactly the Default look, so the looks bar
+  // marks it. Only the chip: the URL, heading and look copy stay the home
+  // page's. Any saved design setting or a share link means it isn't the
+  // untouched Default; an import clears the mark.
+  const [startsOnDefault, setStartsOnDefault] = useState(() => {
+    if (typeof window === "undefined" || window.location.pathname !== "/") return false;
+    if (new URLSearchParams(window.location.search).has("c")) return false;
+    try {
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        if (key?.startsWith("globestudio:") && !NON_DESIGN_KEYS.has(key.slice("globestudio:".length))) return false;
+      }
+    } catch {
+      return false;
+    }
+    return true;
   });
   // Whether the design has changed since the current look applied, for the
   // Copy for AI prompt ("Started from: <look>" vs "Look: <look>"). The
@@ -1152,6 +1182,7 @@ const App = () => {
       return false;
     }
     lookBaselineRef.current = null;
+    setStartsOnDefault(false);
     const set = (key, setter) => {
       if (safeConfig[key] !== undefined) setter(safeConfig[key]);
     };
@@ -1520,7 +1551,13 @@ const App = () => {
   ];
 
   // Rendered in one of two places in the sheet, see below.
-  const looksBar = <LooksBar onPick={applyLook} appliedId={appliedLookId} currentId={currentPresetId} />;
+  const looksBar = (
+    <LooksBar
+      onPick={applyLook}
+      appliedId={appliedLookId}
+      currentId={currentPresetId ?? (startsOnDefault ? "default" : null)}
+    />
+  );
 
   return (
     <main

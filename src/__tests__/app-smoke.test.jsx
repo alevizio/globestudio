@@ -97,6 +97,24 @@ describe("App smoke", () => {
     }
   }, 20000);
 
+  it("marks the Default look on a first visit, but not once a design is saved", async () => {
+    window.history.pushState({}, "", "/");
+    window.localStorage.clear();
+    const { default: App } = await import("../App.jsx");
+    // A first visit shows exactly the Default look's settings.
+    const first = render(<App />);
+    expect(document.querySelector(".looks-chip.is-current")?.textContent).toMatch(/Default/);
+    first.unmount();
+    // A saved design setting means it may not be Default any more.
+    window.localStorage.setItem("globestudio:dotColor", JSON.stringify("#ff0000"));
+    try {
+      render(<App />);
+      expect(document.querySelector(".looks-chip.is-current")).toBeNull();
+    } finally {
+      window.localStorage.clear();
+    }
+  }, 20000);
+
   it("serves the teaser instead of the studio only when VITE_TEASER is 1", async () => {
     // TEASER_MODE is read at module load, so re-import App with the flag set.
     vi.stubEnv("VITE_TEASER", "1");
