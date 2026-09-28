@@ -380,31 +380,50 @@ test("build_share_url reports config keys the app would drop", async () => {
   assert.deepEqual(appConfigOf(json.share_url), { globeSettings: { ...DEFAULT_GLOBE_SETTINGS, autoSpin: false } });
 });
 
-test("build_share_url and read_share_url leave out values a link cannot carry", async () => {
-  // The app decodes ?c= twice, so "%" in a value voids the whole link and an
-  // SVG custom shape (its data URL is percent encoded) never survives one.
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5"/></svg>`;
-  const { json } = await callTool("build_share_url", {
-    look: "default",
-    dotColor: "#ff0000",
-    config: {
-      shape: "ASCII",
-      asciiSymbol: "%",
-      customShape: { type: "image/svg+xml", dataUrl: `data:image/svg+xml,${encodeURIComponent(svg)}` },
-    },
-  });
-  assert.deepEqual(json.ignored, ["asciiSymbol", "customShape"]);
-  assert.match(json.ignored_note, /% sign/);
-  assert.deepEqual(json.config, { dotColor: "#ff0000", shape: "ASCII" });
-  assert.deepEqual(appConfigOf(json.share_url), { dotColor: "#ff0000", shape: "ASCII" });
-  assert.deepEqual(appConfigOf(json.embed_url), { shape: "ASCII" });
+test("a % sign survives both ways: MCP links in the app, app links in the MCP", async () => {
+  const svgSource = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><text>50%</text><circle cx="5" cy="5" r="5"/></svg>`;
+  const customShape = {
+    name: "Dot",
+    type: "image/svg+xml",
+    svgSource,
+    dataUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgSource)}`,
+  };
+  const carried = { shape: "Custom", customShape, asciiSymbol: "100%", stateSelection: "50% off %41" };
 
-  // A link whose ?c= was encoded twice does hand the app a "%": report it as
-  // the app applies it, and keep it out of the links handed back.
-  const twice = encodeURIComponent(encodeURIComponent(JSON.stringify({ v: 1, asciiSymbol: "%", density: 55 })));
-  const read = await callTool("read_share_url", { url: `${SITE}/?c=${twice}` });
-  assert.deepEqual(read.json.config, appConfigOf(`${SITE}/?c=${twice}`));
-  assert.equal(read.json.config.asciiSymbol, "%");
-  assert.deepEqual(read.json.ignored, ["asciiSymbol"]);
-  assert.deepEqual(appConfigOf(read.json.share_url), { density: 55 });
+  // MCP -> app: build_share_url keeps every value, and the app opens it as is.
+  const { json } = await callTool("build_share_url", { look: "default", dotColor: "#ff0000", config: carried });
+  assert.equal(json.ignored, undefined);
+  assert.deepEqual(json.config, { dotColor: "#ff0000", ...carried });
+  assert.deepEqual(appConfigOf(json.share_url), { dotColor: "#ff0000", ...carried });
+  assert.deepEqual(appConfigOf(json.embed_url), carried);
+
+  // app -> MCP: read_share_url reads the app's own link the way the app does,
+  // and the links it hands back open the same design.
+  const link = appBuildShareUrl({ version: 1, ...carried }, SITE, "/");
+  const read = await callTool("read_share_url", { url: link });
+  assert.deepEqual(read.json.config, carried);
+  assert.deepEqual(read.json.config, appConfigOf(link));
+  assert.equal(read.json.ignored, undefined);
+  assert.deepEqual(appConfigOf(read.json.share_url), carried);
+
+  // A v1 link whose ?c= was encoded twice, as @globestudio/react passes a
+  // copied token, still hands both parsers its "%".
+  const twice = `${SITE}/?c=${encodeURIComponent(encodeURIComponent(JSON.stringify({ v: 1, asciiSymbol: "%", density: 55 })))}`;
+  const doubled = await callTool("read_share_url", { url: twice });
+  assert.deepEqual(doubled.json.config, { asciiSymbol: "%", density: 55 });
+  assert.deepEqual(doubled.json.config, appConfigOf(twice));
+  assert.deepEqual(appConfigOf(doubled.json.share_url), { asciiSymbol: "%", density: 55 });
+});
+
+test("read_share_url reads every old v1 link the way the app does, and hands back an equivalent link", async () => {
+  // Built by the app's encoder before v2 (see the fixture's _comment).
+  const { links } = JSON.parse(readFileSync(new URL("../../../src/utils/fixtures/legacy-share-links.json", import.meta.url), "utf8"));
+  assert.ok(links.length >= 50);
+  for (const { name, url } of links) {
+    const { json, text } = await callTool("read_share_url", { url });
+    assert.ok(json, `${name}: ${text}`);
+    const app = appConfigOf(url);
+    assert.deepEqual(asAppApplies(json.config), app, name);
+    if (app) assert.deepEqual(appConfigOf(json.share_url), app, `${name} share_url`);
+  }
 });

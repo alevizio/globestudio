@@ -1,5 +1,5 @@
 {
-  "_comment": "Real links copied from the running app (vite preview of a production build, VITE_TEASER=0) on 2026-09-27: studio links from the export dialog Share tab, Copy share link, loaded from the path in from; embeds from the /examples page iframes. Regenerate when the share format changes.",
+  "_comment": "Real links copied from the running app (vite preview of a production build, VITE_TEASER=0) on 2026-09-27: studio links from the export dialog Share tab, Copy share link, loaded from the path in from; embeds from the /examples page iframes. These are v1 links (before the v2 marker); keep them as they are, since old links must keep decoding. The per preset test covers the current format.",
   "studio": [
     {
       "from": "/",

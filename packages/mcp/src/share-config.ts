@@ -18,7 +18,9 @@
 export type ShareConfig = Record<string, unknown>;
 
 const PARAM_KEY = "c";
-const VERSION = 1;
+// v2 payloads are decoded once, v1 (every link made before v2) twice, as in
+// the app. See "Versions" at the top of src/utils/share-config.js.
+const VERSION = 2;
 const HEX_RE = /^#?[0-9a-fA-F]{3,8}$/;
 const SELECTION_RE = /^(world|country:[A-Z]{3}|continent:[\w\s-]+|subregion:[\w\s-]+)$/;
 const ALLOWED_IMAGE_DATA_RE = /^data:image\/(?:png|jpe?g|webp);base64,/i;
@@ -301,6 +303,27 @@ export const normalizeConfig = (config: unknown): ShareConfig => {
   return next;
 };
 
+const parseJson = (text: string): unknown => {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+};
+
+// `raw` is the ?c= value after URLSearchParams' own decode. A v2 payload
+// reads as is; anything else takes the old double decode, and only when
+// that throws (a v1 link with a "%") does the single decode stand in.
+const decodePayload = (raw: string): unknown => {
+  const once = parseJson(raw);
+  if (isRecord(once) && once.v === VERSION) return once;
+  try {
+    return JSON.parse(decodeURIComponent(raw));
+  } catch {
+    return once;
+  }
+};
+
 /** Decode `?c=` from a query string the way the app's parseShareConfig does. */
 export const parseShareConfig = (search: string): ShareConfig | null => {
   if (!search) return null;
@@ -308,7 +331,7 @@ export const parseShareConfig = (search: string): ShareConfig | null => {
   const raw = params.get(PARAM_KEY);
   if (!raw) return null;
   try {
-    const parsed: unknown = JSON.parse(decodeURIComponent(raw));
+    const parsed = decodePayload(raw);
     if (!isRecord(parsed)) return null;
     const { v: _version, ...config } = parsed;
     const next = normalizeConfig(config);
