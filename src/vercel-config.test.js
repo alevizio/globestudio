@@ -37,6 +37,14 @@ describe("vercel.json", () => {
     expect(vercelConfig.trailingSlash).toBe(false);
   });
 
+  it("sends the retired Print look to Halftone, which replaced it", () => {
+    expect(vercelConfig.redirects).toContainEqual({
+      source: "/looks/print",
+      destination: "/looks/halftone",
+      permanent: true,
+    });
+  });
+
   it("caches content-hashed assets for a year", () => {
     expect(headersFor("/assets/index-deadbeef.js")).toContainEqual({
       key: "Cache-Control",

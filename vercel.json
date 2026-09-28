@@ -1,5 +1,8 @@
 {
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/looks/print", "destination": "/looks/halftone", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",
