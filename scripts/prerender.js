@@ -267,9 +267,10 @@ export const renderPage = (template, meta, { teaser = TEASER } = {}) => {
   // Its own script with the id preset-route.js looks for, so client
   // navigation between looks updates this one instead of adding a second.
   const breadcrumb = JSON.stringify(meta.breadcrumb).replace(/<\//g, "<\\/");
+  // A replacer function, so a "$" in a name is never read as a pattern.
   html = html.replace(
     "</head>",
-    `    <script type="application/ld+json" id="breadcrumb-ld">${breadcrumb}</script>\n  </head>`,
+    () => `    <script type="application/ld+json" id="breadcrumb-ld">${breadcrumb}</script>\n  </head>`,
   );
   if (teaser) html = html.replace("</head>", NOINDEX);
   return [html, misses];
