@@ -42,6 +42,23 @@ describe("share-config", () => {
     expect(parsed).toMatchObject(config);
   });
 
+  it("round-trips the Transparent background, style included", () => {
+    // Before, backgroundStyle "transparent" was dropped, so the link opened on
+    // the recipient's last style (a Space user saw stars, not transparency).
+    const config = { background: "#0a0a0a", transparent: true, backgroundStyle: "transparent" };
+    const url = buildShareUrl(config, "https://globestudio.app");
+    expect(parseShareConfig(`?${url.split("?")[1]}`)).toMatchObject(config);
+  });
+
+  it("publishes every importable background style in the config schema", () => {
+    const schemaPath = resolve(dirname(fileURLToPath(import.meta.url)), "../../public/schema/config.json");
+    const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
+    for (const style of schema.properties.backgroundStyle.enum) {
+      expect(normalizeConfig({ backgroundStyle: style })).toEqual({ backgroundStyle: style });
+    }
+    expect(schema.properties.backgroundStyle.enum).toContain("transparent");
+  });
+
   it("round-trips data-binding (points + arcs + marker color) and drops invalid points", () => {
     const config = {
       selection: "world",
