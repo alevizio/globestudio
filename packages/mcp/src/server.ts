@@ -329,7 +329,11 @@ const readEmbedParams = (params: URLSearchParams) => {
     return Number.isFinite(n) && n > 0 ? Math.min(max, Math.max(min, n)) : undefined;
   };
   const bool = (value: string) => value === "1" || value === "true";
+  // The embed reads params.get(key): the first of repeated keys wins.
+  const seen = new Set<string>();
   for (const [key, value] of params) {
+    if (seen.has(key)) continue;
+    seen.add(key);
     switch (key) {
       case "c":
       case "look":

@@ -254,6 +254,11 @@ test("read_share_url reads embed query params the way the embed does", async () 
   assert.equal(both.json.look, "default");
   const unknown = await callTool("read_share_url", { url: "/embed?look=nope" });
   assert.equal(unknown.json.look, "default");
+
+  // Repeated params: the embed reads the first one, and so must the server.
+  const repeated = await callTool("read_share_url", { url: "/embed?dotColor=ff0000&dotColor=00ff00&theme=light&theme=dark" });
+  assert.equal(repeated.json.config.dotColor, "#ff0000");
+  assert.deepEqual(repeated.json.embed_options, { theme: "light" });
 });
 
 test("read_share_url reads MCP look links and bare look links", async () => {
