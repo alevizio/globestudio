@@ -17,6 +17,14 @@ test("the canvas halo stays on a desktop screen", async ({ page }) => {
   expect(await canvasFilter(page)).toContain("drop-shadow");
 });
 
+// Aurora's starfield makes the canvas opaque, which hides a halo painted
+// behind it; App.jsx drops the (costly, invisible) filter there.
+test("the canvas halo is dropped behind an opaque starfield", async ({ page }) => {
+  await page.goto("/looks/aurora");
+  await canvasFilter(page);
+  await expect.poll(() => canvasFilter(page)).toBe("none");
+});
+
 test.describe("on a DPR 3 phone", () => {
   test.use({ viewport: { width: 390, height: 664 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 

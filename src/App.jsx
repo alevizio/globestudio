@@ -1262,6 +1262,19 @@ const App = () => {
   const isSpaceBackground = backgroundStyle === "space";
   const isFlowBackground = backgroundStyle === "flow";
   const isTransparentBackground = backgroundStyle === "transparent" || transparent;
+  // The drop-shadow halo is painted BEHIND the canvas, so it only shows
+  // where the canvas has transparent pixels. Space and flow backgrounds are
+  // full-screen and opaque (alpha 1), and the canvas stays opaque when the
+  // post pass composites that bg behind the effect ("Shader on bg: Skip";
+  // flow always shades) or when the effect passes the scene's alpha through
+  // untouched (none, bloom, aurora). The halo is then fully hidden, yet the
+  // compositor still re-blurs six full-screen layers on every canvas frame,
+  // so drop it there.
+  const canvasIsOpaque =
+    (isSpaceBackground || isFlowBackground) &&
+    (isSpaceBackground && !shadeBackground
+      ? true
+      : ["none", "bloom", "aurora"].includes(effectiveShaderSettings.effect || "none"));
   // In light UI theme, a solid-background look renders see-through so the
   // light page shows behind it — Halftone reads as ink on paper, not a stark
   // white box (the old theme-invert) or a low-contrast dark fill. The canvas
@@ -1392,7 +1405,7 @@ const App = () => {
         // soft cyan halo.
         "--globe-glow-spread": `${30 + (clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 80}%`,
         "--globe-glow-blur": `${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 56}px`,
-        "--globe-canvas-halo": globeSettings.glow && !skipCanvasHalo
+        "--globe-canvas-halo": globeSettings.glow && !skipCanvasHalo && !canvasIsOpaque
           ? (() => {
               const t = clampNumber(globeSettings.glowSpread, 0, 100) / 100;
               // SIX Gaussian halo layers in geometric ~1.8× radius
