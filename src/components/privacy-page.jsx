@@ -111,10 +111,10 @@ export const PrivacyPage = () => {
         <p>
           Before launch this site was a waitlist. If you joined it, we
           stored your email address and signup time in private Vercel Blob
-          storage, and the launch email goes out through Resend. We use it
+          storage, and the launch email is sent from Alejandro's Gmail. We use it
           for that one email only, never share or sell it, and delete the
-          list after launch week. To be removed sooner, use the unsubscribe
-          link in the email or message @alevizio on X. The waitlist page also
+          list after launch week. To be removed sooner, reply to that email or
+          message @alevizio on X. The waitlist page also
           counted <code>waitlist_signup</code> and{" "}
           <code>waitlist_duplicate</code> events, without the address.
         </p>
