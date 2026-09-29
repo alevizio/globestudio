@@ -3961,6 +3961,13 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   border-color: rgba(246, 242, 234, 0.45);
 }
 
+/* The chip just picked is also the current one: keep the current chip's
+   colors through the pulse, or its label turns cream on cream. */
+.looks-chip.is-current.is-applied {
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+
 .looks-chip.is-applied .looks-chip-preview {
   animation: looks-chip-pop 620ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }

@@ -350,6 +350,31 @@ test.describe("the Data section", () => {
   });
 });
 
+test("the look just picked keeps a readable label while its chip pulses", async ({ page }) => {
+  await page.goto("/");
+  // The chip is current and applied at once for only about 0.7 s, so catch
+  // the moment the classes land instead of polling. Transitions off, so the
+  // colors read then are the ones the rules set.
+  await page.addStyleTag({ content: ".looks-chip { transition: none !important; }" });
+  const label = page.evaluate(() => new Promise((resolve) => {
+    const read = () => {
+      const node = document.querySelector(".looks-chip.is-current.is-applied");
+      if (!node) return false;
+      const style = getComputedStyle(node);
+      resolve(style.color === style.backgroundColor ? `unreadable: ${style.color}` : "readable");
+      return true;
+    };
+    const observer = new MutationObserver(() => { if (read()) observer.disconnect(); });
+    observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
+  }));
+  // By keyboard, so no pointer hovers the chip: the hover style has readable
+  // colors of its own and would hide the bug (the bar re-centering after a
+  // click also slides the chip out from under the pointer).
+  await page.locator(".looks-chip", { hasText: "Halftone" }).focus();
+  await page.keyboard.press("Enter");
+  expect(await label).toBe("readable");
+});
+
 test("the phone sheet lists Data between Network and Animations", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
