@@ -12,9 +12,9 @@
 
 ## Title (HN strict: 80 chars max, no emoji)
 
-> **Show HN: Globestudio, open-source dotted maps and 3D globes (React/Three.js)**
+> **Show HN: Globestudio, dotted maps and 3D globes for landing pages (open source)**
 
-76 characters. One title, no variants.
+79 characters. One title, no variants.
 
 ---
 
@@ -28,33 +28,35 @@
 
 ---
 
-## Post body (about 2,000 characters)
+## Post body (about 2,350 characters)
 
 Paste as plain text. HN doesn't render Markdown, so the numbered notes stay as
 typed.
 
 ```text
-Globestudio is a browser tool for making dotted maps and 3D globes, the kind that sit behind landing page headlines, and taking them away as files or embeds. No signup, no API key, MIT.
+Hi HN, I'm Alejandro, a product designer who codes.
 
-Pick the world, a continent, a country or a US state. Choose one of 21 looks (halftone, risograph, dither, CRT, aurora, contour lines and more), tweak dots, gradients and density, then export PNG (1x to 4x), SVG, WebM, MP4, GIF or a JSON config. You can also paste lat,lng,value or country,value lines to plot your own data as markers, optionally joined by arcs.
+I kept needing dotted world maps and spinning globes for landing pages and decks. Every time, I ended up screenshotting someone else's site or fighting a map library built for GIS work, so I built the tool I wanted.
 
-To use it elsewhere there's an /embed route driven by URL params (or a full config via ?c=), a one-line script tag, @globestudio/react, a web component, a Figma plugin, and an MCP server so an assistant can build a globe and hand back a share link: https://globestudio.app/integrations
+You pick the world, a continent, a country or a US state, choose one of 21 looks (halftone, risograph, dither, CRT, aurora, contour lines and more), adjust the dots, colors and density, and export a PNG (up to 4x), SVG, WebM or MP4 video, GIF, JSON config or an embed. You can also paste lat,lng,value or country,value lines to plot your own data as markers, joined by arcs if you want. It's free and MIT licensed, with no signup or API key.
 
-How it works:
+If you want it inside something else, there's an /embed route driven by URL params (or a full config via ?c=), a one-line script tag, @globestudio/react, a web component, a Figma plugin that runs the whole studio, and an MCP server so an assistant can build a globe and hand you back a share link: https://globestudio.app/integrations
 
-1. The dot field comes from the dotted-map package and renders as one Three.js InstancedMesh. Switching between flat and globe re-bakes the instance matrices on the CPU along a flat, cylinder, sphere path and uploads them in chunks through updateRanges, so the morph never rebuilds the mesh.
+A few notes on how it works:
 
-2. A look is a preset: dot and color settings plus at most one post-processing pass from 24 shader effects. SVG export is different: dots come out as clean vectors, six effects are approximated with SVG filters, and the full shader look needs PNG or video.
+1. The dots come from the dotted-map package and render as one Three.js InstancedMesh. Switching between the flat map and the globe re-bakes the instance matrices on the CPU along a flat, cylinder, sphere path and uploads them in chunks through updateRanges, so the morph never rebuilds the mesh.
 
-3. Solid mode paints land with d3-geo, so it offers five flat projections (Mercator, Equal Earth, Natural Earth, Winkel Tripel, Robinson). Dotted maps stay on Mercator, which is what dotted-map generates.
+2. A look is a preset: dot and color settings plus at most one post-processing pass out of 24 shader effects. SVG can't carry most of those, so SVG export gives you clean vector dots and approximates six effects with SVG filters. For the full look you need PNG or video.
 
-4. The render loop averages FPS over 60 frames and steps the pixel ratio down by 0.25 below 50 fps, then back up once it recovers.
+3. Solid mode draws land with d3-geo, which gives it five projections (Mercator, Equal Earth, Natural Earth, Winkel Tripel, Robinson). Dotted maps stay on Mercator because that's what dotted-map generates.
 
-Rough edges: heavy looks at max density (90) drop frames on weaker GPUs, and accessibility is self-audited against WCAG 2.2 AA, with known gaps in ACCESSIBILITY.md.
+4. While you drag or zoom, the render loop watches the frame rate and lowers the pixel ratio a step when it drops under 50 fps, then raises it again once it recovers.
 
-Source: https://github.com/alevizio/globestudio
+What isn't great yet: heavy looks at max density drop frames on weaker GPUs, and the accessibility work is self-audited against WCAG 2.2 AA, with the known gaps listed in ACCESSIBILITY.md.
 
-I'd love to hear how it runs on your hardware and which looks or exports you'd actually use.
+Code: https://github.com/alevizio/globestudio
+
+I'd like to hear how it runs on your machine and which looks or exports you'd actually use.
 ```
 
 ---
@@ -62,118 +64,115 @@ I'd love to hear how it runs on your hardware and which looks or exports you'd a
 ## Prepared responses
 
 These are the questions you'll get. Have them ready to paste; speed of response
-matters on HN. Stay technical.
+matters on HN. Stay technical. The replies are plain text, since HN doesn't
+render Markdown.
 
 ### "Why not just use [MapLibre / deck.gl / react-simple-maps]?"
 
-> Those are great at what they do: interactive maps with real geographic data,
-> tiles and big datasets. Globestudio solves a different problem. When a
-> designer or a marketing site needs a stylized map as a still or an animated
-> asset, those libraries are more power than the job needs and less styling
-> than it wants. The output here isn't a webmap; it's a PNG, SVG or video that
-> ships in a landing page or a deck, or a live embed. Different audience,
-> different ergonomics.
+> Those are great for interactive maps with real geographic data, tiles and big
+> datasets. I wanted something smaller: a stylized map for a landing page or a
+> deck, as a PNG, SVG, video or live embed. For that job they felt like a lot of
+> setup and not enough control over the look.
 
 ### "Why not just use globe.gl (or cobe) and write the shaders yourself?"
 
-> globe.gl is the engine; Globestudio is the GUI. globe.gl is the OSS gold
-> standard for 3D globe rendering and I considered building on it. But the 21
-> looks (halftone, riso, dither, glitch, CRT, aurora) are post-processing work
-> most people won't spend a weekend on, and designers, the actual audience,
-> don't `npm install`. What this adds: presets and sliders for people who don't
-> want to write a fragment shader, PNG and video export with the shader look,
-> and a web tool with no signup. If you'd rather code it from scratch, globe.gl
-> and cobe are great.
+> globe.gl is great and I thought about building on it. The 21 looks (halftone,
+> riso, dither, glitch, CRT, aurora) are post-processing work most people won't
+> spend a weekend on, and the designers I built this for don't run npm install.
+> So Globestudio adds presets and sliders instead of fragment shaders, PNG and
+> video export that keep the shader look, and a web tool with no signup. If
+> you'd rather write it yourself, globe.gl and cobe are both good places to
+> start.
 
 ### "Isn't this just cobe?"
 
-> cobe is a 5 KB library for developers who write code, and it's lovely.
-> Globestudio is the layer above it: a no-code studio where you design the look
-> and export it, or grab a component, plugin or MCP server. cobe gives you a
-> canvas; Globestudio gives you a deliverable. There's an honest comparison at
-> https://globestudio.app/compare/cobe
+> cobe is a lovely 5 KB library for developers who write code. Globestudio is a
+> studio: you design the look without code and export it, or use it through a
+> component, the Figma plugin or the MCP server. I wrote an honest comparison
+> here: https://globestudio.app/compare/cobe
 
 ### "Isn't amCharts Pixel Map Generator the same thing?"
 
-> It's the closest analog on the dotted map side and it's good. The
-> differences: Globestudio also does a 3D globe, applies shader looks, exports
-> video, and is MIT licensed, so you can self-host or fork it.
+> It's the closest thing on the dotted map side, and it's good. Globestudio also
+> does a 3D globe, shader looks and video export, and it's MIT licensed, so you
+> can self-host or fork it.
 
 ### "Does the SVG keep the shader look?"
 
 > Partly. SVG export gives you clean vector dots cropped to your selection. Six
 > effects (bloom, chromatic, CRT, threshold, pixel, halftone) are approximated
 > with SVG filters, plus grain and scanline overlays where a look uses them.
-> The rest of the shader passes can't become vectors, so for the full look use
-> PNG (up to 4x) or video.
+> The other shader passes can't become vectors, so for the full look use PNG
+> (up to 4x) or video.
 
 ### "Which projections?"
 
 > Five flat projections for solid maps: Mercator, Equal Earth, Natural Earth,
-> Winkel Tripel and Robinson, drawn with d3-geo. Dotted maps use Mercator,
+> Winkel Tripel and Robinson, drawn with d3-geo. Dotted maps use Mercator
 > because that's what the dotted-map package generates. Reprojecting the dot
 > field is on the roadmap.
 
 ### "It lags on my machine."
 
-> Sorry about that. Could you file it here, with browser, OS and GPU?
+> Sorry about that. Could you file it with your browser, OS and GPU?
 > https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml
 >
-> The render loop already steps the pixel ratio down when FPS drops, but heavy
-> presets (Wireframe with the edge shader, Particle Grid with bloom) at high
-> density push it harder than the throttle compensates for. Working on it.
+> Turning Glow off (in the Globe section) helps the most. The glow is the most
+> expensive thing on screen right now, and rebuilding it as a much cheaper blur
+> is next on my list. The render loop also lowers the pixel ratio when the
+> frame rate drops while you interact, but heavy combinations, like Wireframe
+> with its edge shader or the Particle Grid dot shape with Bloom at high
+> density, can still push a weaker GPU too hard.
 
 ### "Why dotted maps specifically?"
 
-> Mostly aesthetic. The dotted style reads as "data" without committing to a
-> chart, looks good at any density, and exports cleanly to SVG. There's also a
-> Solid mode that renders filled land with borders, rivers and cities.
+> Mostly because I like how they look. A dotted map reads as data without being
+> a chart, holds up at any density and exports cleanly to SVG. There's also a
+> Solid mode with filled land, borders, rivers and cities.
 
 ### "Is there a way to embed it?"
 
-> Yes. Every look has an `/embed` route:
-> `<iframe src="https://globestudio.app/embed?look=halftone">` works in any
-> HTML page, Webflow, Framer or Notion, and there's a one-line script tag too.
-> The embed takes about 19 URL params (look, selection, density, dotColor,
-> view and more; the table is in the README), or a full config via `?c=`,
-> which is what the Share dialog produces. Per-tool guides:
-> https://globestudio.app/integrations
+> Yes. Every look has an /embed route, so
+> <iframe src="https://globestudio.app/embed?look=halftone"> works in any HTML
+> page, Webflow, Framer or Notion, and there's a one-line script tag too. It
+> takes about 19 URL params (look, selection, density, dotColor, view and more;
+> the table is in the README), or a full config via ?c=, which is what the Share
+> dialog makes. Guides per tool: https://globestudio.app/integrations
 
 ### "How is the SVG export so big / small?"
 
-> If it's huge: high density plus many features (network arcs as paths, and
-> per-dot fill-opacity for gradients with alpha). SVG path consolidation is on
-> my list.
+> If it's huge: high density plus a lot of features (network arcs as paths, and
+> per-dot fill-opacity for gradients with alpha). Merging paths is on my list.
 >
 > If it's small: the export is cropped to the dots in your selection, so a
-> single country only emits its own dots.
+> single country only includes its own dots.
 
 ### "Telemetry?"
 
-> Cookieless Vercel Web Analytics and Speed Insights, and they stay off when
-> Do Not Track or Global Privacy Control is set, or when you opt out on
-> /privacy. Besides page views there are a few events (look applied, export
-> finished, share clicked, client errors) with no personal data. The page at
-> https://globestudio.app/privacy lists them.
+> Cookieless Vercel Web Analytics and Speed Insights. They stay off when Do Not
+> Track or Global Privacy Control is set, or when you opt out on /privacy.
+> Besides page views there are a few events (look applied, export finished,
+> share clicked, client errors) with no personal data, listed at
+> https://globestudio.app/privacy
 
 ### "Is it accessible?"
 
-> It's built to WCAG 2.2 AA: keyboard first, a screen reader proxy for the
-> canvas state, and axe checks in CI. It's
-> self-audited, not third-party audited, and ACCESSIBILITY.md lists the known
-> gaps. Reports are very welcome.
+> I built it against WCAG 2.2 AA: it works from the keyboard, a screen reader
+> proxy describes the canvas state, and CI runs axe checks. It's self-audited,
+> not audited by a third party, and ACCESSIBILITY.md lists the gaps I know
+> about. Reports are very welcome.
 
 ### "License?"
 
-> MIT. Use it, remix it, ship it. The geography data comes from world-atlas,
-> us-atlas and world-countries, all permissive licenses.
+> MIT, so do what you like with it. The geography comes from world-atlas,
+> us-atlas and world-countries, which are all permissively licensed.
 
 ### "How do you handle [obscure country / disputed border]?"
 
-> The map data comes from world-atlas (ISO 3166-1 + UN reference). I don't
-> override its geometry or political decisions; that's a deliberate choice to
-> stay neutral. If an entity is missing or a region renders wrong, please file
-> an issue.
+> The map data comes from world-atlas (ISO 3166-1 plus the UN reference). I
+> don't change its geometry or its political choices, on purpose, so the tool
+> stays out of those calls. If something is missing or renders wrong, please
+> file an issue.
 
 ### "Are you the only contributor?"
 
@@ -182,11 +181,13 @@ matters on HN. Stay technical.
 
 ### "Why React + Three.js and not Svelte + WebGPU?"
 
-> Familiarity for me and ecosystem maturity for the tool. Three.js's instanced
-> mesh and post-processing pipeline did a lot of the heavy lifting. A WebGPU
-> pipeline next to the WebGL one is parked on the roadmap.
+> I know React well, and Three.js's instanced meshes and post-processing did a
+> lot of the heavy lifting. I tried a WebGPU version of the glow this week. It
+> was much cheaper, but almost all of the gain came from a better blur, which
+> works in WebGL too, so WebGPU is parked for now.
 
 ---
+
 
 ## Don't do
 
