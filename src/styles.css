@@ -3912,8 +3912,12 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
 }
 
 /* Sheen sweep across the active chip — a slow, low-contrast diagonal
-   gradient that travels left → right on a 7s loop. Reads as a subtle
+   gradient that travels left → right, twice, then stops. Reads as a subtle
    "this is alive" cue without distracting from the canvas behind it.
+   Not infinite: while it runs the page recomposites about 73 times a
+   second instead of 30, which with the glow's drop-shadow filters roughly
+   doubled the idle GPU cost, and since the first visit marks Default every
+   new visitor would pay it. Picking a look starts it again on that chip.
    Respects prefers-reduced-motion: animation pauses to a single static
    frame for users who don't want motion. */
 .looks-chip.is-current::after {
@@ -3928,7 +3932,7 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   );
   background-size: 220% 100%;
   background-position: -110% 0;
-  animation: looks-chip-sheen 6.4s ease-in-out infinite;
+  animation: looks-chip-sheen 6.4s ease-in-out 2;
   pointer-events: none;
   mix-blend-mode: overlay;
 }
