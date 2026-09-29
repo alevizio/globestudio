@@ -25,19 +25,12 @@ One tagline, no alternates. It names no other company, on purpose.
 
 ---
 
-## Description (380 characters)
+## Description (254 characters, fits the 260 limit)
+
+Approved by Ale on 29 Sep.
 
 ```text
-Globestudio is a free, open-source studio for dotted maps and 3D globes. Pick the world or any country, choose from 21 shader looks (halftone, risograph, dither, CRT, aurora), tweak dots, gradients and density, then export PNG, SVG, WebM, MP4 or GIF, or embed it live. It also ships as a React component, a web component, a Figma plugin and an MCP server. No signup, MIT licensed.
-```
-
-### Short description (250 characters)
-
-Product Hunt's own pages disagree on the description limit (500 or 260
-characters). If the form stops you at 260, paste this one instead.
-
-```text
-Globestudio is a free, open-source studio for dotted maps and 3D globes. Pick the world or any country, choose from 21 shader looks, tweak dots, gradients and density, then export PNG, SVG, WebM, MP4 or GIF, or embed it live. No signup, MIT licensed.
+A free, open-source studio for dotted maps and 3D globes. Pick the world or any country, choose one of 21 shader looks, tweak the dots, gradients and density, then export a PNG, SVG, WebM, MP4 or GIF, or embed it live. It's MIT licensed, with no account.
 ```
 
 ---
@@ -45,29 +38,29 @@ Globestudio is a free, open-source studio for dotted maps and 3D globes. Pick th
 ## Maker's first comment (post within the first 30 minutes)
 
 ```text
-Hi Product Hunt, Alejandro here. I'm a product designer who codes.
+Hi Product Hunt! I'm Alejandro, a product designer who codes.
 
-Every time I needed a dotted world map or a spinning globe for a landing page or a deck, I ended up screenshotting someone else's site or fighting a map library built for GIS, not for visuals. Globestudio is the tool I wanted: presets, sliders and real exports.
+Every time I needed a dotted world map or a spinning globe for a landing page or a deck, I ended up screenshotting someone else's site or fighting a map library built for GIS work. So I built the tool I wanted, with presets, sliders and real exports.
 
-What you can do today:
+What it does today:
 • 21 looks, from clean cartography to halftone, risograph, dither, CRT, aurora and contour lines
-• The world, a continent, a country or a US state, with 12 dot shapes or your own SVG/PNG
+• The world, a continent, a country or a US state, with 12 dot shapes or your own SVG or PNG
 • Gradients with per-stop opacity on dots, land and borders
-• Paste your own data (lat,lng,value or country,value) and plot it as markers, optionally joined by arcs
-• Export PNG up to 4x, SVG, WebM, MP4, GIF or a JSON config
-• Embed it with an iframe or a script tag, or use the React component, the web component, the Figma plugin or the MCP server
+• Your own data (lat,lng,value or country,value) plotted as markers, joined by arcs if you want
+• Exports: PNG up to 4x, SVG, WebM, MP4, GIF or a JSON config
+• An iframe or script tag embed, a React component, a web component, a Figma plugin and an MCP server
 
-It runs in your browser, there's no account, and the code is MIT on GitHub.
+It runs in your browser, you don't need an account, and the code is MIT on GitHub.
 
-Honest limits: SVG export gives you clean vector dots, but most shader looks only show in PNG and video. The five flat projections are for solid maps; dotted maps use Mercator.
+Two limits worth knowing: SVG export gives you clean vector dots, but most shader looks only show up in PNG and video. And the five flat projections are for solid maps, while dotted maps use Mercator.
 
-What would help most:
+What would help me most:
 • If it lags, a performance report with your browser, OS and GPU: https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml
-• If you build a look you love, the preset template: https://github.com/alevizio/globestudio/issues/new?template=preset-submission.yml
-• Tell me what you'd make with it. I had heroes, decks and launch teasers in mind.
+• If you make a look you love, send it with the preset template: https://github.com/alevizio/globestudio/issues/new?template=preset-submission.yml
+• And tell me what you'd make with it. I had hero sections, decks and launch teasers in mind.
 
-Live: https://globestudio.app
-GitHub: https://github.com/alevizio/globestudio
+https://globestudio.app
+https://github.com/alevizio/globestudio
 ```
 
 ---
