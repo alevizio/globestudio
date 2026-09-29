@@ -13,27 +13,32 @@ Add a UTM tag to every link you post, for example
 
 ## X thread (6 posts)
 
-Attach the asset in `[asset: …]` to its post. The link goes in a reply to post
-1, since X throttles posts with links.
+Casual voice, approved by Ale on 28 Sep. Attach the asset in `[asset: ...]` to its post.
+The links go in your own reply to post 1, since X shows posts with links to fewer people.
 
 **1/6** (hook, pin it)
 
 ```text
-I made a free, open-source tool for dotted maps and 3D globes.
+made a free, open-source tool for dotted maps and 3D globes
 
-Pick a look, tweak it in the browser, export PNG, SVG, MP4 or GIF. No signup.
+you pick a look, tweak it in the browser and export a PNG, SVG, MP4 or GIF. you don't even need an account
 ```
 
-[asset: looping export of a rotating globe, made in the tool]
+[asset: the launch film]
 
-Reply to 1/6: `https://globestudio.app` and `https://github.com/alevizio/globestudio`
+Reply to 1/6:
+
+```text
+https://globestudio.app/?utm_source=x&utm_medium=social&utm_campaign=launch
+https://github.com/alevizio/globestudio
+```
 
 **2/6**
 
 ```text
-21 looks: halftone, risograph, dither, CRT, aurora, contour lines and more.
+there are 21 looks so far: halftone, risograph, dither, CRT, aurora, contour lines and more
 
-Most are a WebGL shader pass over the dots, and you can tweak them live.
+most of them are a WebGL shader pass over the dots, and you can tweak them live
 ```
 
 [asset: six looks cycling, as a GIF]
@@ -41,33 +46,33 @@ Most are a WebGL shader pass over the dots, and you can tweak them live.
 **3/6**
 
 ```text
-Bring your own data: paste lat,lng,value or country,value and get markers sized by value, joined by arcs if you want.
+it takes your own data too. paste lat,lng,value or country,value lines and you get markers sized by value, joined by arcs if you want
 ```
 
-[asset: data points with arcs on the flat map]
+[asset: data points with arcs]
 
 **4/6**
 
 ```text
-Exports: PNG up to 4x, SVG with clean vector dots, WebM, MP4 and GIF loops, and a JSON config.
+for exports there's PNG up to 4x, SVG with clean vector dots, WebM, MP4 and GIF loops, and a JSON config
 
-The clip in the first post came straight out of the tool.
+every globe in the video comes from the real renderer, captured frame by frame
 ```
 
-[asset: export dialog on the PNG tab]
+[asset: export dialog on the Image tab]
 
 **5/6**
 
 ```text
-It lives where you work: an iframe or one script tag, a React component, a web component, a Figma plugin, and an MCP server your AI assistant can call.
+you can drop it into other stuff too: an iframe or one script tag, a React component, a web component, a Figma plugin, and an MCP server your AI assistant can call
 ```
 
 **6/6**
 
 ```text
-MIT on GitHub, and it runs in your browser.
+code's on GitHub under MIT, and the tool runs in your browser
 
-Tell me which look you want next.
+which look should I make next?
 ```
 
 ### Follow-up posts (a few hours later, separately, not in the thread)
@@ -79,7 +84,7 @@ https://globestudio.app/looks/glitch
 https://globestudio.app/looks/crt
 https://globestudio.app/looks/wireframe
 
-drop one in a Slack and your team opens the same scene
+drop one in Slack and your team opens the same look
 ```
 
 ```text
@@ -149,33 +154,33 @@ Was fun to write.
 
 ## LinkedIn
 
-More professional voice. One longer post.
+More professional voice, one longer post, on Thursday with Product Hunt. Approved by Ale on 28 Sep.
 
 ```text
-Globestudio is live: a free, open-source tool for making dotted maps and 3D globes in the browser.
+Globestudio is live. It's a free, open-source tool I built for making dotted maps and 3D globes in the browser.
 
-The gap I wanted to fill: most open-source map tooling is built for engineers, with tile servers, vector tiles and large datasets. There wasn't a mature open-source tool for the other common need: a stylized map visual that drops into a landing page, a deck or a launch video.
+Most open-source map tools are made for engineers: tile servers, vector tiles, big datasets. I kept needing something else, a stylized map for a landing page, a deck or a launch video, and there wasn't a good open tool for that.
 
-Globestudio is built around that workflow:
-• Maps of the world, a continent, a country or a US state
-• 12 dot shapes, plus your own SVG or PNG
+So that's what Globestudio does:
+• The world, a continent, a country or a US state
+• 12 dot shapes, or your own SVG or PNG
 • Gradients with per-stop opacity on dots, land and borders
-• 21 looks built on 24 WebGL shader effects: halftone, risograph, CRT, aurora, contour lines and more
-• Your own data plotted as markers and arcs
-• Exports: PNG up to 4x, SVG with clean vector dots, WebM, MP4, GIF
+• 21 looks built on 24 WebGL shader effects, like halftone, risograph, CRT, aurora and contour lines
+• Your own data as markers and arcs
+• Exports: PNG up to 4x, SVG with clean vector dots, WebM, MP4 and GIF
 • Embeds, a React component, a web component, a Figma plugin and an MCP server
 • Keyboard first, built to WCAG 2.2 AA (self-audited)
 
-It's MIT licensed, runs in your browser, and needs no account.
+It's MIT licensed and runs in your browser, with no account.
 
-We're also on Product Hunt today: {Product Hunt link}
+It's also on Product Hunt today: {Product Hunt link}
 
-If you build landing pages, brand systems, decks or motion content that touches geography, I'd love your feedback. And if you make something with it, please share it in the repo's Show and tell discussions.
+If you work on landing pages, brand systems, decks or motion that involves maps, I'd love your feedback. And if you make something with it, share it in the Show and tell discussions on GitHub.
 
-https://globestudio.app
+https://globestudio.app/?utm_source=linkedin&utm_medium=social&utm_campaign=launch
 https://github.com/alevizio/globestudio
 
-#OpenSource #DesignTools #WebDevelopment #DataVisualization #ThreeJS
+#OpenSource #DesignTools #DataVisualization
 ```
 
 ---
