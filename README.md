@@ -25,7 +25,7 @@ GIS pipelines. Globestudio is for when the map is the picture, like a landing
 page hero, a launch teaser, a scrollytelling explainer, or a deck slide that
 needs a globe but not a database.
 
-You pick a region and a look, adjust the dots, colors and motion, and export.
+You work by eye with the studio's controls and export when it looks right.
 The studio runs in your browser, and the code is MIT licensed.
 
 ## Features
@@ -43,6 +43,11 @@ The studio runs in your browser, and the code is MIT licensed.
   URL at `/looks/:id`. You can change the shape, colors and region after
   picking one.
 - Gradients and alpha on the dot color, land fill, and country stroke.
+- Your own data: paste `lat,lng,value` or `country,value` lines to plot
+  markers sized by value, optionally joined by arcs.
+- Solid maps: filled land and stroked borders, river and city overlays,
+  pasted GeoJSON lines and points, and 5 flat projections (Mercator, Equal
+  Earth, Natural Earth, Winkel Tripel, Robinson). Dotted maps use Mercator.
 - Animations: rotation, twinkle, size jitter, and network arcs. They stop
   under `prefers-reduced-motion`.
 - Exports: PNG at 1x to 4x (the WebGL scene is re-rendered at that size); SVG
@@ -61,8 +66,8 @@ The studio runs in your browser, and the code is MIT licensed.
 ### Use it
 
 The live tool runs entirely in your browser at
-**[globestudio.app](https://globestudio.app/)**. Pick a country, change the
-look, export.
+**[globestudio.app](https://globestudio.app/)**, and you don't need an
+account.
 
 ### Run it locally
 
@@ -89,8 +94,6 @@ npm run test:e2e   # browser smoke + accessibility checks
 
 ## Embed it anywhere
 
-There are several ways to embed a globe. Pick the one that fits your tool.
-
 ### One-line script tag (recommended)
 
 ```html
@@ -100,8 +103,9 @@ There are several ways to embed a globe. Pick the one that fits your tool.
 ```
 
 About 3 KB gzipped, with no dependencies. It works in Webflow, Squarespace,
-blog posts, and anywhere else HTML is allowed. Every embed param except
-`theme` and `plugin` has a matching `data-*` attribute. The script watches the
+blog posts, and anywhere else you can add a script tag. Every embed param
+except `theme` and `plugin` has a matching `data-*` attribute (`c` is
+`data-config`). The script watches the
 DOM with a MutationObserver and mounts elements added later, so SPAs and
 dynamic content work too.
 
@@ -195,9 +199,10 @@ agent can list and search looks, build share URLs, read a share link you paste
 The same tools run locally over stdio:
 `claude mcp add globestudio -- npx -y @globestudio/mcp`.
 
-No MCP client? The Share tab of the export dialog has **Copy for AI**: a prompt
-with your share link, its settings and what an agent can do with it, ready to
-paste into any chat. The same tab has the connect line for each client.
+Without an MCP client, use **Copy for AI** in the Share tab of the export
+dialog. It copies a prompt with your share link, its settings and what an
+agent can do with it, ready to paste into any chat. The same tab has the
+connect line for each client.
 
 Full tool list and setup in [`packages/mcp/README.md`](packages/mcp/README.md).
 
@@ -240,9 +245,7 @@ Share what you make in [Show and tell](https://github.com/alevizio/globestudio/d
 
 ## How it compares
 
-Globestudio makes stylized images, video and embeds for a landing page hero,
-a deck slide, an OG card, or a launch teaser. The tools below overlap with it
-in places:
+These tools overlap with Globestudio in places:
 
 | | Globestudio | [globe.gl](https://github.com/vasturiano/globe.gl) | [Mapbox Studio](https://www.mapbox.com/mapbox-studio) | [Felt](https://felt.com) | [Haikei](https://haikei.app) |
 |---|---|---|---|---|---|
@@ -264,7 +267,7 @@ good choices.
 Credits: [globe.gl](https://github.com/vasturiano/globe.gl) and
 [COBE](https://github.com/shuding/cobe) set the bar for open-source 3D globe
 libraries. [dotted-map](https://github.com/NTag/dotted-map) generates the dot
-field. [Stamen Maps](https://maps.stamen.com) is the older inspiration for
+field. [Stamen Maps](https://maps.stamen.com) was an early inspiration for
 treating maps as a visual style.
 
 ## Tech stack
