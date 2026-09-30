@@ -5,9 +5,10 @@ import { expect, test } from "@playwright/test";
 const CANVAS_TIMEOUT = process.env.CI ? 40_000 : 20_000;
 const PNG_TIMEOUT = process.env.CI ? 45_000 : 30_000;
 
-// Glow off (its blurs are slow in software GL) and autospin off, so the
-// two exports below show the same still view.
-const HOME_STILL = `/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false, autoSpinSpeed: 0 } }))}`;
+// Glow off (its blurs are slow in software GL), autospin off and the
+// network off (its moving arc heads and pulses would shift the lit edges),
+// so the two exports below show the same still view.
+const HOME_STILL = `/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false, autoSpinSpeed: 0, network: false } }))}`;
 
 // Keep every PNG the app hands to a download so the test can read it back.
 const keepPngs = (page) =>
@@ -69,7 +70,8 @@ test("a PNG exported straight after a Flat/Globe switch is the settled view", as
   await expect(page.locator(".view-mode-switch")).toHaveAttribute("data-active", "flat");
   await expect.poll(() => page.evaluate(() => window.__pngs.length), { timeout: PNG_TIMEOUT }).toBe(1);
 
-  // The same export once the morph has long landed.
+  // The same export once the morph has long landed. Longer than the 1.7s
+  // morph because the camera's field of view keeps easing for a moment after.
   await page.waitForTimeout(2500);
   await exportButton.evaluate((button) => button.click());
   await expect.poll(() => page.evaluate(() => window.__pngs.length), { timeout: PNG_TIMEOUT }).toBe(2);
@@ -103,5 +105,7 @@ test("a double-click on Export PNG during the switch leaves the preview at its o
   });
   await expect.poll(() => page.evaluate(() => window.__pngs.length), { timeout: PNG_TIMEOUT }).toBe(2);
 
-  expect(await previewRatio()).toBeCloseTo(before, 2);
+  // Polled: under load an export can time out into the fallback while its
+  // capture is still in flight, holding the export's ratio until it lands.
+  await expect.poll(previewRatio, { timeout: PNG_TIMEOUT }).toBeCloseTo(before, 2);
 });
