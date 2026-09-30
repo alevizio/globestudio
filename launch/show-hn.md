@@ -76,7 +76,7 @@ render Markdown.
 
 ### "Why not just use globe.gl (or cobe) and write the shaders yourself?"
 
-> globe.gl is great and I thought about building on it. Most of the 21 looks
+> globe.gl is great and I thought about building on it. 20 of the 21 looks
 > (halftone, riso, dither, glitch, CRT, aurora) are post-processing work most
 > people won't spend a weekend on, and the designers I built this for don't run npm install.
 > So Globestudio adds presets and sliders instead of fragment shaders, PNG and

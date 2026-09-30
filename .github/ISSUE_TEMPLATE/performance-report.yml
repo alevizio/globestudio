@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Globestudio is graphics-heavy, and a performance problem blocks a
-        release, so please file these with as much detail as you can.
+        Globestudio is graphics-heavy, and we treat a performance problem as
+        a release blocker, so please report it with as much detail as you can.
 
   - type: textarea
     id: symptom

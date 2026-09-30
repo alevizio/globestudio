@@ -105,7 +105,7 @@ Tests are co-located with their source as `*.test.{js,jsx}`.
 
 ## Design system rules
 
-PR reviews hold every change to these rules, so the panel stays consistent:
+PR reviews check every change against these rules, so the panel stays consistent:
 
 - Tokens only for color and spacing. Use `var(--field)`, `var(--border)`,
   `var(--text)`, `var(--muted)`, `var(--dim)`, `var(--panel)`, `var(--accent)`.

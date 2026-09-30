@@ -42,9 +42,8 @@ guide covers.
 1. A tool that generates the dots. Placing 6,000+ dots by hand in
    Illustrator is miserable. You want something that turns geographic
    data into a dot field for you.
-2. A clear idea of the look. Choose the density, dot shape, color and
-   any styling (print look, glow, distortion) on purpose instead of
-   keeping the defaults.
+2. A clear idea of the look. Decide the density, dot shape, color and
+   any styling (print look, glow, distortion) yourself.
 3. An export format. PNG for static images, SVG for print at any size,
    WebM for video, or embed code for a live globe on a web page.
 
@@ -137,10 +136,10 @@ are four options:
 
 ## Common mistakes
 
-After a couple of months of watching designers use the tool, the same
+I've watched designers use the tool for a couple of months, and the same
 few things cause most of the bad results.
 
-Density too high. More dots doesn't look more impressive. At density 90
+Density too high. More dots don't look more impressive. At density 90
 with a small dot size, the globe loses its texture and turns into a
 fuzzy sphere, and 50 to 70 looks better for most uses. The 90 cap is
 there for performance, because mobile GPUs choke beyond it.

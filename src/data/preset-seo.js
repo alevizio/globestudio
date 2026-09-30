@@ -45,7 +45,7 @@ export const presetSeo = {
   risograph: {
     targetKeyword: "risograph map generator",
     metaDescription:
-      "Risograph dotted globe: pink and cyan ink with misregistration offset and paper grain. Works on any country.",
+      "Risograph dotted globe: pink and cyan ink with misregistration offset and paper grain. Works with any country.",
     longDescription:
       "Risograph imitates a two-ink riso print: fluorescent pink and federal blue layers offset by a few pixels for the misregistration glow, plus a paper-grain noise overlay that breaks up the flat areas. It gives you the slightly off look of a riso print without a riso machine. The split control sets how far off register the layers are (zero is a clean two-color print, higher values look wildly off-register), and intensity goes from a soft riso toward full saturation. Use the flat view for editorial spreads or the globe view for headers and section openers.",
     useCases: [
@@ -71,7 +71,7 @@ export const presetSeo = {
     metaDescription:
       "Aurora dotted globe: flowing northern-lights bands in green, cyan, and magenta over the dot field. Live animation, prefers-reduced-motion aware.",
     longDescription:
-      "Aurora lays flowing northern-lights bands over the dot field: green, cyan and magenta hues that move in two crossing sine waves, modulated by screen-space luminance so the bands stay over land. cellSize controls band frequency (wider bands at lower cellSize), and motion controls flow speed. The effect pauses automatically for users with prefers-reduced-motion enabled. It also works as a still.",
+      "Aurora lays flowing northern-lights bands over the dot field: green, cyan and magenta hues that move in two crossing sine waves, modulated by screen-space luminance so the bands follow the land. cellSize controls band frequency (wider bands at lower cellSize), and motion controls flow speed. The effect pauses automatically for users with prefers-reduced-motion enabled. It also works as a still.",
     useCases: [
       "Tech / SaaS landing hero with subtle continuous motion",
       "Conference reveal sequence into a static logo lockup",
@@ -155,7 +155,7 @@ export const presetSeo = {
     metaDescription:
       "Bad TV dotted globe with VHS analog distortion, grain, and motion roll. Retro-tape aesthetic. Export PNG, SVG, WebM, MP4 or GIF.",
     longDescription:
-      "Bad TV imitates a worn-out VHS tape: heavy analog grain, soft motion roll, channel ghosting and the color shift you get when the heads need cleaning. CRT imitates the screen and Glitch imitates digital errors; Bad TV imitates the tape. grain controls noise density and motion controls roll speed. It pairs well with a country selection for retro tourism-board pastiches and mockumentary openers.",
+      "Bad TV imitates a worn-out VHS tape: heavy analog grain, soft motion roll, channel ghosting and the color shift you get when the heads need cleaning. It differs from CRT, which imitates the screen, and Glitch, which imitates digital errors. grain controls noise density and motion controls roll speed. It pairs well with a country selection for retro tourism-board pastiches and mockumentary openers.",
     useCases: [
       "Mockumentary and faux-archival video opener graphics",
       "Vaporwave / retro music project branding",
@@ -165,7 +165,7 @@ export const presetSeo = {
   bloom: {
     targetKeyword: "glowing globe animation",
     metaDescription:
-      "Bloom dotted globe with a soft aurora glow over the dots. Animated. Export PNG and WebM.",
+      "Bloom dotted globe with a soft aurora glow over the dots. Animated, with PNG and WebM export.",
     longDescription:
       "Bloom adds an Unreal-style bloom pass over the dot field: every bright dot gets a soft halo, the brightness lifts the whole image, and the atmosphere shader paints a wide aurora glow around the sphere. It suits SaaS landing pages and product hero graphics in fintech, healthtech and consumer products. intensity controls overall bloom strength, and warp softens the edges.",
     useCases: [
