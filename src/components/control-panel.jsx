@@ -257,7 +257,7 @@ export const ControlPanel = ({
   // The box holds the user's own text. dataTextPoints is the dataPoints
   // array that text stands for: the box's own edits set both together, so
   // typing is never rewritten. When dataPoints changes from anywhere else
-  // (share link, JSON import, look, reset) the box is refilled from it,
+  // (share link, JSON import, reset) the box is refilled from it,
   // during render so it never shows the old text for a frame.
   const dataPoints = globeSettings?.dataPoints;
   const [dataText, setDataText] = useState(() => serializeDataPoints(dataPoints));

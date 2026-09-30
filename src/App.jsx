@@ -747,8 +747,8 @@ const App = () => {
     // background flashed a white canvas in light theme (e.g. Halftone's
     // #0a0a0c → near-white) when a look loaded. The UI theme styles the
     // panel chrome only; the globe is a theme-independent artifact.
-    if (s.selection !== undefined) setSelection(s.selection);
-    if (s.stateSelection !== undefined) setStateSelection(s.stateSelection);
+    // The region (selection / stateSelection) stays the user's: a look is
+    // styling only, and every preset carries the base's "world" / "all".
     if (s.background !== undefined) setBackground(s.background);
     if (s.transparent !== undefined) setTransparent(s.transparent);
     if (s.backgroundStyle !== undefined) setBackgroundStyle(s.backgroundStyle);
@@ -782,7 +782,18 @@ const App = () => {
     if (s.worldStrokeVisible !== undefined) setWorldStrokeVisible(s.worldStrokeVisible);
     if (s.worldStrokeWidth !== undefined) setWorldStrokeWidth(s.worldStrokeWidth);
     if (s.shaderSettings) setShaderSettings(s.shaderSettings);
-    if (s.globeSettings) setGlobeSettings(s.globeSettings);
+    // The Data section is the user's, not the look's: every look authors
+    // its globeSettings from DEFAULT_GLOBE_SETTINGS, whose empty dataPoints
+    // would otherwise wipe what they pasted.
+    if (s.globeSettings) {
+      setGlobeSettings((current) => ({
+        ...s.globeSettings,
+        data: current.data,
+        dataPoints: current.dataPoints,
+        dataMarkerColor: current.dataMarkerColor,
+        dataArcs: current.dataArcs,
+      }));
+    }
     if (s.mapDepth !== undefined) setMapDepth(s.mapDepth);
     if (s.tiltX !== undefined) setTiltX(s.tiltX);
     if (s.tiltY !== undefined) setTiltY(s.tiltY);
