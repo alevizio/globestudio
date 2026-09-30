@@ -1,8 +1,8 @@
 # @globestudio/element
 
-Framework-agnostic `<globe-studio>` web component for embedding [Globestudio](https://globestudio.app) dotted globes. Zero dependencies — it's a tiny wrapper over `globestudio.app/embed`, so Three.js, shaders, and country data all run on the embed origin.
+Framework-agnostic `<globe-studio>` web component for embedding [Globestudio](https://globestudio.app) dotted globes. It has no dependencies. It's a small wrapper over `globestudio.app/embed`, so Three.js, shaders and country data all run on the embed origin.
 
-Works anywhere custom elements do: vanilla HTML, Svelte, Vue, Solid, Astro, Webflow, Framer.
+It works anywhere custom elements do, including plain HTML, Svelte, Vue, Solid, Astro, Webflow and Framer.
 
 ## Install
 
@@ -36,14 +36,14 @@ Or via CDN, no build step:
 | Attribute | Default | Notes |
 |---|---|---|
 | `look` | `halftone` | Any shipped preset id. Ignored when `config` is set. |
-| `config` | — | Pre-built share config (`?c=` payload). Overrides `look`. |
+| `config` | | Pre-built share config (`?c=` payload). Overrides `look`. |
 | `width` | `100%` | Forwarded to the iframe. |
 | `height` | `480` | Forwarded to the iframe. |
 | `title` | `Globestudio dotted globe` | Accessible label. |
 | `loading` | `lazy` | `lazy` defers off-screen embeds. |
-| `source` | — | Analytics attribution tag. |
+| `source` | | Analytics attribution tag. |
 
-Attributes are reactive — change `look`/`config` and the globe updates.
+Attributes are reactive: change `look` or `config` and the globe updates.
 
 ## API
 

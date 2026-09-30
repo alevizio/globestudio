@@ -1,6 +1,6 @@
 # @globestudio/react
 
-Drop-in React component for embedding [Globestudio](https://globestudio.app) dotted globes and maps. Zero deps, SSR-friendly, autocomplete on every preset.
+React component that embeds [Globestudio](https://globestudio.app) dotted globes and maps. It has no dependencies, works with SSR and autocompletes preset names.
 
 ## Install
 
@@ -25,22 +25,22 @@ export default function Page() {
 }
 ```
 
-That's it. The component is a styled `<iframe>` over `globestudio.app/embed`, so the heavy lift (Three.js, shaders, country data) runs on the embed origin — your bundle stays a couple hundred bytes.
+The component is a styled `<iframe>` over `globestudio.app/embed`, so the heavy work (Three.js, shaders, country data) runs on the embed origin and your bundle stays a couple hundred bytes.
 
 ## Props
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
 | `look` | `LookId` | `"halftone"` | Autocomplete on every shipped preset |
-| `width` | `number \| string` | `"100%"` | Numbers → pixels |
-| `height` | `number \| string` | `480` | Numbers → pixels |
-| `config` | `string` | — | Pre-built share-URL payload — overrides `look` |
+| `width` | `number \| string` | `"100%"` | A number means pixels |
+| `height` | `number \| string` | `480` | A number means pixels |
+| `config` | `string` | | Pre-built share-URL payload. Overrides `look` |
 | `title` | `string` | `"Globestudio dotted globe"` | A11y label |
-| `className` | `string` | — | Forwarded |
-| `style` | `CSSProperties` | — | Merged after `border: 0` |
+| `className` | `string` | | Forwarded |
+| `style` | `CSSProperties` | | Merged after `border: 0` |
 | `loading` | `"lazy" \| "eager"` | `"lazy"` | Off-screen embeds defer WebGL until scrolled near |
-| `source` | `string` | — | Tag for analytics attribution |
-| `onLoad` | `(e) => void` | — | Forwarded |
+| `source` | `string` | | Tag for analytics attribution |
+| `onLoad` | `(e) => void` | | Forwarded |
 
 ## Helpers
 
@@ -65,7 +65,7 @@ Use these when you need the URL but not the iframe (e.g. Next.js `<Image src>`, 
 
 ## SSR
 
-The component is just JSX — renders the iframe HTML on the server, hydrates on the client without re-mounting (no client-only state, no `useEffect`).
+The component is plain JSX. It renders the iframe HTML on the server and hydrates on the client without re-mounting, since it has no client-only state and no `useEffect`.
 
 ```tsx
 // app/page.tsx (Next.js App Router)
@@ -101,17 +101,17 @@ export default function Page() {
 </section>
 ```
 
-## Why a package and not a copy-paste snippet?
+## Package or snippet
 
-The snippet on [globestudio.app/integrations](https://globestudio.app/integrations) is what most people start with. The package adds:
+Most people start with the snippet on [globestudio.app/integrations](https://globestudio.app/integrations). The package adds:
 
-- **TypeScript autocomplete on `look`** — no typos shipping to prod
-- **Versioning** — pin to a tested version, upgrade deliberately
-- **One-line install** in SaaS templates that ship via npm
-- **`globestudio.*` helpers** for URL building outside the iframe context
+- TypeScript autocomplete on `look`, so typos get caught
+- Versioning: pin a tested version and upgrade when you choose
+- A one-line install in SaaS templates that ship via npm
+- `globestudio.*` helpers for building URLs outside the iframe
 
-The total surface area is one component and one helper object. Stays tiny on purpose.
+The whole API is one component and one helper object.
 
 ## License
 
-MIT — see [LICENSE](https://github.com/alevizio/globestudio/blob/main/LICENSE).
+MIT. See [LICENSE](https://github.com/alevizio/globestudio/blob/main/LICENSE).

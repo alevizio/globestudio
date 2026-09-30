@@ -1,10 +1,10 @@
 # @globestudio/mcp
 
-Model Context Protocol server for [Globestudio](https://globestudio.app) — let any MCP-compatible AI assistant generate dotted-globe maps, build customized share URLs, and grab paste-ready embed snippets from chat.
+Model Context Protocol server for [Globestudio](https://globestudio.app). It lets an MCP-compatible AI assistant make dotted-globe maps, build share URLs and get embed snippets from chat.
 
 ## Connect by URL (no install)
 
-Globestudio hosts this server at **`https://globestudio.app/mcp`** (streamable HTTP). No install, no account, no API key.
+Globestudio hosts this server at `https://globestudio.app/mcp` (streamable HTTP). You don't need to install anything, and there is no account or API key.
 
 **Claude Code**
 
@@ -51,13 +51,13 @@ The hosted server is stateless: every request gets a fresh server, nothing is st
 
 ## Run it locally (stdio)
 
-For **Claude Code** users:
+For Claude Code:
 
 ```bash
 claude mcp add globestudio -- npx -y @globestudio/mcp
 ```
 
-For **Claude Desktop**, add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+For Claude Desktop, add this to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
@@ -70,22 +70,22 @@ For **Claude Desktop**, add to `~/Library/Application Support/Claude/claude_desk
 }
 ```
 
-For **Cursor**, **Cody**, **Continue**, or any other MCP-over-stdio client: same shape — point them at `npx -y @globestudio/mcp`.
+For Cursor, Cody, Continue or any other MCP-over-stdio client: point it at `npx -y @globestudio/mcp` the same way.
 
 Restart your AI tool. Globestudio tools should now appear in its tool catalog.
 
 ## What it does
 
-Six tools, no external API calls (preset catalog ships embedded):
+Six tools. None of them call an external API, because the preset catalog ships inside the package:
 
 | Tool | Purpose |
 |---|---|
-| `list_presets` | Every shipped look — id, name, blurb, vibe tags, thumbnail URL, embed URL. |
+| `list_presets` | Every shipped look: id, name, blurb, vibe tags, thumbnail URL, embed URL. |
 | `find_presets({ vibe })` | Fuzzy-find by aesthetic. `synthwave` → Vapor; `print` → Halftone / Risograph / Newsprint; `glow` → Aurora / Bloom. |
-| `build_share_url({ look?, share_url?, selection?, dotColor?, ..., config? })` | Build customized globe URLs: a studio share URL + an `/embed` URL. Start from a look, or pass a link as `share_url` and only the settings to change; everything else in the link is kept. |
+| `build_share_url({ look?, share_url?, selection?, dotColor?, ..., config? })` | Build globe URLs: a studio share URL and an `/embed` URL. Start from a look, or pass a link as `share_url` and only the settings to change; everything else in the link is kept. |
 | `read_share_url({ url })` | Decode a Globestudio link (studio share link, `/looks/<id>` link or `/embed` URL) into its look and settings, so an assistant can change a link you paste. |
 | `embed_snippet({ look, framework })` | Paste-ready code: `iframe` HTML, `react` component, or `script-tag` loader. |
-| `preview_url({ look })` | Canonical live `/embed` URL + PNG thumbnail URL for one preset. |
+| `preview_url({ look })` | The canonical live `/embed` URL and a PNG thumbnail URL for one preset. |
 
 ## Example prompts
 
@@ -99,8 +99,8 @@ Six tools, no external API calls (preset catalog ships embedded):
 
 ## Source
 
-This package is part of the [Globestudio monorepo](https://github.com/alevizio/globestudio). The preset catalog mirrors `src/data/look-presets.js` from the main app — when new presets ship in Globestudio, they get added here in the same release.
+This package is part of the [Globestudio monorepo](https://github.com/alevizio/globestudio). The preset catalog mirrors `src/data/look-presets.js` from the main app. New presets are added here in the same release.
 
 ## License
 
-MIT — see [LICENSE](https://github.com/alevizio/globestudio/blob/main/LICENSE).
+MIT. See [LICENSE](https://github.com/alevizio/globestudio/blob/main/LICENSE).

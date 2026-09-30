@@ -612,7 +612,7 @@ const previewUrl = (look: string) => {
 const TOOL_DEFS = [
   {
     name: "list_presets",
-    description: "List every Globestudio look preset — id, name, blurb, vibe tags, thumbnail URL, embed URL. Call this first when the user asks about available looks.",
+    description: "List every Globestudio look preset with its id, name, blurb, vibe tags, thumbnail URL and embed URL. Call this first when the user asks about available looks.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {

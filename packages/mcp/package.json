@@ -2,7 +2,7 @@
   "name": "@globestudio/mcp",
   "version": "0.2.0",
   "mcpName": "io.github.alevizio/globestudio",
-  "description": "Model Context Protocol server for Globestudio — let any MCP-compatible AI assistant (Claude Desktop, Claude Code, Cursor, etc.) generate dotted globes, build share URLs, and grab embed snippets.",
+  "description": "MCP server for Globestudio. It lets an AI assistant (Claude, Cursor, Codex and others) make dotted globes, build share links and get embed code.",
   "license": "MIT",
   "author": "Alejandro Vizio <viziomas@gmail.com> (https://alevizio.com)",
   "homepage": "https://globestudio.app",

@@ -1,18 +1,17 @@
 /**
  * @globestudio/react
  *
- * Drop-in React component for embedding Globestudio dotted globes.
+ * React component that embeds a Globestudio dotted globe.
  *
- * The component is intentionally trivial — it's a styled iframe over
- * globestudio.app/embed. The complexity (Three.js, shaders, country
- * data) all lives on globestudio.app, so this package stays a tiny
- * zero-dep wrapper with a sensible TypeScript surface.
+ * The component is a styled iframe over globestudio.app/embed. Three.js,
+ * the shaders and the country data all live on globestudio.app, so this
+ * package is a small wrapper with no dependencies and TypeScript types.
  *
- * Why a package and not a copy-paste snippet?
+ * What the package adds over the copy-paste snippet:
  * - TypeScript types for `look` (autocomplete of every shipped preset)
- * - Versioning — pin to a tested version, upgrade deliberately
+ * - Versioning: pin a tested version and upgrade when you choose
  * - One-line install in SaaS templates that ship via npm
- * - Server-side render friendly out of the box (iframe is just HTML)
+ * - Server-side rendering works as is (the iframe is plain HTML)
  */
 import { forwardRef, type CSSProperties, type Ref } from "react";
 
@@ -63,7 +62,7 @@ export interface GlobeProps {
    */
   height?: number | string;
   /**
-   * Pre-built share config — when you've used `build_share_url` (e.g.
+   * Pre-built share config. When you've used `build_share_url` (e.g.
    * via the MCP server) or the app's Share modal, pass the encoded
    * payload here and it takes precedence over `look`.
    */
@@ -88,8 +87,8 @@ export interface GlobeProps {
    */
   loading?: "lazy" | "eager";
   /**
-   * Optional `source` query param tagged on the embed URL — useful when
-   * you want to track where embeds are coming from in Vercel Analytics.
+   * Optional `source` query param added to the embed URL. Use it to
+   * see where embeds are coming from in Vercel Analytics.
    * Example: `source="my-saas-landing"`.
    */
   source?: string;
@@ -111,7 +110,7 @@ const buildEmbedUrl = (props: Pick<GlobeProps, "look" | "config" | "source">) =>
 };
 
 /**
- * <Globe /> — drop-in embed component.
+ * <Globe />: the embed component.
  *
  * @example
  * ```tsx
@@ -165,7 +164,7 @@ export const Globe = forwardRef<HTMLIFrameElement, GlobeProps>(function Globe(
 });
 
 /**
- * URL-building helpers — same logic as `<Globe />` exposes, useful if
+ * URL-building helpers with the same logic `<Globe />` uses, for when
  * you need the URL directly (Next.js `<Image src>`, SSR markup, etc.).
  */
 export const globestudio = {
