@@ -1480,8 +1480,17 @@ export const GlobeBackground = ({
         window.requestAnimationFrame(check);
       });
 
+    // One capture at a time. Each saves the live pixel ratio to restore, so
+    // a second one started before the first restored (a double-click on
+    // Export) saved the export's ratio and left the preview rendering at it.
+    let captureQueue = Promise.resolve();
+
     if (canvasHandleRef) {
-      renderer.domElement.captureAtScale = (scale) => morphSettled().then(() => captureAtScale(scale));
+      renderer.domElement.captureAtScale = (scale) => {
+        const capture = captureQueue.then(morphSettled).then(() => captureAtScale(scale));
+        captureQueue = capture.catch(() => {});
+        return capture;
+      };
       // For exports that read the live canvas (video, the PNG fallback).
       // Turning a hold on redraws at once, so the very next read is unframed.
       // Turn the globe so a latitude/longitude faces the camera, the short

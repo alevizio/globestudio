@@ -76,3 +76,32 @@ test("a PNG exported straight after a Flat/Globe switch is the settled view", as
 
   expect(await litAspect(page, 0)).toBeCloseTo(await litAspect(page, 1), 1);
 });
+
+test("a double-click on Export PNG during the switch leaves the preview at its own resolution", async ({ page }) => {
+  await keepPngs(page);
+  await page.goto(HOME_STILL);
+  const canvas = page.locator(".globe-background canvas");
+  await expect(canvas).toBeVisible({ timeout: CANVAS_TIMEOUT });
+  await expect
+    .poll(() => canvas.evaluate((node) => node.width > 0 && typeof node.captureAtScale === "function"), { timeout: CANVAS_TIMEOUT })
+    .toBe(true);
+  // Device pixels per CSS pixel of the live preview. A capture renders at
+  // the export's scale (2x here) and must hand the preview back as it was.
+  const previewRatio = () => canvas.evaluate((node) => node.width / node.getBoundingClientRect().width);
+  const before = await previewRatio();
+  await page.keyboard.press("d");
+  const exportButton = page.getByRole("dialog", { name: /export/i }).getByRole("button", { name: /export png/i });
+  await expect(exportButton).toBeEnabled();
+
+  // G, then two clicks 150ms apart, both inside the morph.
+  await exportButton.evaluate(async (button) => {
+    document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "g", bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve));
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    button.click();
+  });
+  await expect.poll(() => page.evaluate(() => window.__pngs.length), { timeout: PNG_TIMEOUT }).toBe(2);
+
+  expect(await previewRatio()).toBeCloseTo(before, 2);
+});
