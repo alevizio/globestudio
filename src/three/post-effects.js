@@ -1246,11 +1246,12 @@ export const createPostComposer = ({ renderer, scene, camera, width, height, pix
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
-// Uniforms measured in render-target pixels: pattern cell size (halftone,
-// pixel, bayer, sparkle...) and the RGB split offset. A hi-res PNG capture
-// renders at a higher pixel ratio than the preview, so these must grow by
-// the same factor or the pattern comes out finer than what the user sees.
-// Returns a function that puts the preview values back.
+// Uniforms measured in uResolution pixels: pattern cell size (halftone,
+// pixel, bayer, sparkle...) and the RGB split offset. uResolution is the CSS
+// size in the preview and the CSS size times the export ratio in a hi-res
+// PNG capture, so these must grow by the export ratio or the pattern comes
+// out finer than what the user sees. Returns a function that puts the
+// preview values back.
 const PIXEL_SIZED_UNIFORMS = ["uCellSize", "uSplit"];
 
 export const scalePixelUniforms = (uniforms, factor) => {

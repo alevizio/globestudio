@@ -28,15 +28,16 @@ describe("scalePixelUniforms", () => {
     const handle = fakeHandle();
     updatePostEffects(handle, { effect: "halftone", cellSize: 14, split: 7, intensity: 60 }, 0);
     const u = handle.customPass.uniforms;
+    // uResolution is the CSS size in the preview, whatever the screen's
+    // pixel ratio, and the CSS size times the export ratio in a capture.
     const displayWidth = 600;
-    const previewRatio = 2;
     const exportRatio = 4; // Ultra
-    const previewCells = (displayWidth * previewRatio) / u.uCellSize.value;
+    const previewCells = displayWidth / u.uCellSize.value;
 
-    const restore = scalePixelUniforms(u, exportRatio / previewRatio);
+    const restore = scalePixelUniforms(u, exportRatio);
     expect((displayWidth * exportRatio) / u.uCellSize.value).toBe(previewCells);
-    expect(u.uCellSize.value).toBe(28);
-    expect(u.uSplit.value).toBe(14);
+    expect(u.uCellSize.value).toBe(56);
+    expect(u.uSplit.value).toBe(28);
     // Unitless uniforms are left alone.
     expect(u.uIntensity.value).toBeCloseTo(0.6);
 
@@ -45,10 +46,10 @@ describe("scalePixelUniforms", () => {
     expect(u.uSplit.value).toBe(7);
   });
 
-  it("shrinks cells for a Draft capture below the screen's pixel ratio", () => {
+  it("leaves cells alone for a Draft (1x) capture on any screen", () => {
     const u = fakeHandle().customPass.uniforms;
     u.uCellSize.value = 14;
-    scalePixelUniforms(u, 1 / 2);
-    expect(u.uCellSize.value).toBe(7);
+    scalePixelUniforms(u, 1);
+    expect(u.uCellSize.value).toBe(14);
   });
 });

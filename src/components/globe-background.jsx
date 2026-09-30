@@ -1452,11 +1452,13 @@ export const GlobeBackground = ({
           renderer.setSize(displayW, displayH, false);
           refs.postHandle.setSize(displayW * targetPR, displayH * targetPR);
           setResolutionUniforms(displayW * targetPR, displayH * targetPR);
-          // Pattern cells are sized in pixels: grow them with the pixel
-          // ratio so the export keeps the preview's cell size.
+          // Pattern cells are sized in uResolution pixels. The preview sets
+          // uResolution to the CSS size and this capture to the CSS size
+          // times targetPR, so cells grow by targetPR alone. Dividing by the
+          // screen's pixel ratio too halved them on a 2x screen.
           restorePixelUniforms = scalePixelUniforms(
             refs.postHandle.customPass.uniforms,
-            targetPR / originalPixelRatio,
+            targetPR,
           );
           refs.postHandle.composer.render();
           renderer.domElement.toBlob((blob) => {
