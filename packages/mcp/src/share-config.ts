@@ -210,6 +210,7 @@ const GLOBE_RULES: Record<string, Rule> = {
   glow: normalizeBoolean,
   glowStrength: percent,
   glowSpread: percent,
+  glowColor: hexOrNull,
   grid: normalizeBoolean,
   gridColor: normalizeHex,
   gridGradient: normalizeGradient,

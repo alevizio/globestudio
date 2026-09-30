@@ -415,6 +415,21 @@ test("a % sign survives both ways: MCP links in the app, app links in the MCP", 
   assert.deepEqual(appConfigOf(doubled.json.share_url), { asciiSymbol: "%", density: 55 });
 });
 
+test("a custom glow color survives both ways: MCP links in the app, app links in the MCP", async () => {
+  const globeSettings = { glow: true, glowColor: "#ff00aa" };
+
+  // MCP -> app: build_share_url keeps it, and the app opens it.
+  const { json } = await callTool("build_share_url", { look: "default", config: { globeSettings } });
+  assert.equal(json.ignored, undefined);
+  assert.equal(appConfigOf(json.share_url).globeSettings.glowColor, "#ff00aa");
+
+  // app -> MCP: read_share_url reads the app's own link the way the app does.
+  const link = appBuildShareUrl({ version: 1, globeSettings }, SITE, "/");
+  const read = await callTool("read_share_url", { url: link });
+  assert.equal(read.json.config.globeSettings.glowColor, "#ff00aa");
+  assert.deepEqual(asAppApplies(read.json.config), appConfigOf(link));
+});
+
 test("read_share_url reads every old v1 link the way the app does, and hands back an equivalent link", async () => {
   // Built by the app's encoder before v2 (see the fixture's _comment).
   const { links } = JSON.parse(readFileSync(new URL("../../../src/utils/fixtures/legacy-share-links.json", import.meta.url), "utf8"));
