@@ -39,7 +39,7 @@ describe("applyLook", () => {
     window.localStorage.setItem("globestudio:selection", JSON.stringify("country:JPN"));
     window.localStorage.setItem(
       "globestudio:globeSettings",
-      JSON.stringify({ ...DEFAULT_GLOBE_SETTINGS, dataPoints: points, dataMarkerColor: "#ff0000", dataArcs: true }),
+      JSON.stringify({ ...DEFAULT_GLOBE_SETTINGS, data: false, dataPoints: points, dataMarkerColor: "#ff0000", dataArcs: true }),
     );
     const { default: App } = await import("../App.jsx");
     render(<App />);
@@ -50,8 +50,13 @@ describe("applyLook", () => {
     // The look's styling landed (Halftone authors density 50)...
     expect(stored("density")).toBe(50);
     // ...but the region and the Data section are still the user's.
+    expect(screen.getByRole("button", { name: /^Country or region/ }).textContent).toContain("Japan");
+    fireEvent.click(screen.getByRole("button", { name: "Data" }));
+    expect(screen.getByRole("textbox", { name: /^Data points/ }).value).toBe("35.7,139.7,8\n34.7,135.5,5");
+    expect(screen.getByRole("button", { name: "Show data markers" }).getAttribute("aria-pressed")).toBe("false");
     expect(stored("selection")).toBe("country:JPN");
     expect(stored("globeSettings").dataPoints).toEqual(points);
+    expect(stored("globeSettings").data).toBe(false);
     expect(stored("globeSettings").dataMarkerColor).toBe("#ff0000");
     expect(stored("globeSettings").dataArcs).toBe(true);
   }, 20000);
