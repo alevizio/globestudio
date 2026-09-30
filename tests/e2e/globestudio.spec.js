@@ -112,7 +112,11 @@ test("keyboard shortcuts expose core workflows", async ({ page }) => {
 });
 
 test("PNG export announces 'PNG saved' via the aria-live status region", async ({ page }) => {
-  await page.goto("/");
+  // Glow off: it is a CSS filter on the canvas, never in the PNG, and its six
+  // drop-shadow blurs take seconds per frame in software compositing on a 2
+  // CPU Linux runner. The capture's toBlob waits behind those frames for 20 s
+  // or more, which trips the 8 s watchdog and the slower Canvas2D fallback.
+  await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
   await waitForCanvas(page);
   await page.keyboard.press("d");
   const exportButton = page.getByRole("button", { name: /export png/i });
