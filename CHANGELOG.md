@@ -6,7 +6,19 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Picking a look changes the styling only: the region you chose and the
+  data you pasted stay. A `/looks/<id>` link keeps a returning visitor's
+  saved region and data too; a first visit still opens on World.
+- Share links, JSON imports and the MCP server keep a custom glow color.
+  The `/examples` globes now show the glow colors their configs set, and
+  the config schema documents `glowColor`.
+- Screen readers name the view switch "Flat view" and "Globe view", apart
+  from the Globe panel section.
+- A PNG exported during the Flat/Globe switch waits for it to land and
+  saves the settled view. A double click on Export PNG no longer leaves the
+  preview rendering at the export's resolution.
 
 ## [1.0.0] - 2026-09-28
 
