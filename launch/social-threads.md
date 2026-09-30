@@ -173,7 +173,7 @@ So that's what Globestudio does:
 
 It's MIT licensed and runs in your browser, with no account.
 
-It's also on Product Hunt today: {Product Hunt link}
+It's also on Product Hunt today: https://www.producthunt.com/products/globestudio?launch=globestudio
 
 If you work on landing pages, brand systems, decks or motion that involves maps, I'd love your feedback. And if you make something with it, share it in the Show and tell discussions on GitHub.
 
