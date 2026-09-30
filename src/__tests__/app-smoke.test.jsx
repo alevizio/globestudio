@@ -90,6 +90,17 @@ describe("App smoke", () => {
     }
   }, 20000);
 
+  it("names the view switch and the Globe panel section apart for screen readers", async () => {
+    window.history.pushState({}, "", "/");
+    window.localStorage.clear();
+    const { default: App } = await import("../App.jsx");
+    render(<App />);
+    // The studio opens in the globe view, where the Globe section shows too.
+    expect(screen.getAllByRole("button", { name: "Globe" })).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Globe view", pressed: true })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Flat view", pressed: false })).toBeTruthy();
+  }, 20000);
+
   it("serves the teaser instead of the studio only when VITE_TEASER is 1", async () => {
     // TEASER_MODE is read at module load, so re-import App with the flag set.
     vi.stubEnv("VITE_TEASER", "1");

@@ -334,7 +334,7 @@ test.describe("the Data section", () => {
     await expect(eye).toHaveAttribute("aria-pressed", "false");
     // The view isn't saved, so the reload opens in Globe view, where most
     // markers are out of sight. Back to Flat so all four can be counted.
-    const flat = page.getByRole("button", { name: "Flat", exact: true });
+    const flat = page.getByRole("button", { name: "Flat view", exact: true });
     await flat.click();
     await expect(flat).toHaveAttribute("aria-pressed", "true");
     await disclosure.click();
