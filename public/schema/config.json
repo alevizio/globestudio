@@ -100,6 +100,7 @@
         "glow": { "type": "boolean" },
         "glowStrength": { "type": "number", "minimum": 0, "maximum": 100 },
         "glowSpread": { "type": "number", "minimum": 0, "maximum": 100 },
+        "glowColor": { "type": ["string", "null"], "pattern": "^#?[0-9a-fA-F]{3,8}$", "description": "Hex color for the glow halo. null picks one from the look and the dot color.", "examples": ["#ff00aa", null] },
         "grid": { "type": "boolean" },
         "gridStrength": { "type": "number", "minimum": 0, "maximum": 100 },
         "gridColor": { "type": "string", "description": "Hex string. Solid tint for all grid lines unless gridGradient is set." },
