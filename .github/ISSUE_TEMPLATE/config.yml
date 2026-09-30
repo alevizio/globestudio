@@ -8,4 +8,4 @@ contact_links:
     about: Privately report a security vulnerability. Please don't open a public issue for these.
   - name: 🌐 Live site
     url: https://globestudio.app/
-    about: Try Globestudio before filing — sometimes it's the easiest way to confirm a bug.
+    about: Try Globestudio before filing. It's often the easiest way to confirm a bug.

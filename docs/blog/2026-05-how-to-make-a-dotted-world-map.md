@@ -1,194 +1,186 @@
 ---
 title: "How to make a dotted world map in 2026"
 slug: "how-to-make-a-dotted-world-map"
-description: "A practical guide to making a dotted world map for landing pages, decks, and editorial layouts — no code required. Free tools, design tips, and export workflows."
+description: "A practical guide to making a dotted world map for landing pages, decks and editorial layouts, with no code. Covers free tools, design choices and export settings."
 publishedAt: "2026-05-20"
 targetKeyword: "how to make a dotted world map"
 ---
 
 # How to make a dotted world map in 2026
 
-The dotted world map is the design pattern you've seen on a hundred SaaS
-landing pages: a grid of small circles or pixels arranged across the
-continents, often spinning slowly as a 3D globe in the background of a
-hero section. It's visually quiet enough to support a headline, but
-specific enough to immediately communicate "we work globally."
+You've seen the dotted world map on a hundred SaaS landing pages: a grid
+of small circles or pixels across the continents, often spinning slowly
+as a 3D globe behind the hero headline. It's quiet enough to sit behind
+a headline and still says "we work globally" at a glance.
 
-This guide walks through the practical workflow for making one — what
-you actually need, what looks good, and where the common gotchas live.
-By the end you'll have a publishable dotted map you can drop into a
-landing page, deck, or print layout. Time required: about 10 minutes
-end-to-end.
+This guide walks through making one: what you need, what looks good,
+and where people usually go wrong. By the end you'll have a dotted map
+you can put on a landing page, in a deck or in a print layout. It takes
+about 10 minutes.
 
-## What "dotted world map" actually means
+## What "dotted world map" means
 
-Strictly speaking, a dotted world map is any cartographic representation
-where landmass is rendered as a grid of dots rather than filled
-polygons. The variations split into roughly four buckets:
+A dotted world map is any map where the land is drawn as a grid of dots
+instead of filled shapes. There are roughly four kinds:
 
-- **Static dotted map** — a single SVG or PNG, often used on websites,
-  business cards, or printed reports. Doesn't move.
-- **Animated dotted globe** — a 3D sphere of dots that rotates,
-  typically rendered with WebGL. Used as a landing-page hero or video
-  graphic.
-- **Country-highlighted dot map** — one or several countries called out
-  with a different color, to mark presence, customers, or routes.
-- **Data-driven dot map** — dot size or color encodes a value
-  (population, revenue, climate). More of a data-viz tool than a design
+- Static dotted map: a single SVG or PNG, often used on websites,
+  business cards or printed reports. It doesn't move.
+- Animated dotted globe: a 3D sphere of dots that rotates, usually
+  rendered with WebGL. Used as a landing-page hero or in video.
+- Country-highlighted dot map: one or more countries in a different
+  color, to mark presence, customers or routes.
+- Data-driven dot map: dot size or color encodes a value (population,
+  revenue, climate). This is closer to data visualization than
   decoration.
 
-For most designer use cases — landing pages, decks, editorial spreads,
-conference signage — you're aiming for the first two. This guide
-focuses there.
+For most design work (landing pages, decks, editorial spreads,
+conference signage) you want one of the first two, so that's what this
+guide covers.
 
 ## What you need
 
-Three things:
+1. A tool that generates the dots. Placing 6,000+ dots by hand in
+   Illustrator is miserable. You want something that turns geographic
+   data into a dot field for you.
+2. A clear idea of the look. Choose the density, dot shape, color and
+   any styling (print look, glow, distortion) on purpose instead of
+   keeping the defaults.
+3. An export format. PNG for static images, SVG for print at any size,
+   WebM for video, or embed code for a live globe on a web page.
 
-1. **A tool that generates the dots.** Hand-placing 6,000+ dots in
-   Illustrator is a nightmare. You want something that turns geographic
-   data into a dot field automatically.
-2. **A clear design intent.** Density, dot shape, color, and any
-   styling (print look, glow, distortion) should be deliberate, not
-   defaults.
-3. **An export target.** PNG for static, SVG for vector-perfect print,
-   WebM for animated video, or an embed code for live-in-page web use.
-
-That's it. No design system, no Figma plugin, no math.
+You don't need a design system, a Figma plugin or any math.
 
 ## The fastest free option in 2026
 
 [Globestudio](https://globestudio.app) is an open-source web tool that
-handles all three steps. It's free, MIT-licensed, requires no account,
-and runs entirely in the browser. Disclosure: I built it. It exists
-because most of the existing dotted-map generators in 2026 were either
-behind paywalls, locked to specific brand systems, or didn't export
-anything beyond a static PNG.
+covers all three. It's free and MIT licensed, needs no account, and
+runs entirely in the browser. Disclosure: I built it, because most of
+the dotted-map generators I found in 2026 were behind paywalls, locked
+to one brand's style, or couldn't export anything beyond a static PNG.
 
-Open it, pick a country or region, pick a look preset, tune density
-and color, and export. That's the entire workflow.
+Open it, pick a country or region and a look preset, adjust density and
+color, and export.
 
 ## A typical workflow
 
-Let's say you want a dotted globe for a SaaS landing page. The brand
-is dark mode, the headline is "Operations in 47 countries," and you
-want the globe to feel alive without being distracting.
+Say you want a dotted globe for a SaaS landing page. The brand is dark
+mode, the headline is "Operations in 47 countries," and the globe
+should move without pulling attention from the headline.
 
-### 1. Pick a look that matches your brand voice
+### 1. Pick a look that fits the brand
 
-Globestudio ships 17 named looks. For a SaaS landing in 2026, the safe
-bets are:
+Globestudio ships 17 named looks. For a SaaS landing page in 2026, the
+safe choices are:
 
-- **Default** — clean white dots on dark. Good for serious enterprise
-  brands where the design should disappear.
-- **Bloom** — soft glow around bright dots. Good for premium /
-  consumer / fintech brands where the design should feel inviting.
-- **Aurora** — flowing northern-lights bands over the dot field. Good
-  for tech brands positioning around motion, energy, momentum.
-- **Halftone** — print-aesthetic circular dots. Good for editorial-feel
-  brands, design publications, magazine-style products.
+- Default: plain white dots on dark. Good for enterprise brands where
+  the design should stay in the background.
+- Bloom: a soft glow around bright dots. Good for consumer and fintech
+  brands that want something warmer.
+- Aurora: northern-lights bands moving over the dot field. Good for
+  tech brands that want motion.
+- Halftone: round print-style dots. Good for editorial brands, design
+  publications and magazine-style products.
 
-Avoid the high-effect presets (Glitch, Bad TV, Corrupt) on a serious
-landing — those work better for music, gaming, or art-school brands.
+Skip the heavy presets (Glitch, Bad TV, Corrupt) on a serious landing
+page. They suit music, gaming and art-school brands better.
 
-For our example, let's go with [Bloom](https://globestudio.app/looks/bloom).
+For this example, use [Bloom](https://globestudio.app/looks/bloom).
 
 ### 2. Tune density and dot size
 
-Density is the single most consequential setting. Globestudio caps it at
-90 (there's a reason — more on that below). For a landing-page hero
-behind text, density 35-50 reads quietly. For a centerpiece graphic
-where the globe IS the design, push to 65-80.
+Density matters more than any other setting. Globestudio caps it at 90,
+for a reason I'll get to below. Behind text in a landing-page hero, a
+density of 35 to 50 stays quiet. When the globe is the main graphic,
+push it to 65 to 80.
 
-Dot size should pair with density:
+Match the dot size to the density:
 
-- High density (70+) → small dot size (8-12)
-- Low density (30-50) → medium dot size (10-16)
+- High density (70+): small dots (8 to 12)
+- Low density (30 to 50): medium dots (10 to 16)
 
-If your dots are too big at high density, the globe looks blobby. If
-they're too small at low density, it looks empty. The eye notices.
+Dots that are too big at high density make the globe look blobby, and
+dots that are too small at low density make it look empty.
 
-### 3. Pick a country or region (or stay global)
+### 3. Pick a country or region, or stay global
 
-The Country dropdown supports any country in the world (search works
-in English, French, Spanish, German, Chinese, Arabic, Portuguese —
-type "Espagne" or "Deutschland" and the right result surfaces).
+The Country dropdown has every country in the world. Search works in
+English, French, Spanish, German, Chinese, Arabic and Portuguese, so
+typing "Espagne" or "Deutschland" finds the right one.
 
-You can also pick a continent ("Europe"), subregion ("Northern
-Europe"), or US state. For the "Operations in 47 countries" hero,
-keep it on World so the whole globe shows. For a single-market launch
-page, pin to that country.
+You can also pick a continent ("Europe"), a subregion ("Northern
+Europe") or a US state. For the "Operations in 47 countries" hero, keep
+it on World so the whole globe shows. For a launch page about one
+market, pick that country.
 
-### 4. Tweak the color
+### 4. Adjust the color
 
-Globestudio's color picker handles solid colors, gradients (linear with
-adjustable midpoint), and per-stop opacity. For a landing-page hero,
-match your brand's primary or accent color. For a black-and-white
-print piece, default white-on-dark usually wins.
+Globestudio's color picker handles solid colors, linear gradients with
+an adjustable midpoint, and per-stop opacity. For a landing-page hero,
+use your brand's primary or accent color. For a black-and-white print
+piece, the default white on dark usually works best.
 
 ### 5. Export
 
-The export dialog opens with `D` or the download icon. Four options:
+Press `D` or click the download icon to open the export dialog. There
+are four options:
 
-- **PNG** — re-renders the canvas at up to 4× resolution. For static
-  hero images, web headers, social posts.
-- **SVG** — vector output for print or further editing in Illustrator /
-  Affinity / Figma. Note: shader effects don't translate to SVG (they're
-  WebGL-specific). Use this for the unstyled dot field.
-- **WebM** — captures the live animation as a video. Drop into After
-  Effects, X / LinkedIn, or a video editor.
-- **JSON config** — saves the full preset so you (or anyone else) can
-  reproduce the exact look later. Shareable via URL too — every preset
-  has a permalink at `/looks/{id}`.
+- PNG re-renders the canvas at up to 4× resolution, for static hero
+  images, web headers and social posts.
+- SVG gives you vectors for print or for editing in Illustrator,
+  Affinity or Figma. Shader effects don't carry over to SVG because
+  they're WebGL only, so use it for the plain dot field.
+- WebM records the live animation as a video you can bring into After
+  Effects, a video editor, or post on X or LinkedIn.
+- JSON config saves the full preset so you (or anyone else) can
+  reproduce the look later. You can also share it as a URL, and every
+  preset has a permalink at `/looks/{id}`.
 
 ## Common mistakes
 
-After watching designers use this for a couple months, the patterns
-that produce bad results are predictable:
+After a couple of months of watching designers use the tool, the same
+few things cause most of the bad results.
 
-**Density too high.** "More dots = more impressive" is wrong. At
-density 90 with a small dot size, the globe loses all texture and
-reads as a fuzzy sphere. The visual reads better at 50-70 for most
-purposes. The 90 cap exists for performance reasons — beyond that,
-mobile GPUs choke.
+Density too high. More dots doesn't look more impressive. At density 90
+with a small dot size, the globe loses its texture and turns into a
+fuzzy sphere, and 50 to 70 looks better for most uses. The 90 cap is
+there for performance, because mobile GPUs choke beyond it.
 
-**Too many shader effects stacked.** Globestudio only applies one shader
-effect at a time on purpose. If you find yourself wanting "halftone +
-bloom + chromatic split," your design probably has a deeper problem.
-Pick the one that does the most work and commit.
+Too many shader effects. Globestudio applies one shader effect at a
+time on purpose. If you want "halftone + bloom + chromatic split,"
+the design probably has a bigger problem. Pick the effect that does
+the most work and stick with it.
 
-**Wrong projection for solid mode.** When you flip from dots to solid
-mode in flat view, you pick a projection (Mercator, Equal Earth,
-Winkel Tripel, Robinson, Natural Earth). Mercator looks "wrong" to
-anyone trained post-2010 — Greenland dwarfs South America. For modern
-designs, Equal Earth is the right default. Mercator only when you
+The wrong projection in solid mode. When you switch from dots to solid
+mode in the flat view, you pick a projection (Mercator, Equal Earth,
+Winkel Tripel, Robinson, Natural Earth). Mercator looks wrong to anyone
+trained after 2010, because Greenland dwarfs South America. For modern
+designs, Equal Earth is a better default. Use Mercator when you
 specifically want the Google Maps look.
 
-**Auto-spin too fast.** The default motion (35) is calibrated for
-calm. If you push it past 70, the globe reads as nervous rather than
-alive. Slower is almost always better for landing-page heros.
+Auto-spin too fast. The default motion (35) is set to feel calm. Past
+70 the globe looks nervous. For landing-page heroes, slower is almost
+always better.
 
 ## Animating the globe
 
-If you're going for the spinning-globe landing hero, two things
-matter:
+For a spinning globe in a landing-page hero, two things matter:
 
-1. **`prefers-reduced-motion`.** A meaningful fraction of users have
-   "reduce motion" enabled at the OS level (accessibility setting).
-   Globestudio automatically pauses auto-spin, time-driven shaders, and
-   cinematic morph flourishes for those users. If you build your own
-   from scratch, do the same — animation that won't pause is a real
+1. `prefers-reduced-motion`. A meaningful share of users turn on
+   "reduce motion" in their OS accessibility settings. Globestudio
+   pauses auto-spin, time-driven shaders and the cinematic morph
+   flourishes for them. If you build your own globe from scratch, do
+   the same, because animation that can't be paused is an
    accessibility failure.
-2. **Loop length.** If you're exporting WebM for video, aim for a
-   loop length that's a clean divisor of your video framerate. At
-   60fps, a 6-second loop is 360 frames — exports cleanly. A 5.5-
-   second loop won't.
+2. Loop length. If you're exporting WebM for video, pick a loop length
+   that divides cleanly into your video's frame rate. At 60 fps, a
+   6-second loop is 360 frames and exports cleanly. A 5.5-second loop
+   won't.
 
 ## Embedding in your site
 
-If you want the live animated globe (not a static PNG) on your
-landing page, Globestudio ships an `/embed` route that renders just the
-canvas with no chrome:
+If you want the live animated globe on your landing page instead of a
+static PNG, Globestudio has an `/embed` route that renders only the
+canvas, with no UI around it:
 
 ```html
 <iframe
@@ -201,49 +193,44 @@ canvas with no chrome:
 ></iframe>
 ```
 
-Works in Webflow's Code Embed block, Framer's Embed element, plain
-HTML, Notion (`/embed` slash command), Astro, Next.js, anywhere
-iframes are allowed. The full
-[per-tool integration guide](https://github.com/alevizio/globestudio/tree/main/docs/integrations)
-covers Webflow, Framer, Notion, and plain HTML in detail.
+It works in Webflow's Code Embed block, Framer's Embed element, plain
+HTML, Notion (the `/embed` slash command), Astro, Next.js and anywhere
+else iframes are allowed. The
+[integration guide](https://github.com/alevizio/globestudio/tree/main/docs/integrations)
+covers Webflow, Framer, Notion and plain HTML in detail.
 
-## When to NOT use a dotted map
+## When to use a dotted map, and when not to
 
-The pattern is everywhere now. Use it deliberately:
+The pattern is everywhere now, so use it when it fits:
 
-- **You're a global business** with offices, customers, or routes in
-  ≥3 countries. Dotted map says "we span the world" cleanly.
-- **You're a data-viz tool** showing geographic distribution. Dots
+- You're a global business with offices, customers or routes in 3 or
+  more countries. A dotted map shows that you span the world.
+- You're a data-viz tool showing geographic distribution, where dots
   read as discrete data points.
-- **You're an editorial / journalism brand** doing a piece with a
-  cartographic angle.
+- You're an editorial or journalism brand doing a piece with a
+  geographic angle.
 
-When NOT to:
+Skip it when:
 
-- You're a local business serving one region. A dotted globe reads as
-  pretentious if you're a coffee shop in Brooklyn.
-- The design needs to feel warm or human. Dots are inherently
-  abstract.
-- You're chasing the trend without it serving the content. The
-  dotted-map cliché is real — if you can't articulate why this
-  pattern serves your message, pick a different visual.
+- You're a local business serving one region. A dotted globe looks
+  pretentious on a coffee shop in Brooklyn.
+- The design needs to feel warm or human. Dots are abstract.
+- You're following the trend and it doesn't serve the content. The
+  dotted map is a cliché by now, so if you can't say why it helps your
+  message, pick a different visual.
 
-## What's next
+## Where to go from here
 
-If you want to go further:
-
-- [Browse the preset gallery](https://globestudio.app/) — all 21 looks
-  with one-click apply.
-- [The GitHub repo](https://github.com/alevizio/globestudio) — full
+- [Browse the preset gallery](https://globestudio.app/): all 21 looks,
+  each one click to apply.
+- [The GitHub repo](https://github.com/alevizio/globestudio): the full
   source, MIT licensed.
 - [Integration guides](https://globestudio.app/integrations):
-  Webflow, Framer, Notion, plain HTML.
+  Webflow, Framer, Notion and plain HTML.
 
-The tool is open source and welcomes contributions. If you build
-something interesting with it,
+The tool is open source and contributions are welcome. If you build
+something with it,
 [share it in the Show and Tell discussions](https://github.com/alevizio/globestudio/discussions/categories/show-and-tell).
 
----
-
-*Published 2026-05-20. Comments and corrections welcome at
-[github.com/alevizio/globestudio](https://github.com/alevizio/globestudio).*
+Published 2026-05-20. Comments and corrections are welcome at
+[github.com/alevizio/globestudio](https://github.com/alevizio/globestudio).

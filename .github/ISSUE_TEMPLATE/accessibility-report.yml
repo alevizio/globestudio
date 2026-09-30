@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting. Accessibility issues are prioritized like security
-        bugs — they go ahead of feature work.
+        Thanks for reporting. Accessibility issues get the same priority as
+        security bugs and go ahead of feature work.
 
         See [ACCESSIBILITY.md](../blob/main/ACCESSIBILITY.md) for what's currently
         shipped if you want to check whether the issue is in scope.

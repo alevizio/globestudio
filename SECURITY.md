@@ -8,12 +8,12 @@ is the only supported version.
 
 ## Reporting a vulnerability
 
-**Please do not open a public issue for security problems.** Use one of:
+Please do not open a public issue for security problems. Use one of:
 
-1. **GitHub Security Advisories** — [Report a vulnerability privately](https://github.com/alevizio/globestudio/security/advisories/new).
-   This is the preferred route. It opens a private collaboration thread between
+1. GitHub Security Advisories: [report a vulnerability privately](https://github.com/alevizio/globestudio/security/advisories/new).
+   This is the preferred route. It opens a private thread between
    you and the maintainers.
-2. **Email** — `viziomas@gmail.com` with subject `[Globestudio Security]`.
+2. Email: `viziomas@gmail.com` with the subject `[Globestudio Security]`.
 
 Please include:
 
@@ -24,10 +24,10 @@ Please include:
 
 ## What to expect
 
-- **Acknowledgement** within 72 hours
-- **Initial assessment** within 7 days
-- **Fix or mitigation timeline** communicated after assessment
-- **Credit** in the release notes once a fix ships, unless you ask not to be
+- Acknowledgement within 72 hours
+- Initial assessment within 7 days
+- A timeline for the fix or mitigation after the assessment
+- Credit in the release notes once a fix ships, unless you ask not to be
   named
 
 ## Scope
@@ -42,8 +42,9 @@ In scope:
 
 Out of scope:
 
-- Performance issues, browser quirks, missing features — use a
+- Performance issues, browser quirks and missing features. Use a
   [regular issue](https://github.com/alevizio/globestudio/issues/new/choose)
+  for those.
 - Issues that require user-controlled clipboard contents to be malicious (we
   already sanitize, but it's the user's clipboard)
 - Vulnerabilities in dependencies that have not been published as advisories

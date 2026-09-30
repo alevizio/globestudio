@@ -2,17 +2,16 @@
 
 Long-form articles about dotted maps, design, and the tool itself.
 
-Articles live as markdown files here (rendered by GitHub directly,
-indexable by search engines). Each one targets a specific long-tail
-search query a designer might actually type. The goal: real content
-surface beyond the tool homepage + preset URLs.
+Articles live here as markdown files, which GitHub renders and search
+engines can index. Each one targets a specific long-tail search query a
+designer might type, so the site has content beyond the homepage and the
+preset pages.
 
-When the count crosses ~5 articles, the plan is to migrate this into
-a `/blog/` route on globestudio.app with proper SSG (likely Astro per
+Once there are about 5 articles, the plan is to move them to a `/blog/`
+route on globestudio.app with static generation (likely Astro, per
 [`docs/plans/seo-rollout.md`](../plans/seo-rollout.md) Phase 7). For
-now, github.com renders the markdown well enough — and the
-github.com → globestudio.app cross-linking adds authority signal both
-directions.
+now, github.com renders the markdown well enough, and the links between
+github.com and globestudio.app help both in search.
 
 ## Articles
 
@@ -22,19 +21,16 @@ directions.
 
 ## Style guide
 
-- **One target keyword per piece.** Surface it in the title, the first
-  paragraph, the URL slug, and at least 2 H2 subheadings.
-- **800-2500 words.** Long enough to rank, short enough to actually
-  finish reading.
-- **Hand-written, not LLM-generated.** Google penalizes "low-effort
-  AI content." This isn't a hard rule — LLM-assisted is fine —
-  but the final voice has to feel intentional.
-- **Show, don't tell.** Embed Globestudio iframes (via `/embed`) where
-  the article references a specific look or feature. Real examples
-  beat described ones.
-- **Linkable subheadings.** Use clear H2 + H3 hierarchy so people can
-  cite specific sections.
-- **Date format:** `YYYY-MM-DD` in the file name and frontmatter.
+- One target keyword per piece. Use it in the title, the first
+  paragraph, the URL slug and at least 2 H2 subheadings.
+- 800 to 2500 words: long enough to rank and short enough to finish.
+- Write in your own voice. Help from an LLM with a draft is fine, but
+  the final text should read like you wrote it.
+- Embed Globestudio iframes (via `/embed`) where the article mentions a
+  specific look or feature. A live example says more than a description.
+- Use a clear H2 and H3 hierarchy so people can link to and cite
+  specific sections.
+- Dates are `YYYY-MM-DD` in the file name and frontmatter.
 
 ## Frontmatter
 

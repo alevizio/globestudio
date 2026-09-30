@@ -1,34 +1,29 @@
 # Contributing to Globestudio
 
-Thanks for being here. Globestudio is a designer-first tool — that means
-contributions aren't just code. **Visual presets, example projects,
-documentation rewrites, bug reports, and screenshots are all first-class**.
+Thanks for being here. Globestudio is a tool for designers, so a lot of the
+useful contributions aren't code. Visual presets, example projects,
+documentation rewrites, bug reports and screenshots all count as much as a PR.
 
 This guide tells you what's most useful, how to set up your environment, and
 how the code is organized so a non-code contribution doesn't require you to
 read the whole engine.
 
----
-
 ## Quickest ways to help
 
-If you don't want to read this whole guide, the three highest-leverage things
-you can do are:
+If you don't want to read the whole guide, these help the most:
 
-1. **Build something with it and share a screenshot/recording.** Open a
+1. Build something with it and share a screenshot or recording. Open a
    [Show & Tell discussion](https://github.com/alevizio/globestudio/discussions)
-   with what you made. We curate the best ones into the README and showcase.
-2. **Submit a preset.** A preset is just a named JSON config — see
+   with what you made. We pick some of them for the README and the showcase.
+2. Submit a preset. A preset is a named JSON config. See
    [Preset submissions](#preset-submissions) below.
-3. **Report a browser issue.** If it lags, freezes, or renders wrong, use
+3. Report a browser issue. If it lags, freezes or renders wrong, use
    the [Performance / Browser report](https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml)
-   template. Include your OS, browser, and GPU.
-
----
+   template. Include your OS, browser and GPU.
 
 ## Local setup
 
-Requires **Node 20.19+ (or 22.12+)** and **npm**.
+Requires Node 20.19+ (or 22.12+) and npm.
 
 ```bash
 git clone https://github.com/alevizio/globestudio
@@ -51,8 +46,6 @@ Useful scripts:
 | `npm run preview` | Serve the production build locally |
 
 Tests should pass and the build should succeed before you open a PR.
-
----
 
 ## Project shape
 
@@ -110,26 +103,22 @@ src/
 
 Tests are co-located with their source as `*.test.{js,jsx}`.
 
----
-
 ## Design system rules
 
-These are not negotiable in a PR review — they keep the panel feeling tight:
+PR reviews hold every change to these rules, so the panel stays consistent:
 
-- **Tokens only for color/spacing.** Use `var(--field)`, `var(--border)`,
+- Tokens only for color and spacing. Use `var(--field)`, `var(--border)`,
   `var(--text)`, `var(--muted)`, `var(--dim)`, `var(--panel)`, `var(--accent)`.
   No hard-coded hex.
-- **Easing**: `var(--ease)` (`cubic-bezier(0.2, 0.7, 0.2, 1)`) for animations.
-- **Durations**: `140ms / 180ms / 260ms` for small interactions,
+- Easing: `var(--ease)` (`cubic-bezier(0.2, 0.7, 0.2, 1)`) for animations.
+- Durations: `140ms / 180ms / 260ms` for small interactions,
   `420ms / 520ms / 620ms` for action feedback, `1400ms` for info display.
-- **Border-radius scale**: `5 / 6 / 8 / 16 / 999px`.
-- **State modifiers**: `.is-*` classes (e.g., `.is-applied`, `.is-rippling`).
-- **Respect `prefers-reduced-motion: reduce`** for any new animation. The
+- Border-radius scale: `5 / 6 / 8 / 16 / 999px`.
+- State modifiers: `.is-*` classes (e.g., `.is-applied`, `.is-rippling`).
+- Respect `prefers-reduced-motion: reduce` in any new animation. The
   existing pattern is in `hooks/use-prefers-reduced-motion.js`.
-- **Tailwind utility-first thinking, but write it in `styles.css`** — we don't
-  ship Tailwind, but the discipline of single-purpose classes applies.
-
----
+- Write single-purpose classes in the Tailwind style, but in `styles.css`.
+  We don't ship Tailwind.
 
 ## Browser support
 
@@ -142,30 +131,26 @@ Target the latest two versions of:
 WebGL 2 is required. The app degrades gracefully without dot animations when
 `prefers-reduced-motion` is set.
 
----
-
 ## Performance budget
 
-This is a graphics-heavy creative tool. Performance is a launch blocker, not a
-polish issue.
+This is a graphics-heavy creative tool, so a performance regression blocks a
+release.
 
 - 60 fps on a 2020 MacBook Pro at the default look
 - 30 fps minimum on a Pixel 6 in mobile Chrome at density 40, dot size 10
-- Adaptive DPR is already wired in `globe-background.jsx` — don't fight it,
-  hook into it if you add new GPU-heavy passes
+- Adaptive DPR is already wired in `globe-background.jsx`. If you add new
+  GPU-heavy passes, hook into it instead of working around it
 
 Run the dev server, open Chrome's Performance tab, and record a 5-second trace
 on the default look before submitting a PR that touches the render loop.
-
----
 
 ## Contribution types
 
 ### Bug reports
 
 Use the [Bug report](https://github.com/alevizio/globestudio/issues/new?template=bug-report.yml)
-template. The form asks for repro steps, browser/OS, and what you expected.
-Screenshots and short screen recordings are gold.
+template. The form asks for repro steps, browser and OS, and what you expected.
+Screenshots and short screen recordings help a lot.
 
 ### Feature requests
 
@@ -191,14 +176,14 @@ Good presets:
 
 Preset entries are validated against
 [`public/schema/look-preset.json`](public/schema/look-preset.json) by
-`src/data/look-presets.test.js`. The schema is the public contract — `id`
-must be kebab-case and unique, `name`/`blurb` have length limits, and
-`settings` follows the main config schema. CI will reject PRs that
-break the contract.
+`src/data/look-presets.test.js`. The schema is the public contract: `id`
+must be kebab-case and unique, `name` and `blurb` have length limits, and
+`settings` follows the main config schema. CI fails PRs that
+break it.
 
 ### Example projects
 
-We want examples that prove the tool is useful in real product work:
+We'd like examples from real product work, such as:
 
 - Landing page hero with a globe background
 - Static SVG for a deck or print piece
@@ -210,30 +195,28 @@ with a link to your repo or a CodeSandbox.
 
 ### Documentation
 
-The README and this guide are first-class code. Typo fixes, clarity passes,
-broken-link reports — all welcome. Open a PR directly.
+The README and this guide get the same care as the code. Typo fixes, clearer
+wording and broken-link reports are all welcome. Open a PR directly.
 
 ### Code
 
-For non-trivial code changes, please open a Discussion or Issue first to align
-on direction. Saves time on both sides.
-
----
+For larger code changes, please open a Discussion or Issue first so we can
+agree on the direction. It saves time on both sides.
 
 ## PR process
 
-1. Fork the repo and create a branch off `main`. Branch names are loose —
-   `fix/picker-overflow` or `feat/triangle-stops` are both fine.
-2. Make your changes. Keep commits focused — atomic is better than perfect.
+1. Fork the repo and create a branch off `main`. Any sensible branch name
+   works, e.g. `fix/picker-overflow` or `feat/triangle-stops`.
+2. Make your changes. Keep each commit to one change.
 3. Run `npm test -- --run` and `npm run build`. Both should pass.
 4. Open the PR using the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
    Include before/after screenshots for any visual change.
-5. A maintainer will review within a few days. Expect feedback — please don't
-   take it personally.
+5. A maintainer will review within a few days. Expect feedback, and please
+   don't take it personally.
 
 ### Commit style
 
-Conventional commits-ish, but light. Imperative, no enforcement:
+Roughly conventional commits, in the imperative. Nothing enforces it:
 
 - `feat: add gradient picker to dot color`
 - `fix: solid mode honors area selection`
@@ -243,17 +226,15 @@ Conventional commits-ish, but light. Imperative, no enforcement:
 
 ### Code style
 
-- **TypeScript strict where present.** Most files are still `.jsx` — that's
+- TypeScript strict where present. Most files are still `.jsx`, which is
   fine. New utilities are welcome in `.ts`.
-- **Named exports**, not default.
-- **Arrow function components**.
-- **File naming**: `kebab-case.jsx` for files, `PascalCase` for components.
-- **Destructure props** in parameters.
-- **`cn()` for conditional classes** — never string concatenation.
-- **No magic numbers** — token scale values or named constants.
-- **Components under 150 lines.** Extract sub-components when larger.
-
----
+- Named exports, not default.
+- Arrow function components.
+- File naming: `kebab-case.jsx` for files, `PascalCase` for components.
+- Destructure props in parameters.
+- `cn()` for conditional classes, never string concatenation.
+- No magic numbers. Use token scale values or named constants.
+- Components under 150 lines. Extract sub-components when larger.
 
 ## How decisions get made
 
@@ -262,17 +243,12 @@ the [Roadmap](ROADMAP.md) and refined in
 [Discussions](https://github.com/alevizio/globestudio/discussions). As the
 contributor base grows, we'll formalize this in [GOVERNANCE.md](GOVERNANCE.md).
 
-If you have a deeper question about scope, philosophy, or where the project
-should go — start a Discussion.
-
----
+If you have a question about scope or where the project should go, start a
+Discussion.
 
 ## Recognition
 
 Every merged contribution lands in the
 [CHANGELOG](CHANGELOG.md), and consistent contributors get credited in the
-README. If you want your work showcased differently, just tell us.
+README. If you want your work credited differently, tell us.
 
----
-
-Thanks for being here.

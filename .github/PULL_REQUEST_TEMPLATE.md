@@ -35,7 +35,7 @@ Closes #
 
 - [ ] Tests pass locally (`npm test -- --run`)
 - [ ] Production build succeeds (`npm run build`)
-- [ ] No hardcoded colors / spacing — uses design tokens (`var(--accent)` etc.)
+- [ ] No hardcoded colors or spacing; uses design tokens (`var(--accent)` etc.)
 - [ ] Respects `prefers-reduced-motion` if I added a new animation
 - [ ] `CHANGELOG.md` updated under `[Unreleased]` if this is user-visible
 - [ ] If this changes the persisted state shape, I documented the migration

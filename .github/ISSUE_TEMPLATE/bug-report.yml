@@ -8,11 +8,11 @@ body:
         Thanks for taking the time to file a bug. The clearer your report, the
         faster we can land a fix.
 
-        **Before filing**: try the [live site](https://globestudio.app/) and
+        Before filing, try the [live site](https://globestudio.app/) and
         confirm the bug still reproduces there. If it's a performance issue
         (lag, freeze, crash), use the
         [performance template](https://github.com/alevizio/globestudio/issues/new?template=performance-report.yml)
-        instead — it asks the right questions.
+        instead, since it asks for the details we need.
 
   - type: textarea
     id: what-happened

@@ -48,9 +48,9 @@ body:
     attributes:
       label: Pre-flight
       options:
-        - label: I checked the [Roadmap](https://github.com/alevizio/globestudio/blob/main/ROADMAP.md) — this isn't already planned.
+        - label: I checked the [Roadmap](https://github.com/alevizio/globestudio/blob/main/ROADMAP.md) and this isn't already planned.
           required: true
         - label: I searched [open issues](https://github.com/alevizio/globestudio/issues?q=is%3Aissue) and didn't find a duplicate.
           required: true
-        - label: I'm willing to discuss trade-offs — not every "yes" lands as proposed.
+        - label: I'm willing to discuss trade-offs, since an accepted idea may not land exactly as proposed.
           required: true

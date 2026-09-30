@@ -27,50 +27,50 @@ The first public release. This section sums up everything that ships in
 
 ### Added
 
-- **21 looks**: Default, Halftone, Risograph, Newsprint, Aurora, Pixel,
+- 21 looks: Default, Halftone, Risograph, Newsprint, Aurora, Pixel,
   Bayer, Atkinson, Wireframe, CRT, Glitch, Bad TV, Bloom, Metal, Iridescent,
   Pencil, Corrupt, Toon, Threshold, Vapor, Topographic. Each applies at most
   one of 24 WebGL shader effects.
-- **Exports**: PNG at 1x to 4x, SVG with clean vector dots (6 effects
+- Exports: PNG at 1x to 4x, SVG with clean vector dots (6 effects
   approximated with SVG filters), WebM, MP4 (where the browser supports it),
   GIF, JSON config with `$schema`, and "Copy as React".
-- **Your own data**: paste `lat,lng,value` or `country,value` lines to plot
+- Your own data: paste `lat,lng,value` or `country,value` lines to plot
   markers sized by value, optionally joined by arcs.
-- **Solid mode**: rivers and cities overlays, pasted GeoJSON lines and
+- Solid mode: rivers and cities overlays, pasted GeoJSON lines and
   points, and 5 flat projections (Mercator, Equal Earth, Natural Earth,
   Winkel Tripel, Robinson). Dotted maps use Mercator.
 - Country search in English, Spanish, French, German, Chinese, Arabic, and
   Portuguese.
-- **Globestudio everywhere**: the `/embed` route and `embed.js` script tag,
+- Embeds and integrations: the `/embed` route and `embed.js` script tag,
   `@globestudio/react`, the `@globestudio/element` web component, the Figma
   plugin, a WordPress block and `[globestudio]` shortcode (manual install),
   the `@globestudio/mcp` MCP server, and `/integrations` with copy-paste
   recipes per platform.
-- **Site**: `/gallery`, `/examples`, `/compare/cobe`, `/compare/geolayers`,
+- Site: `/gallery`, `/examples`, `/compare/cobe`, `/compare/geolayers`,
   per-route prerendered `<head>` tags, a sitemap generated from the preset
-  list, `llms.txt` and `llms-full.txt`, and a robots.txt that welcomes AI
+  list, `llms.txt` and `llms-full.txt`, and a robots.txt that allows AI
   crawlers.
 - A root error boundary with a visible fallback, and a `client_error`
   analytics event for render crashes and lost WebGL contexts (disclosed on
   `/privacy`).
 - A tab that loads a chunk from an older deploy reloads once instead of
   breaking.
-- **Figma plugin**: the full studio runs inside the plugin, with every look
+- Figma plugin: the full studio runs inside the plugin, with every look
   and control. Insert places an image at the crop and quality you pick, or
   the flat map as editable vector dots, and a click on one of the file's
   color variables sets the dot color.
 - `favicon.ico`, `apple-touch-icon.png`, and a shared footer that links
   `/gallery` and the compare pages.
-- **Use with AI**: the Share tab copies a ready-to-paste prompt for any
+- Use with AI: the Share tab copies a ready-to-paste prompt for any
   agent, and shows how to connect Claude, Codex and Cursor. The MCP server is
   hosted at `https://globestudio.app/mcp` (streamable HTTP, no install), and
   `@globestudio/mcp` 0.2.0 adds `read_share_url` so an agent can open a link
   you paste, change it, and hand back a new one.
-- **Transparent backgrounds**: Background is Solid, Space or Transparent,
+- Transparent backgrounds: Background is Solid, Space or Transparent,
   with a checkerboard that follows the UI theme. PNG, SVG and WebM keep the
   transparency, GIF keeps it with hard edges, and MP4 says it can't.
   `/embed?background=transparent` works.
-- **Data section**: pasted data points have their own section with an eye
+- Data section: pasted data points have their own section with an eye
   that hides the markers and arcs without clearing them.
 
 ### Changed
@@ -162,65 +162,66 @@ The first public release. This section sums up everything that ships in
   `ROADMAP.md`
 - GitHub issue templates (bug, feature, performance, preset submission) and
   a pull request template
-- Designer-first README rewrite
+- README rewritten for designers
 - `SoftwareApplication` JSON-LD structured data and tightened SEO meta on the
   homepage
-- `public/schema/look-preset.json` — public JSON Schema for community
+- `public/schema/look-preset.json`: a public JSON Schema for community
   preset submissions, plus a CI test (`src/data/look-presets.test.js`)
-  that validates every shipped preset against it. Locks the
+  that validates every shipped preset against it. It locks the
   `look-presets.js` shape so PRs can't drift from the documented contract
-- `NOTICE.md` — third-party attribution for Pixelarticons (MIT) and the
-  geographic atlases the tool depends on. Required by the MIT license
-  of those bundled assets
-- `docs/performance.md` — documents the v1 runtime floor (60fps desktop,
+- `NOTICE.md`: third-party attribution for Pixelarticons (MIT) and the
+  geographic atlases the tool depends on, as the MIT license of those
+  bundled assets requires
+- `docs/performance.md`: documents the v1 runtime floor (60fps desktop,
   30fps mobile) and the per-chunk bundle-size budget
-- `scripts/check-bundle-size.js` — enforces per-chunk gzip + raw budgets
-  against the dist build; surfaces unbudgeted chunks so new bloat can't
-  slip in unwatched. Wired up as `npm run check:bundle`
-- `.github/workflows/ci.yml` — runs tests + build + bundle-budget gate
-  on every PR and push to main, plus a Lighthouse CI job that asserts
+- `scripts/check-bundle-size.js`: enforces per-chunk gzip and raw budgets
+  against the dist build, and lists chunks that have no budget so new bloat
+  gets noticed. Runs as `npm run check:bundle`
+- `.github/workflows/ci.yml`: runs the tests, the build and the bundle-budget
+  check on every PR and push to main, plus a Lighthouse CI job that asserts
   LCP ≤ 2.5s, CLS ≤ 0.1, performance ≥ 0.85, accessibility ≥ 0.95
-- `.lighthouserc.json` — Lighthouse CI config (desktop preset, 3 runs)
-- **Toon** and **Threshold** presets — catalog goes from 17 → 19 shipped
+- `.lighthouserc.json`: Lighthouse CI config (desktop preset, 3 runs)
+- Toon and Threshold presets, taking the catalog from 17 to 19 shipped
   looks. Toon is a cel-shaded pop-art pass on cyan dots; Threshold is
-  the editorial-minimalism two-tone binary look
-- **Cmd+K command palette** — Linear / Stripe / Vercel-style search-driven
-  action menu covering all 19 presets + shuffle / reset / view toggle /
-  panel / export / shortcuts. Fuzzy match, arrow-key nav. Preset rows
-  carry a `LookPreview` thumbnail. (`src/components/command-palette.jsx`)
-- **First-visit onboarding hint** (`src/components/onboarding-hint.jsx`)
-  — pill at top-center surfacing "Press S to shuffle · [ ] to cycle" on
-  first visit, dismissed on any interaction or after 12 s, persisted
-  via `globestudio:hasSeenOnboarding`
-- **`/docs` route** (`src/components/docs-page.jsx`) — single-page docs
-  with the iframe / React / script-tag embed snippets, share-URL
-  explainer, full keyboard-shortcut table, preset catalog grid, and
+  a two-tone binary look
+- Cmd+K command palette: a search-driven action menu in the style of
+  Linear, Stripe and Vercel, covering all 19 presets plus shuffle, reset,
+  view toggle, panel, export and shortcuts. It has fuzzy matching and arrow-key
+  navigation, and preset rows carry a `LookPreview` thumbnail.
+  (`src/components/command-palette.jsx`)
+- First-visit onboarding hint (`src/components/onboarding-hint.jsx`):
+  a pill at top center that shows "Press S to shuffle · [ ] to cycle" on
+  the first visit. It goes away on any interaction or after 12 s, and is
+  remembered via `globestudio:hasSeenOnboarding`
+- `/docs` route (`src/components/docs-page.jsx`): single-page docs
+  with the iframe, React and script-tag embed snippets, a share-URL
+  explainer, the full keyboard-shortcut table, a preset catalog grid and
   schema references
-- **`/brand` press kit** (`src/components/brand-page.jsx`) — logo card
-  (dark + light bg), OG card thumbnails with download links, palette
-  swatches, taglines, contact links — for journalists + bloggers
-  covering the launch
-- **`/404` catch-all** (`src/components/not-found-page.jsx`) — centered
-  takeover for unknown routes with `noindex,follow` meta and four
-  jump-back links (home / docs / brand / try-a-preset)
-- `usePrefetchHeavyChunks` (`src/hooks/use-prefetch-heavy-chunks.js`) —
+- `/brand` press kit (`src/components/brand-page.jsx`) for journalists
+  and bloggers covering the launch: a logo card (dark and light
+  backgrounds), OG card thumbnails with download links, palette swatches,
+  taglines and contact links
+- `/404` catch-all (`src/components/not-found-page.jsx`): a centered
+  page for unknown routes with `noindex,follow` meta and four
+  links back (home, docs, brand, try a preset)
+- `usePrefetchHeavyChunks` (`src/hooks/use-prefetch-heavy-chunks.js`):
   on the first user-intent event, schedules an idle-callback prefetch
-  for `countries-50m` / `states-10m` atlases and the `globe-background`
-  module so the toggle / picker swap feels instant
-- App.jsx mount smoke test (`src/__tests__/app-smoke.test.jsx`) — catches
-  TDZ-style first-render crashes that build + lint would miss
-- Brand-icon ripple on preset apply (scale pulse + expanding accent ring)
+  of the `countries-50m` and `states-10m` atlases and the `globe-background`
+  module, so the toggle and picker swaps feel instant
+- App.jsx mount smoke test (`src/__tests__/app-smoke.test.jsx`): catches
+  TDZ-style first-render crashes that the build and lint would miss
+- Brand-icon ripple on preset apply (a scale pulse and an expanding accent ring)
 - Globe canvas entrance animation: 780 ms blur(8 → 0) + opacity fade
   when the lazy `GlobeBackground` resolves
 - Coordinated panel slide-in 120 ms after the canvas entrance starts
 - Preset crossfade: applying a preset fades the canvas opacity 1 → 0.4
   → 1 over 460 ms so the swap reads as a deliberate transition
-- Looks-bar hover lift + accent ring + sheen sweep on the current chip
+- Looks-bar hover lift, accent ring and sheen sweep on the current chip
 - Modal frosted-glass: card-only `backdrop-filter`
   blur (28 / 36 px), card opacity 0.62 so the blur reads against the
   live canvas behind
-- Export modal: sliding tab indicator (CSS vars driven by refs) + body
-  content cross-fade on each tab switch
+- Export modal: sliding tab indicator (CSS vars driven by refs) and a
+  cross-fade of the body content on each tab switch
 - About overlay: large left-aligned `DottedGlobe` logo at the top of
   the body; in-app links to `/docs` and `/brand`
 
@@ -229,18 +230,18 @@ The first public release. This section sums up everything that ships in
 - `src/components/icons.jsx` header comment now credits Pixelarticons
   (Gerrit Halfmann, MIT) directly instead of the prior iconjar mirror URL
 - Tightened the homepage FAQ JSON-LD and the `svg-country-pack` example
-  README: MIT requires preserving `LICENSE` + `NOTICE` when redistributing
+  README: MIT requires preserving `LICENSE` and `NOTICE` when redistributing
   source/builds. The exported PNG/SVG/WebM/JSON artifacts remain
   attribution-free
-- `cssMinify: false` in `vite.config.js` — the build's CSS minifier was
+- `cssMinify: false` in `vite.config.js`. The build's CSS minifier was
   dropping `-webkit-backdrop-filter` / `backdrop-filter` pairs as
-  duplicates, breaking the frosted-glass effect across browsers (Chrome
-  / Firefox / Edge need unprefixed, Safari 15–17 needs the prefix)
-- Ambient mode merged into panel-collapsed state — collapsing the
+  duplicates, which broke the frosted-glass effect across browsers (Chrome,
+  Firefox and Edge need the unprefixed one, Safari 15 to 17 needs the prefix)
+- Ambient mode merged into the panel-collapsed state: collapsing the
   panel (`H`) now hides the looks bar, view-mode switch, zoom controls,
   and social links alongside it. The dedicated `B` shortcut, Maximize
   button, and exit chip were removed
-- `.looks-bar` overflow switched to `overflow-y: clip` +
+- `.looks-bar` overflow switched to `overflow-y: clip` with
   `overflow-clip-margin: 24px` so the chip's hover shadow renders
   past the bar's vertical bounds without being truncated
 
@@ -265,20 +266,18 @@ The first public release. This section sums up everything that ships in
 - Control-rail bottom padding bumped from 10 → 18 px so focus outlines
   and native hover shadows don't get clipped against the rail's inner edge
 
----
-
 ## Recent product history
 
 The version history below is reconstructed from `main` commits. Versions are
-inferred — earlier work didn't carry version tags.
+inferred, since earlier work didn't carry version tags.
 
 ### Solid mode upgrades
 
 - Solid render now honors the area selection (was always rendering the full
   world atlas regardless of dropdown)
 - Visibility toggles for Land and Stroke
-- Stroke width slider (0.1–8 px)
-- Linear gradient + per-stop opacity on Land and Stroke
+- Stroke width slider (0.1 to 8 px)
+- Linear gradient and per-stop opacity on Land and Stroke
 - Canvas2D gradient sampler shares math with the dot-color sampler, so the
   same angle reads identically on the solid sphere and the dot field
 
@@ -306,24 +305,22 @@ inferred — earlier work didn't carry version tags.
 
 ### Panel UX
 
-- Map area is a single dropdown (no nested expand-collapse)
+- Map area is a single dropdown, without a nested expand-collapse
 - "Show map" toggle replaces the old "Dots" label
 - Wider toggle pill (40×18 with adjusted knob travel)
 - Mouse-following tooltip on panel-header actions and social links
 - Improved toggle contrast (dark track + dim knob OFF, accent track + dark
   knob ON)
-- Section title breathing room (`.option-content` padding 6 → 14)
+- More room around section titles (`.option-content` padding 6 → 14)
 
 ### Earlier polish (pre-launch report)
 
 - Searchable country picker for 250+ areas
-- Full keyboard system + `?` help overlay + key-hint toast
+- Full keyboard system, `?` help overlay and key-hint toast
 - Solid mode network arcs split into sub-toggles
-- Looks bar with scroll-aware edge fades + auto-scroll on shuffle
+- Looks bar with scroll-aware edge fades and auto-scroll on shuffle
 - Export modal with PNG/SVG/WebM tabs and shareable look URLs
 - DottedGlobe brand mark mirroring the favicon
 
----
-
 Releases are tagged on GitHub starting with `v1.0.0`. New work goes under
-**Unreleased** until the next tag.
+Unreleased until the next tag.

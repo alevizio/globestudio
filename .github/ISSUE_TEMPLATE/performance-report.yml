@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Globestudio is graphics-heavy. We treat performance as a launch blocker,
-        not a polish issue — please file these. The more detail, the better.
+        Globestudio is graphics-heavy, and a performance problem blocks a
+        release, so please file these with as much detail as you can.
 
   - type: textarea
     id: symptom
@@ -31,7 +31,7 @@ body:
     id: settings
     attributes:
       label: Settings when it happened
-      description: Use the URL from the address bar if you applied a look — that's the easiest way to share state. Or list the panel values that matter (shape, density, size, shader, etc.).
+      description: Use the URL from the address bar if you applied a look. That's the easiest way to share state. Or list the panel values that matter (shape, density, size, shader, etc.).
       placeholder: |
         URL: https://globestudio.app/looks/wireframe
         Density: 90, Size: 16, Shader: edge, Animations: on
@@ -58,7 +58,7 @@ body:
     id: device
     attributes:
       label: Device + GPU (if you know it)
-      description: macOS — Apple menu → About This Mac → More Info. Windows — Task Manager → Performance → GPU. Doesn't need to be exact.
+      description: "On macOS: Apple menu → About This Mac → More Info. On Windows: Task Manager → Performance → GPU. It doesn't need to be exact."
       placeholder: MacBook Pro M1 (Apple M1), Pixel 8 (Mali), iPhone 15 (A17)…
     validations:
       required: true
@@ -68,7 +68,7 @@ body:
     attributes:
       label: Viewport
       options:
-        - "Desktop, ~1280–1920 wide"
+        - "Desktop, ~1280 to 1920 wide"
         - "Desktop, ~2560+ wide / Retina"
         - "Tablet"
         - "Phone, portrait"
@@ -80,11 +80,11 @@ body:
     id: fps
     attributes:
       label: Measured FPS (optional)
-      description: Chrome → DevTools → Performance → Record 3–5 seconds → frame rate. Even a rough number helps.
+      description: Chrome → DevTools → Performance → Record 3 to 5 seconds → frame rate. Even a rough number helps.
       placeholder: "Hovering ~15fps while dragging, ~30fps idle"
 
   - type: textarea
     id: recording
     attributes:
       label: Screen recording (optional)
-      description: A 5-second clip is worth a thousand bug reports.
+      description: A 5-second clip often shows more than a written description.

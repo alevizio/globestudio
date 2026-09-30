@@ -1,8 +1,8 @@
-# Globestudio — Figma plugin
+# Globestudio Figma plugin
 
-**🚀 [Install from Figma Community →](https://www.figma.com/community/plugin/1641603648370488902/globestudio)**
+[Install from Figma Community](https://www.figma.com/community/plugin/1641603648370488902/globestudio)
 
-The full Globestudio studio inside Figma. The plugin UI is a thin iframe
+Globestudio inside Figma. The plugin UI is a thin iframe
 over `globestudio.app/?plugin=figma`: the studio in its phone layout, with
 the globe above a sheet that holds every control from the web app (looks,
 region, surface, globe, grid, network, data, animations, shaders and
@@ -10,11 +10,11 @@ background). Flat/Globe and **Insert into Figma** sit in the top bar.
 
 Insert opens the studio's export dialog with two tabs:
 
-- **Image**: a PNG at the crop and quality you pick (Original, 1:1, 4:5,
+- Image: a PNG at the crop and quality you pick (Original, 1:1, 4:5,
   16:9 or 9:16; Draft to Ultra, up to 4x). It starts at 1:1 for the globe
   and 16:9 for the flat map. The layer is sized in points, with the extra
   pixels kept for Retina.
-- **SVG**: the flat map as editable vector dots, up to 2,500 dots. Above
+- SVG: the flat map as editable vector dots, up to 2,500 dots. Above
   that `code.js` inserts the PNG that comes with it instead.
 
 If the file has local color variables, a **Your colors** strip above the
@@ -31,7 +31,7 @@ Versions 1 and 2 of the plugin load `/embed?plugin=figma` (the small
 look, region, density and view pickers), which keeps working for anyone
 who hasn't updated yet.
 
-Works in **Figma design files** and **FigJam**.
+It works in Figma design files and in FigJam.
 
 ## How it works
 
@@ -72,10 +72,10 @@ Works in **Figma design files** and **FigJam**.
 
 ## Local development install
 
-1. Open **Figma desktop** (web Figma can't side-load plugins).
+1. Open the Figma desktop app (web Figma can't side-load plugins).
 2. Top-left menu → **Plugins → Development → Import plugin from manifest…**
 3. Pick this folder's `manifest.json`.
-4. **Plugins → Development → Globestudio** — the panel opens with a live globe.
+4. Run **Plugins → Development → Globestudio**. The panel opens with a live globe.
 5. Pick a look, a country or region, a density and Globe or Flat, then press **Insert into Figma**.
 
 Insert lands at the viewport center. The Globe view sends no SVG, so the map arrives as a PNG of the globe preview, at the panel canvas size, on a rectangle. The Flat view of a dotted look also sends an SVG of the flat dotted map: with up to 2,500 dots it arrives as editable vectors, in named layers (Background, Dots and, for looks with overlays, Effects). A denser flat map, or Bloom's solid one, arrives as a PNG of the flat preview on a rectangle, as the line above the Insert button says. When an insert lands as a PNG and a Globestudio PNG rectangle is selected, it updates that rectangle in place instead of adding a new one; editable vectors always land as a new layer.
@@ -84,10 +84,10 @@ Insert lands at the viewport center. The Globe view sends no SVG, so the map arr
 
 | File | Role |
 |---|---|
-| `manifest.json` | Plugin metadata + network allowlist for `globestudio.app` |
-| `ui.html` | UI iframe + postMessage bridge to the sandbox |
+| `manifest.json` | Plugin metadata and the network allowlist for `globestudio.app` |
+| `ui.html` | UI iframe and the postMessage bridge to the sandbox |
 | `code.js` | Sandbox: receives the PNG bytes and, from the Flat view of a dotted look, the SVG; creates vectors or the Figma image, handles selection update-in-place |
-| `SUBMISSION.md` | Marketing copy + step-by-step Figma Community submission guide |
+| `SUBMISSION.md` | Listing copy and a step-by-step Figma Community submission guide |
 
 ## Roadmap
 
@@ -95,8 +95,8 @@ Insert lands at the viewport center. The Globe view sends no SVG, so the map arr
 - [ ] "Insert at 2× / 3× scale" option for hi-DPI exports
 - [ ] FigJam sticky-board layout (manifest already declares both editors)
 - [ ] Save-to-Figma-library so a user's brand presets stay in their team file
-- [ ] Variable bindings — let the inserted rectangle reference Figma variables for size/position
+- [ ] Variable bindings: let the inserted rectangle reference Figma variables for size and position
 
 ## License
 
-MIT — see [LICENSE](../LICENSE).
+MIT. See [LICENSE](../LICENSE).
