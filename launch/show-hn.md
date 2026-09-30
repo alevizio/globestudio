@@ -76,9 +76,9 @@ render Markdown.
 
 ### "Why not just use globe.gl (or cobe) and write the shaders yourself?"
 
-> globe.gl is great and I thought about building on it. The 21 looks (halftone,
-> riso, dither, glitch, CRT, aurora) are post-processing work most people won't
-> spend a weekend on, and the designers I built this for don't run npm install.
+> globe.gl is great and I thought about building on it. Most of the 21 looks
+> (halftone, riso, dither, glitch, CRT, aurora) are post-processing work most
+> people won't spend a weekend on, and the designers I built this for don't run npm install.
 > So Globestudio adds presets and sliders instead of fragment shaders, PNG and
 > video export that keep the shader look, and a web tool with no signup. If
 > you'd rather write it yourself, globe.gl and cobe are both good places to
@@ -102,15 +102,16 @@ render Markdown.
 > Partly. SVG export gives you clean vector dots cropped to your selection. Six
 > effects (bloom, chromatic, CRT, threshold, pixel, halftone) are approximated
 > with SVG filters, plus grain and scanline overlays where a look uses them.
-> The other shader passes can't become vectors, so for the full look use PNG
-> (up to 4x) or video.
+> The other effects can't become vectors, so for the full look use PNG (up to
+> 4x) or video.
 
 ### "Which projections?"
 
 > Five flat projections for solid maps: Mercator, Equal Earth, Natural Earth,
-> Winkel Tripel and Robinson, drawn with d3-geo. Dotted maps use Mercator
-> because that's what the dotted-map package generates. Reprojecting the dot
-> field is on the roadmap.
+> Winkel Tripel and Robinson, drawn with d3-geo and d3-geo-projection. Dotted
+> maps use Mercator, dotted-map's default, which the rest of the flat view is
+> aligned to. US states use Albers USA. Reprojecting the dot field is on the
+> roadmap.
 
 ### "It lags on my machine."
 
@@ -132,7 +133,7 @@ render Markdown.
 
 ### "Is there a way to embed it?"
 
-> Yes. Every look has an /embed route, so
+> Yes. There's an /embed route that takes any look, so
 > <iframe src="https://globestudio.app/embed?look=halftone"> works in any HTML
 > page, Webflow, Framer or Notion, and there's a one-line script tag too. It
 > takes about 19 URL params (look, selection, density, dotColor, view and more;
@@ -141,8 +142,10 @@ render Markdown.
 
 ### "How is the SVG export so big / small?"
 
-> If it's huge: high density plus a lot of features (network arcs as paths, and
-> per-dot fill-opacity for gradients with alpha). Merging paths is on my list.
+> If it's huge: high density plus a heavy dot shape (Particle Grid and Voxel
+> write several elements per dot, and a custom image is embedded again on every
+> dot), and per-dot fill-opacity for gradients with alpha. Making that smaller
+> is on my list.
 >
 > If it's small: the export is cropped to the dots in your selection, so a
 > single country only includes its own dots.
@@ -164,15 +167,18 @@ render Markdown.
 
 ### "License?"
 
-> MIT, so do what you like with it. The geography comes from world-atlas,
-> us-atlas and world-countries, which are all permissively licensed.
+> MIT, so do what you like with it. The geography comes from world-atlas and
+> us-atlas (ISC), dotted-map (MIT) and Natural Earth (public domain). Country
+> names and codes come from world-countries, which is ODbL, so that data keeps
+> its share-alike terms. NOTICE.md lists them all.
 
 ### "How do you handle [obscure country / disputed border]?"
 
-> The map data comes from world-atlas (ISO 3166-1 plus the UN reference). I
-> don't change its geometry or its political choices, on purpose, so the tool
-> stays out of those calls. If something is missing or renders wrong, please
-> file an issue.
+> The country list and codes come from world-countries (ISO 3166-1, with UN
+> regions), the dot shapes from the dotted-map package and the solid shapes
+> from world-atlas. I don't change their geometry or their political choices,
+> on purpose, so the tool stays out of those calls. If something is missing or
+> renders wrong, please file an issue.
 
 ### "Are you the only contributor?"
 
