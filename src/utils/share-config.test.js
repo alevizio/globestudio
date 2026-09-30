@@ -112,6 +112,22 @@ describe("share-config", () => {
     expect(normalizeConfig({ globeSettings: { data: "no", dataArcs: true } }).globeSettings.data).toBe(true);
   });
 
+  it("round-trips a custom glow color", () => {
+    // The panel's glow color picker writes globeSettings.glowColor; the
+    // parser had no rule for it, so links opened on the default glow.
+    const url = buildShareUrl({ globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glowColor: "#ff00aa" } }, "https://globestudio.app");
+    expect(parseShareConfig(`?${url.split("?")[1]}`)?.globeSettings?.glowColor).toBe("#ff00aa");
+    // null is the auto glow; anything that isn't hex falls back to it.
+    expect(normalizeConfig({ globeSettings: { glowColor: null } })?.globeSettings?.glowColor).toBeNull();
+    expect(normalizeConfig({ globeSettings: { glow: true, glowColor: "red" } }).globeSettings.glowColor).toBeNull();
+  });
+
+  it("parses every globeSettings key the app stores", () => {
+    for (const [key, value] of Object.entries(DEFAULT_GLOBE_SETTINGS)) {
+      expect(normalizeConfig({ globeSettings: { [key]: value } })?.globeSettings?.[key], key).toEqual(value);
+    }
+  });
+
   it("round-trips view state + overlay settings", () => {
     const config = {
       viewMode: "flat",
