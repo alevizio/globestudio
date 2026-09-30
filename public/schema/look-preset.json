@@ -9,7 +9,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "Stable kebab-case identifier. Used in `/looks/:id` URLs, `?look=:id` embed params, and the `preset` enum in config.json. Once shipped, an id must not change — it's a public URL.",
+      "description": "Stable kebab-case identifier. Used in `/looks/:id` URLs, `?look=:id` embed params, and the `preset` enum in config.json. Once shipped, an id must not change, because it's a public URL.",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
       "minLength": 2,
       "maxLength": 32,
@@ -37,7 +37,7 @@
     },
     "settings": {
       "$ref": "https://globestudio.app/schema/config.json",
-      "description": "The Globestudio configuration that produces this look. Any field accepted by the config schema is allowed here, with one difference: `version` is not required (presets are not versioned files — the bundling app owns the version envelope).",
+      "description": "The Globestudio configuration that produces this look. Any field accepted by the config schema is allowed here, with one difference: `version` is not required (presets are not versioned files; the bundling app owns the version envelope).",
       "type": "object"
     }
   }

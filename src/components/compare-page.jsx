@@ -32,7 +32,7 @@ export const ComparePage = ({ slug = slugFromLocation() }) => {
         <h1 className="compare-title">Globestudio vs {data.competitor}</h1>
         <p className="compare-tagline">{data.tagline}</p>
         <p className="compare-summary">{data.summary}</p>
-        <a className="compare-cta" href="/">Open Globestudio, it's free →</a>
+        <a className="compare-cta" href="/">Open Globestudio →</a>
       </header>
 
       {/* The wrapper scrolls sideways on phones, so it takes focus (arrow
@@ -78,7 +78,7 @@ export const ComparePage = ({ slug = slugFromLocation() }) => {
         </dl>
       </section>
 
-      <a className="compare-cta" href="/">Try Globestudio: free, no signup →</a>
+      <a className="compare-cta" href="/">Open Globestudio →</a>
       <TakeoverFooter />
     </main>
   );

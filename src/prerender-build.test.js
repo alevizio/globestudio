@@ -77,7 +77,7 @@ describe("prerendered static bodies", () => {
 
   it("put the look's copy and links to other looks on a look page", () => {
     const html = read("/looks/halftone");
-    expect(staticBody(html)).toContain("Halftone is the print-aesthetic preset.");
+    expect(staticBody(html)).toContain("Halftone is the print preset.");
     expect(staticBody(html)).toContain('href="/gallery"');
     expect(staticBody(html)).toContain('href="/looks/risograph"');
   });

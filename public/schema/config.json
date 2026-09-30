@@ -24,13 +24,13 @@
       "examples": ["all", "CA", "TX"]
     },
 
-    "background": { "type": "string", "description": "Canvas background — hex color.", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+    "background": { "type": "string", "description": "Canvas background, as a hex color.", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
     "transparent": { "type": "boolean", "description": "Use transparent background instead of `background`." },
     "backgroundStyle": { "type": "string", "enum": ["solid", "space", "flow", "transparent"], "description": "`solid` paints a flat color; `space` paints a starfield-and-nebula scene; `flow` paints an animated gradient-mesh shader; `transparent` paints nothing and implies `transparent: true`." },
 
     "density": { "type": "number", "minimum": 1, "maximum": 100, "description": "Dot density across the visible area." },
     "dotSize": { "type": "number", "minimum": 0.1, "maximum": 30, "description": "Dot radius." },
-    "dotColor": { "type": "string", "description": "Dot color — hex.", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+    "dotColor": { "type": "string", "description": "Dot color, as hex.", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
     "dotColorAlpha": { "type": "number", "minimum": 0, "maximum": 1 },
     "dotGradient": {
       "type": ["object", "null"],
@@ -51,8 +51,8 @@
     "customShape": { "type": ["string", "object", "null"], "description": "Custom SVG/path source when `shape` is `Custom`." },
     "dotRotation": { "type": "number", "minimum": 0, "maximum": 360 },
     "sizeVary": { "type": "boolean", "description": "Add per-dot size jitter." },
-    "rotateAnimating": { "type": "boolean", "description": "Legacy field. The current control is `shapeRotationSpeed` (0–100, where 0 = stopped); when this is `false` on import, shapeRotationSpeed is forced to 0." },
-    "shapeRotationSpeed": { "type": "number", "minimum": 0, "maximum": 100, "description": "Shape rotation speed 0–100 (0 stops the animation)." },
+    "rotateAnimating": { "type": "boolean", "description": "Legacy field. The current control is `shapeRotationSpeed` (0 to 100, where 0 = stopped); when this is `false` on import, shapeRotationSpeed is forced to 0." },
+    "shapeRotationSpeed": { "type": "number", "minimum": 0, "maximum": 100, "description": "Shape rotation speed from 0 to 100 (0 stops the animation)." },
 
     "renderMode": { "type": "string", "enum": ["dots", "solid"] },
 
@@ -92,11 +92,11 @@
 
     "globeSettings": {
       "type": "object",
-      "description": "3D globe chrome — auto-spin, glow halo, grid mesh, network arcs, etc.",
+      "description": "3D globe chrome: auto-spin, glow halo, grid mesh, network arcs, etc.",
       "properties": {
         "look": { "type": "string", "enum": ["classic", "borderless"] },
-        "autoSpin": { "type": "boolean", "description": "Legacy field. The current control is `autoSpinSpeed` (0–100, where 0 stops the spin); when this is `false` on import, autoSpinSpeed is forced to 0." },
-        "autoSpinSpeed": { "type": "number", "minimum": 0, "maximum": 100, "description": "Globe auto-rotation speed 0–100 (0 stops the spin)." },
+        "autoSpin": { "type": "boolean", "description": "Legacy field. The current control is `autoSpinSpeed` (0 to 100, where 0 stops the spin); when this is `false` on import, autoSpinSpeed is forced to 0." },
+        "autoSpinSpeed": { "type": "number", "minimum": 0, "maximum": 100, "description": "Globe auto-rotation speed from 0 to 100 (0 stops the spin)." },
         "glow": { "type": "boolean" },
         "glowStrength": { "type": "number", "minimum": 0, "maximum": 100 },
         "glowSpread": { "type": "number", "minimum": 0, "maximum": 100 },
@@ -132,9 +132,9 @@
         "dataArcs": { "type": "boolean", "description": "Draw an arc from each data point to the next, in list order. Needs at least 2 points; arcs show in globe view only." },
         "dataMarkerColor": { "type": ["string", "null"], "pattern": "^#?[0-9a-fA-F]{3,8}$", "description": "Hex color for the data markers and their arcs. null uses the default cyan (#7edfff).", "examples": ["#ff8800", null] },
         "networkStrength": { "type": "number", "minimum": 0, "maximum": 100 },
-        "networkArcs": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Arc density 0–100, or legacy bool (true = default density, false = hidden)." },
-        "networkPulses": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Pulse density 0–100, or legacy bool (true = default density, false = hidden)." },
-        "networkMono": { "type": "boolean", "description": "Deprecated. Was the polychrome/mono toggle for network rendering. Ignored — use arcColor / pulseColor instead." },
+        "networkArcs": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Arc density from 0 to 100, or legacy bool (true = default density, false = hidden)." },
+        "networkPulses": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Pulse density from 0 to 100, or legacy bool (true = default density, false = hidden)." },
+        "networkMono": { "type": "boolean", "description": "Deprecated. Was the polychrome/mono toggle for network rendering. Ignored. Use arcColor / pulseColor instead." },
         "arcColor": { "type": ["string", "null"], "description": "Hex string. Uniform tint for all network arc lines/trails/heads. null falls back to per-route hardcoded polychrome." },
         "pulseColor": { "type": ["string", "null"], "description": "Hex string. Uniform tint for all city pulse cores + rings. null falls back to per-hub hardcoded polychrome." },
         "surface": { "type": "boolean" },
@@ -183,7 +183,7 @@
 
     "preset": {
       "type": "string",
-      "description": "Optional — when set, the importer applies this preset's defaults first, then layers the other fields on top.",
+      "description": "Optional. When set, the importer applies this preset's defaults first, then layers the other fields on top.",
       "enum": ["default", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "wireframe", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt", "toon", "threshold", "vapor", "topographic"]
     },
 

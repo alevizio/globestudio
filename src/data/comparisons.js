@@ -10,10 +10,10 @@ export const comparisons = {
     competitor: "cobe",
     title: "Globestudio vs cobe: dotted globe, no-code vs library",
     metaDescription:
-      "cobe is a tiny code-only WebGL globe library. Globestudio is a free no-code studio that exports PNG, SVG, WebM, MP4, GIF, JSON or an embed. Honest comparison.",
+      "cobe is a tiny code-only WebGL globe library. Globestudio is a free no-code studio that exports PNG, SVG, WebM, MP4, GIF, JSON or an embed.",
     tagline: "A no-code studio with exports vs. a tiny code-only library.",
     summary:
-      "cobe is an excellent ~5 KB, zero-dependency WebGL globe you wire up in JavaScript; it powers the Vercel globe. Globestudio is the layer above: a no-code generator where you design the look in the browser and export it (PNG/SVG/WebM/MP4/GIF, a JSON config or an embed), with a React component, iframe embed, a Figma plugin, WordPress via a Custom HTML embed, and an MCP server when you do want code. cobe gives you a canvas; Globestudio gives you a deliverable.",
+      "cobe is an excellent ~5 KB, zero-dependency WebGL globe you wire up in JavaScript; it powers the Vercel globe. Globestudio is a no-code generator where you design the look in the browser and export it (PNG/SVG/WebM/MP4/GIF, a JSON config or an embed), with a React component, iframe embed, a Figma plugin, WordPress via a Custom HTML embed, and an MCP server when you do want code. cobe renders a live canvas in your app; Globestudio also exports files.",
     rows: [
       { dimension: "How you use it", globestudio: "No-code browser studio + optional components", them: "Write JavaScript / React" },
       { dimension: "Output", globestudio: "PNG, SVG, WebM, MP4, GIF, JSON config, embed, live component", them: "A live canvas in your app" },
@@ -42,10 +42,10 @@ export const comparisons = {
     competitor: "GEOlayers",
     title: "Globestudio vs GEOlayers: browser globes vs After Effects",
     metaDescription:
-      "GEOlayers is a paid After Effects plugin for cartographic maps. Globestudio makes stylized dotted maps and 3D globes free in the browser. Honest comparison.",
+      "GEOlayers is a paid After Effects plugin for cartographic maps. Globestudio makes stylized dotted maps and 3D globes free in the browser.",
     tagline: "Stylized maps in the browser vs. cartographic maps in After Effects.",
     summary:
-      "GEOlayers 3 is the dominant pro tool for animated maps inside After Effects: real cartographic data, terrain, labels, and a keyframe timeline. It's a paid license, with basemap data coming from connected map services (e.g. MapTiler). Globestudio is a free, browser-based, no-code tool for the stylized dotted-map / 3D-globe aesthetic that exports WebM/MP4/GIF. No After Effects, no subscription. Different jobs: production cartographic motion vs. a fast, stylized, exportable globe.",
+      "GEOlayers 3 is the dominant pro tool for animated maps inside After Effects: real cartographic data, terrain, labels, and a keyframe timeline. It's a paid license, with basemap data coming from connected map services (e.g. MapTiler). Globestudio is a free, browser-based, no-code tool for the stylized dotted-map / 3D-globe aesthetic that exports WebM/MP4/GIF. It runs without After Effects or a subscription.",
     rows: [
       { dimension: "Where it runs", globestudio: "Browser, no install", them: "Adobe After Effects plugin" },
       { dimension: "Price", globestudio: "Free (MIT, open source)", them: "Paid license + map-data services" },
@@ -55,7 +55,7 @@ export const comparisons = {
       { dimension: "Speed to a loop", globestudio: "Seconds, in the browser", them: "An AE project" },
     ],
     whenThem:
-      "Use GEOlayers when you need real cartographic accuracy (actual streets, terrain, precise labels), frame-accurate keyframe control, or broadcast-grade output (ProRes/alpha) inside an After Effects pipeline. It's the professional choice for data-driven map sequences in video.",
+      "Use GEOlayers when you need real cartographic accuracy (actual streets, terrain, precise labels), frame-accurate keyframe control, or broadcast-grade output (ProRes/alpha) inside an After Effects pipeline.",
     faq: [
       {
         q: "Is Globestudio a GEOlayers alternative?",

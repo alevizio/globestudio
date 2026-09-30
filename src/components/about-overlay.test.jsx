@@ -7,8 +7,10 @@ import { matchRoute } from "../utils/route-match.js";
 describe("AboutOverlay", () => {
   it("counts the looks that actually ship and scopes the projection claim", () => {
     render(<AboutOverlay open={true} onClose={() => {}} />);
-    const blurb = screen.getByText(/shader looks/).textContent;
-    expect(blurb).toContain(`${lookPresets.length} shader looks`);
+    const blurb = screen.getByText(/dotted maps use Mercator/).textContent;
+    // "looks", not "shader looks": Default has no shader effect.
+    expect(blurb).toContain(`with ${lookPresets.length} looks`);
+    expect(blurb).not.toMatch(/shader looks/);
     expect(blurb).toContain("5 flat projections; dotted maps use Mercator");
   });
 
