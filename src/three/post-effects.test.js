@@ -46,6 +46,17 @@ describe("scalePixelUniforms", () => {
     expect(u.uSplit.value).toBe(7);
   });
 
+  it("leaves Aurora's cell size alone: it sets band frequency in uv units", () => {
+    const handle = fakeHandle();
+    updatePostEffects(handle, { effect: "aurora", cellSize: 14, split: 7 }, 0);
+    const u = handle.customPass.uniforms;
+    const restore = scalePixelUniforms(u, 4);
+    expect(u.uCellSize.value).toBe(14);
+    expect(u.uSplit.value).toBe(28);
+    restore();
+    expect(u.uSplit.value).toBe(7);
+  });
+
   it("leaves cells alone for a Draft (1x) capture on any screen", () => {
     const u = fakeHandle().customPass.uniforms;
     u.uCellSize.value = 14;

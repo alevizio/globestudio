@@ -1255,7 +1255,10 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v));
 const PIXEL_SIZED_UNIFORMS = ["uCellSize", "uSplit"];
 
 export const scalePixelUniforms = (uniforms, factor) => {
-  const saved = PIXEL_SIZED_UNIFORMS
+  // Aurora reads uCellSize as a band frequency across the frame (uv units),
+  // not as pixels, so its bands match the preview at any export size.
+  const names = uniforms.uEffect?.value === EFFECT_INDEX.aurora ? ["uSplit"] : PIXEL_SIZED_UNIFORMS;
+  const saved = names
     .filter((name) => typeof uniforms[name]?.value === "number")
     .map((name) => [name, uniforms[name].value]);
   for (const [name, value] of saved) uniforms[name].value = value * factor;
