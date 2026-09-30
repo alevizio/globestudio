@@ -1470,8 +1470,18 @@ export const GlobeBackground = ({
         }
       });
 
+    // Resolves once a Flat/Globe morph has landed. The loop keeps drawing
+    // meanwhile, so an export started mid-morph captures the settled view,
+    // not a frame on the way. Checked from the next frame, after a switch
+    // made in the same task has started its morph.
+    const morphSettled = () =>
+      new Promise((resolve) => {
+        const check = () => (morphRef.current.active ? window.requestAnimationFrame(check) : resolve());
+        window.requestAnimationFrame(check);
+      });
+
     if (canvasHandleRef) {
-      renderer.domElement.captureAtScale = captureAtScale;
+      renderer.domElement.captureAtScale = (scale) => morphSettled().then(() => captureAtScale(scale));
       // For exports that read the live canvas (video, the PNG fallback).
       // Turning a hold on redraws at once, so the very next read is unframed.
       // Turn the globe so a latitude/longitude faces the camera, the short
