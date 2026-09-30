@@ -6,14 +6,14 @@ import { ViewModeSwitch } from "./view-mode-switch.jsx";
 describe("ViewModeSwitch", () => {
   it("renders both Flat and Globe modes", () => {
     render(<ViewModeSwitch viewMode="globe" setViewMode={() => {}} />);
-    expect(screen.getByRole("button", { name: /flat/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /globe/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Flat view" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Globe view" })).toBeTruthy();
   });
 
   it("marks the active mode with aria-pressed", () => {
     render(<ViewModeSwitch viewMode="globe" setViewMode={() => {}} />);
-    expect(screen.getByRole("button", { name: /globe/i }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.getByRole("button", { name: /flat/i }).getAttribute("aria-pressed")).toBe("false");
+    expect(screen.getByRole("button", { name: "Globe view" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "Flat view" }).getAttribute("aria-pressed")).toBe("false");
   });
 
   it("calls setViewMode with the clicked mode", async () => {
@@ -21,7 +21,7 @@ describe("ViewModeSwitch", () => {
     const setViewMode = vi.fn();
     render(<ViewModeSwitch viewMode="globe" setViewMode={setViewMode} />);
 
-    await user.click(screen.getByRole("button", { name: /flat/i }));
+    await user.click(screen.getByRole("button", { name: "Flat view" }));
     expect(setViewMode).toHaveBeenCalledWith("flat");
   });
 });
