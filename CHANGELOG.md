@@ -19,6 +19,9 @@ All notable changes to Globestudio are tracked here. Format follows
 - A PNG exported during the Flat/Globe switch waits for it to land and
   saves the settled view. A double click on Export PNG no longer leaves the
   preview rendering at the export's resolution.
+- In Solid mode with a region picked, rivers, cities and pasted GeoJSON
+  stay on that region's land on the globe, on the flat map and in PNG
+  exports. They used to show for the whole world.
 
 ## [1.0.0] - 2026-09-28
 

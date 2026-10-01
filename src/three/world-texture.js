@@ -170,6 +170,9 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
     customColor = "rgba(186, 232, 184, 0.84)",
     customLineWidth = 1.4,
     customPointRadius = 2.2,
+    // With a region picked, the caller passes only its land, and the
+    // overlays above stop where that land stops, the same as the fill.
+    clipOverlays = false,
   } = options;
 
   // Resolve canvas dimensions. When the caller supplies an aspect (from the
@@ -217,6 +220,12 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
       .translate([width / 2, height / 2]);
   }
   const path = geoPath(projection, ctx);
+  const clipToLand = () => {
+    if (!clipOverlays) return;
+    ctx.beginPath();
+    countriesFeatureCollection.features.forEach((feature) => path(feature));
+    ctx.clip();
+  };
 
   if (fillVisible) {
     ctx.fillStyle = fillGradient && fillGradient.from && fillGradient.to
@@ -235,6 +244,8 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
   // (1 = major like Amazon/Nile, 9 = small tributary) scales the line
   // width so important rivers read first.
   if (riversVisible && rivers?.features?.length) {
+    ctx.save();
+    clipToLand();
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.strokeStyle = riversColor;
@@ -246,6 +257,7 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
       path(feature);
       ctx.stroke();
     });
+    ctx.restore();
   }
 
   if (strokeVisible && strokeWidth > 0) {
@@ -262,6 +274,10 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
     });
   }
 
+  // One clip for the custom overlay and the cities; country borders above
+  // stay unclipped so they look the same with or without a region.
+  ctx.save();
+  clipToLand();
   // User-supplied custom overlay. Drawn after country stroke but before cities
   // so cities still dominate when both are on. Iterates features, dispatches
   // by geometry type. LineString + MultiLineString use the existing path
@@ -321,6 +337,7 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
       ctx.fill();
     });
   }
+  ctx.restore();
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;

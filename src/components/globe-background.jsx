@@ -1768,6 +1768,8 @@ export const GlobeBackground = ({
         custom: customTopology,
         customVisible: customTopologyVisible && Boolean(customTopology),
         customColor: customTopologyColor,
+        // A picked region clips rivers, cities and custom data to its land.
+        clipOverlays: Boolean(selectionCollection?.features?.length || selectionCountryCodes?.length),
       };
       const sphereTexture = createWorldTexture(featureCollection, textureOptions);
       const flatTexture = region && aspect
