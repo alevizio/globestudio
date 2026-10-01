@@ -529,7 +529,10 @@ test.describe("Share tab, Use with AI", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 
   const openShareTab = async (page) => {
-    await page.goto("/");
+    // Glow off, as in the PNG saved test: under software compositing the
+    // glowing globe repaints behind the dialog for seconds per frame, and the
+    // Share tab click then times out waiting for the tab to hold still.
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
     await waitForCanvas(page);
     await page.getByRole("button", { name: "Open export dialog" }).click();
     const dialog = page.getByRole("dialog", { name: /export/i });
