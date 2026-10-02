@@ -40,6 +40,7 @@ import { PerfMonitor } from "./perf-monitor.jsx";
 import { PHONE_LAYOUT_QUERY, PHONE_MAP_ZOOM, defaultMapZoom } from "../config/constants.js";
 import { contentSize, flatFitDistance, frameViewOffset, phoneFrame } from "../utils/phone-frame.js";
 import { trackClientError } from "./analytics.jsx";
+import { createFrameRateWatch, isSoftwareRendererName } from "../utils/low-power.js";
 
 // The camera's resting vertical field of view (degrees).
 const BASE_FOV = 42;
@@ -151,6 +152,11 @@ export const GlobeBackground = ({
   sheetRef = null,
   topBarRef = null,
   perfHud = true,
+  // Low power mode, owned by App.jsx: when on, the preview renders at one
+  // device pixel. onLowPower(reason) reports a software renderer or a
+  // sustained low frame rate; only the main app passes it.
+  lowPower = false,
+  onLowPower = null,
 }) => {
   const mountRef = useRef(null);
   const spaceSettingsRef = useRef(spaceSettings);
@@ -162,6 +168,8 @@ export const GlobeBackground = ({
   const dotRotationRef = useRef(dotRotation);
   const spinAngleRef = useRef(0);
   const sizeVaryRef = useRef(sizeVary);
+  const lowPowerRef = useRef(lowPower);
+  const onLowPowerRef = useRef(onLowPower);
   // Dev-only perf metrics — written from the animate loop, polled by
   // <PerfMonitor>. Lives outside React state so per-frame updates don't
   // trigger re-renders. Vite's dead-code elimination removes the HUD entirely
@@ -175,6 +183,8 @@ export const GlobeBackground = ({
   shapeRotationSpeedRef.current = shapeRotationSpeed;
   dotRotationRef.current = dotRotation;
   sizeVaryRef.current = sizeVary;
+  lowPowerRef.current = lowPower;
+  onLowPowerRef.current = onLowPower;
   const stateRef = useRef({
     active: false,
     baseOffsetX: 0,
@@ -545,6 +555,8 @@ export const GlobeBackground = ({
     // display re-tightens the cap instead of letting render-target memory grow
     // unbounded with the viewport.
     const computeDprCeiling = () => {
+      // Low power mode previews at one device pixel, whatever the budget.
+      if (lowPowerRef.current) return Math.min(window.devicePixelRatio || 1, 1);
       const viewportArea = Math.max(1, window.innerWidth * window.innerHeight);
       const areaCap = Math.sqrt(PIXEL_BUDGET / viewportArea);
       const dprCap = Math.max(dprFloor, Math.min(hardCap, areaCap));
@@ -553,6 +565,24 @@ export const GlobeBackground = ({
     let initialDpr = computeDprCeiling();
     renderer.setPixelRatio(initialDpr);
     mount.appendChild(renderer.domElement);
+
+    // A software rasterizer can't composite the canvas halo at a usable frame
+    // rate, so low power mode starts at once there. Firefox gives the real
+    // name as RENDERER and deprecates the debug extension; Chrome and Safari
+    // mask RENDERER as "WebKit WebGL" and need the extension.
+    if (onLowPowerRef.current) {
+      try {
+        const gl = renderer.getContext();
+        let rendererName = gl.getParameter(gl.RENDERER);
+        if (rendererName === "WebKit WebGL") {
+          const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+          rendererName = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "";
+        }
+        if (isSoftwareRendererName(rendererName)) onLowPowerRef.current("software");
+      } catch {
+        /* the frame rate watch in animate still runs */
+      }
+    }
 
     // Frame-rate governor state (consumed in animate): the render loop runs at
     // ~30fps while idle and ramps to the display's full refresh rate for a
@@ -814,14 +844,35 @@ export const GlobeBackground = ({
     observer.observe(mount);
     resize();
 
+    // Low power mode moves the DPR ceiling (see computeDprCeiling) both ways.
+    // resize() only ever clamps down, so the ratio is set here first, which
+    // also raises it again when the mode turns off.
+    threeRef.current.applyDprCeiling = () => {
+      const next = computeDprCeiling();
+      if (Math.abs(renderer.getPixelRatio() - next) < 0.001) return;
+      renderer.setPixelRatio(next);
+      postHandle.composer.setPixelRatio(next);
+      resize();
+    };
+
     let frame = 0;
     let lastTime = window.performance.now();
     // The loop runs only when the canvas is BOTH on-screen and the tab is
     // visible. isOnScreen is driven by the IntersectionObserver set up after
     // the loop starts; the tab side is handled by visibilitychange below.
     let isOnScreen = true;
+    // Reports a sustained low frame rate for low power mode. Reset wherever
+    // the loop restarts after a pause, as lastTime is.
+    const lowPowerWatch = createFrameRateWatch();
     const animate = (now) => {
       frame = window.requestAnimationFrame(animate);
+      // Fed on every rAF tick, before the idle cap below can skip one. While
+      // an export holds the frame it reads the live canvas and may block the
+      // main thread, so the watch starts over after it.
+      if (onLowPowerRef.current && !lowPowerRef.current) {
+        if (frameRef.current.holds > 0) lowPowerWatch.reset();
+        else if (lowPowerWatch.tick(now)) onLowPowerRef.current("slow");
+      }
       // Frame-rate governor: render at the display's full refresh rate while
       // the user is interacting (dragging, mid-morph, or just after a
       // wheel/key), otherwise throttle to ~30fps. A spinning background globe
@@ -1315,6 +1366,7 @@ export const GlobeBackground = ({
           frame = 0;
         } else if (!document.hidden && !frame) {
           lastTime = window.performance.now();
+          lowPowerWatch.reset();
           frame = window.requestAnimationFrame(animate);
         }
       },
@@ -1369,6 +1421,7 @@ export const GlobeBackground = ({
         if (!frame && isOnScreen) {
           // Reset lastTime so the first delta after resume isn't a giant jump.
           lastTime = window.performance.now();
+          lowPowerWatch.reset();
           frame = window.requestAnimationFrame(animate);
         }
       }
@@ -1434,6 +1487,7 @@ export const GlobeBackground = ({
           setResolutionUniforms(displayW * originalPixelRatio, displayH * originalPixelRatio);
           // The resize cleared the canvas; the next frame must redraw it.
           invalidate();
+          lowPowerWatch.reset();
           frame = window.requestAnimationFrame(animate);
         };
 
@@ -1536,6 +1590,10 @@ export const GlobeBackground = ({
       threeRef.current = null;
     };
   }, [canvasHandleRef, setSelectedDots]);
+
+  useEffect(() => {
+    threeRef.current?.applyDprCeiling?.();
+  }, [lowPower]);
 
   // Every commit can change something the loop reads through a ref (props,
   // settings, theme, layers rebuilt by the effects below), so it marks the
