@@ -259,15 +259,15 @@ export const presetSeo = {
     ],
   },
   topographic: {
-    targetKeyword: "topographic dotted map generator",
+    targetKeyword: "sonar dotted globe",
     metaDescription:
-      "Topographic dotted globe: warped contour-line cartography in sage on a deep teal ground. Hiking-map aesthetic, exportable to PNG and SVG.",
+      "Sonar dotted globe: ring-shaped dots in phosphor green on a near-black screen, bent into waves with a red and blue fringe. Export PNG, SVG, WebM, MP4 or GIF.",
     longDescription:
-      "Topographic uses the wave-distortion shader to push the dot field into rolling concentric ridges, like the contour lines on a USGS hiking map: sage-green dots on a deep teal-black ground, with enough distortion to read as terrain and little enough to keep the geographic shapes legible. Use it for outdoor brands, hiking and adventure publications, or climate-data stories, where the globe should look like a relief map. warp sets how dramatic the contours are, and motion controls the animation speed if you want the ridges to drift.",
+      "Sonar draws every dot as a ring and runs the wave shader over the globe, so the rings ripple like the blips on a sonar or radar screen, with the red and blue channels pulled off to each side. The background stays near black, so the green reads like an old phosphor display. Use it for security and monitoring products, tracking and signal stories, or sci-fi interfaces. warp sets how far the rings bend, split sets the color fringe, and motion sets how fast the waves move.",
     useCases: [
-      "Outdoor / hiking / adventure brand systems",
-      "Climate and earth-science data storytelling",
-      "Wilderness photography portfolios and editorial",
+      "Security, monitoring and network product launches",
+      "Maritime, aviation and tracking data stories",
+      "Sci-fi interfaces and game backgrounds",
     ],
   },
 };

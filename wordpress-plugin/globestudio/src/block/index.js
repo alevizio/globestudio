@@ -40,7 +40,7 @@
     { value: "toon", label: "Toon — cel-shaded" },
     { value: "threshold", label: "Threshold — high-contrast B&W" },
     { value: "vapor", label: "Vapor — synthwave" },
-    { value: "topographic", label: "Topographic — contour lines" },
+    { value: "topographic", label: "Sonar — rings on a sonar screen" },
   ];
 
   registerBlockType("globestudio/embed", {

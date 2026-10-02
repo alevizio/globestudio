@@ -385,8 +385,8 @@ export const lookPresets = [
   },
   {
     id: "topographic",
-    name: "Topographic",
-    blurb: "Contour rings, only rings",
+    name: "Sonar",
+    blurb: "Rings on a sonar screen",
     settings: merge({
       background: "#0f1419",
       density: 70,

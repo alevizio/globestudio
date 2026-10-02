@@ -29,6 +29,8 @@ All notable changes to Globestudio are tracked here. Format follows
   share links are unchanged.
 - Bad TV's static is about a third as strong, so the map shows through it.
   It used to cover the whole globe.
+- Topographic is now called Sonar, which is what it looks like. Its address
+  stays /looks/topographic, so links and embeds keep working.
 
 ## [1.0.0] - 2026-09-28
 

@@ -38,7 +38,7 @@ The version on `main` already does all of this.
 
 - 21 looks: Default, Halftone, Risograph, Newsprint, Aurora, Pixel,
   Bayer, Atkinson, Wireframe, CRT, Glitch, Bad TV, Bloom, Metal, Iridescent,
-  Pencil, Corrupt, Toon, Threshold, Vapor, Topographic
+  Pencil, Corrupt, Toon, Threshold, Vapor, Sonar
 - 24 WebGL shader effects behind them, at most one per look
 - A page and share card per look at `/looks/:id`, and a `/gallery` of all 21
 

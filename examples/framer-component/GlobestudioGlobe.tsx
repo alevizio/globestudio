@@ -164,7 +164,7 @@ addPropertyControls(GlobestudioGlobe, {
       "Toon",
       "Threshold",
       "Vapor",
-      "Topographic",
+      "Sonar",
     ],
   },
   selection: {

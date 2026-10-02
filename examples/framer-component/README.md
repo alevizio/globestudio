@@ -26,7 +26,7 @@ Open your Framer project, then:
 
 The component panel on the right shows:
 
-- **Look**: all 21 preset options (Default, Halftone, Bayer, Iridescent, Aurora, Vapor, Topographic, etc.)
+- **Look**: all 21 preset options (Default, Halftone, Bayer, Iridescent, Aurora, Vapor, Sonar, etc.)
 - **Region** — string field for `world`, `country:USA`, `continent:Europe`, etc.
 - **Render mode** — dots vs solid
 - **Density** — 10–90 slider

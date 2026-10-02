@@ -63,7 +63,7 @@ const PRESETS = [
   { id: "toon", name: "Toon", blurb: "Flat cel-shaded comic colors", tags: ["cartoon", "comic", "flat", "anime", "bold"] },
   { id: "threshold", name: "Threshold", blurb: "Hard high-contrast B&W", tags: ["monochrome", "contrast", "bold", "minimal", "noir"] },
   { id: "vapor", name: "Vapor", blurb: "Synthwave purple-pink gradient", tags: ["synthwave", "vaporwave", "80s", "retro", "neon", "purple", "pink"] },
-  { id: "topographic", name: "Topographic", blurb: "Contour-line elevation map", tags: ["contour", "map", "cartography", "elevation", "lines"] },
+  { id: "topographic", name: "Sonar", blurb: "Rings rippling on a sonar screen", tags: ["sonar", "radar", "rings", "signal", "green"] },
 ];
 
 /**

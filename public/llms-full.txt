@@ -97,7 +97,7 @@ Each is at `https://globestudio.app/looks/<id>` (marketing page) or
 - `toon`: Toon, cel-shaded pop-art world.
 - `threshold`: Threshold, pure two-tone binary.
 - `vapor`: Vapor, synthwave horizon, pastel split.
-- `topographic`: Topographic, contour rings, only rings.
+- `topographic`: Sonar, rings on a sonar screen.
 
 ## Exports
 

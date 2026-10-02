@@ -37,7 +37,7 @@ The studio runs in your browser, and the code is MIT licensed.
   PNG, JPEG or WebP.
 - 21 looks: Default plus 20 shader looks (Halftone, Risograph, Newsprint,
   Aurora, Pixel, Bayer, Atkinson, Wireframe, CRT, Glitch, Bad TV, Bloom,
-  Metal, Iridescent, Pencil, Corrupt, Toon, Threshold, Vapor, Topographic).
+  Metal, Iridescent, Pencil, Corrupt, Toon, Threshold, Vapor, Sonar).
   Each look is a one-click preset that sets the background, density, dot
   size and globe chrome, applies at most one shader pass, and has its own
   URL at `/looks/:id`. You can change the shape, colors and region after

@@ -32,5 +32,5 @@ export const presetTags = {
   toon: ["cartoon", "cel-shaded", "pop-art", "bold", "comic", "illustration"],
   threshold: ["binary", "two-tone", "minimal", "editorial", "contrast", "stark", "poster"],
   vapor: ["synthwave", "vaporwave", "retro", "neon", "pastel", "80s", "miami"],
-  topographic: ["map", "contour", "terrain", "hiking", "nature", "outdoor", "earth"],
+  topographic: ["sonar", "radar", "rings", "signal", "green", "tech", "scifi"],
 };
