@@ -43,6 +43,8 @@ All notable changes to Globestudio are tracked here. Format follows
   zoom buttons. The panel used to cover part of the globe, the switch or the
   hint covered the panel's Export button, and the bug report icon sat on the
   panel's last rows. Phones and windows 1280 px and wider are unchanged.
+- In the export dialog the arrow keys, Home and End move focus along with
+  the selected tab. Focus used to stay on the tab you started from.
 
 ## [1.0.0] - 2026-09-28
 
