@@ -52,7 +52,8 @@ const BUDGETS = [
   { prefix: "index-",            ext: ".css", raw: 214_000,  gzip:  50_000, lazy: false },
 
   // Lazy chunks (loaded after first paint)
-  { prefix: "globe-background-", ext: ".js",  raw: 120_000,  gzip:  40_000, lazy: true },
+  // 41 kB gzip since low power mode and the region overlay clip (Oct 2026).
+  { prefix: "globe-background-", ext: ".js",  raw: 120_000,  gzip:  41_000, lazy: true },
   { prefix: "three-",            ext: ".js",  raw: 620_000,  gzip: 160_000, lazy: true },
   { prefix: "geo-",              ext: ".js",  raw:  35_000,  gzip:  12_000, lazy: true },
   { prefix: "states-10m-",       ext: ".js",  raw: 130_000,  gzip:  45_000, lazy: true },
