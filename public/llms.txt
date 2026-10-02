@@ -55,6 +55,7 @@ A JSON Schema for configuration files is at
 - [React component](https://www.npmjs.com/package/@globestudio/react): `npm i @globestudio/react`, a drop-in `<Globe>` for Next.js / Vite / Remix
 - [Web component](https://www.npmjs.com/package/@globestudio/element): `<globe-studio>`, loadable with no build step from `https://esm.sh/@globestudio/element`
 - In the app, the export dialog's Share tab has Embed code for the design on screen, as an iframe, a React snippet or a web component snippet
+- The export dialog's Figma tab copies the design as vectors or as an image to paste into Figma, and links to the Community plugin
 - [Framer code component](https://github.com/alevizio/globestudio/blob/main/examples/framer-component/GlobestudioGlobe.tsx): for Framer Code Components
 - [Script-tag loader](https://github.com/alevizio/globestudio/blob/main/public/embed.js): vanilla JS for plain HTML
 

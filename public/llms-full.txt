@@ -179,7 +179,9 @@ impression.
 ### What design tools does Globestudio integrate with?
 
 The Globestudio Figma plugin, in the Figma Community, inserts a globe into your
-file. For websites, paste the iframe or the one-line script embed into Webflow,
+file. Without the plugin, the export dialog's Figma tab copies the design as
+vectors or as an image, ready to paste into a Figma file (the tab is left out
+on phones). For websites, paste the iframe or the one-line script embed into Webflow,
 Framer or plain HTML, or the embed URL into Notion; it works in WordPress via a
 Custom HTML embed. React apps can use @globestudio/react, and AI assistants can
 use the @globestudio/mcp server. PNG and SVG exports drop into any design tool:

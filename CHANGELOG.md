@@ -12,6 +12,10 @@ All notable changes to Globestudio are tracked here. Format follows
   with the aspect, size and quality you picked, ready to paste into Figma,
   Slides, Slack or Notion. Browsers that can't write images to the clipboard
   don't show the button.
+- A Figma tab in the export dialog, after SVG. Copy as vectors and Copy as
+  image put the design on the clipboard to paste into a Figma file, and a
+  link opens the Community plugin. The tab is left out on a phone, where the
+  tab row has no room for a sixth tab.
 - Open in CodePen, under the Share tab's embed code. It opens a new tab with
   a pen that shows the design through the web component, on a page with no
   margin and the design's background.

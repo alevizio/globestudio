@@ -135,7 +135,9 @@ export const DocsPage = () => {
           <p>
             Step-by-step setup for Webflow, Framer, Figma, Notion, WordPress
             and more lives on the <a href="/integrations">Integrations</a>{" "}
-            page.
+            page. For Figma, the export dialog (<KbdKey>D</KbdKey>) also has a
+            Figma tab: it copies the design as vectors or as an image, ready
+            to paste into a file.
           </p>
         </section>
 

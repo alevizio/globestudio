@@ -174,6 +174,11 @@ Every query param the `/embed` route reads, as parsed in
 A JSON Schema for the `c` payload lives at
 [`/schema/config.json`](public/schema/config.json).
 
+For Figma there are two ways in. The export dialog's Figma tab copies the
+design as vectors or as an image, ready to paste into a file, and it links
+to the Community plugin, which runs the full studio inside Figma. The tab is
+left out on a phone, where the tab row has no room for it.
+
 [globestudio.app/integrations](https://globestudio.app/integrations) has
 copy-paste setups for AI agents (MCP), Webflow, Framer, Figma, Notion,
 WordPress (through a Custom HTML block), plain HTML, and React. In this repo:
