@@ -139,7 +139,7 @@ export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) 
   };
 
   return (
-    <section className="agent-share" aria-labelledby={`${id}-title`}>
+    <section className="agent-share">
       <h3 id={`${id}-title`} className="export-modal-label">Connect your agent</h3>
       <p className="export-modal-caption">
         Add the Globestudio MCP server once. Your agent can then build links, pick looks and write embed code on its own.

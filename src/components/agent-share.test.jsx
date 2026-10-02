@@ -44,6 +44,19 @@ describe("AgentShare", () => {
     expect(screen.queryByText("Use with AI")).toBeNull();
   });
 
+  it("gives the first heading's name to the client tabs only, not to the whole block", () => {
+    const { container } = renderBlock();
+    // A region called "Connect your agent" would also wrap Copy for AI and
+    // repeat the tablist's name. The two headings give the block its outline.
+    expect(screen.queryByRole("region")).toBeNull();
+    expect(container.querySelector("section").hasAttribute("aria-labelledby")).toBe(false);
+    expect(screen.getByRole("tablist", { name: "Connect your agent" })).toBeTruthy();
+    expect(screen.getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent)).toEqual([
+      "Connect your agent",
+      "Or send this design once",
+    ]);
+  });
+
   it("copies a prompt with the current share link, then confirms", async () => {
     const writeText = vi.fn(() => Promise.resolve());
     stubClipboard(writeText);
