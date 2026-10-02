@@ -49,6 +49,17 @@ export const copyTextToClipboard = async (text) => {
   }
 };
 
+// Whether this browser can put an image on the clipboard. Firefox before
+// 127 can't, and neither can a browser with no Clipboard API at all.
+export const canCopyImageToClipboard = () =>
+  typeof ClipboardItem !== "undefined" && typeof navigator.clipboard?.write === "function";
+
+// Takes the PNG as a promise. Safari only allows a clipboard write started
+// inside the click that asked for it, and rendering the PNG outlasts that
+// click, so the write starts now and the blob arrives when it is ready.
+export const copyImageToClipboard = (pngBlob) =>
+  navigator.clipboard.write([new ClipboardItem({ "image/png": pngBlob })]);
+
 export const buildExportFilename = (label, ext, viewMode) => {
   const slug = (label || "world")
     .toLowerCase()

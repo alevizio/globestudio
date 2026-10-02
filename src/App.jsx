@@ -36,6 +36,7 @@ import { centerOfPoints } from "./utils/face-points.js";
 import { backgroundKind, exportBackground, previewBackground } from "./utils/canvas-background.js";
 import {
   buildExportFilename,
+  copyImageToClipboard,
   copyTextToClipboard,
   dataUrlToBlob,
   downloadBlob,
@@ -1367,6 +1368,9 @@ const App = () => {
 
   const exportPng = async (options = {}) => {
     setPngStatus((status) => (status === "error" ? "idle" : status));
+    // Copy image (copyPng below) takes the finished PNG and any failure
+    // itself, in place of the download and the Image tab's error line.
+    const { deliver, fail = failPngExport } = options;
     const activeGlobeCanvas = globeCanvasRef.current;
     if (activeGlobeCanvas?.width && activeGlobeCanvas?.height) {
       const scale = options.scale ?? exportScaleValue(canvasScale);
@@ -1393,6 +1397,7 @@ const App = () => {
               }
               bitmap.close();
             }
+            if (deliver) return deliver(finalBlob);
             if (isFigmaPlugin) await sendToFigma({ blob: finalBlob, density: scale });
             else downloadBlob(finalBlob, filename);
             flashPngSaved(scale);
@@ -1417,11 +1422,12 @@ const App = () => {
           target?.height ?? Math.round(activeGlobeCanvas.height * scale),
         );
         if (!pngBlob) throw new Error("No 2D canvas for the PNG fallback");
+        if (deliver) return deliver(pngBlob);
         if (isFigmaPlugin) await sendToFigma({ blob: pngBlob, density: scale });
         else downloadBlob(pngBlob, filename);
         flashPngSaved(scale);
       } catch (error) {
-        failPngExport(error);
+        fail(error);
       } finally {
         activeGlobeCanvas.holdFullFrame?.(false);
       }
@@ -1439,7 +1445,7 @@ const App = () => {
       const context = canvas.getContext("2d");
       if (!context) {
         URL.revokeObjectURL(url);
-        failPngExport(new Error("No 2D canvas for the SVG to PNG export"));
+        fail(new Error("No 2D canvas for the SVG to PNG export"));
         return;
       }
       // Rasterizes the SVG, so it takes the SVG's background.
@@ -1449,22 +1455,34 @@ const App = () => {
       }
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
       canvas.toBlob((pngBlob) => {
-        if (pngBlob) {
+        if (pngBlob && deliver) {
+          deliver(pngBlob);
+        } else if (pngBlob) {
           downloadBlob(pngBlob, buildExportFilename(selected.label, "png", viewMode));
           flashPngSaved();
         } else {
-          failPngExport(new Error("toBlob returned null"));
+          fail(new Error("toBlob returned null"));
         }
         URL.revokeObjectURL(url);
       }, "image/png");
     };
     image.onerror = () => {
       URL.revokeObjectURL(url);
-      failPngExport(new Error("The SVG didn't load as an image"));
+      fail(new Error("The SVG didn't load as an image"));
     };
 
     image.src = url;
   };
+
+  // Copy image: the PNG that Export PNG would save, put on the clipboard
+  // instead of in a file. Resolves once it is there and rejects if the
+  // render or the clipboard fails.
+  const copyPng = (options = {}) =>
+    copyImageToClipboard(
+      new Promise((deliver, fail) => {
+        exportPng({ ...options, deliver, fail }).catch(fail);
+      }),
+    );
 
   // WebKit at DPR 3 (every recent iPhone) composites the WebGL canvas blank
   // while the six-layer drop-shadow halo below is on it: headless WebKit with
@@ -2070,6 +2088,7 @@ const App = () => {
         canvasWidth={globeCanvasRef.current?.clientWidth || globeCanvasRef.current?.width || 1920}
         canvasHeight={globeCanvasRef.current?.clientHeight || globeCanvasRef.current?.height || 1080}
         exportPng={exportPng}
+        copyPng={copyPng}
         pngStatus={pngStatus}
         exportSvg={exportSvg}
         svgStatus={svgStatus}

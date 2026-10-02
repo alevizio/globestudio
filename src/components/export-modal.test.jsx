@@ -140,6 +140,103 @@ describe("ExportModal", () => {
     expect(exportPng).toHaveBeenCalledTimes(1);
   });
 
+  describe("Copy image", () => {
+    // jsdom can't write images to the clipboard. These stand in for a
+    // browser that can.
+    const allowImageCopy = () => {
+      globalThis.ClipboardItem = class {};
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { write: vi.fn() } });
+    };
+
+    afterEach(() => {
+      delete globalThis.ClipboardItem;
+      delete navigator.clipboard;
+    });
+
+    it("sits after Export PNG as a secondary button", () => {
+      allowImageCopy();
+      renderModal({ copyPng: vi.fn() });
+      const footer = document.querySelector(".export-modal-footer");
+      const buttons = within(footer).getAllByRole("button").map((button) => button.textContent);
+      expect(buttons).toEqual(["Export PNG", "Copy image"]);
+      expect(screen.getByRole("button", { name: "Copy image" }).className).toContain("is-secondary");
+    });
+
+    it("is left out where the browser can't write images to the clipboard", () => {
+      renderModal({ copyPng: vi.fn() });
+      expect(screen.getByRole("button", { name: "Export PNG" })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Copy image" })).toBeNull();
+      expect(screen.queryByRole("status")).toBeNull();
+    });
+
+    it("is left out inside the Figma plugin", () => {
+      allowImageCopy();
+      renderModal({ copyPng: vi.fn(), figmaPlugin: true });
+      expect(screen.getByRole("button", { name: "Insert into Figma" })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Copy image" })).toBeNull();
+    });
+
+    it("copies the PNG the export would save, with the same aspect, size and quality", async () => {
+      allowImageCopy();
+      const copyPng = vi.fn(() => Promise.resolve());
+      const exportPng = vi.fn();
+      renderModal({ copyPng, exportPng });
+      fireEvent.click(screen.getByRole("button", { name: "16:9" }));
+      fireEvent.click(screen.getByRole("button", { name: "High" }));
+      fireEvent.click(screen.getByRole("button", { name: "Export PNG" }));
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Copy image" }));
+      });
+      expect(copyPng).toHaveBeenCalledTimes(1);
+      expect(copyPng.mock.calls[0][0]).toEqual(exportPng.mock.calls[0][0]);
+      expect(copyPng.mock.calls[0][0]).toEqual({ scale: 3, width: 3600, height: 2025, aspect: "16:9" });
+      // Nothing is downloaded by the copy.
+      expect(exportPng).toHaveBeenCalledTimes(1);
+    });
+
+    it("confirms on the button and in a status line, then goes back", async () => {
+      vi.useFakeTimers();
+      try {
+        allowImageCopy();
+        renderModal({ copyPng: vi.fn(() => Promise.resolve()) });
+        const button = screen.getByRole("button", { name: "Copy image" });
+        expect(screen.getByRole("status").textContent).toBe("");
+        await act(async () => {
+          fireEvent.click(button);
+        });
+        expect(screen.getByRole("button", { name: "Image copied to clipboard" })).toBe(button);
+        expect(button.className).toContain("is-success");
+        expect(screen.getByRole("status").textContent).toBe("Image copied to clipboard");
+        act(() => {
+          vi.advanceTimersByTime(1800);
+        });
+        expect(screen.getByRole("button", { name: "Copy image" })).toBe(button);
+        expect(screen.getByRole("status").textContent).toBe("");
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("says so when the copy fails, and can be tried again", async () => {
+      allowImageCopy();
+      const copyPng = vi.fn(() => Promise.reject(new Error("denied")));
+      renderModal({ copyPng });
+      const button = screen.getByRole("button", { name: "Copy image" });
+      await act(async () => {
+        fireEvent.click(button);
+      });
+      expect(screen.getByRole("button", { name: "Copy failed. Try again" })).toBe(button);
+      expect(button.className).not.toContain("is-success");
+      expect(screen.getByRole("status").textContent).toBe("Copy failed");
+      // The PNG's own error line is for a failed export, not a failed copy.
+      expect(screen.queryByRole("alert")).toBeNull();
+      await act(async () => {
+        fireEvent.click(button);
+      });
+      expect(copyPng).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe("the MCP tab", () => {
     const SHARE_URL = "https://globestudio.app/?c=%7B%22v%22%3A1%2C%22density%22%3A60%7D";
     // The dialog's own row. The MCP tab holds a second tablist, for the clients.

@@ -3,6 +3,7 @@ import { useModalA11y } from "../hooks/use-modal-a11y.js";
 import { Check, Clipboard, Download, Share2, Upload, X } from "./icons.jsx";
 import { track } from "./analytics.jsx";
 import { ErrorBoundary } from "./error-boundary.jsx";
+import { canCopyImageToClipboard } from "../utils/export.js";
 
 // The MCP tab's content (client commands, prompt builder and its CSS) loads
 // only when that tab opens. Until it arrives an empty stand-in holds the
@@ -209,6 +210,7 @@ export const ExportModal = ({
   canvasWidth,
   canvasHeight,
   exportPng,
+  copyPng,
   pngStatus,
   exportSvg,
   svgStatus,
@@ -292,6 +294,7 @@ export const ExportModal = ({
       window.setTimeout(() => setReactStatus("idle"), 3000);
     }
   };
+  const [imageCopyStatus, setImageCopyStatus] = useState("idle");
   const fileInputRef = useRef(null);
   const dialogRef = useRef(null);
   const [importFailed, setImportFailed] = useState(false);
@@ -346,6 +349,21 @@ export const ExportModal = ({
 
   const handlePng = () => {
     exportPng?.({ scale, width, height, aspect });
+  };
+
+  // Copy image puts the PNG that Export PNG would save on the clipboard.
+  // The button is left out where the browser can't write images there, and
+  // inside the Figma plugin, which inserts on the canvas instead.
+  const canCopyImage = !figmaPlugin && canCopyImageToClipboard();
+  const handleCopyImage = async () => {
+    try {
+      await copyPng?.({ scale, width, height, aspect });
+      setImageCopyStatus("copied");
+      window.setTimeout(() => setImageCopyStatus("idle"), 1800);
+    } catch {
+      setImageCopyStatus("failed");
+      window.setTimeout(() => setImageCopyStatus("idle"), 3000);
+    }
   };
 
   const handleVideo = () => {
@@ -638,6 +656,31 @@ export const ExportModal = ({
                 ? pngStatus === "saved" ? "Inserted" : "Insert into Figma"
                 : pngStatus === "saved" ? "PNG saved" : "Export PNG"}</span>
             </button>
+            {canCopyImage && (
+              <>
+                <button
+                  type="button"
+                  className={`export-modal-cta is-secondary ${imageCopyStatus === "copied" ? "is-success" : ""}`}
+                  onClick={handleCopyImage}
+                >
+                  {imageCopyStatus === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
+                  <span>
+                    {imageCopyStatus === "copied"
+                      ? "Image copied to clipboard"
+                      : imageCopyStatus === "failed"
+                        ? "Copy failed. Try again"
+                        : "Copy image"}
+                  </span>
+                </button>
+                <p className="visually-hidden" role="status">
+                  {imageCopyStatus === "copied"
+                    ? "Image copied to clipboard"
+                    : imageCopyStatus === "failed"
+                      ? "Copy failed"
+                      : ""}
+                </p>
+              </>
+            )}
           </footer>
         )}
         {tab === "video" && videoSupported && (

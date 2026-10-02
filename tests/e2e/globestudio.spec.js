@@ -138,7 +138,7 @@ test("PNG export announces 'PNG saved' via the aria-live status region", async (
   // flaking.) The old test monkey-patched URL.createObjectURL / anchor.click,
   // which raced downloadBlob()'s synchronous revokeObjectURL and recorded
   // nothing. captureAtScale → SwiftShader → toBlob is slow on CI.
-  await expect(page.locator('.visually-hidden[role="status"]'))
+  await expect(page.locator('.app-shell > .visually-hidden[role="status"]'))
     .toHaveText(/PNG saved/i, { timeout: process.env.CI ? 45_000 : 30_000 });
 });
 
@@ -168,7 +168,7 @@ test("a PNG export that yields no image says so in the dialog", async ({ page })
   // Same in-page click as the test above: the repainting globe stalls a normal click.
   await exportButton.evaluate((el) => el.click());
   await expect(dialog.getByRole("alert")).toHaveText(/Export failed/);
-  await expect(page.locator('.visually-hidden[role="status"]')).not.toHaveText(/PNG saved/i);
+  await expect(page.locator('.app-shell > .visually-hidden[role="status"]')).not.toHaveText(/PNG saved/i);
   await expect(exportButton).toBeEnabled();
 
   // Closing the dialog clears the message; it doesn't greet the next visit.
@@ -177,6 +177,78 @@ test("a PNG export that yields no image says so in the dialog", async ({ page })
   await page.keyboard.press("d");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("alert")).toHaveCount(0);
+});
+
+test.describe("Copy image", () => {
+  test.use({ permissions: ["clipboard-read", "clipboard-write"] });
+
+  // Size and corner pixels of a PNG blob, read in the page.
+  const describePng = async (blob) => {
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const context = canvas.getContext("2d");
+    context.drawImage(bitmap, 0, 0);
+    const pixel = (x, y) => [...context.getImageData(x, y, 1, 1).data];
+    return {
+      size: [bitmap.width, bitmap.height],
+      corners: [pixel(0, 0), pixel(bitmap.width - 1, 0), pixel(0, bitmap.height - 1), pixel(bitmap.width - 1, bitmap.height - 1)],
+    };
+  };
+
+  test("puts the PNG that Export PNG would save on the clipboard", async ({ page }) => {
+    // Keep the file Export PNG hands to the download, to compare with.
+    await page.addInitScript(() => {
+      window.__pngs = [];
+      const create = URL.createObjectURL.bind(URL);
+      URL.createObjectURL = (blob) => {
+        if (blob?.type === "image/png") window.__pngs.push(blob);
+        return create(blob);
+      };
+    });
+    // Glow off, as in the PNG saved test. The background is the color the
+    // corners of both images should come back with.
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, background: "#204060", globeSettings: { glow: false } }))}`);
+    await waitForCanvas(page);
+    await page.keyboard.press("d");
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    const press = (locator) => locator.evaluate((el) => el.click());
+    // A square at Draft (1x) keeps both images small. The size fields follow
+    // each choice a render later, so wait for them before pressing on.
+    const width = dialog.getByLabel("Export width");
+    const height = dialog.getByLabel("Export height");
+    await press(dialog.getByRole("button", { name: "1:1" }));
+    await expect.poll(async () => (await width.inputValue()) === (await height.inputValue())).toBe(true);
+    const side = Number(await width.inputValue()) / 2;
+    await press(dialog.getByRole("button", { name: "Draft" }));
+    await expect(width).toHaveValue(String(side));
+    await expect(height).toHaveValue(String(side));
+
+    const copy = dialog.getByRole("button", { name: "Copy image" });
+    await expect(copy).toHaveClass(/is-secondary/);
+    await press(copy);
+    const timeout = process.env.CI ? 45_000 : 30_000;
+    await expect(dialog.getByRole("status")).toHaveText("Image copied to clipboard", { timeout });
+    const copied = await page.evaluate(async (describe) => {
+      const [item] = await navigator.clipboard.read();
+      const blob = await item.getType("image/png");
+      return { types: item.types, ...(await new Function(`return (${describe})`)()(blob)) };
+    }, describePng.toString());
+    expect(copied.types).toEqual(["image/png"]);
+    expect(copied.size).toEqual([side, side]);
+    expect(copied.corners).toEqual(Array(4).fill([32, 64, 96, 255]));
+    // Nothing was downloaded by the copy.
+    expect(await page.evaluate(() => window.__pngs.length)).toBe(0);
+
+    await press(dialog.getByRole("button", { name: /export png/i }));
+    await expect(page.locator('.app-shell > .visually-hidden[role="status"]')).toHaveText(/PNG saved/i, { timeout });
+    const saved = await page.evaluate(
+      (describe) => new Function(`return (${describe})`)()(window.__pngs.at(-1)),
+      describePng.toString(),
+    );
+    expect({ size: copied.size, corners: copied.corners }).toEqual(saved);
+  });
 });
 
 test.describe("with reduced motion", () => {

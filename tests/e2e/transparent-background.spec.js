@@ -47,7 +47,7 @@ const keepPngs = (page) =>
 const exportPng = async (page) => {
   await page.keyboard.press("d");
   await press(page.getByRole("dialog", { name: /export/i }).getByRole("button", { name: /export png/i }));
-  await expect(page.locator('.visually-hidden[role="status"]'))
+  await expect(page.locator('.app-shell > .visually-hidden[role="status"]'))
     .toHaveText(/PNG saved/i, { timeout: process.env.CI ? 45_000 : 30_000 });
 };
 

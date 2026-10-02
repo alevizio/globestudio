@@ -1,5 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  canCopyImageToClipboard,
+  copyImageToClipboard,
   dataUrlToBlob,
   exportScaleValue,
   MIN_VIDEO_BYTES,
@@ -59,6 +61,65 @@ describe("dataUrlToBlob", () => {
 
   it("returns null when the input has no data segment (no comma)", () => {
     expect(dataUrlToBlob("not-a-data-url")).toBeNull();
+  });
+});
+
+describe("copying an image to the clipboard", () => {
+  const stubClipboard = (clipboard) => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: clipboard });
+  };
+  // jsdom has no ClipboardItem. This one keeps what it was given.
+  const stubClipboardItem = () => {
+    globalThis.ClipboardItem = class {
+      constructor(data) {
+        this.data = data;
+      }
+    };
+  };
+
+  afterEach(() => {
+    delete navigator.clipboard;
+    delete globalThis.ClipboardItem;
+  });
+
+  it("says no where the browser can't write images to the clipboard", () => {
+    expect(canCopyImageToClipboard()).toBe(false);
+    // Text only clipboard, as in Firefox before 127.
+    stubClipboard({ writeText: vi.fn() });
+    expect(canCopyImageToClipboard()).toBe(false);
+    stubClipboardItem();
+    expect(canCopyImageToClipboard()).toBe(false);
+  });
+
+  it("says yes with ClipboardItem and clipboard.write", () => {
+    stubClipboardItem();
+    stubClipboard({ write: vi.fn() });
+    expect(canCopyImageToClipboard()).toBe(true);
+  });
+
+  it("writes one PNG item before the blob exists, so Safari keeps the click", async () => {
+    stubClipboardItem();
+    const write = vi.fn(() => Promise.resolve());
+    stubClipboard({ write });
+    let finish;
+    const blob = new Promise((resolve) => {
+      finish = resolve;
+    });
+    const copied = copyImageToClipboard(blob);
+    // The write starts in the same task as the click, still holding the promise.
+    expect(write).toHaveBeenCalledTimes(1);
+    const items = write.mock.calls[0][0];
+    expect(items).toHaveLength(1);
+    expect(items[0].data).toEqual({ "image/png": blob });
+    expect(items[0].data["image/png"]).toBe(blob);
+    finish(new Blob(["png"], { type: "image/png" }));
+    await copied;
+  });
+
+  it("fails when the clipboard refuses the write", async () => {
+    stubClipboardItem();
+    stubClipboard({ write: vi.fn(() => Promise.reject(new Error("denied"))) });
+    await expect(copyImageToClipboard(Promise.resolve(new Blob()))).rejects.toThrow("denied");
   });
 });
 
