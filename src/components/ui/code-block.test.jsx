@@ -7,6 +7,8 @@ const COMMAND = "codex mcp add globestudio --url https://globestudio.app/mcp";
 afterEach(() => {
   delete navigator.clipboard;
   delete document.execCommand;
+  delete window.ResizeObserver;
+  vi.restoreAllMocks();
 });
 
 const copy = async () => {
@@ -54,5 +56,62 @@ describe("CodeBlock", () => {
     expect(container.querySelector("code").textContent).toBe(COMMAND);
     await copy();
     expect(writeText).toHaveBeenCalledWith(COMMAND);
+  });
+
+  describe("keyboardScroll", () => {
+    // jsdom lays nothing out, so the widths and the observer are stood in.
+    const layOut = ({ scrollWidth, clientWidth }) => {
+      const widths = { scrollWidth, clientWidth };
+      vi.spyOn(Element.prototype, "scrollWidth", "get").mockImplementation(() => widths.scrollWidth);
+      vi.spyOn(Element.prototype, "clientWidth", "get").mockImplementation(() => widths.clientWidth);
+      const observers = [];
+      window.ResizeObserver = class {
+        constructor(callback) {
+          observers.push(callback);
+        }
+        observe() {}
+        disconnect() {}
+      };
+      return {
+        resize: (next) => {
+          Object.assign(widths, next);
+          act(() => observers.forEach((callback) => callback()));
+        },
+      };
+    };
+
+    it("puts a snippet that runs past its box in the tab order, named by its label", () => {
+      layOut({ scrollWidth: 242, clientWidth: 230 });
+      const { container } = render(
+        <CodeBlock language="mcp.json" keyboardScroll>
+          {COMMAND}
+        </CodeBlock>,
+      );
+      const pre = container.querySelector("pre");
+      expect(pre.tabIndex).toBe(0);
+      expect(screen.getByRole("group", { name: "mcp.json" })).toBe(pre);
+    });
+
+    it("leaves a snippet that fits out of the tab order, and follows a resize", () => {
+      const { resize } = layOut({ scrollWidth: 230, clientWidth: 230 });
+      const { container } = render(
+        <CodeBlock language="mcp.json" keyboardScroll>
+          {COMMAND}
+        </CodeBlock>,
+      );
+      const pre = container.querySelector("pre");
+      expect(pre.hasAttribute("tabindex")).toBe(false);
+      expect(screen.queryByRole("group")).toBeNull();
+      resize({ clientWidth: 190 });
+      expect(pre.tabIndex).toBe(0);
+      resize({ clientWidth: 260, scrollWidth: 260 });
+      expect(pre.hasAttribute("tabindex")).toBe(false);
+    });
+
+    it("is off unless asked for, so the docs snippets keep their tab order", () => {
+      layOut({ scrollWidth: 242, clientWidth: 230 });
+      const { container } = render(<CodeBlock language="html">{COMMAND}</CodeBlock>);
+      expect(container.querySelector("pre").hasAttribute("tabindex")).toBe(false);
+    });
   });
 });

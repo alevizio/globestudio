@@ -10,6 +10,9 @@ import { Check, Clipboard } from "../icons.jsx";
 // instead of scrolling sideways, and no argument breaks inside itself
 // (Chrome would split "--url" after its dashes). Copy still writes the
 // plain string.
+// `keyboardScroll` is for snippets that can still run past a narrow box:
+// while one scrolls sideways it joins the tab order, named by its language
+// label, so the arrow keys can scroll it.
 
 const Args = ({ text }) =>
   text.split(" ").map((arg, index) => (
@@ -19,9 +22,21 @@ const Args = ({ text }) =>
     </Fragment>
   ));
 
-export const CodeBlock = ({ children, language, className = "", wrap = false }) => {
+export const CodeBlock = ({ children, language, className = "", wrap = false, keyboardScroll = false }) => {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef(0);
+  const preRef = useRef(null);
+  const [scrolls, setScrolls] = useState(false);
+
+  useEffect(() => {
+    const pre = preRef.current;
+    if (!keyboardScroll || !pre || typeof ResizeObserver === "undefined") return undefined;
+    const measure = () => setScrolls(pre.scrollWidth > pre.clientWidth);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(pre);
+    return () => observer.disconnect();
+  }, [keyboardScroll, children]);
 
   useEffect(
     () => () => {
@@ -72,7 +87,11 @@ export const CodeBlock = ({ children, language, className = "", wrap = false }) 
           <span>{copied ? "Copied" : "Copy"}</span>
         </button>
       </div>
-      <pre className="code-block-pre">
+      <pre
+        className="code-block-pre"
+        ref={preRef}
+        {...(scrolls && { tabIndex: 0, role: "group", "aria-label": language })}
+      >
         <code>{wrap ? <Args text={children} /> : children}</code>
       </pre>
     </div>

@@ -190,7 +190,7 @@ export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) 
         {client.steps.map((step) => (
           <div key={step.label} className="agent-share-step">
             {step.note && <p className="export-modal-caption">{step.note}</p>}
-            <CodeBlock language={step.label} wrap={!step.code.includes("\n")}>
+            <CodeBlock language={step.label} wrap={!step.code.includes("\n")} keyboardScroll>
               {step.code}
             </CodeBlock>
             {step.footnote && <p className="export-modal-caption">{step.footnote}</p>}

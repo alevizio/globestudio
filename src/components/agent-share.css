@@ -25,9 +25,11 @@
 }
 
 /* The CTA and toggle buttons are clipped to pixel corners, which would cut
-   off an outer outline, so the focus ring sits inside the edge. */
+   off an outer outline, so the focus ring sits inside the edge. The same
+   goes for a command that scrolls, inside its clipped code block. */
 .agent-share .export-modal-cta:focus-visible,
-.agent-share .segmented-toggle-button:focus-visible {
+.agent-share .segmented-toggle-button:focus-visible,
+.agent-share .code-block-pre:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: -4px;
 }
@@ -71,7 +73,9 @@
 
 /* The mcp.json block wraps on a phone sheet instead of scrolling
    sideways. One-line commands use CodeBlock's wrap, which keeps each
-   argument whole. Copy still copies the exact text. */
+   argument whole. Copy still copies the exact text. Below about 372px the
+   server URL is wider than the box and scrolls after all; CodeBlock's
+   keyboardScroll lets the keyboard reach it. */
 .agent-share .code-block .code-block-pre code {
   white-space: pre-wrap;
 }
