@@ -6,8 +6,9 @@ import { parseShareConfig } from "../utils/share-config.js";
 import { MCP_URL, buildAgentPrompt } from "../utils/agent-prompt.js";
 import "./agent-share.css";
 
-// "Use with AI" in the export dialog's Share tab. Lazy loaded by
-// export-modal.jsx, so this file and its CSS stay out of first paint.
+// The export dialog's MCP tab: connect an agent, or copy a prompt for one.
+// Lazy loaded by export-modal.jsx, so this file and its CSS stay out of
+// first paint.
 //
 // Every command and menu path below comes from the client's own docs:
 //   Claude Code  https://code.claude.com/docs/en/mcp
@@ -139,38 +140,14 @@ export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) 
 
   return (
     <section className="agent-share" aria-labelledby={`${id}-title`}>
-      <h3 id={`${id}-title`} className="export-modal-label">Use with AI</h3>
+      <h3 id={`${id}-title`} className="export-modal-label">Connect your agent</h3>
       <p className="export-modal-caption">
-        Copy a prompt with this link and its settings, ready to paste into Claude, ChatGPT, Codex or any agent.
-      </p>
-      <button
-        type="button"
-        className={`export-modal-cta ${status === "copied" ? "is-success" : ""}`}
-        onClick={handleCopy}
-      >
-        {status === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
-        <span>
-          {status === "copied"
-            ? "Prompt copied to clipboard"
-            : status === "manual"
-              ? "Copy failed. Try again"
-              : "Copy for AI"}
-        </span>
-      </button>
-      <p className="visually-hidden" role="status">
-        {status === "copied" ? "Prompt copied to clipboard" : status === "manual" ? "Copy failed" : ""}
-      </p>
-
-      <p id={`${id}-connect`} className="export-modal-label agent-share-connect-label">
-        Connect the MCP server
-      </p>
-      <p className="export-modal-caption">
-        Your agent can then build links, pick looks and write embed code on its own.
+        Add the Globestudio MCP server once. Your agent can then build links, pick looks and write embed code on its own.
       </p>
       <div
         className="segmented-toggle agent-share-clients"
         role="tablist"
-        aria-labelledby={`${id}-connect`}
+        aria-labelledby={`${id}-title`}
         style={{ "--active-index": activeIndex }}
         onKeyDown={onTabKeyDown}
       >
@@ -220,6 +197,28 @@ export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) 
           </div>
         ))}
       </div>
+
+      <h3 className="export-modal-label agent-share-once-label">Or send this design once</h3>
+      <p className="export-modal-caption">
+        Copy a prompt with this link and its settings, ready to paste into Claude, ChatGPT, Codex or any agent.
+      </p>
+      <button
+        type="button"
+        className={`export-modal-cta ${status === "copied" ? "is-success" : ""}`}
+        onClick={handleCopy}
+      >
+        {status === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
+        <span>
+          {status === "copied"
+            ? "Prompt copied to clipboard"
+            : status === "manual"
+              ? "Copy failed. Try again"
+              : "Copy for AI"}
+        </span>
+      </button>
+      <p className="visually-hidden" role="status">
+        {status === "copied" ? "Prompt copied to clipboard" : status === "manual" ? "Copy failed" : ""}
+      </p>
     </section>
   );
 };

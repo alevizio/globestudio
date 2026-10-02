@@ -36,6 +36,7 @@ test.describe("studio inside the Figma plugin", () => {
     await expect(dialog.getByRole("tab", { name: "SVG" })).toBeVisible();
     await expect(dialog.getByRole("tab", { name: "Video" })).toHaveCount(0);
     await expect(dialog.getByRole("tab", { name: "Share" })).toHaveCount(0);
+    await expect(dialog.getByRole("tab", { name: "MCP" })).toHaveCount(0);
 
     await dialog.getByRole("button", { name: "Insert into Figma" }).click();
     await expect.poll(() => page.evaluate(() => window.__inserts.length), { timeout: 60_000 }).toBe(1);

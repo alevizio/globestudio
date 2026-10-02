@@ -1,6 +1,9 @@
-import { beforeAll, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { ExportModal } from "./export-modal.jsx";
+import { track } from "./analytics.jsx";
+
+vi.mock("./analytics.jsx", () => ({ track: vi.fn() }));
 
 beforeAll(() => {
   // The tab strip measures itself with ResizeObserver, which jsdom lacks.
@@ -137,13 +140,94 @@ describe("ExportModal", () => {
     expect(exportPng).toHaveBeenCalledTimes(1);
   });
 
-  it("loads the Use with AI block on the Share tab, after the link and React buttons", async () => {
-    renderModal({ getShareUrl: () => "https://globestudio.app/?c=%7B%7D" });
-    fireEvent.click(screen.getByRole("tab", { name: "Share" }));
-    const heading = await screen.findByRole("heading", { name: "Use with AI" });
-    const react = screen.getByRole("button", { name: /Copy as React/ });
-    expect(react.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Copy for AI/ })).toBeTruthy();
+  describe("the MCP tab", () => {
+    const SHARE_URL = "https://globestudio.app/?c=%7B%22v%22%3A1%2C%22density%22%3A60%7D";
+    // The dialog's own row. The MCP tab holds a second tablist, for the clients.
+    const exportTabs = () => within(screen.getByRole("tablist", { name: "Export type" }));
+    const tabNames = () => exportTabs().getAllByRole("tab").map((tab) => tab.textContent);
+    const selectedTab = () => exportTabs().getByRole("tab", { selected: true }).textContent;
+
+    afterEach(() => {
+      delete navigator.clipboard;
+    });
+
+    it("comes last in the row, after Image, Video, SVG and Share", () => {
+      renderModal();
+      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
+    });
+
+    it("is left out inside the Figma plugin, like Share", () => {
+      renderModal({ figmaPlugin: true });
+      expect(tabNames()).toEqual(["Image", "SVG"]);
+    });
+
+    it("loads the block with the connection first, then Copy for AI", async () => {
+      renderModal({ getShareUrl: () => SHARE_URL });
+      fireEvent.click(screen.getByRole("tab", { name: "MCP" }));
+      const connect = await screen.findByRole("heading", { name: "Connect your agent" });
+      const once = screen.getByRole("heading", { name: "Or send this design once" });
+      expect(connect.compareDocumentPosition(once) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(screen.getByRole("tab", { name: "Claude" }).getAttribute("aria-selected")).toBe("true");
+      // The tab has no footer of its own: like Share, its actions sit in the body.
+      expect(document.querySelector(".export-modal-footer")).toBeNull();
+      // The Share tab's own controls stay on the Share tab.
+      expect(screen.queryByRole("button", { name: /Copy share link/ })).toBeNull();
+      expect(screen.queryByText("Import .json configuration")).toBeNull();
+    });
+
+    it("leaves the Share tab with its link, embed code and JSON, and no AI block", async () => {
+      renderModal({ getShareUrl: () => SHARE_URL });
+      // Load the lazy block first, so its absence below isn't just a chunk
+      // that has not arrived yet.
+      fireEvent.click(screen.getByRole("tab", { name: "MCP" }));
+      await screen.findByRole("button", { name: /Copy for AI/ });
+      fireEvent.click(screen.getByRole("tab", { name: "Share" }));
+      expect(screen.getByRole("button", { name: /Copy share link/ })).toBeTruthy();
+      expect(screen.getByRole("button", { name: /Copy as React/ })).toBeTruthy();
+      expect(screen.getByRole("button", { name: /Export configuration/ })).toBeTruthy();
+      expect(screen.getByText("Import .json configuration")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /Copy for AI/ })).toBeNull();
+      expect(screen.queryByRole("heading", { name: "Connect your agent" })).toBeNull();
+      expect(screen.queryByRole("heading", { name: "Or send this design once" })).toBeNull();
+      expect(screen.queryByRole("tab", { name: "Claude" })).toBeNull();
+    });
+
+    it("still copies the prompt with Copy for AI", async () => {
+      const writeText = vi.fn(() => Promise.resolve());
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+      renderModal({ getShareUrl: () => SHARE_URL, lookName: "Halftone", regionName: "Europe" });
+      fireEvent.click(screen.getByRole("tab", { name: "MCP" }));
+      const button = await screen.findByRole("button", { name: /Copy for AI/ });
+      await act(async () => {
+        fireEvent.click(button);
+      });
+      const prompt = writeText.mock.calls[0][0];
+      expect(prompt).toContain(`Link: ${SHARE_URL}`);
+      expect(prompt).toContain("Look: Halftone");
+      expect(prompt).toContain("https://globestudio.app/mcp");
+      expect(screen.getByRole("button", { name: /Prompt copied to clipboard/ })).toBeTruthy();
+      expect(track).toHaveBeenCalledWith("share_clicked", { method: "ai" });
+    });
+
+    it("is reached with the arrow keys, Home and End, across all five tabs", () => {
+      renderModal();
+      const tablist = screen.getByRole("tablist", { name: "Export type" });
+      const visited = [selectedTab()];
+      for (let i = 0; i < 5; i += 1) {
+        fireEvent.keyDown(tablist, { key: "ArrowRight" });
+        visited.push(selectedTab());
+      }
+      // Wraps from MCP back to Image.
+      expect(visited).toEqual(["Image", "Video", "SVG", "Share", "MCP", "Image"]);
+      fireEvent.keyDown(tablist, { key: "ArrowLeft" });
+      expect(selectedTab()).toBe("MCP");
+      fireEvent.keyDown(tablist, { key: "ArrowLeft" });
+      expect(selectedTab()).toBe("Share");
+      fireEvent.keyDown(tablist, { key: "Home" });
+      expect(selectedTab()).toBe("Image");
+      fireEvent.keyDown(tablist, { key: "End" });
+      expect(selectedTab()).toBe("MCP");
+    });
   });
 
   describe("importing a configuration file", () => {

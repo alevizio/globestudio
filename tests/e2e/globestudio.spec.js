@@ -558,6 +558,7 @@ test.describe("export dialog on a 320px wide phone", () => {
         }),
       };
     });
+    expect(row.tabs.map((tab) => tab.label)).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
     expect(row.overflows).toBe(false);
     for (const tab of row.tabs) {
       expect(tab.left, tab.label).toBeGreaterThanOrEqual(row.left);
@@ -572,33 +573,45 @@ test.describe("export dialog on a 320px wide phone", () => {
     const last = tablist.getByRole("tab").last();
     await last.tap();
     await expect(last).toHaveAttribute("aria-selected", "true");
+    await expect(dialog.getByRole("heading", { name: "Connect your agent" })).toBeVisible();
+    // Nothing in the tab pushes the dialog wider than the screen.
+    const body = await dialog.locator(".export-modal-body").evaluate((el) => ({
+      scrollWidth: el.scrollWidth,
+      clientWidth: el.clientWidth,
+    }));
+    expect(body.scrollWidth).toBeLessThanOrEqual(body.clientWidth);
   });
 });
 
-test.describe("Share tab, Use with AI", () => {
+test.describe("MCP tab", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 
-  const openShareTab = async (page) => {
+  const openMcpTab = async (page) => {
     // Glow off, as in the PNG saved test: under software compositing the
     // glowing globe repaints behind the dialog for seconds per frame, and the
-    // Share tab click then times out waiting for the tab to hold still.
+    // MCP tab click then times out waiting for the tab to hold still.
     await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
     await waitForCanvas(page);
     await page.getByRole("button", { name: "Open export dialog" }).click();
     const dialog = page.getByRole("dialog", { name: /export/i });
-    await dialog.getByRole("tab", { name: "Share" }).click();
-    await expect(dialog.getByRole("heading", { name: "Use with AI" })).toBeVisible();
+    await dialog.getByRole("tab", { name: "MCP" }).click();
+    await expect(dialog.getByRole("heading", { name: "Connect your agent" })).toBeVisible();
     return dialog;
   };
 
   test("Copy for AI puts a prompt with the current share link on the clipboard", async ({ page }) => {
-    const dialog = await openShareTab(page);
+    const dialog = await openMcpTab(page);
 
+    // The link itself lives on the Share tab, which no longer has the AI block.
+    await dialog.getByRole("tab", { name: "Share" }).click();
+    await expect(dialog.getByRole("button", { name: "Copy for AI" })).toHaveCount(0);
+    await expect(dialog.getByRole("heading", { name: "Connect your agent" })).toHaveCount(0);
     await dialog.getByRole("button", { name: "Copy share link" }).click();
     await expect(dialog.getByRole("button", { name: "Link copied to clipboard" })).toBeVisible();
     const shareUrl = await page.evaluate(() => navigator.clipboard.readText());
     expect(shareUrl).toContain("?c=");
 
+    await dialog.getByRole("tab", { name: "MCP" }).click();
     await dialog.getByRole("button", { name: "Copy for AI" }).click();
     await expect(dialog.getByRole("button", { name: "Prompt copied to clipboard" })).toBeVisible();
     const prompt = await page.evaluate(() => navigator.clipboard.readText());
@@ -610,7 +623,7 @@ test.describe("Share tab, Use with AI", () => {
     const copyPrompt = async () => {
       await page.keyboard.press("d");
       const dialog = page.getByRole("dialog", { name: /export/i });
-      await dialog.getByRole("tab", { name: "Share" }).click();
+      await dialog.getByRole("tab", { name: "MCP" }).click();
       await dialog.getByRole("button", { name: "Copy for AI" }).click();
       await expect(dialog.getByRole("button", { name: "Prompt copied to clipboard" })).toBeVisible();
       const prompt = await page.evaluate(() => navigator.clipboard.readText());
@@ -643,14 +656,19 @@ test.describe("Share tab, Use with AI", () => {
       buffer: Buffer.from(JSON.stringify({ version: 1, density: 77 })),
     });
     await expect(page.getByText(/Configuration imported/i)).toBeVisible();
+    await dialog.getByRole("tab", { name: "MCP" }).click();
     await dialog.getByRole("button", { name: "Copy for AI" }).click();
     await expect(dialog.getByRole("button", { name: "Prompt copied to clipboard" })).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("Started from: Halftone");
   });
 
   test("each Connect tab shows its command for the hosted server", async ({ page }) => {
-    const dialog = await openShareTab(page);
+    const dialog = await openMcpTab(page);
     const panel = dialog.getByRole("tabpanel");
+
+    // Connecting comes first, the one-off prompt after it.
+    const headings = await dialog.getByRole("heading", { level: 3 }).allTextContents();
+    expect(headings).toEqual(["Connect your agent", "Or send this design once"]);
 
     await expect(dialog.getByRole("tab", { name: "Claude" })).toHaveAttribute("aria-selected", "true");
     await expect(panel).toContainText("claude mcp add --transport http globestudio https://globestudio.app/mcp");
@@ -673,5 +691,31 @@ test.describe("Share tab, Use with AI", () => {
     await expect(panel).toContainText("claude mcp add");
 
     await expectNoSeriousAxeViolations(page);
+  });
+
+  test("the dialog's arrow keys, Home and End reach all five tabs", async ({ page }) => {
+    const dialog = await openMcpTab(page);
+    const selected = dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab", { selected: true });
+    await expect(dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab")).toHaveText([
+      "Image",
+      "Video",
+      "SVG",
+      "Share",
+      "MCP",
+    ]);
+
+    await dialog.getByRole("tab", { name: "MCP" }).press("ArrowRight");
+    await expect(selected).toHaveText("Image");
+    for (const name of ["Video", "SVG", "Share", "MCP"]) {
+      await page.keyboard.press("ArrowRight");
+      await expect(selected).toHaveText(name);
+    }
+    await page.keyboard.press("Home");
+    await expect(selected).toHaveText("Image");
+    await page.keyboard.press("End");
+    await expect(selected).toHaveText("MCP");
+    await expect(dialog.getByRole("heading", { name: "Connect your agent" })).toBeVisible();
+    // Focus stays inside the dialog the whole way.
+    expect(await page.evaluate(() => Boolean(document.activeElement?.closest('[role="dialog"]')))).toBe(true);
   });
 });

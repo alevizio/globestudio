@@ -55,8 +55,8 @@ export const Analytics = () => {
 // Called from the action sites, always AFTER the action succeeds:
 // applyLook fires preset_applied, the App.jsx export handlers fire
 // export_completed (format + active look, no PII), the export modal's
-// share tab fires share_clicked on copy. The event names here must stay
-// in sync with what /privacy discloses (privacy-page.jsx).
+// Share and MCP tabs fire share_clicked on copy. The event names here
+// must stay in sync with what /privacy discloses (privacy-page.jsx).
 export const track = (name, properties) => {
   if (isOptedOut()) return;
   // Lazy-load the track helper so importing it doesn't pull the

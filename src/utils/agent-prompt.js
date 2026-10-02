@@ -1,4 +1,4 @@
-// The "Copy for AI" prompt in the export dialog's Share tab: a plain-text
+// The "Copy for AI" prompt in the export dialog's MCP tab: a plain-text
 // brief any agent (Claude, ChatGPT, Codex, Cursor...) can act on without
 // knowing Globestudio. It carries the share link, a readable summary of the
 // design, what the agent can do with it, and the hosted MCP server.

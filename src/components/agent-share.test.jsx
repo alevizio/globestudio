@@ -20,10 +20,28 @@ const renderBlock = (props = {}) =>
   render(<AgentShare getShareUrl={() => SHARE_URL} lookName="Halftone" regionName="Europe" {...props} />);
 
 describe("AgentShare", () => {
-  it("renders under a Use with AI heading", () => {
+  it("puts connecting the agent first, then sending this design once", () => {
     renderBlock();
-    expect(screen.getByRole("heading", { name: "Use with AI" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Copy for AI/ })).toBeTruthy();
+    const follows = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    const connect = screen.getByRole("heading", { name: "Connect your agent" });
+    const clients = screen.getByRole("tablist", { name: "Connect your agent" });
+    const panel = screen.getByRole("tabpanel");
+    const once = screen.getByRole("heading", { name: "Or send this design once" });
+    const copy = screen.getByRole("button", { name: /Copy for AI/ });
+    expect(follows(connect, clients)).toBe(true);
+    expect(follows(panel, once)).toBe(true);
+    expect(follows(once, copy)).toBe(true);
+    expect(
+      screen.getByText(
+        "Add the Globestudio MCP server once. Your agent can then build links, pick looks and write embed code on its own.",
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Copy a prompt with this link and its settings, ready to paste into Claude, ChatGPT, Codex or any agent.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText("Use with AI")).toBeNull();
   });
 
   it("copies a prompt with the current share link, then confirms", async () => {

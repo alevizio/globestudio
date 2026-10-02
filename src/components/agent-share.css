@@ -1,7 +1,7 @@
-/* "Use with AI" block in the export dialog's Share tab. Ships with the lazy
-   agent-share chunk, not the critical stylesheet. It reuses the dialog's
-   label, caption, CTA and segmented toggle classes plus the docs CodeBlock,
-   so only layout and the three-client toggle live here. */
+/* The export dialog's MCP tab. Ships with the lazy agent-share chunk, not
+   the critical stylesheet. It reuses the dialog's label, caption, CTA and
+   segmented toggle classes plus the docs CodeBlock, so only layout and the
+   three-client toggle live here. */
 
 .agent-share {
   display: flex;
@@ -32,8 +32,8 @@
   outline-offset: -4px;
 }
 
-.agent-share-connect-label {
-  margin: 12px 0 0;
+.agent-share h3.agent-share-once-label {
+  margin-top: 12px;
 }
 
 /* Three clients instead of the toggle's usual two: 8px of padding plus two

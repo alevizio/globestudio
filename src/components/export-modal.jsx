@@ -4,9 +4,9 @@ import { Check, Clipboard, Download, Share2, Upload, X } from "./icons.jsx";
 import { track } from "./analytics.jsx";
 import { ErrorBoundary } from "./error-boundary.jsx";
 
-// The Share tab's "Use with AI" block (prompt builder, client commands and
-// its CSS) loads only when that tab opens. If the chunk fails, the block is
-// left out and the rest of the tab still works.
+// The MCP tab's content (client commands, prompt builder and its CSS) loads
+// only when that tab opens. If the chunk fails, the tab stays empty and the
+// rest of the dialog still works.
 const AgentShare = lazy(() =>
   import("./agent-share.jsx").then((m) => ({ default: m.AgentShare })),
 );
@@ -60,6 +60,7 @@ const Tabs = ({ tab, setTab, hasVideo, figmaPlugin = false }) => {
     hasVideo && !figmaPlugin && { id: "video", label: "Video" },
     { id: "svg", label: "SVG" },
     !figmaPlugin && { id: "share", label: "Share" },
+    !figmaPlugin && { id: "mcp", label: "MCP" },
   ].filter(Boolean);
 
   // Refs to each tab button so we can measure the active one and slide
@@ -557,16 +558,6 @@ export const ExportModal = ({
                       : "Copy as React (@globestudio/react)"}
                 </span>
               </button>
-              <ErrorBoundary fallback={null}>
-                <Suspense fallback={null}>
-                  <AgentShare
-                    getShareUrl={getShareUrl}
-                    lookName={lookName}
-                    isLookEdited={isLookEdited}
-                    regionName={regionName}
-                  />
-                </Suspense>
-              </ErrorBoundary>
               <button
                 type="button"
                 className="export-modal-cta is-secondary"
@@ -608,6 +599,19 @@ export const ExportModal = ({
                 </p>
               )}
             </>
+          )}
+
+          {tab === "mcp" && (
+            <ErrorBoundary fallback={null}>
+              <Suspense fallback={null}>
+                <AgentShare
+                  getShareUrl={getShareUrl}
+                  lookName={lookName}
+                  isLookEdited={isLookEdited}
+                  regionName={regionName}
+                />
+              </Suspense>
+            </ErrorBoundary>
           )}
         </div>
         </div>
