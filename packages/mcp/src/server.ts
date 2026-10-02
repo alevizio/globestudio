@@ -425,8 +425,8 @@ const studioUrl = (look: string | null, config: ShareConfig) => {
 };
 
 // Embed: dedicated query params where they exist (embed-view.jsx parseParams,
-// hex colors WITHOUT the '#'), view=flat because the embed only reads the
-// view from its own param, then ?c= for everything else. The embed caps its
+// hex colors WITHOUT the '#'), view=flat, which the embed reads ahead of
+// the config's own view, then ?c= for everything else. The embed caps its
 // density param at 90, so a higher density stays in ?c=.
 const embedUrl = (look: string | null, config: ShareConfig, options: Record<string, string>) => {
   const params: string[] = look ? [`look=${look}`] : [];

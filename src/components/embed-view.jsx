@@ -29,7 +29,11 @@ const FigmaPluginPickers = lazy(() =>
 
 // Parameters the embed honors via query string. Strings get parsed to their
 // native types here so the consumer downstream gets clean typed values.
-const parseParams = (search) => {
+// The view and the page background fall back to the share config's own
+// when the address names none, so a Flat design on its own color embeds
+// that way from ?c= alone, which is all the React and web component
+// packages send.
+const parseParams = (search, shareConfig) => {
   const params = new URLSearchParams(search);
   // Numeric params clamp to the studio slider ranges so hostile query
   // strings can't push the renderer outside what the UI can produce.
@@ -73,17 +77,17 @@ const parseParams = (search) => {
     tiltX: num("tiltX", 0, -45, 45),
     tiltY: num("tiltY", 0, -45, 45),
     autoSpin: bool("autoSpin", true),
-    view: params.get("view") || "globe",
+    view: params.get("view") || shareConfig?.viewMode || "globe",
     // `static=1` freezes all motion — used when the embed lives in a Framer
     // canvas mode so the static preview doesn't burn frames.
     staticMode: bool("static", false),
     source: params.get("source") || "embed",
     background: bg && !clearBg ? `#${bg.replace(/^#/, "")}` : "#0a0a0a",
-    // Whether the host explicitly asked for a page background. The visible
-    // page color comes from the --preview-bg CSS var cascade (not the
-    // GlobeBackground prop), so the embed root only paints it when asked —
-    // see the root div's style below.
-    hasBackground: Boolean(bg) && !clearBg,
+    // Whether the host explicitly asked for a page background, or the share
+    // config brings its own color. The visible page color comes from the
+    // --preview-bg CSS var cascade (not the GlobeBackground prop), so the
+    // embed root only paints it when asked — see the root div's style below.
+    hasBackground: bg ? !clearBg : Boolean(shareConfig?.background),
     transparent: clearBg || bool("transparent", false),
     // Render theme. The globe's default palette (glow, grid, surface) is
     // tuned for dark backgrounds; `theme=light` flips it to a graphite-on-
@@ -147,11 +151,11 @@ const findAreaIds = (selectionValue) => {
 
 export const EmbedView = () => {
   const search = typeof window !== "undefined" ? window.location.search : "";
-  const params = useMemo(() => parseParams(search), [search]);
   // If the host URL carries ?c=…, the recipient gets the sender's exact
   // customizations layered on top of preset defaults. See
   // src/utils/share-config.js for the encoding contract.
   const shareConfig = useMemo(() => parseShareConfig(search), [search]);
+  const params = useMemo(() => parseParams(search, shareConfig), [search, shareConfig]);
   // In the Figma plugin shell the look, region, density and view pickers
   // replace the matching query params, so the panel renders what
   // /embed?look=…&selection=…&density=…&view=… would. Insert always sends a
@@ -427,7 +431,7 @@ export const EmbedView = () => {
       className="embed-view"
       data-source={params.source}
       data-transparent={settings.transparent ? "true" : undefined}
-      // ?background= must paint the page itself: .globe-background reads
+      // A page background must paint the page itself: .globe-background reads
       // var(--preview-bg, var(--bg)), so without the var the dark theme bg
       // wins and the param is invisible. Mirrors the studio shell
       // (App.jsx --preview-bg): space/flow looks paint their own WebGL

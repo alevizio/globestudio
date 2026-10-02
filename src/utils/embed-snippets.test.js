@@ -94,44 +94,26 @@ describe("buildIframeSnippet", () => {
     expect(bare.getAttribute("src")).toBe("https://globestudio.app/embed");
   });
 
-  // The embed route takes these two from the URL, not from the config.
-  describe("what the embed route reads from the URL", () => {
-    const paramsFor = (design) => {
+  // The embed route reads the view and the page color from the config, as
+  // it does for the two packages, which send nothing else.
+  it("puts the config in the address and nothing else, whatever the design", () => {
+    for (const design of [
+      { viewMode: "flat", background: "#7a1f1f", backgroundStyle: "solid", transparent: false },
+      { viewMode: "globe", background: "#7a1f1f", transparent: true },
+      { background: "#7a1f1f", backgroundStyle: "space" },
+      {},
+    ]) {
       const config = JSON.stringify({ v: 2, ...design });
       const src = parse(buildIframeSnippet({ config, width: 640, height: 480 })).querySelector("iframe").getAttribute("src");
-      const params = new URL(src).searchParams;
-      expect(params.get("c")).toBe(config);
-      params.delete("c");
-      return Object.fromEntries(params);
-    };
+      expect(Object.fromEntries(new URL(src).searchParams)).toEqual({ c: config });
+    }
+  });
 
-    it("asks for the Flat view when the design is flat", () => {
-      expect(paramsFor({ viewMode: "flat", transparent: true })).toEqual({ view: "flat" });
-      expect(paramsFor({ viewMode: "globe", transparent: true })).toEqual({});
-    });
-
-    it("asks for the page color of a Solid background", () => {
-      expect(paramsFor({ background: "#7a1f1f", backgroundStyle: "solid", transparent: false })).toEqual({
-        background: "7a1f1f",
-      });
-      expect(paramsFor({ viewMode: "flat", background: "#7A1F1F" })).toEqual({ view: "flat", background: "7A1F1F" });
-    });
-
-    it("asks for no page color when the design is Transparent, Space or Flow", () => {
-      expect(paramsFor({ background: "#7a1f1f", transparent: true })).toEqual({});
-      expect(paramsFor({ background: "#7a1f1f", backgroundStyle: "transparent" })).toEqual({});
-      expect(paramsFor({ background: "#7a1f1f", backgroundStyle: "space" })).toEqual({});
-      expect(paramsFor({ background: "#7a1f1f", backgroundStyle: "flow" })).toEqual({});
-    });
-
-    it("leaves out a color that isn't a hex, and anything else it can't read", () => {
-      expect(paramsFor({ background: 'red" onload="x' })).toEqual({});
-      expect(paramsFor({})).toEqual({});
-      const src = parse(buildIframeSnippet({ config: "not json", width: 640, height: 480 }))
-        .querySelector("iframe")
-        .getAttribute("src");
-      expect(src).toBe("https://globestudio.app/embed?c=not%20json");
-    });
+  it("passes on a config it can't read as it is", () => {
+    const src = parse(buildIframeSnippet({ config: "not json", width: 640, height: 480 }))
+      .querySelector("iframe")
+      .getAttribute("src");
+    expect(src).toBe("https://globestudio.app/embed?c=not%20json");
   });
 });
 

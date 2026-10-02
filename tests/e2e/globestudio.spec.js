@@ -854,8 +854,8 @@ test.describe("MCP tab", () => {
 test.describe("Embed code", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 
-  // A flat map on a red page, glow off (see the PNG saved test): the two
-  // things the embed route takes from the URL and not from the config.
+  // A flat map on a red page, glow off (see the PNG saved test): the view
+  // and the page color, which the embed route reads from the config.
   const DESIGN = { v: 1, viewMode: "flat", background: "#7a1f1f", globeSettings: { glow: false } };
 
   const openShareTab = async (page) => {
@@ -870,6 +870,29 @@ test.describe("Embed code", () => {
   // Waits out the toggle's sliding pill, so axe reads the colors at rest.
   const settled = (locator) =>
     expect.poll(() => locator.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+  // The box the white dots cover in a clip of the page, as width over height.
+  const dotsAspect = async (page, clip) => {
+    const png = await page.screenshot({ clip });
+    return page.evaluate(async (b64) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const context = canvas.getContext("2d");
+      context.drawImage(img, 0, 0);
+      const { data } = context.getImageData(0, 0, img.width, img.height);
+      let [left, top, right, bottom] = [img.width, img.height, -1, -1];
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] < 200 || data[i + 1] < 200 || data[i + 2] < 200) continue;
+        const x = (i / 4) % img.width;
+        const y = Math.floor(i / 4 / img.width);
+        [left, top, right, bottom] = [Math.min(left, x), Math.min(top, y), Math.max(right, x), Math.max(bottom, y)];
+      }
+      return right < 0 ? 0 : (right - left) / Math.max(bottom - top, 1);
+    }, png.toString("base64"));
+  };
   const copySnippet = async (page, dialog) => {
     await dialog.getByRole("tabpanel").getByRole("button", { name: "Copy code to clipboard" }).click();
     await expect(dialog.getByRole("tabpanel").getByRole("button", { name: "Copied" })).toBeVisible();
@@ -898,7 +921,7 @@ test.describe("Embed code", () => {
     }, iframe);
     const src = new URL(attrs.src);
     expect(`${src.origin}${src.pathname}`).toBe("https://globestudio.app/embed");
-    expect(Object.fromEntries(src.searchParams)).toEqual({ c: config, view: "flat", background: "7a1f1f" });
+    expect(Object.fromEntries(src.searchParams)).toEqual({ c: config });
     expect(Number(attrs.width)).toBeGreaterThanOrEqual(64);
     expect(Number(attrs.height)).toBeGreaterThanOrEqual(64);
 
@@ -938,14 +961,22 @@ test.describe("Embed code", () => {
     await expectNoSeriousAxeViolations(page);
   });
 
+  // The snippet's address carries the config alone, which is also all the
+  // React and web component packages send.
   test("the iframe snippet opens the embed route as the flat map on its own background", async ({ page, baseURL }) => {
     const dialog = await openShareTab(page);
     const snippet = await copySnippet(page, dialog);
     // Paste it into an empty page, pointed at this build instead of production.
-    await page.setContent(`<body style="margin:0">${snippet.replace("https://globestudio.app", baseURL)}</body>`);
+    const sized = snippet.replace(/width="\d+"/, 'width="1200"').replace(/height="\d+"/, 'height="600"');
+    await page.setContent(`<body style="margin:0">${sized.replace("https://globestudio.app", baseURL)}</body>`);
     const embed = page.frameLocator("iframe");
     await expect(embed.locator(".globe-background canvas")).toBeVisible({ timeout: CANVAS_TIMEOUT });
     await expect(embed.locator(".embed-view")).toHaveCSS("background-color", "rgb(122, 31, 31)");
+    // The white dots of a flat world map cover a box about twice as wide
+    // as it is tall. A globe's stay inside a circle.
+    await expect
+      .poll(() => dotsAspect(page, { x: 0, y: 0, width: 1200, height: 600 }), { timeout: CANVAS_TIMEOUT })
+      .toBeGreaterThan(1.5);
   });
 });
 

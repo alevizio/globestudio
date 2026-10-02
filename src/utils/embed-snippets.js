@@ -3,7 +3,7 @@
 // is the ?c= value of a share link, decoded once. Without one the snippet
 // leaves it out and embeds a default look.
 
-import { backgroundKind, previewBackground } from "./canvas-background.js";
+import { previewBackground } from "./canvas-background.js";
 
 const SITE_URL = "https://globestudio.app";
 const HEX_RE = /^#[0-9a-f]{3,8}$/i;
@@ -17,22 +17,12 @@ const readDesign = (config) => {
   }
 };
 
-// Two things the embed route takes from the URL and not from the config:
-// the Flat view, and the page color behind a Solid background. Without
-// them a flat map embeds as a globe, on the embed's own dark page.
-const embedParams = (config) => {
-  const design = readDesign(config);
-  const view = design.viewMode === "flat" ? "&view=flat" : "";
-  const solid = backgroundKind(design) === "solid" && HEX_RE.test(design.background);
-  return `${view}${solid ? `&background=${design.background.slice(1)}` : ""}`;
-};
-
 // The docs page's iframe form, pointed at the embed route. The config is
 // encoded the way the share link encodes it, and nothing encodeURIComponent
 // leaves behind can end a double-quoted attribute.
 export const buildIframeSnippet = ({ config, width, height }) =>
   `<iframe
-  src="${SITE_URL}/embed${config ? `?c=${encodeURIComponent(config)}${embedParams(config)}` : ""}"
+  src="${SITE_URL}/embed${config ? `?c=${encodeURIComponent(config)}` : ""}"
   width="${width}"
   height="${height}"
   style="border: 0;"
