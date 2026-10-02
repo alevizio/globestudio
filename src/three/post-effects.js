@@ -925,9 +925,10 @@ const FRAGMENT_SHADER = /* glsl */ `
 
     vec4 src = sampleTex(distorted);
     vec3 color = src.rgb;
-    // Coarse white-noise overlay — looks like analog snow on top of the
-    // distorted feed.
-    color += vec3(5.0 * strength * (rand(uv + 1.133 * vec2(t, 1.13)) - 0.5));
+    // Coarse white-noise overlay, like analog snow on top of the distorted
+    // feed. At 5.0 (the reference's value) the snow covered the whole globe
+    // and hid the map; 1.8 keeps it reading as a bad signal.
+    color += vec3(1.8 * strength * (rand(uv + 1.133 * vec2(t, 1.13)) - 0.5));
     return vec4(color, src.a);
   }
 

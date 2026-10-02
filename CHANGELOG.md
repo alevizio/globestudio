@@ -27,6 +27,8 @@ All notable changes to Globestudio are tracked here. Format follows
   It turns off the glow halo around the globe, previews at one device pixel
   and says so in a notice that can turn the effects back on. Designs and
   share links are unchanged.
+- Bad TV's static is about a third as strong, so the map shows through it.
+  It used to cover the whole globe.
 
 ## [1.0.0] - 2026-09-28
 
