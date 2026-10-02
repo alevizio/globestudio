@@ -45,6 +45,9 @@ Or via CDN, no build step:
 
 Attributes are reactive: change `look` or `config` and the globe updates.
 
+In the app, the export dialog's Share tab writes this tag for the design on
+screen: pick Web component under Embed code and copy it.
+
 ## API
 
 ```js

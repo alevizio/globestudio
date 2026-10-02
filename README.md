@@ -139,6 +139,10 @@ Both wrap the same `/embed` route in an iframe, so every look works in both.
 Setup and props: [`packages/react`](packages/react/) and
 [`packages/web-component`](packages/web-component/).
 
+The export dialog writes this code for the design on screen. Its Share tab
+has an Embed code section with three options, iframe, React and Web
+component, each with a Copy button.
+
 ### Embed parameters
 
 Every query param the `/embed` route reads, as parsed in

@@ -47,6 +47,11 @@ A user without an MCP client can press **Copy for AI** in the export dialog's
 MCP tab. It copies a plain text prompt with the share link, the key
 settings, and what an agent can do with them.
 
+The export dialog's Share tab has **Embed code** for the design on screen:
+an iframe pointed at `/embed?c=…`, a `<Globe config=… />` snippet for
+`@globestudio/react`, and a `<globe-studio config="…">` tag for
+`@globestudio/element` loaded from esm.sh. Each has a Copy button.
+
 ### Common URL parameters
 
 - `look`: a preset id (see the catalog below), e.g. `look=crt`.

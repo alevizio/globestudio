@@ -271,7 +271,7 @@ const INTEGRATIONS = [
     bg: "#20232A",
     fg: "#61DAFB",
     blurb:
-      "One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box. Works in React, Next.js, Remix, Astro.",
+      "One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box. Works in React, Next.js, Remix, Astro. For your own design, the export dialog's Share tab has the snippet under Embed code, next to an iframe and a web component version.",
     snippet: `npm install @globestudio/react
 
 // Then:

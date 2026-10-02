@@ -27,6 +27,8 @@ export default function Page() {
 
 The component is a styled `<iframe>` over `globestudio.app/embed`, so the heavy work (Three.js, shaders, country data) runs on the embed origin and your bundle stays a couple hundred bytes.
 
+In the app, the export dialog's Share tab writes a `<Globe config=… />` snippet for the design on screen: pick React under Embed code and copy it.
+
 ## Props
 
 | Prop | Type | Default | Notes |

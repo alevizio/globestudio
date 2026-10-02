@@ -150,6 +150,12 @@ export const DocsPage = () => {
             state on someone else's machine.
           </p>
           <p>
+            The same tab has an Embed code section. It shows the design on
+            screen as an iframe, a <code>@globestudio/react</code> snippet or
+            a <code>@globestudio/element</code> web component, each with a
+            Copy button.
+          </p>
+          <p>
             The encoded payload follows the{" "}
             <a href="/schema/config.json" target="_blank" rel="noreferrer">
               config JSON schema
