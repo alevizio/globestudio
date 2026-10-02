@@ -6,10 +6,10 @@ export const LowPowerNotice = ({ onRestore, onDismiss }) => (
   <div className="low-power-notice" role="status">
     <p className="low-power-notice-text">Effects reduced so the globe runs faster on this device.</p>
     <div className="low-power-notice-actions">
-      <button type="button" className="button low-power-notice-button low-power-notice-button--primary" onClick={onRestore}>
+      <button type="button" className="button button-ghost low-power-notice-button" onClick={onRestore}>
         Turn effects back on
       </button>
-      <button type="button" className="button button-ghost low-power-notice-button" onClick={onDismiss}>
+      <button type="button" className="button low-power-notice-button low-power-notice-button--primary" onClick={onDismiss}>
         Dismiss
       </button>
     </div>
