@@ -228,6 +228,25 @@ describe("ExportModal", () => {
       fireEvent.keyDown(tablist, { key: "End" });
       expect(selectedTab()).toBe("MCP");
     });
+
+    it("moves focus with the selection, so the ring sits on the tab that is shown", () => {
+      renderModal();
+      const tablist = screen.getByRole("tablist", { name: "Export type" });
+      const focusedTab = () => document.activeElement.textContent;
+      exportTabs().getByRole("tab", { name: "Image" }).focus();
+      for (const [key, name] of [
+        ["ArrowRight", "Video"],
+        ["End", "MCP"],
+        ["ArrowRight", "Image"],
+        ["ArrowLeft", "MCP"],
+        ["Home", "Image"],
+      ]) {
+        fireEvent.keyDown(tablist, { key });
+        expect(selectedTab()).toBe(name);
+        expect(focusedTab()).toBe(name);
+        expect(document.activeElement.tabIndex).toBe(0);
+      }
+    });
   });
 
   describe("importing a configuration file", () => {

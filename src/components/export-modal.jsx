@@ -96,22 +96,24 @@ const Tabs = ({ tab, setTab, hasVideo, figmaPlugin = false }) => {
   }, [tab]);
 
   // ARIA tablist convention: ArrowLeft/Right move selection, Home/End jump to
-  // ends. We wrap around so power users can hold the arrow key.
+  // ends. We wrap around so power users can hold the arrow key. Focus goes
+  // with the selection, so the ring and the next Tab start from the tab shown.
   const onKeyDown = (event) => {
     const currentIndex = tabs.findIndex((t) => t.id === tab);
     if (currentIndex < 0) return;
+    const select = (index) => {
+      event.preventDefault();
+      setTab(tabs[index].id);
+      tabRefs.current.get(tabs[index].id)?.focus();
+    };
     if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      setTab(tabs[(currentIndex - 1 + tabs.length) % tabs.length].id);
+      select((currentIndex - 1 + tabs.length) % tabs.length);
     } else if (event.key === "ArrowRight") {
-      event.preventDefault();
-      setTab(tabs[(currentIndex + 1) % tabs.length].id);
+      select((currentIndex + 1) % tabs.length);
     } else if (event.key === "Home") {
-      event.preventDefault();
-      setTab(tabs[0].id);
+      select(0);
     } else if (event.key === "End") {
-      event.preventDefault();
-      setTab(tabs[tabs.length - 1].id);
+      select(tabs.length - 1);
     }
   };
 

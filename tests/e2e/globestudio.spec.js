@@ -736,17 +736,25 @@ test.describe("MCP tab", () => {
       "MCP",
     ]);
 
+    // Focus moves with the selection, as it does between the clients.
     await dialog.getByRole("tab", { name: "MCP" }).press("ArrowRight");
     await expect(selected).toHaveText("Image");
+    await expect(selected).toBeFocused();
     for (const name of ["Video", "SVG", "Share", "MCP"]) {
       await page.keyboard.press("ArrowRight");
       await expect(selected).toHaveText(name);
+      await expect(selected).toBeFocused();
     }
     await page.keyboard.press("Home");
     await expect(selected).toHaveText("Image");
+    await expect(selected).toBeFocused();
     await page.keyboard.press("End");
     await expect(selected).toHaveText("MCP");
+    await expect(selected).toBeFocused();
     await expect(dialog.getByRole("heading", { name: "Connect your agent" })).toBeVisible();
+    // Tab then goes into the tab that is shown, not to another tab.
+    await page.keyboard.press("Tab");
+    await expect(dialog.getByRole("tab", { name: "Claude" })).toBeFocused();
     // Focus stays inside the dialog the whole way.
     expect(await page.evaluate(() => Boolean(document.activeElement?.closest('[role="dialog"]')))).toBe(true);
   });
