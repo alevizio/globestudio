@@ -74,7 +74,7 @@ Accurate as of launch. Use these when a comment asks "can it do X?".
 - Dots: 12 shapes plus custom SVG/PNG upload or pasted SVG (200 KB cap).
 - Solid mode: filled land and borders, rivers and cities overlays, pasted GeoJSON lines and points, and five flat projections (Mercator, Equal Earth, Natural Earth, Winkel Tripel, Robinson). Dotted maps use Mercator.
 - Your data: paste `lat,lng,value` or `country,value`; markers are sized by value, with optional arcs.
-- Export: PNG at 1x to 4x, SVG (clean vector dots; six effects approximated with SVG filters), WebM, MP4 (where the browser supports it), GIF, JSON config, and "Copy as React".
+- Export: PNG at 1x to 4x, saved or copied to the clipboard, SVG (clean vector dots; six effects approximated with SVG filters), WebM, MP4 (where the browser supports it), GIF, JSON config, and embed code for an iframe, React or a web component.
 - Embed: `/embed` with URL params or a full `?c=` config, `embed.js` script tag, `@globestudio/react`, `@globestudio/element` web component, Figma plugin, WordPress via a Custom HTML embed, MCP server. Guides: https://globestudio.app/integrations
 - Accessibility: built to WCAG 2.2 AA and self-audited; known gaps in ACCESSIBILITY.md.
 - Privacy: no accounts; cookieless analytics that stay off under Do Not Track or GPC. Details: https://globestudio.app/privacy
