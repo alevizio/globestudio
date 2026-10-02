@@ -5365,6 +5365,43 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   color: var(--text);
 }
 
+/* A headed group inside a tab, such as the Share tab's Embed code: the
+   heading, then its controls, 12px apart like a field. The controls drop
+   the outer margins they carry elsewhere. */
+.export-modal-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.export-modal-group h3,
+.export-modal-group .segmented-toggle,
+.export-modal-group .code-block {
+  margin: 0;
+}
+
+/* "Web component" is wider than a third of the toggle on a phone narrower
+   than about 390px. There the label wraps to a second line instead of being
+   cut off. */
+.export-modal-group .segmented-toggle-button {
+  padding: 2px;
+  white-space: normal;
+}
+
+/* Focus rings, as in the MCP tab. The toggle buttons and a snippet that
+   scrolls are clipped to pixel corners, which would cut off an outer
+   outline, so theirs sits inside the edge. The Copy button only changed
+   colour on focus. */
+.export-modal-group .segmented-toggle-button:focus-visible,
+.export-modal-group .code-block-pre:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -4px;
+}
+
+.export-modal-group .code-block-copy:focus-visible {
+  outline: 2px solid currentColor;
+}
+
 @media (max-width: 540px) {
   .export-modal-row {
     grid-template-columns: 1fr;

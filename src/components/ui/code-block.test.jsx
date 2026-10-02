@@ -34,6 +34,26 @@ describe("CodeBlock", () => {
     expect(screen.getByRole("button", { name: "Copied" })).toBeTruthy();
   });
 
+  it("tells its caller once the code is copied, and not when the copy is refused", async () => {
+    const onCopy = vi.fn();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn(() => Promise.resolve()) },
+    });
+    const { unmount } = render(<CodeBlock language="Codex" onCopy={onCopy}>{COMMAND}</CodeBlock>);
+    await copy();
+    expect(onCopy).toHaveBeenCalledTimes(1);
+    unmount();
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn(() => Promise.reject(new Error("denied"))) },
+    });
+    render(<CodeBlock language="Codex" onCopy={onCopy}>{COMMAND}</CodeBlock>);
+    await copy();
+    expect(onCopy).toHaveBeenCalledTimes(1);
+  });
+
   it("falls back to execCommand without the Clipboard API", async () => {
     document.execCommand = vi.fn(() => true);
     render(<CodeBlock language="Codex">{COMMAND}</CodeBlock>);

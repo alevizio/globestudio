@@ -848,3 +848,142 @@ test.describe("MCP tab", () => {
     expect(await page.evaluate(() => Boolean(document.activeElement?.closest('[role="dialog"]')))).toBe(true);
   });
 });
+
+test.describe("Embed code", () => {
+  test.use({ permissions: ["clipboard-read", "clipboard-write"] });
+
+  // A flat map on a red page, glow off (see the PNG saved test): the two
+  // things the embed route takes from the URL and not from the config.
+  const DESIGN = { v: 1, viewMode: "flat", background: "#7a1f1f", globeSettings: { glow: false } };
+
+  const openShareTab = async (page) => {
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify(DESIGN))}`);
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await dialog.getByRole("tab", { name: "Share" }).click();
+    await expect(dialog.getByRole("heading", { name: "Embed code" })).toBeVisible();
+    return dialog;
+  };
+  // Waits out the toggle's sliding pill, so axe reads the colors at rest.
+  const settled = (locator) =>
+    expect.poll(() => locator.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+  const copySnippet = async (page, dialog) => {
+    await dialog.getByRole("tabpanel").getByRole("button", { name: "Copy code to clipboard" }).click();
+    await expect(dialog.getByRole("tabpanel").getByRole("button", { name: "Copied" })).toBeVisible();
+    return page.evaluate(() => navigator.clipboard.readText());
+  };
+
+  test("copies an iframe, a React and a web component snippet for the current design", async ({ page }) => {
+    const dialog = await openShareTab(page);
+    await expect(dialog.getByRole("button", { name: /Copy as React/ })).toHaveCount(0);
+    await dialog.getByRole("button", { name: "Copy share link" }).click();
+    await expect(dialog.getByRole("button", { name: "Link copied to clipboard" })).toBeVisible();
+    const config = new URL(await page.evaluate(() => navigator.clipboard.readText())).searchParams.get("c");
+    expect(JSON.parse(config)).toMatchObject({ viewMode: "flat", background: "#7a1f1f" });
+
+    const kinds = dialog.getByRole("tablist", { name: "Embed code" });
+    await expect(kinds.getByRole("tab")).toHaveText(["iframe", "React", "Web component"]);
+    await expect(kinds.getByRole("tab", { name: "iframe" })).toHaveAttribute("aria-selected", "true");
+    const panel = dialog.getByRole("tabpanel");
+
+    // The size comes from the Image tab's fields.
+    const iframe = await copySnippet(page, dialog);
+    expect(iframe).toBe(await panel.locator("code").textContent());
+    const attrs = await page.evaluate((html) => {
+      const node = new DOMParser().parseFromString(html, "text/html").querySelector("iframe");
+      return { src: node.getAttribute("src"), width: node.getAttribute("width"), height: node.getAttribute("height") };
+    }, iframe);
+    const src = new URL(attrs.src);
+    expect(`${src.origin}${src.pathname}`).toBe("https://globestudio.app/embed");
+    expect(Object.fromEntries(src.searchParams)).toEqual({ c: config, view: "flat", background: "7a1f1f" });
+    expect(Number(attrs.width)).toBeGreaterThanOrEqual(64);
+    expect(Number(attrs.height)).toBeGreaterThanOrEqual(64);
+
+    // Arrow keys move between the options, taking focus along.
+    await kinds.getByRole("tab", { name: "iframe" }).press("ArrowRight");
+    await expect(kinds.getByRole("tab", { name: "React" })).toBeFocused();
+    await expect(kinds.getByRole("tab", { name: "React" })).toHaveAttribute("aria-selected", "true");
+    const react = await copySnippet(page, dialog);
+    expect(react).toBe(
+      `import { Globe } from "@globestudio/react";\n\n<Globe\n  config={${JSON.stringify(config)}}\n  width={${attrs.width}}\n  height={${attrs.height}}\n/>`,
+    );
+
+    await kinds.getByRole("tab", { name: "React" }).press("End");
+    await expect(kinds.getByRole("tab", { name: "Web component" })).toBeFocused();
+    const element = await copySnippet(page, dialog);
+    const [script, tag] = element.split("\n");
+    expect(script).toBe('<script type="module" src="https://esm.sh/@globestudio/element"></script>');
+    const parsed = await page.evaluate((html) => {
+      const node = new DOMParser().parseFromString(html, "text/html").querySelector("globe-studio");
+      return { config: node.getAttribute("config"), height: node.getAttribute("height") };
+    }, tag);
+    expect(parsed).toEqual({ config, height: attrs.height });
+
+    // Tab goes from the options to the snippet's Copy button, which shows a ring.
+    await kinds.getByRole("tab", { name: "Web component" }).focus();
+    await page.keyboard.press("Tab");
+    const copy = panel.getByRole("button", { name: /Cop/ });
+    await expect(copy).toBeFocused();
+    await expect(copy).toHaveCSS("outline-style", "solid");
+    // The long config line scrolls inside its box, and the keyboard reaches it next.
+    const pre = panel.locator("pre");
+    expect(await pre.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
+    await page.keyboard.press("Tab");
+    await expect(pre).toBeFocused();
+    await expect(pre).toHaveCSS("outline-style", "solid");
+    await settled(kinds);
+    await expectNoSeriousAxeViolations(page);
+  });
+
+  test("the iframe snippet opens the embed route as the flat map on its own background", async ({ page, baseURL }) => {
+    const dialog = await openShareTab(page);
+    const snippet = await copySnippet(page, dialog);
+    // Paste it into an empty page, pointed at this build instead of production.
+    await page.setContent(`<body style="margin:0">${snippet.replace("https://globestudio.app", baseURL)}</body>`);
+    const embed = page.frameLocator("iframe");
+    await expect(embed.locator(".globe-background canvas")).toBeVisible({ timeout: CANVAS_TIMEOUT });
+    await expect(embed.locator(".embed-view")).toHaveCSS("background-color", "rgb(122, 31, 31)");
+  });
+});
+
+test.describe("embed code on a 320px wide phone", () => {
+  test.use({ viewport: { width: 320, height: 568 }, isMobile: true, hasTouch: true });
+
+  test("every option keeps its label whole and the snippet scrolls inside its box", async ({ page }) => {
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await dialog.getByRole("tab", { name: "Share" }).tap();
+    const kinds = dialog.getByRole("tablist", { name: "Embed code" });
+    await kinds.getByRole("tab", { name: "Web component" }).tap();
+    await expect(kinds.getByRole("tab", { name: "Web component" })).toHaveAttribute("aria-selected", "true");
+    const labels = await kinds.getByRole("tab").evaluateAll((tabs) =>
+      tabs.map((tab) => {
+        const range = document.createRange();
+        range.selectNodeContents(tab);
+        const text = range.getBoundingClientRect();
+        const box = tab.getBoundingClientRect();
+        return { label: tab.textContent, whole: text.left >= box.left && text.right <= box.right && tab.scrollWidth <= tab.clientWidth };
+      }),
+    );
+    expect(labels).toEqual([
+      { label: "iframe", whole: true },
+      { label: "React", whole: true },
+      { label: "Web component", whole: true },
+    ]);
+    // Nothing in the tab pushes the dialog wider than the screen.
+    const body = await dialog.locator(".export-modal-body").evaluate((el) => ({
+      scrollWidth: el.scrollWidth,
+      clientWidth: el.clientWidth,
+    }));
+    expect(body.scrollWidth).toBeLessThanOrEqual(body.clientWidth);
+    const pre = dialog.getByRole("tabpanel").locator("pre");
+    expect(await pre.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
+    await expect(pre).toHaveAttribute("tabindex", "0");
+    // Wait out the toggle's sliding pill, so axe reads the colors at rest.
+    await expect.poll(() => kinds.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+    await expectNoSeriousAxeViolations(page);
+  });
+});

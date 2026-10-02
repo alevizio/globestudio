@@ -13,6 +13,7 @@ import { Check, Clipboard } from "../icons.jsx";
 // `keyboardScroll` is for snippets that can still run past a narrow box:
 // while one scrolls sideways it joins the tab order, named by its language
 // label, so the arrow keys can scroll it.
+// `onCopy` is called after a copy that worked.
 
 const Args = ({ text }) =>
   text.split(" ").map((arg, index) => (
@@ -22,7 +23,7 @@ const Args = ({ text }) =>
     </Fragment>
   ));
 
-export const CodeBlock = ({ children, language, className = "", wrap = false, keyboardScroll = false }) => {
+export const CodeBlock = ({ children, language, className = "", wrap = false, keyboardScroll = false, onCopy: onCopied }) => {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef(0);
   const preRef = useRef(null);
@@ -61,6 +62,7 @@ export const CodeBlock = ({ children, language, className = "", wrap = false, ke
       }
       setCopied(true);
       timerRef.current = window.setTimeout(() => setCopied(false), 1500);
+      onCopied?.();
     } catch {
       // Clipboard write blocked — fail silently; the snippet is still
       // selectable.

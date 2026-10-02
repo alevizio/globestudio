@@ -237,6 +237,37 @@ describe("ExportModal", () => {
     });
   });
 
+  describe("the Share tab's embed code", () => {
+    const CONFIG = '{"v":2,"density":60}';
+    const SHARE_URL = `https://globestudio.app/?c=${encodeURIComponent(CONFIG)}`;
+    const shownCode = () => screen.getByRole("tabpanel").querySelector("code").textContent;
+
+    it("takes the place of the Copy as React button, between the link and the JSON export", () => {
+      renderModal({ getShareUrl: () => SHARE_URL });
+      fireEvent.click(screen.getByRole("tab", { name: "Share" }));
+      expect(screen.queryByRole("button", { name: /Copy as React/ })).toBeNull();
+      const follows = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const link = screen.getByRole("button", { name: /Copy share link/ });
+      const heading = screen.getByRole("heading", { name: "Embed code" });
+      const config = screen.getByRole("button", { name: /Export configuration/ });
+      expect(follows(link, heading)).toBe(true);
+      expect(follows(screen.getByRole("tabpanel"), config)).toBe(true);
+    });
+
+    it("uses the size set on the Image tab", () => {
+      renderModal({ getShareUrl: () => SHARE_URL });
+      fireEvent.change(screen.getByLabelText("Export width"), { target: { value: "900" } });
+      fireEvent.change(screen.getByLabelText("Export height"), { target: { value: "500" } });
+      fireEvent.click(screen.getByRole("tab", { name: "Share" }));
+      expect(shownCode()).toContain('width="900"');
+      expect(shownCode()).toContain('height="500"');
+      fireEvent.click(screen.getByRole("tab", { name: "React" }));
+      expect(shownCode()).toBe(
+        `import { Globe } from "@globestudio/react";\n\n<Globe\n  config={${JSON.stringify(CONFIG)}}\n  width={900}\n  height={500}\n/>`,
+      );
+    });
+  });
+
   describe("the MCP tab", () => {
     const SHARE_URL = "https://globestudio.app/?c=%7B%22v%22%3A1%2C%22density%22%3A60%7D";
     // The dialog's own row. The MCP tab holds a second tablist, for the clients.
@@ -280,7 +311,7 @@ describe("ExportModal", () => {
       await screen.findByRole("button", { name: /Copy for AI/ });
       fireEvent.click(screen.getByRole("tab", { name: "Share" }));
       expect(screen.getByRole("button", { name: /Copy share link/ })).toBeTruthy();
-      expect(screen.getByRole("button", { name: /Copy as React/ })).toBeTruthy();
+      expect(screen.getByRole("heading", { name: "Embed code" })).toBeTruthy();
       expect(screen.getByRole("button", { name: /Export configuration/ })).toBeTruthy();
       expect(screen.getByText("Import .json configuration")).toBeTruthy();
       expect(screen.queryByRole("button", { name: /Copy for AI/ })).toBeNull();
