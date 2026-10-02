@@ -32,6 +32,13 @@
   outline-offset: -4px;
 }
 
+/* A command's Copy button only changed colour on focus, too faint to
+   find. It sits clear of the code block's clipped corners, so its ring can
+   hug the button. */
+.agent-share .code-block-copy:focus-visible {
+  outline: 2px solid currentColor;
+}
+
 .agent-share h3.agent-share-once-label {
   margin-top: 12px;
 }

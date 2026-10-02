@@ -722,6 +722,12 @@ test.describe("MCP tab", () => {
     await expect(dialog.getByRole("tab", { name: "Claude" })).toBeFocused();
     await expect(panel).toContainText("claude mcp add");
 
+    // Tab reaches the command's Copy button, which shows a focus ring.
+    await page.keyboard.press("Tab");
+    const copyCommand = panel.getByRole("button", { name: "Copy code to clipboard" }).first();
+    await expect(copyCommand).toBeFocused();
+    await expect(copyCommand).toHaveCSS("outline-style", "solid");
+
     await expectNoSeriousAxeViolations(page);
   });
 
