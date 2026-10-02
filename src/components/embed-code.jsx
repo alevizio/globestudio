@@ -6,6 +6,7 @@ import {
   buildIframeSnippet,
   buildReactSnippet,
   buildWebComponentSnippet,
+  fitsEmbedUrl,
 } from "../utils/embed-snippets.js";
 
 // The Share tab's embed code: the current design as an iframe, a React
@@ -70,6 +71,18 @@ export const EmbedCode = ({ getShareUrl, width, height }) => {
     form.remove();
     track("share_clicked", { method: "codepen" });
   };
+
+  // Code that would embed an error page is not shown.
+  if (!fitsEmbedUrl(config)) {
+    return (
+      <section className="export-modal-group">
+        <h3 className="export-modal-label">Embed code</h3>
+        <p className="export-modal-caption">
+          This design is too large to embed. Its custom shape file makes the URL too long, so try a smaller one.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="export-modal-group">

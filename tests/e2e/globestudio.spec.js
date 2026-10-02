@@ -980,6 +980,46 @@ test.describe("Embed code", () => {
   });
 });
 
+test.describe("embed code for a design with a large custom shape", () => {
+  test("says the design is too large, in place of code the site would turn down", async ({ page }) => {
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await dialog.getByRole("tab", { name: "Share" }).click();
+    await expect(dialog.getByRole("button", { name: "Open in CodePen" })).toBeVisible();
+
+    // A shape file of noise, which PNG can't shrink: about 85 kB as a data URL.
+    const dataUrl = await page.evaluate(() => {
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 128;
+      const context = canvas.getContext("2d");
+      const image = context.createImageData(128, 128);
+      crypto.getRandomValues(image.data);
+      context.putImageData(image, 0, 0);
+      return canvas.toDataURL("image/png");
+    });
+    expect(dataUrl.length).toBeGreaterThan(40_000);
+    const config = { shape: "Custom", customShape: { name: "noise.png", type: "image/png", dataUrl } };
+    await dialog.locator('input[type="file"]').setInputFiles({
+      name: "large.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(config)),
+    });
+
+    await expect(
+      dialog.getByText("This design is too large to embed. Its custom shape file makes the URL too long, so try a smaller one."),
+    ).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Embed code" })).toBeVisible();
+    await expect(dialog.getByRole("tablist", { name: "Embed code" })).toHaveCount(0);
+    await expect(dialog.getByRole("button", { name: "Open in CodePen" })).toHaveCount(0);
+    // The rest of the tab is as it was.
+    await expect(dialog.getByRole("button", { name: "Copy share link" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Export configuration" })).toBeVisible();
+    await expectNoSeriousAxeViolations(page);
+  });
+});
+
 test.describe("Open in CodePen", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 

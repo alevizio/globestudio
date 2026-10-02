@@ -17,6 +17,20 @@ const readDesign = (config) => {
   }
 };
 
+// The site answers 414 for an address a little under 32,800 characters
+// long. The config travels in the address, and the file of a custom shape
+// can take it past that. This leaves some room.
+const EMBED_URL_MAX = 32_000;
+
+// Whether the design fits in an embed address. The packages encode the
+// config with URLSearchParams, which can come out longer than the iframe's
+// encodeURIComponent.
+export const fitsEmbedUrl = (config) => {
+  if (!config) return true;
+  const encoded = Math.max(encodeURIComponent(config).length, new URLSearchParams({ c: config }).toString().length - 2);
+  return `${SITE_URL}/embed?c=`.length + encoded <= EMBED_URL_MAX;
+};
+
 // The docs page's iframe form, pointed at the embed route. The config is
 // encoded the way the share link encodes it, and nothing encodeURIComponent
 // leaves behind can end a double-quoted attribute.

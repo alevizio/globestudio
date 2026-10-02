@@ -4,6 +4,7 @@ import {
   buildIframeSnippet,
   buildReactSnippet,
   buildWebComponentSnippet,
+  fitsEmbedUrl,
 } from "./embed-snippets.js";
 import { buildShareUrl, parseShareConfig } from "./share-config.js";
 import { buildEmbedUrl } from "../../packages/web-component/index.js";
@@ -193,5 +194,40 @@ describe("buildCodePenData", () => {
     const element = parse(received.html).querySelector("globe-studio");
     expect(element.getAttribute("config")).toBe(CONFIG);
     expect(parseShareConfig(new URL(buildEmbedUrl({ config: element.getAttribute("config") })).search)).toEqual(DECODED);
+  });
+});
+
+describe("fitsEmbedUrl", () => {
+  const iframeUrl = (config) =>
+    parse(buildIframeSnippet({ config, width: 640, height: 480 })).querySelector("iframe").getAttribute("src");
+  // A config whose iframe address is exactly `length` characters long.
+  const configFor = (length) => {
+    const config = (pad) => JSON.stringify({ v: 2, asciiSymbol: "a".repeat(pad) });
+    return config(length - iframeUrl(config(0)).length);
+  };
+
+  it("takes an everyday design, and no design at all", () => {
+    expect(fitsEmbedUrl(CONFIG)).toBe(true);
+    expect(fitsEmbedUrl(null)).toBe(true);
+  });
+
+  // The site answers 414 a little under 32,800 characters.
+  it("stops at 32,000 characters of address", () => {
+    expect(iframeUrl(configFor(32_000))).toHaveLength(32_000);
+    expect(fitsEmbedUrl(configFor(32_000))).toBe(true);
+    expect(fitsEmbedUrl(configFor(32_001))).toBe(false);
+  });
+
+  it("turns down a design with a custom shape file of a few dozen kB", () => {
+    const dataUrl = `data:image/png;base64,${"A".repeat(40_000)}`;
+    expect(fitsEmbedUrl(JSON.stringify({ v: 2, customShape: { name: "logo.png", type: "image/png", dataUrl } }))).toBe(false);
+  });
+
+  it("measures the address the packages build, which can be the longer one", () => {
+    // URLSearchParams escapes "(" and encodeURIComponent leaves it.
+    const config = JSON.stringify({ v: 2, asciiSymbol: "(".repeat(15_000) });
+    expect(iframeUrl(config).length).toBeLessThan(32_000);
+    expect(buildEmbedUrl({ config }).length).toBeGreaterThan(32_000);
+    expect(fitsEmbedUrl(config)).toBe(false);
   });
 });

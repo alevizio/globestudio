@@ -194,6 +194,22 @@ describe("EmbedCode", () => {
     expect(shownCode()).toBe(buildIframeSnippet({ config: next, width: 640, height: 480 }));
   });
 
+  // A custom shape's file travels in the config, and a few dozen kB of it
+  // make an address the site turns down.
+  it("says so when the design is too large to embed, in place of the code and Open in CodePen", () => {
+    const dataUrl = `data:image/png;base64,${"A".repeat(40_000)}`;
+    const large = JSON.stringify({ v: 2, customShape: { name: "logo.png", type: "image/png", dataUrl } });
+    renderBlock({ getShareUrl: () => `https://globestudio.app/?c=${encodeURIComponent(large)}` });
+    expect(screen.getByRole("heading", { level: 3, name: "Embed code" })).toBeTruthy();
+    expect(
+      screen.getByText("This design is too large to embed. Its custom shape file makes the URL too long, so try a smaller one."),
+    ).toBeTruthy();
+    expect(screen.queryByRole("tablist")).toBeNull();
+    expect(screen.queryByRole("tabpanel")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Copy code to clipboard" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Open in CodePen" })).toBeNull();
+  });
+
   it("still shows a snippet when there is no share link to read", () => {
     render(<EmbedCode width={640} height={480} />);
     expect(shownCode()).toBe(buildIframeSnippet({ config: null, width: 640, height: 480 }));
