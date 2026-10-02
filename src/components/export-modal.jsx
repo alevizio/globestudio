@@ -5,8 +5,9 @@ import { track } from "./analytics.jsx";
 import { ErrorBoundary } from "./error-boundary.jsx";
 
 // The MCP tab's content (client commands, prompt builder and its CSS) loads
-// only when that tab opens. If the chunk fails, the tab stays empty and the
-// rest of the dialog still works.
+// only when that tab opens. Until it arrives an empty stand-in holds the
+// tab's height. If the chunk fails, the tab stays empty and the rest of the
+// dialog still works.
 const AgentShare = lazy(() =>
   import("./agent-share.jsx").then((m) => ({ default: m.AgentShare })),
 );
@@ -603,7 +604,7 @@ export const ExportModal = ({
 
           {tab === "mcp" && (
             <ErrorBoundary fallback={null}>
-              <Suspense fallback={null}>
+              <Suspense fallback={<div className="export-modal-pending" aria-busy="true" />}>
                 <AgentShare
                   getShareUrl={getShareUrl}
                   lookName={lookName}

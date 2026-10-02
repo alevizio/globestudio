@@ -5146,6 +5146,13 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   }
 }
 
+/* Stands in for the MCP tab's block while its chunk loads, at about the
+   block's height with Claude selected. Without it the dialog shrinks to its
+   header and tabs, then jumps back under the pointer. */
+.export-modal-pending {
+  min-height: 600px;
+}
+
 .export-modal-field {
   display: flex;
   flex-direction: column;

@@ -599,6 +599,38 @@ test.describe("MCP tab", () => {
     return dialog;
   };
 
+  test("the dialog keeps its height while the MCP tab's chunk loads", async ({ page }) => {
+    // Hold the chunk back, as a slow connection would.
+    let release;
+    const held = new Promise((resolve) => {
+      release = resolve;
+    });
+    await page.route(/agent-share\.jsx/, async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await expect(dialog).toBeVisible();
+    await expect.poll(() => dialog.evaluate((el) => el.getAnimations().length)).toBe(0);
+    const height = () => dialog.evaluate((el) => el.getBoundingClientRect().height);
+    const onImage = await height();
+
+    await dialog.getByRole("tab", { name: "MCP" }).click();
+    await expect(dialog.locator(".export-modal-pending")).toBeVisible();
+    // The block is taller than the Image tab, so its stand-in is too.
+    const whileLoading = await height();
+    expect(whileLoading).toBeGreaterThanOrEqual(onImage);
+
+    release();
+    await expect(dialog.getByRole("heading", { name: "Connect your agent" })).toBeVisible();
+    await expect(dialog.locator(".export-modal-pending")).toHaveCount(0);
+    // The block lands in the room that was held, give or take a line.
+    expect(Math.abs((await height()) - whileLoading)).toBeLessThanOrEqual(24);
+  });
+
   test("Copy for AI puts a prompt with the current share link on the clipboard", async ({ page }) => {
     const dialog = await openMcpTab(page);
 
