@@ -1156,6 +1156,19 @@ test.describe("Figma tab", () => {
     await expectNoSeriousAxeViolations(page);
   });
 
+  // The copy changes the button's label twice, on the copy and when it
+  // resets, and App renders the dialog again each time.
+  test("leaves focus on Copy as vectors after a copy from the keyboard", async ({ page }) => {
+    const dialog = await openDialog(page);
+    await dialog.getByRole("tab", { name: "Figma" }).click();
+    await dialog.getByRole("button", { name: "Copy as vectors" }).focus();
+    await page.keyboard.press("Enter");
+    await expect(dialog.getByRole("button", { name: "Vectors copied to clipboard" })).toBeFocused();
+    await expect(dialog.getByRole("button", { name: "Copy as vectors" })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(dialog.getByRole("button", { name: "Copy as image" })).toBeFocused();
+  });
+
   test("gives way to Image when the window gets as narrow as a phone", async ({ page }) => {
     const dialog = await openDialog(page);
     await dialog.getByRole("tab", { name: "Figma" }).click();
@@ -1166,6 +1179,8 @@ test.describe("Figma tab", () => {
     await expect(dialog.getByRole("tab", { name: "Image" })).toHaveAttribute("aria-selected", "true");
     await expect(dialog.getByRole("heading", { name: "Paste into Figma" })).toHaveCount(0);
     await expect(dialog.getByRole("button", { name: /export png/i })).toBeVisible();
+    // The Figma tab had the focus, and the dialog takes it from there.
+    await expect(dialog).toBeFocused();
     // One px wider the row is back in its desktop form, with the Figma tab.
     await page.setViewportSize({ width: 541, height: 720 });
     await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);

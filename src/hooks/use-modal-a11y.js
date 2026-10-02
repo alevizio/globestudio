@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 // Shared accessibility plumbing for modal dialogs. Centralises three concerns
 // that WCAG 2.1.2 (No Keyboard Trap), 2.4.11 (Focus Not Obscured), and the
@@ -23,6 +23,15 @@ import { useEffect } from "react";
 // by the configured `backdropSelector` (defaults to looking up the
 // container's nearest backdrop wrapper).
 export const useModalA11y = ({ open, onClose, containerRef, backdropSelector }) => {
+  // The latest onClose, read when Escape is pressed. Callers pass a new
+  // function on every render, and as a dependency of the effect below it
+  // ran the effect again each time: focus left the button in use for the
+  // dialog, and the page behind lost `inert` for a frame.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
   useEffect(() => {
     if (!open) return undefined;
 
@@ -48,7 +57,7 @@ export const useModalA11y = ({ open, onClose, containerRef, backdropSelector }) 
     const onKey = (event) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose?.();
+        onCloseRef.current?.();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -73,5 +82,16 @@ export const useModalA11y = ({ open, onClose, containerRef, backdropSelector }) 
         previous.focus();
       }
     };
-  }, [open, onClose, containerRef, backdropSelector]);
+  }, [open, containerRef, backdropSelector]);
+
+  // Focus falls out of the dialog when the element that had it is removed
+  // or disabled (the Figma tab on a narrow window, Export during a
+  // recording). The next render hands it back to the dialog, so it never
+  // rests on the page behind.
+  useEffect(() => {
+    const container = containerRef?.current;
+    if (!open || !container) return;
+    const active = document.activeElement;
+    if (!active || active === document.body || active.matches(":disabled")) container.focus();
+  });
 };
