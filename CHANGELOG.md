@@ -24,8 +24,8 @@ All notable changes to Globestudio are tracked here. Format follows
 
 - The Share tab's Copy as React button is now an Embed code section. Pick
   iframe, React or Web component and copy the snippet for the design on
-  screen. The iframe also asks the embed for the Flat view and for a Solid
-  background's color, which the embed reads from the address.
+  screen. A design too large for an embed URL, which takes a custom shape
+  file of a few dozen kB, gets a line saying so in place of the code.
 - The export dialog has an MCP tab, last in the row. It holds what sat at
   the bottom of the Share tab: the commands that connect Claude, Codex and
   Cursor come first, then Copy for AI. On a phone the tabs share the row, so
@@ -33,6 +33,13 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ### Fixed
 
+- An embed that gets only a share config, which is all `@globestudio/react`
+  and `@globestudio/element` send, shows the config's Flat view and its
+  Solid background color. It used to show a globe on the default dark page
+  unless the address also had `view` and `background`.
+- In the export dialog, focus stays on Copy SVG, Copy as vectors and Export
+  PNG after you press them, so the next Tab goes on from there. It used to
+  jump back to the dialog itself. The other dialogs get the same fix.
 - Picking a look changes the styling only: the region you chose and the
   data you pasted stay. A `/looks/<id>` link keeps a returning visitor's
   saved region and data too; a first visit still opens on World.

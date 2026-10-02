@@ -163,8 +163,8 @@ Every query param the `/embed` route reads, as parsed in
 | `tiltY` | number, −45 to 45 | `0` | Camera tilt, degrees |
 | `autoSpin` | `1` · `0` | `1` | Auto-rotate the globe |
 | `static` | `1` · `0` | `0` | Freeze all motion (static previews in design-tool canvases) |
-| `view` | `globe` · `flat` | `globe` | 3D globe or flat map |
-| `background` | hex, `#` optional, or `transparent` | unset | Page background behind the canvas (only painted when set). `transparent` is the same as `transparent=1` |
+| `view` | `globe` · `flat` | the `c` config's view, else `globe` | 3D globe or flat map. Wins over the config's view |
+| `background` | hex, `#` optional, or `transparent` | unset | Page background behind the canvas. Without it the page is painted only when the `c` config has a Solid background color. `transparent` is the same as `transparent=1` |
 | `theme` | `dark` · `light` | `dark` | Globe chrome palette. `light` reads cleanly on light host pages |
 | `transparent` | `1` · `0` | `0` | See-through document, composites onto the host page |
 | `plugin` | `figma` | unset | The picker shell that versions 1 and 2 of the Figma plugin load: Look, Country or region, Density and View (Globe or Flat) pickers above an Insert button. Globe inserts a PNG; Flat inserts editable vectors, or a PNG past 2,500 dots or with the solid Bloom look. The current plugin loads the full studio at `/?plugin=figma` instead |
