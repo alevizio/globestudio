@@ -3,23 +3,27 @@
 // is the ?c= value of a share link, decoded once. Without one the snippet
 // leaves it out and embeds a default look.
 
-import { backgroundKind } from "./canvas-background.js";
+import { backgroundKind, previewBackground } from "./canvas-background.js";
 
 const SITE_URL = "https://globestudio.app";
 const HEX_RE = /^#[0-9a-f]{3,8}$/i;
+
+// The config as an object, or an empty one when it can't be read.
+const readDesign = (config) => {
+  try {
+    return JSON.parse(config) ?? {};
+  } catch {
+    return {};
+  }
+};
 
 // Two things the embed route takes from the URL and not from the config:
 // the Flat view, and the page color behind a Solid background. Without
 // them a flat map embeds as a globe, on the embed's own dark page.
 const embedParams = (config) => {
-  let design;
-  try {
-    design = JSON.parse(config);
-  } catch {
-    return "";
-  }
-  const view = design?.viewMode === "flat" ? "&view=flat" : "";
-  const solid = backgroundKind(design ?? {}) === "solid" && HEX_RE.test(design?.background);
+  const design = readDesign(config);
+  const view = design.viewMode === "flat" ? "&view=flat" : "";
+  const solid = backgroundKind(design) === "solid" && HEX_RE.test(design.background);
   return `${view}${solid ? `&background=${design.background.slice(1)}` : ""}`;
 };
 
@@ -50,3 +54,18 @@ const escapeAttribute = (value) =>
 export const buildWebComponentSnippet = ({ config, height }) =>
   `<script type="module" src="https://esm.sh/@globestudio/element"></script>
 <globe-studio${config ? ` config="${escapeAttribute(config)}"` : ""} height="${height}"></globe-studio>`;
+
+// A pen for CodePen's prefill API (https://blog.codepen.io/documentation/prefill/):
+// the web component filling a page with no margin and the design's
+// background, which is the color the studio's dark theme shows behind the
+// design. The dialog's height is an export size, taller than most pens, so
+// the pen's own height is used instead.
+export const buildCodePenData = ({ config }) => {
+  const background = previewBackground({ ...readDesign(config), uiTheme: "dark" });
+  return {
+    title: "Globestudio embed",
+    html: buildWebComponentSnippet({ config, height: "100%" }),
+    css: `html,\nbody {\n  height: 100%;\n  margin: 0;\n${HEX_RE.test(background) ? `  background: ${background};\n` : ""}}`,
+    js: "",
+  };
+};

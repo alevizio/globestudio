@@ -1,10 +1,16 @@
 import { useId, useMemo, useRef, useState } from "react";
 import { CodeBlock } from "./ui/code-block.jsx";
 import { track } from "./analytics.jsx";
-import { buildIframeSnippet, buildReactSnippet, buildWebComponentSnippet } from "../utils/embed-snippets.js";
+import {
+  buildCodePenData,
+  buildIframeSnippet,
+  buildReactSnippet,
+  buildWebComponentSnippet,
+} from "../utils/embed-snippets.js";
 
 // The Share tab's embed code: the current design as an iframe, a React
-// component or a web component, in a CodeBlock with its Copy button.
+// component or a web component, in a CodeBlock with its Copy button, and a
+// button that opens the web component in a new pen on CodePen.
 // Each `id` is also the share_clicked method its copy is counted under.
 const KINDS = [
   { id: "iframe", label: "iframe", language: "html", build: buildIframeSnippet },
@@ -44,6 +50,25 @@ export const EmbedCode = ({ getShareUrl, width, height }) => {
     event.preventDefault();
     setKindId(KINDS[next].id);
     tabRefs.current.get(KINDS[next].id)?.focus();
+  };
+
+  // CodePen's prefill API is a form post with the pen as JSON in a `data`
+  // field, so a form is made for the post and dropped again.
+  const openInCodePen = () => {
+    const form = document.createElement("form");
+    form.method = "post";
+    form.action = "https://codepen.io/pen/define";
+    form.target = "_blank";
+    form.setAttribute("rel", "noopener");
+    const field = document.createElement("input");
+    field.type = "hidden";
+    field.name = "data";
+    field.value = JSON.stringify(buildCodePenData({ config }));
+    form.append(field);
+    document.body.append(form);
+    form.submit();
+    form.remove();
+    track("share_clicked", { method: "codepen" });
   };
 
   return (
@@ -92,6 +117,9 @@ export const EmbedCode = ({ getShareUrl, width, height }) => {
           {kind.build({ config, width, height })}
         </CodeBlock>
       </div>
+      <button type="button" className="export-modal-cta is-secondary" onClick={openInCodePen}>
+        <span>Open in CodePen</span>
+      </button>
     </section>
   );
 };

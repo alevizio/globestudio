@@ -5380,6 +5380,10 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   margin: 0;
 }
 
+.export-modal-group .export-modal-cta {
+  margin-top: 0;
+}
+
 /* "Web component" is wider than a third of the toggle on a phone narrower
    than about 390px. There the label wraps to a second line instead of being
    cut off. */
@@ -5388,10 +5392,11 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   white-space: normal;
 }
 
-/* Focus rings, as in the MCP tab. The toggle buttons and a snippet that
-   scrolls are clipped to pixel corners, which would cut off an outer
+/* Focus rings, as in the MCP tab. The CTA, the toggle buttons and a snippet
+   that scrolls are clipped to pixel corners, which would cut off an outer
    outline, so theirs sits inside the edge. The Copy button only changed
    colour on focus. */
+.export-modal-group .export-modal-cta:focus-visible,
 .export-modal-group .segmented-toggle-button:focus-visible,
 .export-modal-group .code-block-pre:focus-visible {
   outline: 2px solid currentColor;

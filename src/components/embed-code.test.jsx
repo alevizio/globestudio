@@ -2,7 +2,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { EmbedCode } from "./embed-code.jsx";
 import { track } from "./analytics.jsx";
-import { buildIframeSnippet, buildReactSnippet, buildWebComponentSnippet } from "../utils/embed-snippets.js";
+import {
+  buildCodePenData,
+  buildIframeSnippet,
+  buildReactSnippet,
+  buildWebComponentSnippet,
+} from "../utils/embed-snippets.js";
 
 vi.mock("./analytics.jsx", () => ({ track: vi.fn() }));
 
@@ -112,6 +117,72 @@ describe("EmbedCode", () => {
       fireEvent.click(screen.getByRole("button", { name: "Copy code to clipboard" }));
     });
     expect(track).not.toHaveBeenCalled();
+  });
+
+  describe("Open in CodePen", () => {
+    // jsdom can't submit a form. This keeps what the form looked like when
+    // it was sent.
+    const catchSubmit = () => {
+      const sent = [];
+      vi.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(function submit() {
+        sent.push({
+          action: this.action,
+          method: this.method,
+          target: this.target,
+          rel: this.getAttribute("rel"),
+          inDocument: this.isConnected,
+          fields: [...this.elements].map((field) => ({ type: field.type, name: field.name, value: field.value })),
+        });
+      });
+      return sent;
+    };
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("is a secondary button under the snippet, in the same section", () => {
+      const { container } = renderBlock();
+      const button = screen.getByRole("button", { name: "Open in CodePen" });
+      expect(button.className).toContain("export-modal-cta");
+      expect(button.className).toContain("is-secondary");
+      expect(button.closest("section")).toBe(container.querySelector("section"));
+      const follows = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+      expect(follows(screen.getByRole("tabpanel"), button)).toBe(true);
+    });
+
+    it("posts a prefilled pen to CodePen in a new tab", () => {
+      const sent = catchSubmit();
+      renderBlock();
+      fireEvent.click(screen.getByRole("button", { name: "Open in CodePen" }));
+      expect(sent).toHaveLength(1);
+      const [form] = sent;
+      expect(form.action).toBe("https://codepen.io/pen/define");
+      expect(form.method).toBe("post");
+      expect(form.target).toBe("_blank");
+      expect(form.rel).toBe("noopener");
+      expect(form.inDocument).toBe(true);
+      expect(form.fields.map(({ type, name }) => ({ type, name }))).toEqual([{ type: "hidden", name: "data" }]);
+      expect(JSON.parse(form.fields[0].value)).toEqual(buildCodePenData({ config: CONFIG }));
+      // The form is only there for the post.
+      expect(document.querySelector("form")).toBeNull();
+    });
+
+    it("sends the web component pen whichever option is on show", () => {
+      const sent = catchSubmit();
+      renderBlock();
+      fireEvent.click(screen.getByRole("tab", { name: "React" }));
+      fireEvent.click(screen.getByRole("button", { name: "Open in CodePen" }));
+      expect(JSON.parse(sent[0].fields[0].value).html).toBe(buildWebComponentSnippet({ config: CONFIG, height: "100%" }));
+    });
+
+    it("counts it as a share", () => {
+      catchSubmit();
+      renderBlock();
+      fireEvent.click(screen.getByRole("button", { name: "Open in CodePen" }));
+      expect(track).toHaveBeenCalledTimes(1);
+      expect(track).toHaveBeenCalledWith("share_clicked", { method: "codepen" });
+    });
   });
 
   it("follows the design and the size as they change", () => {

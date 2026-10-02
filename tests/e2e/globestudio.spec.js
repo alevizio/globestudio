@@ -947,6 +947,58 @@ test.describe("Embed code", () => {
   });
 });
 
+test.describe("Open in CodePen", () => {
+  test.use({ permissions: ["clipboard-read", "clipboard-write"] });
+
+  test("opens a new tab with a pen prefilled with the current design", async ({ page, context }) => {
+    // Stand in for CodePen, and keep what the form posted to it.
+    let posted;
+    await context.route("https://codepen.io/**", async (route) => {
+      const request = route.request();
+      posted = { url: request.url(), method: request.method(), body: request.postData() };
+      await route.fulfill({ status: 200, contentType: "text/html", body: "<title>Pen</title>" });
+    });
+
+    const design = { v: 1, background: "#7a1f1f", asciiSymbol: `"<&'>`, globeSettings: { glow: false } };
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify(design))}`);
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await dialog.getByRole("tab", { name: "Share" }).click();
+    await dialog.getByRole("button", { name: "Copy share link" }).click();
+    await expect(dialog.getByRole("button", { name: "Link copied to clipboard" })).toBeVisible();
+    const config = new URL(await page.evaluate(() => navigator.clipboard.readText())).searchParams.get("c");
+    expect(JSON.parse(config).asciiSymbol).toBe(`"<&'>`);
+
+    const button = dialog.getByRole("button", { name: "Open in CodePen" });
+    await expect(button).toHaveClass(/is-secondary/);
+    const [pen] = await Promise.all([context.waitForEvent("page"), button.click()]);
+    await pen.waitForLoadState();
+    expect(await pen.title()).toBe("Pen");
+    // The studio stays where it was, with the dialog open.
+    await expect(dialog).toBeVisible();
+
+    expect(posted.method).toBe("POST");
+    expect(posted.url).toBe("https://codepen.io/pen/define");
+    const fields = new URLSearchParams(posted.body);
+    expect([...fields.keys()]).toEqual(["data"]);
+    const data = JSON.parse(fields.get("data"));
+    expect(Object.keys(data)).toEqual(["title", "html", "css", "js"]);
+    // A page with no margin, as tall as the pen, in the design's background.
+    expect(data.css).toBe("html,\nbody {\n  height: 100%;\n  margin: 0;\n  background: #7a1f1f;\n}");
+    const [script, tag] = data.html.split("\n");
+    expect(script).toBe('<script type="module" src="https://esm.sh/@globestudio/element"></script>');
+    // Rendered as HTML, the tag gives the element the config unchanged.
+    const parsed = await page.evaluate((html) => {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const node = doc.querySelector("globe-studio");
+      return { config: node.getAttribute("config"), height: node.getAttribute("height"), elements: doc.body.children.length };
+    }, tag);
+    expect(parsed).toEqual({ config, height: "100%", elements: 1 });
+    await pen.close();
+  });
+});
+
 test.describe("embed code on a 320px wide phone", () => {
   test.use({ viewport: { width: 320, height: 568 }, isMobile: true, hasTouch: true });
 

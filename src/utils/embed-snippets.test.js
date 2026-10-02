@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildIframeSnippet, buildReactSnippet, buildWebComponentSnippet } from "./embed-snippets.js";
+import {
+  buildCodePenData,
+  buildIframeSnippet,
+  buildReactSnippet,
+  buildWebComponentSnippet,
+} from "./embed-snippets.js";
 import { buildShareUrl, parseShareConfig } from "./share-config.js";
 import { buildEmbedUrl } from "../../packages/web-component/index.js";
 
@@ -163,5 +168,48 @@ describe("buildWebComponentSnippet", () => {
   it("leaves the config attribute out when there is no share config", () => {
     const [, second] = buildWebComponentSnippet({ config: null, height: 480 }).split("\n");
     expect(second).toBe('<globe-studio height="480"></globe-studio>');
+  });
+});
+
+describe("buildCodePenData", () => {
+  const data = buildCodePenData({ config: CONFIG });
+
+  it("has the four fields CodePen's prefill API reads: title, html, css and js", () => {
+    expect(Object.keys(data)).toEqual(["title", "html", "css", "js"]);
+    expect(data.title).toBe("Globestudio embed");
+    expect(data.js).toBe("");
+  });
+
+  it("shows the design with the web component from esm.sh, as tall as the pen's page", () => {
+    expect(data.html).toBe(buildWebComponentSnippet({ config: CONFIG, height: "100%" }));
+    expect(parse(data.html).querySelector("globe-studio").getAttribute("height")).toBe("100%");
+  });
+
+  it("puts it on a full height page with no margin and the design's background", () => {
+    expect(data.css).toBe("html,\nbody {\n  height: 100%;\n  margin: 0;\n  background: #204060;\n}");
+  });
+
+  it("uses the color the studio shows behind a Space, Flow or Transparent design", () => {
+    const cssFor = (design) => buildCodePenData({ config: JSON.stringify({ v: 2, ...design }) }).css;
+    expect(cssFor({ background: "#204060", backgroundStyle: "space" })).toContain("background: #03030a;");
+    expect(cssFor({ background: "#204060", backgroundStyle: "flow" })).toContain("background: #080714;");
+    // The dark canvas the studio's checkerboard sits on.
+    expect(cssFor({ background: "#204060", transparent: true })).toContain("background: #0b0b0c;");
+  });
+
+  it("sets no background it can't read as a hex color", () => {
+    const bare = "html,\nbody {\n  height: 100%;\n  margin: 0;\n}";
+    expect(buildCodePenData({ config: null }).css).toBe(bare);
+    expect(buildCodePenData({ config: "not json" }).css).toBe(bare);
+    const unsafe = JSON.stringify({ v: 2, background: "red; } body::after { content: 'x'" });
+    expect(buildCodePenData({ config: unsafe }).css).toBe(bare);
+  });
+
+  it("survives the trip through the form's JSON field with the config intact", () => {
+    // What CodePen does with the field: parse the JSON, then render the html.
+    const received = JSON.parse(JSON.stringify(data));
+    const element = parse(received.html).querySelector("globe-studio");
+    expect(element.getAttribute("config")).toBe(CONFIG);
+    expect(parseShareConfig(new URL(buildEmbedUrl({ config: element.getAttribute("config") })).search)).toEqual(DECODED);
   });
 });
