@@ -11,8 +11,7 @@
 // watch below can catch that one.
 const SOFTWARE_RENDERER = /swiftshader|llvmpipe|softpipe|basic render driver|software/i;
 
-export const isSoftwareRendererName = (name) =>
-  typeof name === "string" && SOFTWARE_RENDERER.test(name);
+export const isSoftwareRendererName = (name) => SOFTWARE_RENDERER.test(name ?? "");
 
 // Trips when the render loop's rAF rate stays under `minFps` for two full
 // `windowMs` windows in a row. It counts rAF ticks, not drawn frames, so the
@@ -24,40 +23,30 @@ export const isSoftwareRendererName = (name) =>
 // pauses, so the gap until it restarts isn't read as one slow frame; the
 // grace period then applies again.
 export const createFrameRateWatch = ({ minFps = 12, windowMs = 3000, graceMs = 5000 } = {}) => {
-  let startedAt = null;
-  let windowStart = null;
+  let started = false;
+  let windowStart = 0;
   let frames = 0;
   let slowWindows = 0;
-
-  const reset = () => {
-    startedAt = null;
-    windowStart = null;
-    frames = 0;
-    slowWindows = 0;
-  };
-
-  const tick = (now) => {
-    if (startedAt === null) {
-      startedAt = now;
-      return false;
-    }
-    if (now - startedAt < graceMs) return false;
-    if (windowStart === null) {
+  return {
+    reset: () => {
+      started = false;
+    },
+    tick: (now) => {
+      if (!started) {
+        started = true;
+        windowStart = now + graceMs;
+        frames = 0;
+        slowWindows = 0;
+        return false;
+      }
+      if (now < windowStart) return false;
+      frames += 1;
+      const elapsed = now - windowStart;
+      if (elapsed < windowMs) return false;
+      slowWindows = (frames * 1000) / elapsed < minFps ? slowWindows + 1 : 0;
       windowStart = now;
       frames = 0;
-      return false;
-    }
-    frames += 1;
-    const elapsed = now - windowStart;
-    if (elapsed < windowMs) return false;
-    const fps = (frames * 1000) / elapsed;
-    windowStart = now;
-    frames = 0;
-    slowWindows = fps < minFps ? slowWindows + 1 : 0;
-    if (slowWindows < 2) return false;
-    slowWindows = 0;
-    return true;
+      return slowWindows > 1;
+    },
   };
-
-  return { tick, reset };
 };

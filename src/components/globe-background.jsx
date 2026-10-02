@@ -555,11 +555,10 @@ export const GlobeBackground = ({
     // display re-tightens the cap instead of letting render-target memory grow
     // unbounded with the viewport.
     const computeDprCeiling = () => {
-      // Low power mode previews at one device pixel, whatever the budget.
-      if (lowPowerRef.current) return Math.min(window.devicePixelRatio || 1, 1);
       const viewportArea = Math.max(1, window.innerWidth * window.innerHeight);
       const areaCap = Math.sqrt(PIXEL_BUDGET / viewportArea);
-      const dprCap = Math.max(dprFloor, Math.min(hardCap, areaCap));
+      // Low power mode previews at one device pixel, whatever the budget.
+      const dprCap = lowPowerRef.current ? 1 : Math.max(dprFloor, Math.min(hardCap, areaCap));
       return Math.min(window.devicePixelRatio || 1, dprCap);
     };
     let initialDpr = computeDprCeiling();
@@ -849,7 +848,7 @@ export const GlobeBackground = ({
     // also raises it again when the mode turns off.
     threeRef.current.applyDprCeiling = () => {
       const next = computeDprCeiling();
-      if (Math.abs(renderer.getPixelRatio() - next) < 0.001) return;
+      if (renderer.getPixelRatio() === next) return;
       renderer.setPixelRatio(next);
       postHandle.composer.setPixelRatio(next);
       resize();
