@@ -31,13 +31,34 @@ const recordingContext = (canvas) => {
     fillRect: () => {},
     fill: () => ops.push({ style: ctx.fillStyle, path, clips }),
     stroke: () => ops.push({ style: ctx.strokeStyle, path, clips }),
-    clip: () => {
-      clips = [...clips, path];
+    clip: (region) => {
+      clips = [...clips, region ? region.subpaths : path];
     },
+    isPointInPath: (region, x, y) => inside([x, y], region.subpaths),
     createLinearGradient: () => ({ addColorStop: () => {} }),
   };
   return { ctx, ops };
 };
+
+// jsdom has no Path2D either; this one keeps its subpaths the same way.
+class RecordingPath2D {
+  subpaths = [];
+
+  moveTo(x, y) {
+    this.subpaths.push([[x, y]]);
+  }
+
+  lineTo(x, y) {
+    if (this.subpaths.length) this.subpaths.at(-1).push([x, y]);
+    else this.moveTo(x, y);
+  }
+
+  closePath() {}
+
+  arc(x, y) {
+    this.moveTo(x, y);
+  }
+}
 
 // Even-odd point in polygon over every subpath of a recorded path.
 const inside = ([x, y], subpaths) => {
@@ -65,7 +86,15 @@ const line = (coordinates) => ({ type: "Feature", properties: {}, geometry: { ty
 const point = (coordinates, pop) => ({ type: "Feature", properties: { pop_max: pop }, geometry: { type: "Point", coordinates } });
 const collection = (features) => ({ type: "FeatureCollection", features });
 const rivers = collection([line([[-65, -15], [-55, -25]]), line([[-74, -6], [-72, -8]]), line([[31, 30], [32, 20]])]);
-const cities = collection([point([-60, -20], 1e6), point([-47, -8], 5e5), point([31.2, 30], 1.5e7)]);
+// The fourth city sits on the land just inside its east coast, the fifth just
+// off it, like Lisbon off the 1:50m coastline.
+const cities = collection([
+  point([-60, -20], 1e6),
+  point([-47, -8], 5e5),
+  point([31.2, 30], 1.5e7),
+  point([-50.4, -20], 1e6),
+  point([-49.8, -24], 1e6),
+]);
 const custom = collection([point([-62, -18]), line([[2, 48], [13, 52]]), point([100, 30])]);
 const region = { lat: { min: -35, max: -5 }, lng: { min: -75, max: -45 } };
 
@@ -75,8 +104,12 @@ beforeEach(() => {
     recorded = recordingContext(this);
     return recorded.ctx;
   });
+  vi.stubGlobal("Path2D", RecordingPath2D);
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 const draw = (options) => {
   createWorldTexture(land, {
@@ -98,9 +131,13 @@ const draw = (options) => {
   const shown = ops
     .filter((op) => Object.values(OVERLAYS).includes(op.style))
     .flatMap((op) => op.path.flat().filter((p) => onCanvas(p) && op.clips.every((clip) => inside(p, clip))));
+  // City and custom dots: fills of one arc, which records a single point.
+  const dots = ops.filter((op) => op.style !== LAND && op.path.length === 1 && op.path[0].length === 1);
   return {
     offLand: shown.filter((p) => !inside(p, landPath)),
     onLand: shown.filter((p) => inside(p, landPath)),
+    dots,
+    landPath,
   };
 };
 
@@ -112,6 +149,20 @@ describe("createWorldTexture overlays", () => {
     const { offLand, onLand } = draw({ ...view, clipOverlays: true });
     expect(offLand).toEqual([]);
     expect(onLand.length).toBeGreaterThan(0);
+  });
+
+  it.each([
+    ["globe", {}],
+    ["flat map", { region, aspect: 1 }],
+  ])("draws a picked region's dots centred on its land whole, so coastal cities stay round (%s)", (_, view) => {
+    const { dots, landPath } = draw({ ...view, clipOverlays: true });
+    const centred = dots.filter((op) => inside(op.path[0][0], landPath));
+    const offLand = dots.filter((op) => !inside(op.path[0][0], landPath));
+    expect(centred.length).toBeGreaterThan(0);
+    expect(offLand.length).toBeGreaterThan(0);
+    centred.forEach((op) => expect(op.clips).toEqual([]));
+    // The rest keep only their part on the land.
+    offLand.forEach((op) => expect(op.clips).toHaveLength(1));
   });
 
   it("draws every overlay for the world", () => {

@@ -220,11 +220,37 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
       .translate([width / 2, height / 2]);
   }
   const path = geoPath(projection, ctx);
-  const clipToLand = () => {
-    if (!clipOverlays) return;
-    ctx.beginPath();
-    countriesFeatureCollection.features.forEach((feature) => path(feature));
-    ctx.clip();
+  // The region's land as one path, built once for the overlay clips and for
+  // testing where each dot sits. Borders are not clipped, so they look the
+  // same with or without a region.
+  let land = null;
+  if (clipOverlays) {
+    land = new Path2D();
+    const toLand = geoPath(projection, land);
+    countriesFeatureCollection.features.forEach((feature) => toLand(feature));
+  }
+  // Lines and dots that stop at the land's edge wait here and draw under one
+  // clip: a clip per dot took about 0.4 s for South America's cities, even on
+  // a fast Mac.
+  const cut = [];
+  const drawCut = () => {
+    if (!cut.length) return;
+    ctx.save();
+    ctx.clip(land);
+    cut.splice(0).forEach((draw) => draw());
+    ctx.restore();
+  };
+  // A dot centred on the land draws whole, so a coastal city stays round.
+  // Any other dot keeps only its part on the land, like Lisbon, which sits
+  // just off the 1:50m coastline.
+  const dot = (x, y, radius) => {
+    const draw = () => {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    };
+    if (land && !ctx.isPointInPath(land, x, y)) cut.push(draw);
+    else draw();
   };
 
   if (fillVisible) {
@@ -245,7 +271,7 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
   // width so important rivers read first.
   if (riversVisible && rivers?.features?.length) {
     ctx.save();
-    clipToLand();
+    if (land) ctx.clip(land);
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.strokeStyle = riversColor;
@@ -274,10 +300,6 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
     });
   }
 
-  // One clip for the custom overlay and the cities; country borders above
-  // stay unclipped so they look the same with or without a region.
-  ctx.save();
-  clipToLand();
   // User-supplied custom overlay. Drawn after country stroke but before cities
   // so cities still dominate when both are on. Iterates features, dispatches
   // by geometry type. LineString + MultiLineString use the existing path
@@ -291,27 +313,28 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
     custom.features.forEach((feature) => {
       const type = feature.geometry?.type;
       if (type === "LineString" || type === "MultiLineString") {
-        ctx.beginPath();
-        path(feature);
-        ctx.stroke();
+        const draw = () => {
+          ctx.beginPath();
+          path(feature);
+          ctx.stroke();
+        };
+        if (land) cut.push(draw);
+        else draw();
       } else if (type === "Point") {
         const coords = feature.geometry.coordinates;
         const projected = projection(coords);
         if (!projected || !Number.isFinite(projected[0]) || !Number.isFinite(projected[1])) return;
-        ctx.beginPath();
-        ctx.arc(projected[0], projected[1], customPointRadius, 0, Math.PI * 2);
-        ctx.fill();
+        dot(projected[0], projected[1], customPointRadius);
       } else if (type === "MultiPoint") {
         feature.geometry.coordinates.forEach((coords) => {
           const projected = projection(coords);
           if (!projected || !Number.isFinite(projected[0]) || !Number.isFinite(projected[1])) return;
-          ctx.beginPath();
-          ctx.arc(projected[0], projected[1], customPointRadius, 0, Math.PI * 2);
-          ctx.fill();
+          dot(projected[0], projected[1], customPointRadius);
         });
       }
       // Polygon / MultiPolygon ignored in v1.
     });
+    drawCut();
   }
 
   // Cities overlay — drawn last so each city dot sits on top of country fill,
@@ -332,12 +355,10 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
       // Log scale: 100k city ≈ 1px, 1M city ≈ 1.6px, 10M city ≈ 2.6px, 30M ≈ 3.0px.
       // Scaled up x2 for visibility at the 2048-wide texture.
       const radius = Math.max(1.2, Math.min(5, 1 + Math.log10(Math.max(pop, 1) / 1e5)) * 2);
-      ctx.beginPath();
-      ctx.arc(projected[0], projected[1], radius, 0, Math.PI * 2);
-      ctx.fill();
+      dot(projected[0], projected[1], radius);
     });
+    drawCut();
   }
-  ctx.restore();
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;

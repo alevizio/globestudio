@@ -23,6 +23,9 @@ const SOUTH_AMERICA_SOLID = `/?c=${encodeURIComponent(JSON.stringify({
 // Clip edges and coastline pixels are antialiased, so a box may reach a few
 // pixels past the land's box and still be on the land.
 const SLACK = 3;
+// A city centred on the land draws its whole dot, so on a coast the dot may
+// reach past the land by its radius, which is 10 px at most.
+const CITY_SLACK = 10;
 
 // Bounding boxes, in texture pixels, of the land and of the rivers and cities
 // on the newest globe and flat textures. The land is gray, its channels within
@@ -64,11 +67,11 @@ const readTextures = (page) =>
   });
 
 // How far, past the slack, a box reaches beyond the land's box on each side.
-const overshoot = (box, land) => ({
-  west: Math.max(0, land.minX - box.minX - SLACK),
-  north: Math.max(0, land.minY - box.minY - SLACK),
-  east: Math.max(0, box.maxX - land.maxX - SLACK),
-  south: Math.max(0, box.maxY - land.maxY - SLACK),
+const overshoot = (box, land, slack = SLACK) => ({
+  west: Math.max(0, land.minX - box.minX - slack),
+  north: Math.max(0, land.minY - box.minY - slack),
+  east: Math.max(0, box.maxX - land.maxX - slack),
+  south: Math.max(0, box.maxY - land.maxY - slack),
 });
 
 test("Solid rivers and cities stay inside South America's land on the globe and the flat map", async ({ page }) => {
@@ -92,6 +95,6 @@ test("Solid rivers and cities stay inside South America's land on the globe and 
   const inside = { west: 0, north: 0, east: 0, south: 0 };
   Object.entries(textures).forEach(([view, { land, rivers, cities }]) => {
     expect(overshoot(rivers, land), `${view} rivers past the land`).toEqual(inside);
-    expect(overshoot(cities, land), `${view} cities past the land`).toEqual(inside);
+    expect(overshoot(cities, land, CITY_SLACK), `${view} cities past the land`).toEqual(inside);
   });
 });
