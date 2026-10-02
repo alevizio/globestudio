@@ -12,6 +12,9 @@ All notable changes to Globestudio are tracked here. Format follows
   with the aspect, size and quality you picked, ready to paste into Figma,
   Slides, Slack or Notion. Browsers that can't write images to the clipboard
   don't show the button.
+- Open in CodePen, under the Share tab's embed code. It opens a new tab with
+  a pen that shows the design through the web component, on a page with no
+  margin and the design's background.
 
 ### Changed
 

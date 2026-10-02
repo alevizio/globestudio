@@ -141,7 +141,8 @@ Setup and props: [`packages/react`](packages/react/) and
 
 The export dialog writes this code for the design on screen. Its Share tab
 has an Embed code section with three options, iframe, React and Web
-component, each with a Copy button.
+component, each with a Copy button. Open in CodePen, under the snippet,
+opens the design in a new pen through the web component.
 
 ### Embed parameters
 

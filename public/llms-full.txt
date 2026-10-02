@@ -50,7 +50,9 @@ settings, and what an agent can do with them.
 The export dialog's Share tab has **Embed code** for the design on screen:
 an iframe pointed at `/embed?c=…`, a `<Globe config=… />` snippet for
 `@globestudio/react`, and a `<globe-studio config="…">` tag for
-`@globestudio/element` loaded from esm.sh. Each has a Copy button.
+`@globestudio/element` loaded from esm.sh. Each has a Copy button. **Open in
+CodePen** posts the web component version to CodePen's prefill API and opens
+the pen in a new tab.
 
 ### Common URL parameters
 

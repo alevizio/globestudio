@@ -153,7 +153,8 @@ export const DocsPage = () => {
             The same tab has an Embed code section. It shows the design on
             screen as an iframe, a <code>@globestudio/react</code> snippet or
             a <code>@globestudio/element</code> web component, each with a
-            Copy button.
+            Copy button. Open in CodePen puts the design in a new pen, ready
+            to edit.
           </p>
           <p>
             The encoded payload follows the{" "}
