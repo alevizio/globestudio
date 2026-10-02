@@ -16,6 +16,19 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 
 const ENTRIES = [
   {
+    label: "Launch week",
+    date: "2 October 2026",
+    items: [
+      "Picking a look changes only the styling: your region and pasted data stay put",
+      "In Solid mode with a region picked, rivers, cities and pasted GeoJSON stay on that region instead of covering the whole world",
+      "Faster on old laptops: when a computer draws the globe in software, the glow turns off and a notice lets you bring it back",
+      "Bad TV's static is lighter, so the map shows through it",
+      "Topographic is now called Sonar, which is what it looks like. Old links still work",
+      "Share links, JSON and the MCP server keep a custom glow color",
+      "A PNG exported while switching between Flat and Globe saves the settled view",
+    ],
+  },
+  {
     label: "Launch",
     date: "28 September 2026",
     items: [

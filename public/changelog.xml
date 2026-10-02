@@ -6,7 +6,22 @@
     <atom:link href="https://globestudio.app/changelog.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 28 Sep 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 02 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Launch week</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#launch-week</guid>
+      <pubDate>Fri, 02 Oct 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Picking a look changes only the styling: your region and pasted data stay put</li>
+  <li>In Solid mode with a region picked, rivers, cities and pasted GeoJSON stay on that region instead of covering the whole world</li>
+  <li>Faster on old laptops: when a computer draws the globe in software, the glow turns off and a notice lets you bring it back</li>
+  <li>Bad TV&apos;s static is lighter, so the map shows through it</li>
+  <li>Topographic is now called Sonar, which is what it looks like. Old links still work</li>
+  <li>Share links, JSON and the MCP server keep a custom glow color</li>
+  <li>A PNG exported while switching between Flat and Globe saves the settled view</li>
+</ul>]]></description>
+    </item>
     <item>
       <title>Launch</title>
       <link>https://globestudio.app/changelog</link>
