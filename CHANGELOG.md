@@ -22,6 +22,11 @@ All notable changes to Globestudio are tracked here. Format follows
 - In Solid mode with a region picked, rivers, cities and pasted GeoJSON
   stay on that region's land on the globe, on the flat map and in PNG
   exports. They used to show for the whole world.
+- The studio runs faster on computers that draw the globe in software,
+  such as an old laptop without a working graphics driver, or below 12 fps.
+  It turns off the glow halo around the globe, previews at one device pixel
+  and says so in a notice that can turn the effects back on. Designs and
+  share links are unchanged.
 
 ## [1.0.0] - 2026-09-28
 
