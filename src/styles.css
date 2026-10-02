@@ -4760,6 +4760,93 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   }
 }
 
+/* Low power notice (low-power-notice.jsx): says the effects were reduced
+   and offers them back. Fixed in the bottom right corner, above the GitHub
+   link and clear of the control panel, so it never shifts the layout, and
+   solid with no backdrop blur, which would cost the compositing low power
+   mode is there to save. */
+.low-power-notice {
+  position: fixed;
+  right: 16px;
+  bottom: 62px;
+  z-index: 30;
+  display: grid;
+  gap: 10px;
+  width: min(320px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  animation: low-power-notice-in 460ms var(--ease) backwards;
+}
+
+.low-power-notice-text {
+  margin: 0;
+}
+
+.low-power-notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Scoped to the notice to outrank .button, which comes later. */
+.low-power-notice .low-power-notice-button {
+  min-height: 32px;
+  font-size: 13px;
+}
+
+.low-power-notice .low-power-notice-button--primary,
+.low-power-notice .low-power-notice-button--primary:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* The pixel corner clip-path on .button slices off a focus ring drawn
+   outside it, so the notice draws the ring inside its buttons. */
+.low-power-notice .low-power-notice-button:focus-visible {
+  outline-offset: -4px;
+}
+
+.low-power-notice .low-power-notice-button--primary:focus-visible {
+  outline-color: var(--on-accent);
+}
+
+@keyframes low-power-notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .low-power-notice {
+    animation: none;
+  }
+}
+
+/* Phones: the sheet holds the bottom, so it sits under the top bar, as
+   wide as the bar. */
+@media (max-width: 620px), (pointer: coarse) and (max-height: 500px) {
+  .low-power-notice {
+    top: calc(60px + env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    bottom: auto;
+    left: max(10px, env(safe-area-inset-left));
+    width: auto;
+  }
+}
+
 /* Cmd+K command palette. Same frosted-glass language as the other
    modals; sits a touch higher (top: 18vh) so it reads as a docked
    surface rather than a centered modal — the canonical command-palette

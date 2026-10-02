@@ -63,6 +63,7 @@ import { AboutOverlay } from "./components/about-overlay.jsx";
 import { ShortcutsOverlay } from "./components/shortcuts-overlay.jsx";
 import { CommandPalette } from "./components/command-palette.jsx";
 import { OnboardingHint } from "./components/onboarding-hint.jsx";
+import { LowPowerNotice } from "./components/low-power-notice.jsx";
 import { track, trackClientError } from "./components/analytics.jsx";
 import { BrandPage } from "./components/brand-page.jsx";
 import { DocsPage } from "./components/docs-page.jsx";
@@ -190,6 +191,7 @@ const NON_DESIGN_KEYS = new Set([
   "uiTheme",
   "canvasScale",
   "figma-picks",
+  "lowPower",
   "stripe-globe-tune",
   "teaser-globe-pos",
   "tv-fit",
@@ -419,6 +421,22 @@ const App = () => {
   // the canvas/globe rendering stays on its dark base because the artwork
   // is colored independently and reads best against the canvas's own background.
   const [uiTheme, setUiTheme] = usePersistedState("uiTheme", "dark");
+  // Low power mode: "auto" lets the globe turn it on when it finds a
+  // software renderer or a sustained low frame rate, "on" forces it (tests)
+  // and "off" is the visitor turning the effects back on. It only drops the
+  // CSS halo and caps the preview's pixel ratio, never the saved design, so
+  // share links and exports are the same either way.
+  const [lowPowerPref, setLowPowerPref] = usePersistedState("lowPower", "auto");
+  const [lowPowerDetected, setLowPowerDetected] = useState(false);
+  const [lowPowerNoticeDismissed, setLowPowerNoticeDismissed] = useState(false);
+  const lowPowerActive = lowPowerPref === "on" || (lowPowerPref === "auto" && lowPowerDetected);
+  const reportLowPower = useCallback(() => setLowPowerDetected(true), []);
+  // Automated browsers (the e2e suite and Lighthouse, both in SwiftShader)
+  // would always detect, so they keep today's rendering unless forced.
+  const detectsLowPower = useMemo(
+    () => lowPowerPref === "auto" && !(typeof navigator !== "undefined" && navigator.webdriver === true),
+    [lowPowerPref],
+  );
   // Theme toggle that *also* RGB-inverts every user-facing color so the
   // canvas/globe flip cleanly between dark and light. Solid colors get
   // (255-r, 255-g, 255-b); gradients invert each stop while preserving
@@ -1612,7 +1630,7 @@ const App = () => {
         // soft cyan halo.
         "--globe-glow-spread": `${30 + (clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 80}%`,
         "--globe-glow-blur": `${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 56}px`,
-        "--globe-canvas-halo": globeSettings.glow && !skipCanvasHalo && !canvasIsOpaque
+        "--globe-canvas-halo": globeSettings.glow && !skipCanvasHalo && !canvasIsOpaque && !lowPowerActive
           ? (() => {
               const t = clampNumber(globeSettings.glowSpread, 0, 100) / 100;
               // SIX Gaussian halo layers in geometric ~1.8× radius
@@ -1765,6 +1783,8 @@ const App = () => {
             backgroundStyle={backgroundStyle}
             shadeBackground={isFlowBackground ? true : shadeBackground}
             reducedMotion={motionFrozen}
+            lowPower={lowPowerActive}
+            onLowPower={detectsLowPower ? reportLowPower : null}
             canvasHandleRef={globeCanvasRef}
             panelCollapsed={panelCollapsed}
             sheetRef={railRef}
@@ -2087,6 +2107,20 @@ const App = () => {
       )}
       <FollowTooltip />
       {!isFigmaPlugin && <OnboardingHint />}
+      {webglSupported && lowPowerActive && !lowPowerNoticeDismissed && (
+        // Either button removes the notice, so focus moves to the globe it
+        // was about instead of falling back to the top of the page.
+        <LowPowerNotice
+          onRestore={() => {
+            setLowPowerPref("off");
+            globeCanvasRef.current?.focus({ preventScroll: true });
+          }}
+          onDismiss={() => {
+            setLowPowerNoticeDismissed(true);
+            globeCanvasRef.current?.focus({ preventScroll: true });
+          }}
+        />
+      )}
       {/* Per-preset long-form copy below the fold. Renders only when a
           preset is applied (i.e. on /looks/:id URLs). Drives SEO Phase 4
           — each preset URL gets 200+ words of unique designer-facing
