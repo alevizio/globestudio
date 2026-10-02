@@ -53,7 +53,8 @@ The studio runs in your browser, and the code is MIT licensed.
 - Exports: PNG at 1x to 4x (the WebGL scene is re-rendered at that size); SVG
   with clean vector dots (6 effects are approximated with SVG filters, and
   the full shader look needs PNG or video); WebM, MP4 (where the browser can
-  encode it), and GIF video; and a JSON config.
+  encode it), and GIF video; and a JSON config. Copy image puts the same PNG
+  on the clipboard, ready to paste into Figma, Slides, Slack or Notion.
 - Keyboard shortcuts: `S` shuffle, `[`/`]` cycle looks, `D` export, `R`
   reset, `G` toggle view, `H` toggle panel, `?` help.
 - Accessibility: targets WCAG 2.2 AA and was self-audited. It works from the

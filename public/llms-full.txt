@@ -103,7 +103,9 @@ Each is at `https://globestudio.app/looks/<id>` (marketing page) or
 
 From the in-app export dialog: PNG (high-res, rendered at its own scale, not
 the on-screen DPR), SVG, WebM and MP4 video, GIF, and a JSON config (the same
-payload as `?c=`). Rendering is client-side; there is no server-side image
+payload as `?c=`). **Copy image** on the Image tab puts the same PNG on the
+clipboard instead of saving a file, where the browser can write images there.
+Rendering is client-side; there is no server-side image
 endpoint (yet). For a screenshot, point a headless browser at an `/embed?…`
 URL.
 
@@ -155,7 +157,8 @@ exports run client-side in your browser; your designs are never uploaded.
 ### How do I export a dotted globe?
 
 Press D or click the Export button to open the export dialog. PNG exports
-re-render the canvas at up to 4x resolution; SVG exports produce vector output
+re-render the canvas at up to 4x resolution, and Copy image puts that PNG on
+the clipboard to paste elsewhere; SVG exports produce vector output
 for print or further editing; WebM, MP4 and GIF exports record the live
 animation; JSON exports save the full config so others can reproduce your look.
 

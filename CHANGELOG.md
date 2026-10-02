@@ -6,6 +6,13 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ## [Unreleased]
 
+### Added
+
+- Copy image, next to Export PNG. It puts the same PNG on the clipboard,
+  with the aspect, size and quality you picked, ready to paste into Figma,
+  Slides, Slack or Notion. Browsers that can't write images to the clipboard
+  don't show the button.
+
 ### Changed
 
 - The export dialog has an MCP tab, last in the row. It holds what sat at
