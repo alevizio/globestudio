@@ -76,9 +76,12 @@ const Tabs = ({ tab, setTab, hasVideo, figmaPlugin = false }) => {
     const measure = () => {
       const listRect = list.getBoundingClientRect();
       const tabRect = node.getBoundingClientRect();
+      // The underline stops 12px short of the tab's sides. On a phone the
+      // tabs drop their side padding, and it runs the tab's full width.
+      const inset = Math.min(12, parseFloat(getComputedStyle(node).paddingLeft) || 0);
       setIndicator({
-        left: tabRect.left - listRect.left + 12,
-        width: tabRect.width - 24,
+        left: tabRect.left - listRect.left + inset,
+        width: tabRect.width - inset * 2,
         visible: true,
       });
     };
@@ -113,7 +116,7 @@ const Tabs = ({ tab, setTab, hasVideo, figmaPlugin = false }) => {
   return (
     <nav
       ref={listRef}
-      className="export-modal-tabs"
+      className={`export-modal-tabs ${figmaPlugin ? "" : "is-crowded"}`}
       role="tablist"
       aria-label="Export type"
       onKeyDown={onKeyDown}

@@ -525,6 +525,56 @@ test("axe passes with export modal open and focus returns on close", async ({ pa
   await expect(trigger).toBeFocused();
 });
 
+test.describe("export dialog on a 320px wide phone", () => {
+  test.use({ viewport: { width: 320, height: 568 }, isMobile: true, hasTouch: true });
+
+  test("every tab fits the dialog with its label whole, and the last one opens with a tap", async ({ page }) => {
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await expect(dialog).toBeVisible();
+    await expect.poll(() => dialog.evaluate((el) => el.getAnimations().length)).toBe(0);
+
+    const tablist = dialog.getByRole("tablist", { name: "Export type" });
+    const row = await tablist.evaluate((list) => {
+      const edge = list.getBoundingClientRect();
+      return {
+        left: edge.left,
+        right: edge.right,
+        overflows: list.scrollWidth > list.clientWidth,
+        tabs: [...list.querySelectorAll('[role="tab"]')].map((tab) => {
+          const rect = tab.getBoundingClientRect();
+          const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+          return {
+            label: tab.textContent,
+            left: rect.left,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height,
+            clipped: tab.scrollWidth > tab.clientWidth,
+            reachable: hit === tab,
+          };
+        }),
+      };
+    });
+    expect(row.overflows).toBe(false);
+    for (const tab of row.tabs) {
+      expect(tab.left, tab.label).toBeGreaterThanOrEqual(row.left);
+      expect(tab.right, tab.label).toBeLessThanOrEqual(row.right + 0.5);
+      expect(tab.clipped, tab.label).toBe(false);
+      expect(tab.reachable, tab.label).toBe(true);
+      // The row keeps its height. WCAG 2.5.8 asks for 24px each way.
+      expect(tab.width, tab.label).toBeGreaterThanOrEqual(24);
+      expect(tab.height, tab.label).toBeGreaterThanOrEqual(38);
+    }
+
+    const last = tablist.getByRole("tab").last();
+    await last.tap();
+    await expect(last).toHaveAttribute("aria-selected", "true");
+  });
+});
+
 test.describe("Share tab, Use with AI", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 

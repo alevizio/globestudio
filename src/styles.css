@@ -5080,6 +5080,18 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   color: var(--text);
 }
 
+/* Phones: at their desktop padding the studio's tabs run past the dialog's
+   edge, so they share the row instead. Each label stays whole and the room
+   left over is split between them. The Figma plugin's two tabs fit as they
+   are. */
+@media (max-width: 540px) {
+  .export-modal-tabs.is-crowded .export-modal-tab {
+    flex: 1 1 auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
 .export-modal-body {
   /* The body is the scrollable wrapper. The actual vertical layout +
      gap live on .export-modal-pane below — the body has exactly ONE
