@@ -29,6 +29,10 @@ const QUALITY_OPTIONS = [
   { id: "ultra", label: "Ultra", scale: 4 },
 ];
 
+// The styles.css query that puts the tab row in its phone form.
+const PHONE_TABS_QUERY = "(max-width: 540px)";
+const FIGMA_PLUGIN_URL = "https://www.figma.com/community/plugin/1641603648370488902/globestudio";
+
 const FPS_OPTIONS = [24, 30, 60];
 const DURATION_OPTIONS = [3, 5, 8, 12];
 
@@ -55,13 +59,14 @@ const computeDimensions = (baseW, baseH, aspectId, scale) => {
   return { width: Math.round(w * scale), height: Math.round(h * scale) };
 };
 
-const Tabs = ({ tab, setTab, hasVideo, figmaPlugin = false }) => {
+const Tabs = ({ tab, setTab, hasVideo, hasFigma, figmaPlugin = false }) => {
   // Inside the Figma plugin only what can land on the canvas: an image or
   // editable vectors.
   const tabs = [
     { id: "image", label: "Image" },
     hasVideo && !figmaPlugin && { id: "video", label: "Video" },
     { id: "svg", label: "SVG" },
+    hasFigma && { id: "figma", label: "Figma" },
     !figmaPlugin && { id: "share", label: "Share" },
     !figmaPlugin && { id: "mcp", label: "MCP" },
   ].filter(Boolean);
@@ -234,7 +239,23 @@ export const ExportModal = ({
   isLookEdited,
   regionName,
 }) => {
-  const [tab, setTab] = useState("image");
+  const [selectedTab, setTab] = useState("image");
+  // Six tabs don't fit the tab row's phone form, so the Figma tab is left
+  // out of it there, and inside the Figma plugin. If it goes while it is
+  // selected (a window made narrow, a phone turned upright), Image shows.
+  const [phoneTabs, setPhoneTabs] = useState(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia(PHONE_TABS_QUERY).matches;
+  });
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(PHONE_TABS_QUERY);
+    const onChange = (event) => setPhoneTabs(event.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  const hasFigma = !figmaPlugin && !phoneTabs;
+  const tab = selectedTab === "figma" && !hasFigma ? "image" : selectedTab;
   const [aspect, setAspect] = useState(initialAspect);
   // In the Figma plugin each opening starts from the crop that fits the
   // current view (square globe, wide flat map).
@@ -406,7 +427,7 @@ export const ExportModal = ({
           </button>
         </header>
 
-        <Tabs tab={tab} setTab={setTab} hasVideo={videoSupported} figmaPlugin={figmaPlugin} />
+        <Tabs tab={tab} setTab={setTab} hasVideo={videoSupported} hasFigma={hasFigma} figmaPlugin={figmaPlugin} />
 
         <div className="export-modal-body">
         <div key={tab} className="export-modal-pane">
@@ -517,6 +538,71 @@ export const ExportModal = ({
                       : "Copy SVG to clipboard"}
                 </span>
               </button>
+            </>
+          )}
+
+          {tab === "figma" && (
+            <>
+              <section className="export-modal-group">
+                <h3 className="export-modal-label">Paste into Figma</h3>
+                <p className="export-modal-caption">Copy the design, then paste it into a Figma file.</p>
+                <button
+                  type="button"
+                  className={`export-modal-cta ${copyStatus === "copied" ? "is-success" : ""}`}
+                  onClick={copySvg}
+                >
+                  {copyStatus === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
+                  <span>
+                    {copyStatus === "copied"
+                      ? "Vectors copied to clipboard"
+                      : copyStatus === "manual"
+                        ? "Copy failed. Try again"
+                        : "Copy as vectors"}
+                  </span>
+                </button>
+                {/* Each button has its own status line, so one copy's
+                    result is never read out as the other's. */}
+                <p className="visually-hidden" role="status">
+                  {copyStatus === "copied" ? "Vectors copied to clipboard" : copyStatus === "manual" ? "Copy failed" : ""}
+                </p>
+                <p className="export-modal-caption">
+                  Vectors keep dot positions, shapes, and colors. Effects and atmosphere are not applied.
+                </p>
+                {canCopyImage && (
+                  <>
+                    <button
+                      type="button"
+                      className={`export-modal-cta is-secondary ${imageCopyStatus === "copied" ? "is-success" : ""}`}
+                      onClick={handleCopyImage}
+                    >
+                      {imageCopyStatus === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
+                      <span>
+                        {imageCopyStatus === "copied"
+                          ? "Image copied to clipboard"
+                          : imageCopyStatus === "failed"
+                            ? "Copy failed. Try again"
+                            : "Copy as image"}
+                      </span>
+                    </button>
+                    <p className="visually-hidden" role="status">
+                      {imageCopyStatus === "copied"
+                        ? "Image copied to clipboard"
+                        : imageCopyStatus === "failed"
+                          ? "Copy failed"
+                          : ""}
+                    </p>
+                  </>
+                )}
+              </section>
+              <section className="export-modal-group">
+                <h3 className="export-modal-label">Or design inside Figma</h3>
+                <p className="export-modal-caption">
+                  The Globestudio plugin runs the full studio inside Figma and inserts the result on your canvas.
+                </p>
+                <a className="export-modal-cta is-secondary" href={FIGMA_PLUGIN_URL} target="_blank" rel="noopener">
+                  <span>Open the Figma plugin</span>
+                </a>
+              </section>
             </>
           )}
 

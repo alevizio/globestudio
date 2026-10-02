@@ -630,6 +630,7 @@ test.describe("export dialog on a 320px wide phone", () => {
         }),
       };
     });
+    // Six tabs don't fit this row, so the Figma tab is left out on a phone.
     expect(row.tabs.map((tab) => tab.label)).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
     expect(row.overflows).toBe(false);
     for (const tab of row.tabs) {
@@ -814,13 +815,14 @@ test.describe("MCP tab", () => {
     await expectNoSeriousAxeViolations(page);
   });
 
-  test("the dialog's arrow keys, Home and End reach all five tabs", async ({ page }) => {
+  test("the dialog's arrow keys, Home and End reach all six tabs", async ({ page }) => {
     const dialog = await openMcpTab(page);
     const selected = dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab", { selected: true });
     await expect(dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab")).toHaveText([
       "Image",
       "Video",
       "SVG",
+      "Figma",
       "Share",
       "MCP",
     ]);
@@ -829,7 +831,7 @@ test.describe("MCP tab", () => {
     await dialog.getByRole("tab", { name: "MCP" }).press("ArrowRight");
     await expect(selected).toHaveText("Image");
     await expect(selected).toBeFocused();
-    for (const name of ["Video", "SVG", "Share", "MCP"]) {
+    for (const name of ["Video", "SVG", "Figma", "Share", "MCP"]) {
       await page.keyboard.press("ArrowRight");
       await expect(selected).toHaveText(name);
       await expect(selected).toBeFocused();
@@ -1037,5 +1039,124 @@ test.describe("embed code on a 320px wide phone", () => {
     // Wait out the toggle's sliding pill, so axe reads the colors at rest.
     await expect.poll(() => kinds.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
     await expectNoSeriousAxeViolations(page);
+  });
+});
+
+test.describe("Figma tab", () => {
+  test.use({ permissions: ["clipboard-read", "clipboard-write"] });
+
+  const tabRow = (dialog) => dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab");
+  const openDialog = async (page) => {
+    // Glow off, as in the PNG saved test.
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await expect(dialog).toBeVisible();
+    return dialog;
+  };
+
+  test("copies the design as vectors or as an image, and links to the plugin", async ({ page }) => {
+    const dialog = await openDialog(page);
+    await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
+    // The row still ends inside the dialog with six tabs in it.
+    const edges = await dialog.evaluate((el) => {
+      const last = [...el.querySelectorAll('[role="tablist"][aria-label="Export type"] [role="tab"]')].pop();
+      return { tab: last.getBoundingClientRect().right, dialog: el.getBoundingClientRect().right };
+    });
+    expect(edges.tab).toBeLessThanOrEqual(edges.dialog);
+
+    await dialog.getByRole("tab", { name: "Figma" }).click();
+    await expect(dialog.getByRole("heading", { level: 3 })).toHaveText(["Paste into Figma", "Or design inside Figma"]);
+    await expect(dialog.getByText("Copy the design, then paste it into a Figma file.")).toBeVisible();
+    await expect(dialog.locator(".export-modal-footer")).toHaveCount(0);
+
+    // Vectors: the same SVG the SVG tab's Copy puts on the clipboard.
+    const vectors = dialog.getByRole("button", { name: "Copy as vectors" });
+    await expect(vectors).not.toHaveClass(/is-secondary/);
+    await vectors.click();
+    await expect(dialog.getByRole("button", { name: "Vectors copied to clipboard" })).toBeVisible();
+    const fromFigmaTab = await page.evaluate(() => navigator.clipboard.readText());
+    expect(fromFigmaTab.startsWith("<svg")).toBe(true);
+    await dialog.getByRole("tab", { name: "SVG" }).click();
+    await dialog.getByRole("button", { name: /Copy SVG to clipboard|SVG copied to clipboard/ }).click();
+    await expect(dialog.getByRole("button", { name: "SVG copied to clipboard" })).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(fromFigmaTab);
+
+    // Image: a PNG at the size set on the Image tab.
+    await dialog.getByRole("tab", { name: "Image" }).click();
+    const press = (locator) => locator.evaluate((el) => el.click());
+    const width = dialog.getByLabel("Export width");
+    await press(dialog.getByRole("button", { name: "1:1" }));
+    await expect.poll(async () => (await width.inputValue()) === (await dialog.getByLabel("Export height").inputValue())).toBe(true);
+    const side = Number(await width.inputValue()) / 2;
+    await press(dialog.getByRole("button", { name: "Draft" }));
+    await expect(width).toHaveValue(String(side));
+    await dialog.getByRole("tab", { name: "Figma" }).click();
+    const image = dialog.getByRole("button", { name: "Copy as image" });
+    await expect(image).toHaveClass(/is-secondary/);
+    await press(image);
+    await expect(dialog.getByRole("status").last()).toHaveText("Image copied to clipboard", {
+      timeout: process.env.CI ? 45_000 : 30_000,
+    });
+    const copied = await page.evaluate(async () => {
+      const [item] = await navigator.clipboard.read();
+      const bitmap = await createImageBitmap(await item.getType("image/png"));
+      return { types: item.types, size: [bitmap.width, bitmap.height] };
+    });
+    expect(copied).toEqual({ types: ["image/png"], size: [side, side] });
+
+    const link = dialog.getByRole("link", { name: "Open the Figma plugin" });
+    await expect(link).toHaveAttribute("href", "https://www.figma.com/community/plugin/1641603648370488902/globestudio");
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAttribute("rel", "noopener");
+    await expect(link).toHaveClass(/export-modal-cta/);
+    await expect(link).toHaveClass(/is-secondary/);
+    await expect(link).toHaveCSS("text-decoration-line", "none");
+
+    // From the tab, Tab walks the three actions in order, each with a ring.
+    await dialog.getByRole("tab", { name: "Figma" }).focus();
+    for (const action of [dialog.getByRole("button", { name: /vectors/i }), image, link]) {
+      await page.keyboard.press("Tab");
+      await expect(action).toBeFocused();
+      await expect(action).toHaveCSS("outline-style", "solid");
+    }
+    await expect.poll(() => dialog.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+    await expectNoSeriousAxeViolations(page);
+  });
+
+  test("gives way to Image when the window gets as narrow as a phone", async ({ page }) => {
+    const dialog = await openDialog(page);
+    await dialog.getByRole("tab", { name: "Figma" }).click();
+    await expect(dialog.getByRole("heading", { name: "Paste into Figma" })).toBeVisible();
+
+    await page.setViewportSize({ width: 540, height: 720 });
+    await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Share", "MCP"]);
+    await expect(dialog.getByRole("tab", { name: "Image" })).toHaveAttribute("aria-selected", "true");
+    await expect(dialog.getByRole("heading", { name: "Paste into Figma" })).toHaveCount(0);
+    await expect(dialog.getByRole("button", { name: /export png/i })).toBeVisible();
+    // One px wider the row is back in its desktop form, with the Figma tab.
+    await page.setViewportSize({ width: 541, height: 720 });
+    await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
+  });
+});
+
+test.describe("Figma tab on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test("is left out of the tab row, which keeps its five tabs", async ({ page }) => {
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await expect(dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab")).toHaveText([
+      "Image",
+      "Video",
+      "SVG",
+      "Share",
+      "MCP",
+    ]);
+    // Copy image is still there, so a phone can paste into Figma's app.
+    await expect(dialog.getByRole("button", { name: "Copy image" })).toBeVisible();
   });
 });

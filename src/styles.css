@@ -5365,9 +5365,9 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   color: var(--text);
 }
 
-/* A headed group inside a tab, such as the Share tab's Embed code: the
-   heading, then its controls, 12px apart like a field. The controls drop
-   the outer margins they carry elsewhere. */
+/* A headed group inside a tab, the Share tab's Embed code and the two
+   halves of the Figma tab: the heading, then its controls, 12px apart like
+   a field. The controls drop the outer margins they carry elsewhere. */
 .export-modal-group {
   display: flex;
   flex-direction: column;
@@ -5382,6 +5382,10 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
 
 .export-modal-group .export-modal-cta {
   margin-top: 0;
+}
+
+.export-modal-group a.export-modal-cta {
+  text-decoration: none;
 }
 
 /* "Web component" is wider than a third of the toggle on a phone narrower

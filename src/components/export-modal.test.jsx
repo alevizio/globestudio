@@ -268,6 +268,192 @@ describe("ExportModal", () => {
     });
   });
 
+  describe("the Figma tab", () => {
+    const exportTabs = () => within(screen.getByRole("tablist", { name: "Export type" }));
+    const tabNames = () => exportTabs().getAllByRole("tab").map((tab) => tab.textContent);
+    const selectedTab = () => exportTabs().getByRole("tab", { selected: true }).textContent;
+    const follows = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    const openFigmaTab = (props) => {
+      const view = renderModal(props);
+      fireEvent.click(screen.getByRole("tab", { name: "Figma" }));
+      return view;
+    };
+    // jsdom can't write images to the clipboard. These stand in for a
+    // browser that can.
+    const allowImageCopy = () => {
+      globalThis.ClipboardItem = class {};
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { write: vi.fn() } });
+    };
+    // The tab row's phone form, which jsdom has no media queries for.
+    const stubPhoneTabs = (matches) => {
+      const listeners = new Set();
+      const query = {
+        matches,
+        addEventListener: (_type, listener) => listeners.add(listener),
+        removeEventListener: (_type, listener) => listeners.delete(listener),
+      };
+      window.matchMedia = vi.fn(() => query);
+      return {
+        listeners,
+        set: (next) => {
+          query.matches = next;
+          act(() => listeners.forEach((listener) => listener({ matches: next })));
+        },
+      };
+    };
+
+    afterEach(() => {
+      delete globalThis.ClipboardItem;
+      delete navigator.clipboard;
+      delete window.matchMedia;
+    });
+
+    it("sits after SVG, before Share and MCP", () => {
+      renderModal();
+      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
+    });
+
+    it("is left out inside the Figma plugin, which still shows only Image and SVG", () => {
+      renderModal({ figmaPlugin: true });
+      expect(tabNames()).toEqual(["Image", "SVG"]);
+    });
+
+    it("is left out when the tab row is in its phone form, where six tabs don't fit", () => {
+      stubPhoneTabs(true);
+      renderModal();
+      expect(window.matchMedia).toHaveBeenCalledWith("(max-width: 540px)");
+      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
+    });
+
+    it("falls back to Image when the tab disappears under a dialog left on Figma", () => {
+      const phone = stubPhoneTabs(false);
+      openFigmaTab();
+      expect(selectedTab()).toBe("Figma");
+      expect(screen.getByRole("heading", { name: "Paste into Figma" })).toBeTruthy();
+
+      phone.set(true);
+      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
+      expect(selectedTab()).toBe("Image");
+      expect(screen.queryByRole("heading", { name: "Paste into Figma" })).toBeNull();
+      expect(screen.getByLabelText("Export width")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Export PNG" })).toBeTruthy();
+      // The arrow keys start from the tab that is shown.
+      fireEvent.keyDown(screen.getByRole("tablist", { name: "Export type" }), { key: "ArrowRight" });
+      expect(selectedTab()).toBe("Video");
+    });
+
+    it("stops listening for the phone form when the dialog goes away", () => {
+      const phone = stubPhoneTabs(false);
+      const { unmount } = renderModal();
+      expect(phone.listeners.size).toBe(1);
+      unmount();
+      expect(phone.listeners.size).toBe(0);
+    });
+
+    it("puts pasting first, then the plugin", () => {
+      allowImageCopy();
+      openFigmaTab({ copySvg: vi.fn(), copyPng: vi.fn() });
+      const pane = document.querySelector(".export-modal-pane");
+      const outline = [...pane.querySelectorAll("h3, p:not(.visually-hidden), button, a")].map((node) => [
+        node.tagName.toLowerCase(),
+        node.textContent,
+      ]);
+      expect(outline).toEqual([
+        ["h3", "Paste into Figma"],
+        ["p", "Copy the design, then paste it into a Figma file."],
+        ["button", "Copy as vectors"],
+        ["p", "Vectors keep dot positions, shapes, and colors. Effects and atmosphere are not applied."],
+        ["button", "Copy as image"],
+        ["h3", "Or design inside Figma"],
+        ["p", "The Globestudio plugin runs the full studio inside Figma and inserts the result on your canvas."],
+        ["a", "Open the Figma plugin"],
+      ]);
+      expect(screen.getByRole("button", { name: "Copy as vectors" }).className).not.toContain("is-secondary");
+      expect(screen.getByRole("button", { name: "Copy as image" }).className).toContain("is-secondary");
+      // Like Share and MCP, the tab has no footer: its actions sit in the body.
+      expect(document.querySelector(".export-modal-footer")).toBeNull();
+    });
+
+    it("links to the plugin on Figma Community in a new tab, styled as a secondary button", () => {
+      openFigmaTab();
+      const link = screen.getByRole("link", { name: "Open the Figma plugin" });
+      expect(link.getAttribute("href")).toBe("https://www.figma.com/community/plugin/1641603648370488902/globestudio");
+      expect(link.getAttribute("target")).toBe("_blank");
+      expect(link.getAttribute("rel")).toBe("noopener");
+      expect(link.className).toContain("export-modal-cta");
+      expect(link.className).toContain("is-secondary");
+    });
+
+    it("copies vectors the way Copy SVG does, and confirms", () => {
+      const copySvg = vi.fn();
+      const { rerender } = openFigmaTab({ copySvg });
+      const button = screen.getByRole("button", { name: "Copy as vectors" });
+      // No image clipboard in jsdom, so this is the only status line here.
+      expect(screen.getByRole("status").textContent).toBe("");
+      fireEvent.click(button);
+      expect(copySvg).toHaveBeenCalledTimes(1);
+
+      const withStatus = (copyStatus) =>
+        rerender(
+          <ExportModal
+            open
+            onClose={vi.fn()}
+            canvasWidth={1200}
+            canvasHeight={800}
+            copySvg={copySvg}
+            copyStatus={copyStatus}
+            videoSupported
+            videoStatus="idle"
+            videoProgress={0}
+            videoDurationMs={5000}
+            setVideoDurationMs={vi.fn()}
+          />,
+        );
+      withStatus("copied");
+      expect(screen.getByRole("button", { name: "Vectors copied to clipboard" })).toBe(button);
+      expect(button.className).toContain("is-success");
+      expect(screen.getByRole("status").textContent).toBe("Vectors copied to clipboard");
+      withStatus("manual");
+      expect(screen.getByRole("button", { name: "Copy failed. Try again" })).toBe(button);
+      expect(screen.getByRole("status").textContent).toBe("Copy failed");
+    });
+
+    it("copies the image the way Copy image does, with the Image tab's settings", async () => {
+      allowImageCopy();
+      const copyPng = vi.fn(() => Promise.resolve());
+      renderModal({ copyPng });
+      fireEvent.click(screen.getByRole("button", { name: "1:1" }));
+      fireEvent.click(screen.getByRole("button", { name: "Draft" }));
+      fireEvent.click(screen.getByRole("tab", { name: "Figma" }));
+      const button = screen.getByRole("button", { name: "Copy as image" });
+      await act(async () => {
+        fireEvent.click(button);
+      });
+      expect(copyPng).toHaveBeenCalledWith({ scale: 1, width: 800, height: 800, aspect: "1:1" });
+      expect(screen.getByRole("button", { name: "Image copied to clipboard" })).toBe(button);
+      // Each button has its own status line. Only the image's one speaks.
+      expect(screen.getAllByRole("status").map((line) => line.textContent)).toEqual(["", "Image copied to clipboard"]);
+    });
+
+    it("says so when the image copy fails", async () => {
+      allowImageCopy();
+      openFigmaTab({ copyPng: vi.fn(() => Promise.reject(new Error("denied"))) });
+      const button = screen.getByRole("button", { name: "Copy as image" });
+      await act(async () => {
+        fireEvent.click(button);
+      });
+      expect(screen.getByRole("button", { name: "Copy failed. Try again" })).toBe(button);
+      expect(screen.getAllByRole("status").map((line) => line.textContent)).toEqual(["", "Copy failed"]);
+    });
+
+    it("leaves Copy as image out where the browser can't write images to the clipboard", () => {
+      openFigmaTab({ copySvg: vi.fn(), copyPng: vi.fn() });
+      expect(screen.getByRole("button", { name: "Copy as vectors" })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Copy as image" })).toBeNull();
+      expect(follows(screen.getByRole("button", { name: "Copy as vectors" }), screen.getByRole("link"))).toBe(true);
+    });
+  });
+
   describe("the MCP tab", () => {
     const SHARE_URL = "https://globestudio.app/?c=%7B%22v%22%3A1%2C%22density%22%3A60%7D";
     // The dialog's own row. The MCP tab holds a second tablist, for the clients.
@@ -279,9 +465,9 @@ describe("ExportModal", () => {
       delete navigator.clipboard;
     });
 
-    it("comes last in the row, after Image, Video, SVG and Share", () => {
+    it("comes last in the row, after Image, Video, SVG, Figma and Share", () => {
       renderModal();
-      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
+      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
     });
 
     it("is left out inside the Figma plugin, like Share", () => {
@@ -337,16 +523,16 @@ describe("ExportModal", () => {
       expect(track).toHaveBeenCalledWith("share_clicked", { method: "ai" });
     });
 
-    it("is reached with the arrow keys, Home and End, across all five tabs", () => {
+    it("is reached with the arrow keys, Home and End, across all six tabs", () => {
       renderModal();
       const tablist = screen.getByRole("tablist", { name: "Export type" });
       const visited = [selectedTab()];
-      for (let i = 0; i < 5; i += 1) {
+      for (let i = 0; i < 6; i += 1) {
         fireEvent.keyDown(tablist, { key: "ArrowRight" });
         visited.push(selectedTab());
       }
       // Wraps from MCP back to Image.
-      expect(visited).toEqual(["Image", "Video", "SVG", "Share", "MCP", "Image"]);
+      expect(visited).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP", "Image"]);
       fireEvent.keyDown(tablist, { key: "ArrowLeft" });
       expect(selectedTab()).toBe("MCP");
       fireEvent.keyDown(tablist, { key: "ArrowLeft" });
