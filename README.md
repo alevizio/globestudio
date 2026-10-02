@@ -199,7 +199,7 @@ agent can list and search looks, build share URLs, read a share link you paste
 The same tools run locally over stdio:
 `claude mcp add globestudio -- npx -y @globestudio/mcp`.
 
-Without an MCP client, use **Copy for AI** in the Share tab of the export
+Without an MCP client, use **Copy for AI** in the MCP tab of the export
 dialog. It copies a prompt with your share link, its settings and what an
 agent can do with it, ready to paste into any chat. The same tab has the
 connect line for each client.

@@ -6,6 +6,13 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ## [Unreleased]
 
+### Changed
+
+- The export dialog has an MCP tab, last in the row. It holds what sat at
+  the bottom of the Share tab: the commands that connect Claude, Codex and
+  Cursor come first, then Copy for AI. On a phone the tabs share the row, so
+  the last one no longer runs past the dialog's edge.
+
 ### Fixed
 
 - Picking a look changes the styling only: the region you chose and the

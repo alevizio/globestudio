@@ -44,7 +44,7 @@ you can change it and hand back a new link. The same tools run locally as
 **`@globestudio/mcp`** (`npx -y @globestudio/mcp`).
 
 A user without an MCP client can press **Copy for AI** in the export dialog's
-Share tab. It copies a plain text prompt with the share link, the key
+MCP tab. It copies a plain text prompt with the share link, the key
 settings, and what an agent can do with them.
 
 ### Common URL parameters
