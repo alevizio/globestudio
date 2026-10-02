@@ -31,6 +31,11 @@ All notable changes to Globestudio are tracked here. Format follows
   It used to cover the whole globe.
 - Topographic is now called Sonar, which is what it looks like. Its address
   stays /looks/topographic, so links and embeds keep working.
+- On a tablet or a narrow laptop window, the globe sits in the space beside
+  the open panel, and so do the Flat/Globe switch, the keyboard hint and the
+  zoom buttons. The panel used to cover part of the globe, the switch or the
+  hint covered the panel's Export button, and the bug report icon sat on the
+  panel's last rows. Phones and windows 1280 px and wider are unchanged.
 
 ## [1.0.0] - 2026-09-28
 

@@ -7917,6 +7917,30 @@ input[type="range"]:active::-moz-range-thumb {
   border-color: var(--border-strong);
 }
 
+/* The desktop layout on a window too narrow for a globe centred on it to
+   clear the open panel (wider than the phone layout below, narrower than
+   1280px). globe-background.jsx draws the globe in the middle of the space
+   beside the panel there, through BESIDE_PANEL_QUERY in config/constants.js,
+   and the floating controls follow it: half the panel's right edge
+   (16px + 398px) to the right of the window's middle. The switch and the
+   zoom buttons are only visible with the panel open; the hint also shows
+   with it hidden, when the globe is back in the middle of the window. */
+@media (min-width: 621px) and (max-width: 1279px) and (min-height: 501px),
+  (min-width: 621px) and (max-width: 1279px) and (pointer: fine) {
+  .view-mode-switch,
+  .map-zoom-controls,
+  .app-shell:not(.is-panel-collapsed) .onboarding-hint {
+    left: calc(50% + (16px + 398px) / 2);
+    /* Not shrunk to the room left between that point and the right edge. */
+    width: max-content;
+  }
+
+  /* Out from under the panel, which reaches the corner on a short window. */
+  .bug-link {
+    left: calc(16px + 398px + 16px);
+  }
+}
+
 /* Phones, in portrait (narrow) and held sideways (short and touch driven):
    the rail becomes a bottom sheet. App.jsx and globe-background.jsx match
    the same query through PHONE_LAYOUT_QUERY in config/constants.js. */

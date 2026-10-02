@@ -974,7 +974,7 @@ const App = () => {
     flashHint: flashKeyboardHint,
   });
 
-  useTrackpadZoom({ mapZoomRef, viewModeRef, setMapZoom, setMapOffset });
+  useTrackpadZoom({ mapZoomRef, viewModeRef, setMapZoom, setMapOffset, canvasRef: globeCanvasRef });
 
   useEffect(() => () => window.clearTimeout(viewTransitionTimeoutRef.current), []);
 

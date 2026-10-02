@@ -14,6 +14,7 @@ export const useTrackpadZoom = ({
   viewModeRef,
   setMapZoom,
   setMapOffset,
+  canvasRef,
 }) => {
   useEffect(() => {
     const shouldIgnore = (event) => {
@@ -29,8 +30,12 @@ export const useTrackpadZoom = ({
       const shell = document.querySelector(".app-shell");
       if (viewModeRef.current === "flat" && shell) {
         const rect = shell.getBoundingClientRect();
-        const pointerX = event.clientX - rect.left - rect.width / 2;
-        const pointerY = event.clientY - rect.top - rect.height / 2;
+        // Beside the open panel on a narrow desktop window the map is drawn
+        // smaller and right of the middle (utils/phone-frame.js); the offset
+        // is in unframed px from the map's own middle.
+        const { scale = 1, shiftX = 0 } = canvasRef?.current?.besidePanelFrame?.() ?? {};
+        const pointerX = (event.clientX - rect.left - rect.width / 2 - shiftX) / scale;
+        const pointerY = (event.clientY - rect.top - rect.height / 2) / scale;
         const zoomRatio = nextZoom / currentZoom;
 
         setMapOffset((offset) => ({

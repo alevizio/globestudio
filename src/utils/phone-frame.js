@@ -64,12 +64,23 @@ export const phoneFrame = ({ width, height, top, sheetTop, content, globeProgres
   return { scale, shiftY: freeTop + freeHeight / 2 - height / 2 };
 };
 
+// The desktop layout on a window too narrow for the globe to clear the open
+// side panel: the content moves to the middle of the space right of the
+// panel (its right edge at `panelRight`, from the left of the canvas) and
+// shrinks when that space is narrower than it.
+export const besidePanelFrame = ({ width, panelRight, content, globeProgress }) => {
+  const fill = lerp(FLAT_FILL, GLOBE_FILL, globeProgress);
+  const scale = Math.min(1, (fill * (width - panelRight)) / Math.max(1, content.width));
+  return { scale, shiftX: panelRight / 2, shiftY: 0 };
+};
+
 // PerspectiveCamera.setViewOffset arguments that draw the full-canvas picture
-// scaled by `scale` about the canvas centre and moved down by `shiftY` px.
-export const frameViewOffset = ({ width, height, scale, shiftY }) => [
+// scaled by `scale` about the canvas centre and moved right by `shiftX` px
+// and down by `shiftY` px.
+export const frameViewOffset = ({ width, height, scale, shiftX = 0, shiftY }) => [
   width,
   height,
-  width / 2 - width / (2 * scale),
+  width / 2 - (width / 2 + shiftX) / scale,
   height / 2 - (height / 2 + shiftY) / scale,
   width / scale,
   height / scale,

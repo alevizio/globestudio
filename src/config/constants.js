@@ -7,6 +7,14 @@ export const US_COUNTRY_ID = "USA";
 // step with the @media blocks in styles.css that use the same query.
 export const PHONE_LAYOUT_QUERY = "(max-width: 620px), (pointer: coarse) and (max-height: 500px)";
 
+// The desktop layout on a window too narrow for a globe centred on it to
+// clear the open side panel: wider than the phone layout, narrower than
+// 1280px. There the globe and the floating controls centre on the space
+// beside the panel instead. Keep in step with the @media block in styles.css
+// that uses the same query.
+export const BESIDE_PANEL_QUERY =
+  "(min-width: 621px) and (max-width: 1279px) and (min-height: 501px), (min-width: 621px) and (max-width: 1279px) and (pointer: fine)";
+
 // The zoom a first load and Reset start from. Desktop frames the world at
 // 0.8. Phones held upright open the globe at 2.2 so it fills the width; on
 // the phone layout globe-background.jsx sizes the flat map to fit the width

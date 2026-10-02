@@ -37,8 +37,8 @@ import { getCachedWorldRivers, loadWorldRivers } from "../data/world-rivers-topo
 import { getCachedWorldCities, loadWorldCities } from "../data/world-cities-topology.js";
 import { cca3ToCcn3 } from "../data/geography.js";
 import { PerfMonitor } from "./perf-monitor.jsx";
-import { PHONE_LAYOUT_QUERY, PHONE_MAP_ZOOM, defaultMapZoom } from "../config/constants.js";
-import { contentSize, flatFitDistance, frameViewOffset, phoneFrame } from "../utils/phone-frame.js";
+import { BESIDE_PANEL_QUERY, PHONE_LAYOUT_QUERY, PHONE_MAP_ZOOM, defaultMapZoom } from "../config/constants.js";
+import { besidePanelFrame, contentSize, flatFitDistance, frameViewOffset, phoneFrame } from "../utils/phone-frame.js";
 import { trackClientError } from "./analytics.jsx";
 import { createFrameRateWatch, isSoftwareRendererName } from "../utils/low-power.js";
 
@@ -230,6 +230,7 @@ export const GlobeBackground = ({
     moving: new Map(),
     top: 0,
     sheetTop: 0,
+    panelRight: 0,
     holds: 0,
   });
   const mapImageRef = useRef(mapData?.image);
@@ -393,8 +394,8 @@ export const GlobeBackground = ({
       const rect = event.currentTarget.getBoundingClientRect();
       if (point && rect.width && rect.height) {
         // In unframed canvas px, like the offset (see the pan above).
-        const { frameScale = 1, frameShiftY = 0 } = threeRef.current ?? {};
-        const centerX = rect.left + rect.width / 2;
+        const { frameScale = 1, frameShiftX = 0, frameShiftY = 0 } = threeRef.current ?? {};
+        const centerX = rect.left + rect.width / 2 + frameShiftX;
         const centerY = rect.top + rect.height / 2 + frameShiftY;
         const pointerX = (point.x - centerX) / frameScale;
         const pointerY = (point.y - centerY) / frameScale;
@@ -805,6 +806,7 @@ export const GlobeBackground = ({
       threeRef.current.canvasTop = rect.top;
       // Rotating a phone resizes the mount, so this stays current too.
       threeRef.current.isPhoneLayout = window.matchMedia?.(PHONE_LAYOUT_QUERY).matches ?? width <= 620;
+      threeRef.current.isBesidePanel = Boolean(window.matchMedia?.(BESIDE_PANEL_QUERY).matches);
       // The zoom a load or Reset starts from, and the flat distance that
       // makes the map fit the width at it on an upright phone, where that
       // zoom is 2.2 so the globe fills the width.
@@ -968,9 +970,18 @@ export const GlobeBackground = ({
       const rectWidth = threeRef.current.canvasWidth ?? renderer.domElement.clientWidth ?? 1;
       const rectHeight = threeRef.current.canvasHeight ?? renderer.domElement.clientHeight ?? 1;
 
-      // Phone layout: fit the picture between the top bar and the sheet,
-      // scaled against its size at the default zoom so zooming still works
-      // (see utils/phone-frame.js). Exports hold the frame off.
+      // The picture's size on screen at the default zoom, which the two
+      // frames below fit, so zooming still works (see utils/phone-frame.js).
+      const image = mapImageRef.current;
+      const content = contentSize({
+        height: rectHeight,
+        fov: baseFov,
+        distance: targetDistance / (threeRef.current.defaultZoom || 1),
+        flatAspect: image?.width ? image.height / image.width : 0.5,
+        globeProgress: rotationProgress,
+      });
+      // Phone layout: fit the picture between the top bar and the sheet.
+      // Exports hold the frame off.
       if (framing && sheetFrame.holds === 0) {
         for (const [key, since] of sheetFrame.moving) {
           if (now - since > 1500) sheetFrame.moving.delete(key);
@@ -983,14 +994,6 @@ export const GlobeBackground = ({
           }
           sheetFrame.dirty = false;
         }
-        const image = mapImageRef.current;
-        const content = contentSize({
-          height: rectHeight,
-          fov: baseFov,
-          distance: targetDistance / (threeRef.current.defaultZoom || 1),
-          flatAspect: image?.width ? image.height / image.width : 0.5,
-          globeProgress: rotationProgress,
-        });
         const { scale, shiftY } = phoneFrame({
           width: rectWidth,
           height: rectHeight,
@@ -1001,28 +1004,37 @@ export const GlobeBackground = ({
         });
         camera.setViewOffset(...frameViewOffset({ width: rectWidth, height: rectHeight, scale, shiftY }));
         threeRef.current.frameScale = scale;
+        threeRef.current.frameShiftX = 0;
         threeRef.current.frameShiftY = shiftY;
+      } else if (threeRef.current.isBesidePanel && sheetFrame.sheet && !panelCollapsedRef.current && sheetFrame.holds === 0) {
+        // Desktop layout on a window too narrow for the globe to clear the
+        // open panel: draw the picture in the middle of the space beside it.
+        // The panel's layout box, which its entrance animation doesn't move.
+        if (sheetFrame.dirty) {
+          sheetFrame.panelRight = sheetFrame.sheet.offsetLeft + sheetFrame.sheet.offsetWidth;
+          sheetFrame.dirty = false;
+        }
+        const frame = besidePanelFrame({
+          width: rectWidth,
+          panelRight: sheetFrame.panelRight,
+          content,
+          globeProgress: rotationProgress,
+        });
+        camera.setViewOffset(...frameViewOffset({ width: rectWidth, height: rectHeight, ...frame }));
+        threeRef.current.frameScale = frame.scale;
+        threeRef.current.frameShiftX = frame.shiftX;
+        threeRef.current.frameShiftY = 0;
       } else {
         if (camera.view?.enabled) camera.clearViewOffset();
         threeRef.current.frameScale = 1;
+        threeRef.current.frameShiftX = 0;
         threeRef.current.frameShiftY = 0;
       }
 
       const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.z;
       const visibleWidth = visibleHeight * camera.aspect;
       const offset = mapOffsetRef.current || { x: 0, y: 0 };
-      // narrow viewports + open desktop panel → shift the globe horizontally
-      // so it sits in the dead area NEXT to the panel rather than half-
-      // covered by it. On phones (PHONE_LAYOUT_QUERY) the panel is a bottom
-      // sheet, not a left-side rail, so this horizontal nudge is the wrong
-      // axis and just shoves the globe off-center. Gate the nudge on the
-      // phone layout.
-      const isMobileLayout = threeRef.current.isPhoneLayout ?? rectWidth <= 620;
-      const narrowFocus = isMobileLayout ? 0 : clampNumber((760 - rectWidth) / 260, 0, 1);
-      const panelFocusPixels = panelCollapsedRef.current ? 0 : narrowFocus * 104;
-      const globeFocusOffset = (panelFocusPixels / Math.max(rectWidth, 1)) * visibleWidth;
-
-      globeGroup.position.x = (offset.x / Math.max(rectWidth, 1)) * visibleWidth * flatProgress + globeFocusOffset * rotationProgress;
+      globeGroup.position.x = (offset.x / Math.max(rectWidth, 1)) * visibleWidth * flatProgress;
       globeGroup.position.y = (-offset.y / Math.max(rectHeight, 1)) * visibleHeight * flatProgress;
       globeGroup.position.z = 0;
       // tiltX is a base orientation applied in BOTH globe and flat modes —
@@ -1567,6 +1579,13 @@ export const GlobeBackground = ({
       renderer.domElement.holdFullFrame = (on) => {
         holdFullFrame(on);
         if (on) postHandle.composer.render();
+      };
+      // How the picture is drawn while it sits beside the open panel, for
+      // zoom to pointer on the flat map (hooks/use-trackpad-zoom.js). Empty
+      // on phones, where that hook has never followed the phone frame.
+      renderer.domElement.besidePanelFrame = () => {
+        const { frameScale: scale, frameShiftX: shiftX } = threeRef.current ?? {};
+        return shiftX ? { scale, shiftX } : {};
       };
     }
 
