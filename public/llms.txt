@@ -23,6 +23,10 @@ new link. The same tools run locally as **`@globestudio/mcp`**
 (`npx -y @globestudio/mcp`). The `/embed` URL path below works for any client
 (no MCP needed).
 
+Coding agents can add the Globestudio agent skill to a project with
+`npx skills add alevizio/globestudio`. It teaches the share link format, the
+embed packages and the looks, with or without the MCP server.
+
 ## How to use Globestudio programmatically
 
 The simplest path for an AI assistant: **build an `/embed?…` URL**.
@@ -46,6 +50,7 @@ A JSON Schema for configuration files is at
 - [Figma plugin](https://github.com/alevizio/globestudio/blob/main/figma-plugin/README.md): plugin architecture + Insert flow
 - [WordPress](https://globestudio.app/integrations): works in WordPress via a Custom HTML embed. A Gutenberg block + `[globestudio]` shortcode plugin is [in the repo](https://github.com/alevizio/globestudio/blob/main/wordpress-plugin/globestudio/README.md), not yet on wordpress.org
 - [MCP server](https://github.com/alevizio/globestudio/blob/main/packages/mcp/README.md): tool list + setup for AI assistants; hosted at `https://globestudio.app/mcp`
+- [Agent skill](https://github.com/alevizio/globestudio/tree/main/skills/globestudio): `npx skills add alevizio/globestudio` for Claude Code, Codex, Cursor and other coding agents
 - [Accessibility](https://github.com/alevizio/globestudio/blob/main/ACCESSIBILITY.md): what ships toward WCAG 2.2 AA, and the known gaps
 - [Roadmap](https://github.com/alevizio/globestudio/blob/main/ROADMAP.md): planned features
 - [JSON Schema](https://globestudio.app/schema/config.json): IDE-validated config files

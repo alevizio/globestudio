@@ -13,6 +13,7 @@ Pick a country or the whole world, choose a look, change the dots and colors, an
 [![CI status](https://github.com/alevizio/globestudio/actions/workflows/ci.yml/badge.svg)](https://github.com/alevizio/globestudio/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-f6f2ea.svg)](LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-9adfff.svg)](CONTRIBUTING.md)
+[![skills.sh installs](https://skills.sh/b/alevizio/globestudio)](https://skills.sh/alevizio/globestudio)
 
 </div>
 
@@ -216,6 +217,32 @@ agent can do with it, ready to paste into any chat. The same tab has the
 connect line for each client.
 
 Full tool list and setup in [`packages/mcp/README.md`](packages/mcp/README.md).
+
+## Use it from coding agents (skill)
+
+The Globestudio skill teaches coding agents such as Claude Code, Codex and
+Cursor how a design travels in a link, how to embed one with the packages or
+an iframe, and which look fits a brief. Add it to a project:
+
+```bash
+npx skills add alevizio/globestudio
+```
+
+Or with the GitHub CLI, or as a Claude Code plugin that also connects the
+hosted MCP server:
+
+```bash
+gh skill install alevizio/globestudio globestudio
+
+claude plugin marketplace add alevizio/globestudio
+claude plugin install globestudio@globestudio
+```
+
+`npx skills` sends anonymous install data to skills.sh unless you set
+`DISABLE_TELEMETRY=1`. The skill is plain markdown in
+[`skills/globestudio`](skills/globestudio/). Its reference files are built
+from the app's own code with `npm run skill:references`, and a test fails
+when they fall behind.
 
 ## What you can build with it
 

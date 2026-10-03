@@ -207,3 +207,30 @@ describe("the Claude Code plugin", () => {
     expect(plugin.mcpServers).toEqual({ globestudio: { type: "http", url: MCP_URL } });
   });
 });
+
+describe("the install commands", () => {
+  const marketplace = JSON.parse(read(".claude-plugin/marketplace.json"));
+  const [plugin] = marketplace.plugins;
+  const repo = new URL(plugin.repository).pathname.slice(1);
+  const npx = `npx skills add ${repo}`;
+  const gh = `gh skill install ${repo} ${fields.name}`;
+  const marketplaceAdd = `claude plugin marketplace add ${repo}`;
+  const pluginInstall = `claude plugin install ${plugin.name}@${marketplace.name}`;
+
+  it("point at this repo and this skill", () => {
+    expect(repo).toBe("alevizio/globestudio");
+  });
+
+  it.each(["README.md", "src/components/docs-page.jsx", "src/components/integrations-page.jsx"])(
+    "%s gives all three, and the telemetry opt out",
+    (path) => {
+      const text = read(path);
+      for (const command of [npx, gh, marketplaceAdd, pluginInstall]) expect(text).toContain(command);
+      expect(text).toContain("DISABLE_TELEMETRY=1");
+    },
+  );
+
+  it("the export dialog's MCP tab gives the npx line", () => {
+    expect(read("src/components/agent-share.jsx")).toContain(`"${npx}"`);
+  });
+});

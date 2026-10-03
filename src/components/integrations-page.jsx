@@ -187,6 +187,25 @@ const INTEGRATIONS = [
     cta: { href: "https://www.npmjs.com/package/@globestudio/mcp", label: "View on npm" },
   },
   {
+    id: "skill",
+    name: "Coding agents / Skill",
+    Logo: McpLogo,
+    bg: "#1e1e22",
+    fg: "#ffffff",
+    blurb:
+      "The Globestudio skill teaches coding agents such as Claude Code, Codex and Cursor how a design travels in a link, how to embed one and which look fits a brief. Add it with npx skills, the GitHub CLI or the Claude Code plugin, which also connects the MCP server. npx skills sends anonymous install data to skills.sh unless you set DISABLE_TELEMETRY=1.",
+    snippet: `npx skills add alevizio/globestudio`,
+    language: "npx skills",
+    more: [
+      { label: "GitHub CLI", code: `gh skill install alevizio/globestudio globestudio` },
+      {
+        label: "Claude Code plugin",
+        code: `claude plugin marketplace add alevizio/globestudio && claude plugin install globestudio@globestudio`,
+      },
+    ],
+    cta: { href: "https://github.com/alevizio/globestudio/tree/main/skills/globestudio", label: "View the skill on GitHub" },
+  },
+  {
     id: "webflow",
     name: "Webflow",
     Logo: WebflowLogo,
@@ -336,7 +355,7 @@ export const IntegrationsPage = () => {
             </div>
             <p>{tool.blurb}</p>
             <CodeBlock
-              language={tool.snippet.startsWith("<") ? "html" : "url"}
+              language={tool.language ?? (tool.snippet.startsWith("<") ? "html" : "url")}
             >
               {tool.snippet}
             </CodeBlock>

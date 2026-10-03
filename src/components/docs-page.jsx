@@ -39,6 +39,13 @@ const SCRIPT_SNIPPET = `<!-- One-line script-tag loader. Drops a div anywhere on
 <div data-globestudio data-look="risograph" style="height:480px"></div>
 <script src="https://globestudio.app/embed.js" async></script>`;
 
+// Each installs skills/globestudio. The plugin adds the MCP server too.
+const SKILL_COMMANDS = {
+  npx: "npx skills add alevizio/globestudio",
+  gh: "gh skill install alevizio/globestudio globestudio",
+  plugin: "claude plugin marketplace add alevizio/globestudio && claude plugin install globestudio@globestudio",
+};
+
 const SHORTCUTS = [
   { keys: ["S"], label: "Shuffle to a random look" },
   { keys: ["[", "]"], label: "Cycle preset (prev / next)" },
@@ -55,6 +62,7 @@ const SHORTCUTS = [
 const TOC = [
   { id: "embed", label: "Embed" },
   { id: "share", label: "Share URLs" },
+  { id: "agent-skill", label: "Agent skill" },
   { id: "shortcuts", label: "Keyboard shortcuts" },
   { id: "presets", label: "Preset catalog" },
   { id: "schema", label: "Config schema" },
@@ -165,6 +173,25 @@ export const DocsPage = () => {
             </a>
             , so it's autocomplete-friendly in any editor that respects{" "}
             <code>$schema</code>.
+          </p>
+        </section>
+
+        <section className="docs-section">
+          <SectionHeading id="agent-skill" className="docs-section-title">
+            Agent skill
+          </SectionHeading>
+          <p>
+            The Globestudio skill teaches coding agents such as Claude Code,
+            Codex and Cursor how a design travels in a link, how to embed one
+            and which look fits a brief. Add it to a project with any of these:
+          </p>
+          <CodeBlock language="npx skills" wrap>{SKILL_COMMANDS.npx}</CodeBlock>
+          <CodeBlock language="GitHub CLI" wrap>{SKILL_COMMANDS.gh}</CodeBlock>
+          <CodeBlock language="Claude Code plugin" wrap>{SKILL_COMMANDS.plugin}</CodeBlock>
+          <p>
+            The Claude Code plugin also connects the hosted MCP server.{" "}
+            <code>npx skills</code> sends anonymous install data to skills.sh
+            unless you set <code>DISABLE_TELEMETRY=1</code>.
           </p>
         </section>
 

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -92,6 +92,15 @@ describe.each(["public/llms.txt", "public/llms-full.txt"])("%s", (path) => {
 
   it("points React users at the npm package", () => {
     expect(text).toContain("npm i @globestudio/react");
+  });
+});
+
+describe("public/llms.txt", () => {
+  it("gives coding agents the skill's install line", () => {
+    const text = read("public/llms.txt").replace(/\n>?\s*/g, " ");
+    expect(text).toContain("npx skills add alevizio/globestudio");
+    expect(text).toContain("https://github.com/alevizio/globestudio/tree/main/skills/globestudio");
+    expect(existsSync(resolve(repoRoot, "skills/globestudio/SKILL.md"))).toBe(true);
   });
 });
 
