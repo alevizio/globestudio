@@ -154,7 +154,9 @@ export const EmbedView = () => {
   // If the host URL carries ?c=…, the recipient gets the sender's exact
   // customizations layered on top of preset defaults. See
   // src/utils/share-config.js for the encoding contract.
-  const shareConfig = useMemo(() => parseShareConfig(search), [search]);
+  // {} keeps only the keys the config gives: buildSettings layers it over
+  // the look, so a partial nested object keeps the look's other values.
+  const shareConfig = useMemo(() => parseShareConfig(search, {}), [search]);
   const params = useMemo(() => parseParams(search, shareConfig), [search, shareConfig]);
   // In the Figma plugin shell the look, region, density and view pickers
   // replace the matching query params, so the panel renders what

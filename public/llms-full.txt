@@ -25,6 +25,11 @@ For full control, encode a complete config object and pass it as `?c=<json>`
 config is published at <https://globestudio.app/schema/config.json>. Editors
 that read `$schema` autocomplete + validate it.
 
+To change a look, send only the changes: `/looks/<id>?c=<json>` and
+`/embed?look=<id>&c=<json>` layer the config over that look. A nested object
+such as `globeSettings` or `shaderSettings` keeps the look's value for every
+key it leaves out, so adding `dataPoints` to Sonar keeps its glow and grid off.
+
 ### MCP server
 
 Globestudio runs a hosted MCP server at **`https://globestudio.app/mcp`**

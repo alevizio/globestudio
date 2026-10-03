@@ -78,6 +78,27 @@ test("a look link's own settings win over the look", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => localStorage.getItem("globestudio:density"))).toBe("77");
 });
 
+test("a look link with only some settings keeps the look's glow, grid and shader", async ({ page }) => {
+  // What an MCP link for Sonar with data points carries, plus one shader knob.
+  const config = {
+    v: 2,
+    globeSettings: { dataPoints: [{ lat: 35.68, lng: 139.69, value: 3 }, { lat: 51.5, lng: -0.1, value: 2 }], dataArcs: true },
+    shaderSettings: { intensity: 80 },
+  };
+  await page.goto(`/looks/topographic?c=${encodeURIComponent(JSON.stringify(config))}`);
+  const saved = (key) => page.evaluate((name) => JSON.parse(localStorage.getItem(`globestudio:${name}`)), key);
+  await expect.poll(() => saved("globeSettings")).toMatchObject({ glow: false, grid: false, dataArcs: true });
+  expect((await saved("globeSettings")).dataPoints).toHaveLength(2);
+  expect(await saved("shaderSettings")).toMatchObject({ effect: "wave", intensity: 80, warp: 55 });
+});
+
+test("an embed with a look and only some settings keeps the look's shader", async ({ page }) => {
+  const config = { v: 2, shaderSettings: { intensity: 80 } };
+  await page.goto(`/embed?look=topographic&c=${encodeURIComponent(JSON.stringify(config))}`);
+  await waitForCanvas(page);
+  await expect(page.locator(".globe-background")).toHaveClass(/\beffect-wave\b/);
+});
+
 test("retired look URLs land on the gallery", async ({ page }) => {
   // vercel.json 308s these before the app loads. The dev server has no
   // redirects, so this checks the router sends them to the same place.

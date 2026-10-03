@@ -7,12 +7,14 @@
  * inline for the same reason as the preset catalog in server.ts: the package
  * publishes to npm with zero runtime deps on the app source.
  *
- * One deliberate difference: the app fills the nested settings objects
- * (shaderSettings, globeSettings, spaceSettings, flowSettings) with its
- * defaults, and this mirror leaves them out, so a decoded link lists only the
- * values the link itself carries. The contract test (test/stdio-contract.test.mjs)
- * merges the app's defaults back in and asserts the two parsers agree on real
- * links copied from the app, so any drift fails CI.
+ * One deliberate difference: the app completes a nested settings object
+ * (shaderSettings, globeSettings, spaceSettings, flowSettings) that a link
+ * gives in part, from the look the link opens on or from its defaults when it
+ * names none, and this mirror leaves the missing keys out, so a decoded link
+ * lists only the values the link itself carries. The contract test
+ * (test/stdio-contract.test.mjs) merges the app's defaults back in and asserts
+ * the two parsers agree on real links copied from the app, so any drift fails
+ * CI.
  */
 
 export type ShareConfig = Record<string, unknown>;

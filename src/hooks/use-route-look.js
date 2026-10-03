@@ -1,6 +1,13 @@
 import { useEffect } from "react";
 import { lookPresets } from "../data/look-presets.js";
 
+// The preset a /looks/:id path names, if any. The share config import
+// reads it too, to complete a partial config from the same look.
+export const lookFromPath = (pathname) => {
+  const match = pathname.match(/^\/looks\/([a-z0-9-]+)\/?$/i);
+  return match ? lookPresets.find((p) => p.id === match[1]) : undefined;
+};
+
 // Reads `/looks/:id` from the URL on mount and applies the matching
 // preset, then listens for popstate so browser back/forward navigates
 // between presets. Each preset has a stable kebab-case id (see
@@ -10,9 +17,7 @@ export const useRouteLook = (applyLook) => {
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
     const applyFromPath = () => {
-      const match = window.location.pathname.match(/^\/looks\/([a-z0-9-]+)\/?$/i);
-      if (!match) return;
-      const preset = lookPresets.find((p) => p.id === match[1]);
+      const preset = lookFromPath(window.location.pathname);
       if (preset) applyLook(preset);
     };
     applyFromPath();

@@ -27,7 +27,8 @@ const APP_LINKS = JSON.parse(readFileSync(new URL("./fixtures/app-links.json", i
 const SITE = "https://globestudio.app";
 
 // read_share_url lists only what a link carries; the app also fills the
-// nested settings with its defaults. Merge those back in to compare.
+// nested settings, with its defaults on a link that names no look (which is
+// how appConfigOf reads every link). Merge those back in to compare.
 const APP_NESTED_DEFAULTS = {
   shaderSettings: DEFAULT_SHADER_SETTINGS,
   globeSettings: DEFAULT_GLOBE_SETTINGS,
@@ -358,6 +359,29 @@ test("build_share_url layers changes on a look link and can switch its look", as
   assert.equal(embed.searchParams.get("look"), "vapor");
   assert.equal(embed.searchParams.get("density"), "60");
   assert.equal(embed.searchParams.get("theme"), "light");
+});
+
+test("a look link that adds data points keeps the look's glow and grid in the app", async () => {
+  // build_share_url sends only the changes, and the app completes a partial
+  // globeSettings from the look the link opens on, not from its defaults.
+  const sonar = lookPresets.find((preset) => preset.id === "topographic").settings;
+  const dataPoints = [{ lat: 35.68, lng: 139.69, value: 3 }, { lat: 51.5, lng: -0.1, value: 2 }];
+  const { json } = await callTool("build_share_url", { look: "topographic", config: { globeSettings: { dataPoints, dataArcs: true } } });
+  assert.deepEqual(json.config, { globeSettings: { dataPoints, dataArcs: true } });
+
+  // The studio reads ?c= over the look its path names (use-share-config-import.js).
+  const studio = new URL(json.share_url);
+  assert.equal(studio.pathname, "/looks/topographic");
+  assert.deepEqual(parseShareConfig(studio.search, sonar), {
+    globeSettings: { ...sonar.globeSettings, dataPoints, dataArcs: true },
+  });
+  assert.equal(sonar.globeSettings.glow, false);
+  assert.equal(sonar.globeSettings.grid, false);
+
+  // The embed gets the same look and layers ?c= over it itself (embed-view.jsx).
+  const embed = new URL(json.embed_url);
+  assert.equal(embed.searchParams.get("look"), "topographic");
+  assert.deepEqual(parseShareConfig(embed.search, {}), { globeSettings: { dataPoints, dataArcs: true } });
 });
 
 test("build_share_url refuses a look on a studio link, and needs a look or a link", async () => {

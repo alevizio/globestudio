@@ -3,6 +3,7 @@ import {
   clearShareConfigFromUrl,
   parseShareConfig,
 } from "../utils/share-config.js";
+import { lookFromPath } from "./use-route-look.js";
 
 // Reads `?c=…` from the URL on first mount and applies that share config.
 // Strips the param afterwards so subsequent edits don't accumulate stale
@@ -17,7 +18,12 @@ export const useShareConfigImport = (importConfig, setStatusMessage) => {
   const sharedRef = useRef(undefined);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (sharedRef.current === undefined) sharedRef.current = parseShareConfig(window.location.search);
+    if (sharedRef.current === undefined) {
+      // On /looks/:id a nested object the config gives in part keeps the
+      // look's other values, the ones the route effect has just applied.
+      const look = lookFromPath(window.location.pathname);
+      sharedRef.current = parseShareConfig(window.location.search, look?.settings);
+    }
     const config = sharedRef.current;
     if (!config) return;
     importConfig(config);

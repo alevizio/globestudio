@@ -176,7 +176,23 @@ const normalizeSettings = (value, defaults, rules) => {
 const percent = (value) => normalizeNumber(value, 0, 100);
 const hexOrNull = (value) => (value === null ? null : normalizeHex(value));
 
-export const normalizeConfig = (config) => {
+const APP_DEFAULTS = {
+  shaderSettings: DEFAULT_SHADER_SETTINGS,
+  globeSettings: DEFAULT_GLOBE_SETTINGS,
+  spaceSettings: DEFAULT_SPACE_SETTINGS,
+  flowSettings: DEFAULT_FLOW_SETTINGS,
+};
+
+// A nested object (shaderSettings, globeSettings, spaceSettings,
+// flowSettings) can give only some of its keys, as MCP and hand written
+// links do. The rest come from `base`: the settings of the look the link
+// opens on, so a link that adds data points to Sonar keeps Sonar's glow and
+// grid off. A link that names no look starts from the app defaults, which
+// are the Default look's. Every link did before, and links copied from the
+// app still need it: they land on / and can lack keys added after they
+// were made. Pass {} to keep only the keys given, for a reader that layers
+// the config over its look itself.
+export const normalizeConfig = (config, base = APP_DEFAULTS) => {
   if (!config || typeof config !== "object" || Array.isArray(config)) return null;
   const next = {};
 
@@ -220,7 +236,7 @@ export const normalizeConfig = (config) => {
   apply(next, "citiesVisible", normalizeBoolean(config.citiesVisible));
   apply(next, "citiesMinPop", normalizeNumber(config.citiesMinPop, 0, 50_000_000));
 
-  apply(next, "shaderSettings", normalizeSettings(config.shaderSettings, DEFAULT_SHADER_SETTINGS, {
+  apply(next, "shaderSettings", normalizeSettings(config.shaderSettings, base.shaderSettings, {
     effect: (value) => normalizeEnum(value, SHADER_EFFECTS),
     intensity: percent,
     split: percent,
@@ -232,7 +248,7 @@ export const normalizeConfig = (config) => {
     motion: percent,
   }));
 
-  apply(next, "globeSettings", normalizeSettings(config.globeSettings, DEFAULT_GLOBE_SETTINGS, {
+  apply(next, "globeSettings", normalizeSettings(config.globeSettings, base.globeSettings, {
     look: (value) => normalizeEnum(value, GLOBE_LOOKS),
     autoSpin: normalizeBoolean,
     autoSpinSpeed: percent,
@@ -266,7 +282,7 @@ export const normalizeConfig = (config) => {
     dataMarkerColor: hexOrNull,
   }));
 
-  apply(next, "spaceSettings", normalizeSettings(config.spaceSettings, DEFAULT_SPACE_SETTINGS, {
+  apply(next, "spaceSettings", normalizeSettings(config.spaceSettings, base.spaceSettings, {
     density: percent,
     motion: percent,
     nebula: percent,
@@ -274,7 +290,7 @@ export const normalizeConfig = (config) => {
     brightness: (value) => normalizeNumber(value, 0, 200),
   }));
 
-  apply(next, "flowSettings", normalizeSettings(config.flowSettings, DEFAULT_FLOW_SETTINGS, {
+  apply(next, "flowSettings", normalizeSettings(config.flowSettings, base.flowSettings, {
     colorA: normalizeHex,
     colorB: normalizeHex,
     colorC: normalizeHex,
@@ -332,8 +348,9 @@ const decodePayload = (raw) => {
 
 // Decode the share config from a window.location.search string. Returns
 // null if no config is present or the payload is malformed (importConfig
-// is null-safe on its end too — defensive double-guard).
-export const parseShareConfig = (search) => {
+// is null-safe on its end too — defensive double-guard). `base` is the
+// settings of the look the link opens on, as in normalizeConfig.
+export const parseShareConfig = (search, base) => {
   if (typeof search !== "string" || !search) return null;
   const params = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
   const raw = params.get(PARAM_KEY);
@@ -344,7 +361,7 @@ export const parseShareConfig = (search) => {
     // Strip the version marker before handing off to importConfig — it
     // doesn't know about `v` and would warn on the unknown key.
     const { v: _v, ...config } = parsed;
-    return normalizeConfig(config);
+    return normalizeConfig(config, base);
   } catch (_err) {
     return null;
   }

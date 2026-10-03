@@ -37,6 +37,12 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ### Fixed
 
+- A look link that sets only some of the shader, globe, Space or Flow
+  settings, as MCP links and hand written links do, keeps the rest of the
+  look, in the studio and in embeds. A Sonar link with data points used to
+  bring back the glow and grid Sonar turns off, and a link that changed one
+  shader setting turned the look's shader off. Links copied from the app
+  open as before.
 - An embed that gets only a share config, which is all `@globestudio/react`
   and `@globestudio/element` send, shows the config's Flat view and its
   Solid background color. It used to show a globe on the default dark page

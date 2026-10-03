@@ -3,7 +3,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
+import { DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { FLAT_PROJECTION_OPTIONS } from "../config/constants.js";
+import { lookPresets } from "../data/look-presets.js";
 import { FLAT_PROJECTION_KEYS } from "../three/world-texture.js";
 import {
   buildShareUrl,
@@ -126,6 +128,47 @@ describe("share-config", () => {
     for (const [key, value] of Object.entries(DEFAULT_GLOBE_SETTINGS)) {
       expect(normalizeConfig({ globeSettings: { [key]: value } })?.globeSettings?.[key], key).toEqual(value);
     }
+  });
+
+  describe("a link that gives only some of a nested object's settings", () => {
+    const NESTED = ["shaderSettings", "globeSettings", "spaceSettings", "flowSettings"];
+    const sonar = lookPresets.find((look) => look.id === "topographic").settings;
+    const link = (config) => `?c=${encodeURIComponent(JSON.stringify({ v: 2, ...config }))}`;
+    const points = [{ lat: 35.68, lng: 139.69, value: 3 }, { lat: 51.5, lng: -0.1, value: 2 }];
+
+    it("keeps the look's values for the rest on the look it opens on", () => {
+      // What an MCP link for Sonar with data points carries. The app used to
+      // fill the rest with its defaults and bring back the glow and grid
+      // Sonar turns off.
+      const parsed = parseShareConfig(link({ globeSettings: { dataPoints: points, dataArcs: true } }), sonar);
+      expect(parsed.globeSettings).toEqual({ ...sonar.globeSettings, dataPoints: points, dataArcs: true });
+      expect(parsed.globeSettings.glow).toBe(false);
+      expect(parsed.globeSettings.grid).toBe(false);
+      // One shader knob used to switch the look's shader off.
+      expect(parseShareConfig(link({ shaderSettings: { intensity: 80 } }), sonar).shaderSettings)
+        .toEqual({ ...sonar.shaderSettings, intensity: 80 });
+    });
+
+    it("starts from the app defaults, the Default look's, on a link that names no look", () => {
+      expect(parseShareConfig(link({ shaderSettings: { intensity: 80 } })).shaderSettings)
+        .toEqual({ ...DEFAULT_SHADER_SETTINGS, intensity: 80 });
+      expect(normalizeConfig({ globeSettings: { dataArcs: true } }).globeSettings)
+        .toEqual({ ...DEFAULT_GLOBE_SETTINGS, dataArcs: true });
+    });
+
+    it("keeps only the keys given for a reader that layers them over its look itself", () => {
+      // The embed does, in buildSettings.
+      expect(parseShareConfig(link({ shaderSettings: { intensity: 80 }, globeSettings: { dataArcs: true } }), {}))
+        .toEqual({ shaderSettings: { intensity: 80 }, globeSettings: { dataArcs: true } });
+    });
+
+    it("loses none of a look's own values", () => {
+      for (const { id, settings } of lookPresets) {
+        for (const key of NESTED) {
+          expect(normalizeConfig({ [key]: settings[key] }, {})[key], `${id} ${key}`).toEqual(settings[key]);
+        }
+      }
+    });
   });
 
   it("round-trips view state + overlay settings", () => {
