@@ -5150,7 +5150,7 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
    block's height with Claude selected. Without it the dialog shrinks to its
    header and tabs, then jumps back under the pointer. */
 .export-modal-pending {
-  min-height: 600px;
+  min-height: 730px;
 }
 
 .export-modal-field {

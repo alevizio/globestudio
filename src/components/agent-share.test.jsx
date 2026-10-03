@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { AgentShare } from "./agent-share.jsx";
 import { track } from "./analytics.jsx";
 
@@ -135,6 +135,29 @@ describe("AgentShare", () => {
     });
     expect(screen.getByRole("button", { name: /Copy failed\. Try again/ })).toBeTruthy();
     expect(aiStatus().textContent).toBe("Copy failed");
+  });
+
+  it("offers the agent skill after the clients, for any of them, ready to copy", async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    stubClipboard(writeText);
+    renderBlock();
+    const caption = screen.getByText("Using a coding agent? Add the Globestudio skill:");
+    const panel = screen.getByRole("tabpanel");
+    expect(panel.contains(caption)).toBe(false);
+    expect(Boolean(panel.compareDocumentPosition(caption) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    expect(
+      Boolean(caption.compareDocumentPosition(screen.getByRole("heading", { name: "Or send this design once" })) & Node.DOCUMENT_POSITION_FOLLOWING),
+    ).toBe(true);
+
+    const block = caption.nextElementSibling;
+    expect(block.querySelector("pre").textContent).toBe("npx skills add alevizio/globestudio");
+    await act(async () => {
+      fireEvent.click(within(block).getByRole("button", { name: "Copy code to clipboard" }));
+    });
+    expect(writeText).toHaveBeenCalledWith("npx skills add alevizio/globestudio");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Codex" }));
+    expect(screen.getByText("Using a coding agent? Add the Globestudio skill:")).toBeTruthy();
   });
 
   it("shows the Claude Code command and the Claude app steps first", () => {

@@ -20,6 +20,11 @@ const CURSOR_INSTALL_URL = `cursor://anysphere.cursor-deeplink/mcp/install?name=
   JSON.stringify({ url: MCP_URL }),
 )}`;
 
+// The agent skill (skills/globestudio), for coding agents with or without
+// the server. npx skills installs it into Claude Code, Codex, Cursor and
+// most other agents.
+const SKILL_COMMAND = "npx skills add alevizio/globestudio";
+
 const CLIENTS = [
   {
     id: "claude",
@@ -196,6 +201,12 @@ export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) 
             {step.footnote && <p className="export-modal-caption">{step.footnote}</p>}
           </div>
         ))}
+      </div>
+      <div className="agent-share-step">
+        <p className="export-modal-caption">Using a coding agent? Add the Globestudio skill:</p>
+        <CodeBlock language="Agent skill" wrap keyboardScroll>
+          {SKILL_COMMAND}
+        </CodeBlock>
       </div>
 
       <h3 className="export-modal-label agent-share-once-label">Or send this design once</h3>
