@@ -8,6 +8,23 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ### Added
 
+- The Globestudio agent skill, in `skills/globestudio`. It teaches coding
+  agents such as Claude Code, Codex and Cursor how a design travels in a
+  link, how to embed one with the packages or an iframe, and which look fits
+  a brief. Add it with `npx skills add alevizio/globestudio` or
+  `gh skill install alevizio/globestudio globestudio`, or as a Claude Code
+  plugin that also connects the hosted MCP server:
+  `claude plugin marketplace add alevizio/globestudio`, then
+  `claude plugin install globestudio@globestudio`. Its reference files are
+  built from the app's code with `npm run skill:references`, and a test fails
+  when the skill or its references fall behind. Installed copies don't
+  update on their own: run `npx skills update` after a new version.
+- The export dialog's MCP tab gives the skill's install line under the
+  client commands, and the docs, the integrations page, the README and
+  `llms.txt` give all three ways to add it.
+- The MCP server's instructions point coding agents to the skill. The
+  hosted server changes on deploy; `@globestudio/mcp` 0.2.2 needs an npm
+  publish for local installs.
 - Copy image, next to Export PNG. It puts the same PNG on the clipboard,
   with the aspect, size and quality you picked, ready to paste into Figma,
   Slides, Slack or Notion. Browsers that can't write images to the clipboard
