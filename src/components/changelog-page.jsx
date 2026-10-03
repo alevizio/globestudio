@@ -16,6 +16,18 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 
 const ENTRIES = [
   {
+    label: "More ways to export",
+    date: "2 October 2026",
+    items: [
+      "A Figma tab: copy the design as vectors or as an image and paste it into a Figma file, or open the Figma plugin",
+      "An MCP tab: connect Claude, Codex or Cursor once, or copy this design for any AI",
+      "Copy image puts the PNG on your clipboard, ready to paste into Figma, Slides, Slack or Notion",
+      "Embed code for an iframe, React or a web component, plus Open in CodePen to try it live",
+      "Embeds show the design they were made from: the flat map, the background color, custom shapes and still animations",
+      "Tablets and narrow windows: the globe and the floating controls stay clear of the panel, and Export is always reachable",
+    ],
+  },
+  {
     label: "Launch week",
     date: "2 October 2026",
     items: [

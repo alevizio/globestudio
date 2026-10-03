@@ -8,6 +8,20 @@
     <language>en-us</language>
     <lastBuildDate>Fri, 02 Oct 2026 12:00:00 GMT</lastBuildDate>
     <item>
+      <title>More ways to export</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#more-ways-to-export</guid>
+      <pubDate>Fri, 02 Oct 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>A Figma tab: copy the design as vectors or as an image and paste it into a Figma file, or open the Figma plugin</li>
+  <li>An MCP tab: connect Claude, Codex or Cursor once, or copy this design for any AI</li>
+  <li>Copy image puts the PNG on your clipboard, ready to paste into Figma, Slides, Slack or Notion</li>
+  <li>Embed code for an iframe, React or a web component, plus Open in CodePen to try it live</li>
+  <li>Embeds show the design they were made from: the flat map, the background color, custom shapes and still animations</li>
+  <li>Tablets and narrow windows: the globe and the floating controls stay clear of the panel, and Export is always reachable</li>
+</ul>]]></description>
+    </item>
+    <item>
       <title>Launch week</title>
       <link>https://globestudio.app/changelog</link>
       <guid isPermaLink="false">https://globestudio.app/changelog#launch-week</guid>
