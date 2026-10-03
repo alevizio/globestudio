@@ -1008,7 +1008,9 @@ test.describe("embed code for a design with a large custom shape", () => {
     });
 
     await expect(
-      dialog.getByText("This design is too large to embed. Its custom shape file makes the URL too long, so try a smaller one."),
+      dialog.getByText(
+        "This design is too large to embed, because its URL would be too long. Try a smaller custom shape file or fewer data points.",
+      ),
     ).toBeVisible();
     await expect(dialog.getByRole("heading", { name: "Embed code" })).toBeVisible();
     await expect(dialog.getByRole("tablist", { name: "Embed code" })).toHaveCount(0);

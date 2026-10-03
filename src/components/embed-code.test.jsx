@@ -195,18 +195,28 @@ describe("EmbedCode", () => {
   });
 
   // A custom shape's file travels in the config, and a few dozen kB of it
-  // make an address the site turns down.
+  // make an address the site turns down. So do pasted data points, which
+  // the app does not cap.
+  const TOO_LARGE =
+    "This design is too large to embed, because its URL would be too long. Try a smaller custom shape file or fewer data points.";
+
   it("says so when the design is too large to embed, in place of the code and Open in CodePen", () => {
     const dataUrl = `data:image/png;base64,${"A".repeat(40_000)}`;
     const large = JSON.stringify({ v: 2, customShape: { name: "logo.png", type: "image/png", dataUrl } });
     renderBlock({ getShareUrl: () => `https://globestudio.app/?c=${encodeURIComponent(large)}` });
     expect(screen.getByRole("heading", { level: 3, name: "Embed code" })).toBeTruthy();
-    expect(
-      screen.getByText("This design is too large to embed. Its custom shape file makes the URL too long, so try a smaller one."),
-    ).toBeTruthy();
+    expect(screen.getByText(TOO_LARGE)).toBeTruthy();
     expect(screen.queryByRole("tablist")).toBeNull();
     expect(screen.queryByRole("tabpanel")).toBeNull();
     expect(screen.queryByRole("button", { name: "Copy code to clipboard" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Open in CodePen" })).toBeNull();
+  });
+
+  it("says the same for a design made large by data points alone", () => {
+    const dataPoints = Array.from({ length: 1000 }, (_, i) => ({ lat: (i % 180) - 89.5, lng: (i % 360) - 179.5, value: i }));
+    const large = JSON.stringify({ v: 2, globeSettings: { dataPoints } });
+    renderBlock({ getShareUrl: () => `https://globestudio.app/?c=${encodeURIComponent(large)}` });
+    expect(screen.getByText(TOO_LARGE)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Open in CodePen" })).toBeNull();
   });
 

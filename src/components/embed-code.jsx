@@ -72,13 +72,15 @@ export const EmbedCode = ({ getShareUrl, width, height }) => {
     track("share_clicked", { method: "codepen" });
   };
 
-  // Code that would embed an error page is not shown.
+  // Code that would embed an error page is not shown. A custom shape's file
+  // or a long list of data points is what makes a design this large.
   if (!fitsEmbedUrl(config)) {
     return (
       <section className="export-modal-group">
         <h3 className="export-modal-label">Embed code</h3>
         <p className="export-modal-caption">
-          This design is too large to embed. Its custom shape file makes the URL too long, so try a smaller one.
+          This design is too large to embed, because its URL would be too long. Try a smaller custom shape file or
+          fewer data points.
         </p>
       </section>
     );

@@ -25,7 +25,8 @@ All notable changes to Globestudio are tracked here. Format follows
 - The Share tab's Copy as React button is now an Embed code section. Pick
   iframe, React or Web component and copy the snippet for the design on
   screen. A design too large for an embed URL, which takes a custom shape
-  file of a few dozen kB, gets a line saying so in place of the code.
+  file of a few dozen kB or a long list of data points, gets a line saying
+  so in place of the code.
 - The export dialog has an MCP tab, last in the row. It holds what sat at
   the bottom of the Share tab: the commands that connect Claude, Codex and
   Cursor come first, then Copy for AI. On a phone the tabs share the row, so
