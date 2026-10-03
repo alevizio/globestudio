@@ -184,7 +184,8 @@ export const EmbedView = () => {
   const ids = useMemo(() => findAreaIds(effectiveSelection), [effectiveSelection]);
   const mapData = useMemo(() => createCountryMapData(ids, settings.density), [ids, settings.density]);
   const prefersReducedMotion = usePrefersReducedMotion();
-  const motionFrozen = prefersReducedMotion || params.staticMode;
+  // A design saved with its animations off holds still, as in the studio.
+  const motionFrozen = prefersReducedMotion || params.staticMode || settings.animationsEnabled === false;
   const [hasWebGL, setHasWebGL] = useState(true);
   // Set by GlobeBackground after the renderer mounts. Used by the Figma
   // plugin's Insert flow to read the live canvas pixels.
@@ -452,29 +453,35 @@ export const EmbedView = () => {
           selectedDots={new Set()}
           dotColor={settings.dotColor}
           dotSize={settings.dotSize}
-          dotsVisible
+          // The share config's own look settings, where it has them. The
+          // literals are what the embed drew before it read them, and
+          // what an address without ?c= still gets.
+          dotsVisible={settings.dotsVisible ?? true}
           shape={settings.shape}
+          // Dot rotation is still not read from the config: the /examples
+          // Vercel globe's config sets one its showcase was never drawn
+          // with, so reading it would change that page.
           dotRotation={0}
           rotateAnimating={!motionFrozen}
-          sizeVary={false}
+          sizeVary={settings.sizeVary ?? false}
           asciiSymbol={settings.asciiSymbol}
-          customShape={null}
+          customShape={settings.customShape ?? null}
           dotGradient={settings.dotGradient}
-          dotColorAlpha={1}
+          dotColorAlpha={settings.dotColorAlpha ?? 1}
           renderMode={settings.renderMode}
           worldFill={settings.worldFill}
-          worldFillAlpha={1}
-          worldFillGradient={null}
-          worldFillVisible
+          worldFillAlpha={settings.worldFillAlpha ?? 1}
+          worldFillGradient={settings.worldFillGradient ?? null}
+          worldFillVisible={settings.worldFillVisible ?? true}
           worldStroke={settings.worldStroke}
-          worldStrokeAlpha={1}
-          worldStrokeGradient={null}
-          worldStrokeVisible
-          worldStrokeWidth={1.8}
-          flatProjection="mercator"
-          riversVisible={false}
-          citiesVisible={false}
-          citiesMinPop={0}
+          worldStrokeAlpha={settings.worldStrokeAlpha ?? 1}
+          worldStrokeGradient={settings.worldStrokeGradient ?? null}
+          worldStrokeVisible={settings.worldStrokeVisible ?? true}
+          worldStrokeWidth={settings.worldStrokeWidth ?? 1.8}
+          flatProjection={settings.flatProjection ?? "mercator"}
+          riversVisible={settings.riversVisible ?? false}
+          citiesVisible={settings.citiesVisible ?? false}
+          citiesMinPop={settings.citiesMinPop ?? 0}
           customTopology={null}
           customTopologyVisible={false}
           selectionCountryCodes={ids}
@@ -486,7 +493,7 @@ export const EmbedView = () => {
           interactive={false}
           tiltX={settings.tiltX}
           tiltY={settings.tiltY}
-          mapDepth={55}
+          mapDepth={settings.mapDepth ?? 55}
           mapZoom={1}
           panelCollapsed
           spaceSettings={settings.spaceSettings || DEFAULT_SPACE_SETTINGS}

@@ -41,6 +41,10 @@ All notable changes to Globestudio are tracked here. Format follows
   and `@globestudio/element` send, shows the config's Flat view and its
   Solid background color. It used to show a globe on the default dark page
   unless the address also had `view` and `background`.
+- An embed draws more of its share config: a design with its animations off
+  holds still, a custom shape shows in place of squares, and dot and land
+  opacity, gradients, hidden dots or land, outline width, the flat
+  projection, rivers, cities and depth match the studio.
 - In the export dialog, focus stays on Copy SVG, Copy as vectors and Export
   PNG after you press them, so the next Tab goes on from there. It used to
   jump back to the dialog itself. The other dialogs get the same fix.
