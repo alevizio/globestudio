@@ -29,6 +29,8 @@ To change a look, send only the changes: `/looks/<id>?c=<json>` and
 `/embed?look=<id>&c=<json>` layer the config over that look. A nested object
 such as `globeSettings` or `shaderSettings` keeps the look's value for every
 key it leaves out, so adding `dataPoints` to Sonar keeps its glow and grid off.
+Leave `version` out of such a config: the studio writes it into every design
+it saves, and a config that carries it gets the app defaults for those keys.
 
 ### MCP server
 

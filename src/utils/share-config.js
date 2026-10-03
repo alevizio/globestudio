@@ -202,8 +202,16 @@ const APP_DEFAULTS = {
 // app still need it: they land on / and can lack keys added after they
 // were made. Pass {} to keep only the keys given, for a reader that layers
 // the config over its look itself.
+//
+// A config that carries `version` is a whole design: the studio writes it in
+// every share link and exported file (App.jsx buildCurrentConfig), and MCP
+// and hand written links leave it out. Such a design always starts from the
+// app defaults, as every reader did before looks could fill a config. One
+// made on the Default look carries no shader effect, which would otherwise
+// come from the look an embed pairs it with.
 export const normalizeConfig = (config, base = APP_DEFAULTS) => {
   if (!config || typeof config !== "object" || Array.isArray(config)) return null;
+  const fill = config.version !== undefined ? APP_DEFAULTS : base;
   const next = {};
 
   apply(next, "selection", typeof config.selection === "string" && /^(world|country:[A-Z]{3}|continent:[\w\s-]+|subregion:[\w\s-]+)$/.test(config.selection) ? config.selection : undefined);
@@ -246,7 +254,7 @@ export const normalizeConfig = (config, base = APP_DEFAULTS) => {
   apply(next, "citiesVisible", normalizeBoolean(config.citiesVisible));
   apply(next, "citiesMinPop", normalizeNumber(config.citiesMinPop, 0, 50_000_000));
 
-  apply(next, "shaderSettings", normalizeSettings(config.shaderSettings, base.shaderSettings, {
+  apply(next, "shaderSettings", normalizeSettings(config.shaderSettings, fill.shaderSettings, {
     effect: (value) => normalizeEnum(value, SHADER_EFFECTS),
     intensity: percent,
     split: percent,
@@ -258,7 +266,7 @@ export const normalizeConfig = (config, base = APP_DEFAULTS) => {
     motion: percent,
   }));
 
-  apply(next, "globeSettings", normalizeSettings(config.globeSettings, base.globeSettings, {
+  apply(next, "globeSettings", normalizeSettings(config.globeSettings, fill.globeSettings, {
     look: (value) => normalizeEnum(value, GLOBE_LOOKS),
     autoSpin: normalizeBoolean,
     autoSpinSpeed: percent,
@@ -292,7 +300,7 @@ export const normalizeConfig = (config, base = APP_DEFAULTS) => {
     dataMarkerColor: hexOrNull,
   }));
 
-  apply(next, "spaceSettings", normalizeSettings(config.spaceSettings, base.spaceSettings, {
+  apply(next, "spaceSettings", normalizeSettings(config.spaceSettings, fill.spaceSettings, {
     density: percent,
     motion: percent,
     nebula: percent,
@@ -300,7 +308,7 @@ export const normalizeConfig = (config, base = APP_DEFAULTS) => {
     brightness: (value) => normalizeNumber(value, 0, 200),
   }));
 
-  apply(next, "flowSettings", normalizeSettings(config.flowSettings, base.flowSettings, {
+  apply(next, "flowSettings", normalizeSettings(config.flowSettings, fill.flowSettings, {
     colorA: normalizeHex,
     colorB: normalizeHex,
     colorC: normalizeHex,

@@ -7,6 +7,7 @@ import { DEFAULT_SHADER_SETTINGS, shaderEffectOptions } from "../config/shader-e
 import { dotShapeOptions, FLAT_PROJECTION_OPTIONS } from "../config/constants.js";
 import { lookPresets } from "../data/look-presets.js";
 import { US_STATE_FIPS } from "../data/us-state-codes.js";
+import { lookFromPath } from "../hooks/use-route-look.js";
 import { FLAT_PROJECTION_KEYS } from "../three/world-texture.js";
 import {
   buildShareUrl,
@@ -163,6 +164,19 @@ describe("share-config", () => {
         .toEqual({ shaderSettings: { intensity: 80 }, globeSettings: { dataArcs: true } });
     });
 
+    it("reads a config that carries version, as every link and file the app writes does, as a whole design", () => {
+      // The rest comes from the app defaults over any look, as it always
+      // did. A design made on the Default look has no shader effect, and
+      // over Halftone it took Halftone's shader.
+      const config = { version: 1, shaderSettings: { intensity: 80 }, globeSettings: { dataArcs: true } };
+      for (const base of [sonar, {}, undefined]) {
+        expect(normalizeConfig(config, base)).toEqual({
+          shaderSettings: { ...DEFAULT_SHADER_SETTINGS, intensity: 80 },
+          globeSettings: { ...DEFAULT_GLOBE_SETTINGS, dataArcs: true },
+        });
+      }
+    });
+
     it("loses none of a look's own values", () => {
       for (const { id, settings } of lookPresets) {
         for (const key of NESTED) {
@@ -268,8 +282,8 @@ describe("share-config", () => {
     const def = (prop) => (prop.$ref ? { ...schema.$defs[prop.$ref.replace("#/$defs/", "")], ...prop } : prop);
     const props = (prop) => def(prop).properties;
     // Not settings: an exported file's $schema, the app's version number in
-    // it, and the link format marker v of a ?c= payload. The parser reads
-    // none of them.
+    // it, and the link format marker v of a ?c= payload. The parser keeps
+    // none of them, and reads version only to tell a whole design.
     const MARKERS = ["$schema", "version", "v"];
     const NESTED = ["shaderSettings", "globeSettings", "spaceSettings", "flowSettings"];
     const GRADIENT = { from: "#000000", to: "#ffffff" };
@@ -289,7 +303,7 @@ describe("share-config", () => {
     const sorted = (keys) => [...keys].sort();
 
     it("documents every key the parser reads, and no other", () => {
-      const top = Object.keys(schema.properties).filter((key) => !MARKERS.includes(key));
+      const top = Object.keys(schema.properties).filter((key) => !MARKERS.includes(key) || key === "version");
       expect(sorted(top)).toEqual(keysRead((config) => config));
       for (const key of NESTED) {
         expect(sorted(Object.keys(props(schema.properties[key]))), key).toEqual(keysRead((value) => ({ [key]: value })));
@@ -406,7 +420,11 @@ describe("share-config", () => {
     it("documents the link format the app writes", () => {
       expect(schema.properties.v.enum).toEqual([1, 2]);
       expect(JSON.parse(new URL(buildShareUrl({}, "https://globestudio.app")).searchParams.get("c")).v).toBe(2);
-      expect(schema.properties.version.const).toBe(1);
+      expect(schema.properties.version.type).toEqual(["integer", "string"]);
+      for (const version of [1, "1", 2]) {
+        expect(normalizeConfig({ version, shaderSettings: { intensity: 80 } }, {}), String(version))
+          .toEqual({ shaderSettings: { ...DEFAULT_SHADER_SETTINGS, intensity: 80 } });
+      }
     });
   });
 
@@ -514,18 +532,43 @@ describe("share-config", () => {
       expect(withText.map((link) => link.name)).toEqual(["stateSelection with %", "unicode text"]);
     });
 
+    // The Data section added globeSettings.data after 39d9382, defaulting
+    // to true (markers shown). An old link can't carry it, so the parser
+    // fills the default; strip it to compare with what 39d9382 returned.
+    const withoutNewDefaults = (config) => {
+      if (config?.globeSettings?.data !== true) return config;
+      const { data, ...globeSettings } = config.globeSettings;
+      return { ...config, globeSettings };
+    };
+
     it("open exactly as before", () => {
-      // The Data section added globeSettings.data after 39d9382, defaulting
-      // to true (markers shown). An old link can't carry it, so the parser
-      // fills the default; strip it to compare with what 39d9382 returned.
-      const withoutNewDefaults = (config) => {
-        if (config?.globeSettings?.data !== true) return config;
-        const { data, ...globeSettings } = config.globeSettings;
-        return { ...config, globeSettings };
-      };
       for (const { name, url, expected, now } of links) {
         if (now) continue;
         expect(withoutNewDefaults(parseShareConfig(new URL(url).search)), name).toEqual(withoutStateText(expected));
+      }
+    });
+
+    it("open exactly as before in the studio, over the look their path names", () => {
+      // As use-share-config-import.js reads them. The embed reads ?c= with {}
+      // and layers it over its look itself (embed-view.jsx).
+      for (const { name, url, expected, now } of links) {
+        const { pathname, search } = new URL(url);
+        if (now || pathname === "/embed") continue;
+        expect(withoutNewDefaults(parseShareConfig(search, lookFromPath(pathname)?.settings)), name).toEqual(withoutStateText(expected));
+      }
+    });
+
+    it("that the studio made open exactly as before over any look, as an embed with a look reads them", () => {
+      // Every design the studio writes carries version (App.jsx
+      // buildCurrentConfig). One made on the Default look has no shader
+      // effect, and embed.js with data-look and data-config showed the
+      // look's shader over it.
+      const designs = links.filter(({ url }) => new URL(url).searchParams.get("c")?.includes('"version":1'));
+      expect(designs.length).toBeGreaterThanOrEqual(30);
+      for (const { name, url, expected } of designs) {
+        for (const base of [{}, ...lookPresets.map((look) => look.settings)]) {
+          expect(withoutNewDefaults(parseShareConfig(new URL(url).search, base)), name).toEqual(withoutStateText(expected));
+        }
       }
     });
 

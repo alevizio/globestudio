@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://globestudio.app/schema/config.json",
   "title": "Globestudio configuration",
-  "description": "A Globestudio design: the file Export → Share → Export configuration saves, and the JSON a share link carries URL encoded in its ?c= parameter. It matches normalizeConfig in src/utils/share-config.js, which every link, embed and import goes through. Every key is optional, and the app drops any key or value this schema does not allow. In shaderSettings, globeSettings, spaceSettings and flowSettings, keys a config leaves out keep the values of the look the link opens on (/looks/<id>, or /embed with look=<id>), and get the app defaults on a link that names no look. A link carries the config URL encoded in its address, and an embed address must stay under 32,000 characters, so a custom shape file or a long list of data points may not fit in an embed.",
+  "description": "A Globestudio design: the file Export → Share → Export configuration saves, and the JSON a share link carries URL encoded in its ?c= parameter. It matches normalizeConfig in src/utils/share-config.js, which every link, embed and import goes through. Every key is optional, and the app drops any key or value this schema does not allow. In shaderSettings, globeSettings, spaceSettings and flowSettings, keys a config leaves out keep the values of the look the link opens on (/looks/<id>, or /embed with look=<id>), and get the app defaults on a link that names no look or a config that carries `version`. A link carries the config URL encoded in its address, and an embed address must stay under 32,000 characters, so a custom shape file or a long list of data points may not fit in an embed.",
   "type": "object",
   "additionalProperties": true,
   "$defs": {
@@ -23,8 +23,9 @@
   "properties": {
     "$schema": { "type": "string", "description": "Exported files point here, so editors can check them." },
     "version": {
-      "const": 1,
-      "description": "Written as 1 by the app in every exported file and share link. The app does not read it, so a config can leave it out."
+      "type": ["integer", "string"],
+      "description": "Written as 1 by the app in every exported file and share link, where it marks a whole design: in shaderSettings, globeSettings, spaceSettings and flowSettings, keys the config leaves out get the app defaults, even on a look. Leave it out of a config that changes only some settings of a look.",
+      "examples": [1]
     },
     "v": {
       "enum": [1, 2],

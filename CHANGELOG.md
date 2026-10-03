@@ -41,8 +41,9 @@ All notable changes to Globestudio are tracked here. Format follows
   settings, as MCP links and hand written links do, keeps the rest of the
   look, in the studio and in embeds. A Sonar link with data points used to
   bring back the glow and grid Sonar turns off, and a link that changed one
-  shader setting turned the look's shader off. Links copied from the app
-  open as before.
+  shader setting turned the look's shader off. Links and files the app
+  wrote carry `version`, which marks a whole design, and open as before,
+  paired with a look too.
 - The config schema at `/schema/config.json` matches what the app reads.
   `shape` takes `Particle Grid`, the effect list has `ascii`, and
   `viewMode`, the `warp` knob, `dotLift`, `gridLift`, `gridSize`, `routes`,

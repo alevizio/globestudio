@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import axeSource from "axe-core";
 
@@ -130,6 +131,16 @@ test("an embed with a look and only some settings keeps the look's shader", asyn
   await page.goto(`/embed?look=topographic&c=${encodeURIComponent(JSON.stringify(config))}`);
   await waitForCanvas(page);
   await expect(page.locator(".globe-background")).toHaveClass(/\beffect-wave\b/);
+});
+
+test("an embed with a look draws a design copied from the studio as it is", async ({ page }) => {
+  // As embed.js sends data-look with data-config. A design made on the
+  // Default look carries no shader effect, and showed Halftone's.
+  const { links } = JSON.parse(readFileSync("src/utils/fixtures/legacy-share-links.json", "utf8"));
+  const { url } = links.find((link) => link.name === "studio link, default");
+  await page.goto(`/embed?look=halftone&${new URL(url).search.slice(1)}`);
+  await waitForCanvas(page);
+  await expect(page.locator(".globe-background")).toHaveClass(/\beffect-none\b/);
 });
 
 test("<globe-studio look config> embeds the config over that look", async ({ page }) => {

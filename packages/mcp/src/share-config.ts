@@ -9,9 +9,10 @@
  *
  * One deliberate difference: the app completes a nested settings object
  * (shaderSettings, globeSettings, spaceSettings, flowSettings) that a link
- * gives in part, from the look the link opens on or from its defaults when it
- * names none, and this mirror leaves the missing keys out, so a decoded link
- * lists only the values the link itself carries. The contract test
+ * gives in part, from the look the link opens on, or from its defaults when it
+ * names none or carries `version` (a design the studio wrote), and this
+ * mirror leaves the missing keys out, so a decoded link lists only the
+ * values the link itself carries. The contract test
  * (test/stdio-contract.test.mjs) merges the app's defaults back in and asserts
  * the two parsers agree on real links copied from the app, so any drift fails
  * CI.

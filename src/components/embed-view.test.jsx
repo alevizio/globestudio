@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { EmbedView } from "./embed-view.jsx";
+import { links as legacyLinks } from "../utils/fixtures/legacy-share-links.json";
 
 // The WebGL globe is replaced by a stand-in that shows the view it was
 // asked to draw, and keeps the rest of what it was given.
@@ -155,6 +156,28 @@ describe("EmbedView", () => {
         expect(drawn.props.reducedMotion).toBe(false);
         unmount();
       }
+    });
+  });
+
+  describe("a look and a config", () => {
+    const open = (search) => {
+      window.history.replaceState(null, "", `/embed?${search}`);
+      return render(<EmbedView />);
+    };
+
+    it("draws a design copied from the studio as it is, over any look", async () => {
+      // As embed.js sends data-look with data-config. A design made on the
+      // Default look carries no shader effect, and showed Halftone's.
+      const { url, expected } = legacyLinks.find((link) => link.name === "studio link, default");
+      open(`look=halftone&${new URL(url).search.slice(1)}`);
+      await view();
+      expect(drawn.props.shaderSettings).toMatchObject({ ...expected.shaderSettings, effect: "none" });
+    });
+
+    it("keeps the look's values for the settings a config leaves out", async () => {
+      open(`look=topographic&c=${encodeURIComponent(JSON.stringify({ v: 2, shaderSettings: { intensity: 80 } }))}`);
+      await view();
+      expect(drawn.props.shaderSettings).toMatchObject({ effect: "wave", intensity: 80 });
     });
   });
 
