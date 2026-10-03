@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   clearShareConfigFromUrl,
   parseShareConfig,
@@ -10,9 +10,15 @@ import {
 // config wins when both are present (e.g. /looks/halftone?c=…) — the
 // share URL encodes a more specific intent than the preset route.
 export const useShareConfigImport = (importConfig, setStatusMessage) => {
+  // The config the page opened with. In dev, StrictMode runs both effects
+  // twice, and the route effect's second run applies the look again after
+  // ?c= has left the address. Applying the same config again keeps it on
+  // top, as in production, where each effect runs once.
+  const sharedRef = useRef(undefined);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const config = parseShareConfig(window.location.search);
+    if (sharedRef.current === undefined) sharedRef.current = parseShareConfig(window.location.search);
+    const config = sharedRef.current;
     if (!config) return;
     importConfig(config);
     clearShareConfigFromUrl();

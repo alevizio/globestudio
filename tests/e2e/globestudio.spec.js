@@ -73,6 +73,11 @@ test("preset routes apply the requested look", async ({ page }) => {
   await expect(page.getByText(/Applied Halftone/i)).toBeVisible();
 });
 
+test("a look link's own settings win over the look", async ({ page }) => {
+  await page.goto(`/looks/halftone?c=${encodeURIComponent(JSON.stringify({ v: 2, density: 77 }))}`);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("globestudio:density"))).toBe("77");
+});
+
 test("retired look URLs land on the gallery", async ({ page }) => {
   // vercel.json 308s these before the app loads. The dev server has no
   // redirects, so this checks the router sends them to the same place.
