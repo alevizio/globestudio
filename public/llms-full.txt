@@ -88,7 +88,8 @@ the pen in a new tab.
 
 For one US state, DC or territory, use `country:USA` and set `stateSelection`
 in the `c` config to its postal code (`CA`) or its FIPS code (`06`). The
-studio and embeds draw it; a code the app doesn't know shows the whole country.
+studio and embeds draw it. A code the app doesn't know is ignored: an embed
+shows the whole country, and the studio keeps the state it showed last.
 
 ## Preset catalog (21 looks)
 
