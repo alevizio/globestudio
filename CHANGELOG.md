@@ -31,6 +31,9 @@ All notable changes to Globestudio are tracked here. Format follows
   the bottom of the Share tab: the commands that connect Claude, Codex and
   Cursor come first, then Copy for AI. On a phone the tabs share the row, so
   the last one no longer runs past the dialog's edge.
+- `/privacy` says `share_clicked` records which share button you used. It
+  said the event never records where a share goes, and Open in CodePen is
+  counted under its own name.
 
 ### Fixed
 
