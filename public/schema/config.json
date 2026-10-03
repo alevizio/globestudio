@@ -2,68 +2,90 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://globestudio.app/schema/config.json",
   "title": "Globestudio configuration",
-  "description": "Schema for a Globestudio configuration file (the JSON payload produced by Export → Share → Export configuration). Matches the importConfig contract in src/App.jsx.",
+  "description": "A Globestudio design: the file Export → Share → Export configuration saves, and the JSON a share link carries URL encoded in its ?c= parameter. It matches normalizeConfig in src/utils/share-config.js, which every link, embed and import goes through. Every key is optional, and the app drops any key or value this schema does not allow. In shaderSettings, globeSettings, spaceSettings and flowSettings, keys a config leaves out keep the values of the look the link opens on (/looks/<id>, or /embed with look=<id>), and get the app defaults on a link that names no look.",
   "type": "object",
   "additionalProperties": true,
-  "required": ["version"],
+  "$defs": {
+    "hex": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+    "gradient": {
+      "type": ["object", "null"],
+      "description": "A 2 stop linear gradient, or null for none. Without both `from` and `to` it is dropped.",
+      "required": ["from", "to"],
+      "properties": {
+        "from": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$", "description": "First color, as hex." },
+        "to": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$", "description": "Last color, as hex." },
+        "angle": { "type": "number", "minimum": 0, "maximum": 360, "description": "Direction in degrees." },
+        "fromAlpha": { "type": "number", "minimum": 0, "maximum": 1, "description": "Opacity of the first color." },
+        "toAlpha": { "type": "number", "minimum": 0, "maximum": 1, "description": "Opacity of the last color." }
+      }
+    }
+  },
   "properties": {
+    "$schema": { "type": "string", "description": "Exported files point here, so editors can check them." },
     "version": {
-      "type": ["integer", "string"],
-      "description": "Schema version. Currently 1.",
-      "examples": [1]
+      "const": 1,
+      "description": "Written as 1 by the app in every exported file and share link. The app does not read it, so a config can leave it out."
+    },
+    "v": {
+      "enum": [1, 2],
+      "description": "Link format, only inside a ?c= payload. The app writes 2. A payload without it, or with 1, is read the way links made before 2 were."
     },
 
     "selection": {
       "type": "string",
-      "description": "Geographic selection. Use `world`, `country:USA` (3-letter ISO 3166-1 code), `continent:Europe`, or `subregion:Western Europe`.",
+      "pattern": "^(world|country:[A-Z]{3}|continent:[\\w\\s-]+|subregion:[\\w\\s-]+)$",
+      "description": "What the map shows: `world`, `country:` and an uppercase ISO 3166-1 alpha-3 code, `continent:` and a continent name, or `subregion:` and a subregion name. A lowercase code is dropped, and a name the app doesn't know shows the world.",
       "examples": ["world", "country:USA", "continent:Europe", "subregion:Western Europe"]
     },
     "stateSelection": {
       "type": "string",
-      "description": "When selection is `country:USA`, the 2-letter US state postal code (`CA`, `TX`, `NY`, `all`).",
-      "examples": ["all", "CA", "TX"]
+      "maxLength": 32,
+      "description": "When selection is `country:USA`, the state to show, as its 2 digit FIPS code from us-atlas (`06` is California), or `all` for the whole country. Longer text is cut to 32 characters.",
+      "examples": ["all", "06", "48"]
     },
 
-    "background": { "type": "string", "description": "Canvas background, as a hex color.", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
-    "transparent": { "type": "boolean", "description": "Use transparent background instead of `background`." },
+    "background": { "$ref": "#/$defs/hex", "description": "Canvas color, as hex (`#` optional)." },
+    "transparent": { "type": "boolean", "description": "See-through background in place of `background`." },
     "backgroundStyle": { "type": "string", "enum": ["solid", "space", "flow", "transparent"], "description": "`solid` paints a flat color; `space` paints a starfield-and-nebula scene; `flow` paints an animated gradient-mesh shader; `transparent` paints nothing and implies `transparent: true`." },
 
     "density": { "type": "number", "minimum": 1, "maximum": 100, "description": "Dot density across the visible area." },
     "dotSize": { "type": "number", "minimum": 0.1, "maximum": 30, "description": "Dot radius." },
-    "dotColor": { "type": "string", "description": "Dot color, as hex.", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
-    "dotColorAlpha": { "type": "number", "minimum": 0, "maximum": 1 },
-    "dotGradient": {
-      "type": ["object", "null"],
-      "description": "Linear gradient applied to dots (overrides `dotColor` when set).",
-      "properties": {
-        "from": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
-        "to": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
-        "angle": { "type": "number", "minimum": 0, "maximum": 360 }
-      }
-    },
+    "dotColor": { "$ref": "#/$defs/hex", "description": "Dot color, as hex." },
+    "dotColorAlpha": { "type": "number", "minimum": 0, "maximum": 1, "description": "Dot opacity." },
+    "dotGradient": { "$ref": "#/$defs/gradient", "description": "Gradient for the dots, used in place of `dotColor`." },
     "dotsVisible": { "type": "boolean" },
 
     "shape": {
       "type": "string",
-      "enum": ["Circle", "Square", "Hexagon", "Triangle", "Pentagon", "Diamond", "Star", "Plus", "Ring", "Voxel", "ParticleGrid", "ASCII", "Custom"]
+      "enum": ["Circle", "Hexagon", "Triangle", "Pentagon", "Square", "Voxel", "Particle Grid", "Diamond", "Star", "Plus", "Ring", "ASCII", "Custom"],
+      "description": "Dot shape. `ASCII` draws `asciiSymbol` and `Custom` draws `customShape`."
     },
-    "asciiSymbol": { "type": "string", "description": "Symbol used when `shape` is `ASCII`." },
-    "customShape": { "type": ["string", "object", "null"], "description": "Custom SVG/path source when `shape` is `Custom`." },
-    "dotRotation": { "type": "number", "minimum": 0, "maximum": 360 },
-    "sizeVary": { "type": "boolean", "description": "Add per-dot size jitter." },
-    "rotateAnimating": { "type": "boolean", "description": "Legacy field. The current control is `shapeRotationSpeed` (0 to 100, where 0 = stopped); when this is `false` on import, shapeRotationSpeed is forced to 0." },
+    "dotRotation": { "type": "number", "minimum": 0, "maximum": 360, "description": "Rotation of every dot, in degrees." },
     "shapeRotationSpeed": { "type": "number", "minimum": 0, "maximum": 100, "description": "Shape rotation speed from 0 to 100 (0 stops the animation)." },
+    "sizeVary": { "type": "boolean", "description": "Add per-dot size jitter." },
+    "asciiSymbol": { "type": "string", "maxLength": 12, "description": "Text drawn as each dot when `shape` is `ASCII`. Longer text is cut to 12 characters." },
+    "customShape": {
+      "type": ["object", "null"],
+      "description": "The image drawn as each dot when `shape` is `Custom`, or null. An SVG is cleaned of scripts and event handlers before use.",
+      "required": ["type", "dataUrl"],
+      "properties": {
+        "name": { "type": "string", "maxLength": 80, "description": "File name. Longer names are cut to 80 characters." },
+        "type": { "type": "string", "enum": ["image/svg+xml", "image/png", "image/jpeg", "image/webp"] },
+        "dataUrl": { "type": "string", "maxLength": 409600, "description": "The image as a data URL: base64 for PNG, JPEG and WebP, URL encoded markup for SVG." },
+        "svgSource": { "type": "string", "description": "SVG only: the markup. When present the app reads it in place of `dataUrl`." }
+      }
+    },
 
-    "renderMode": { "type": "string", "enum": ["dots", "solid"] },
+    "renderMode": { "type": "string", "enum": ["dots", "solid"], "description": "`dots` draws the land as dots, `solid` as filled shapes." },
 
-    "worldFill": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+    "worldFill": { "$ref": "#/$defs/hex", "description": "Land fill color in solid maps, as hex." },
     "worldFillAlpha": { "type": "number", "minimum": 0, "maximum": 1 },
-    "worldFillGradient": { "type": ["object", "null"] },
+    "worldFillGradient": { "$ref": "#/$defs/gradient", "description": "Gradient for the land fill, used in place of `worldFill`." },
     "worldFillVisible": { "type": "boolean" },
 
-    "worldStroke": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+    "worldStroke": { "$ref": "#/$defs/hex", "description": "Outline color in solid maps, as hex." },
     "worldStrokeAlpha": { "type": "number", "minimum": 0, "maximum": 1 },
-    "worldStrokeGradient": { "type": ["object", "null"] },
+    "worldStrokeGradient": { "$ref": "#/$defs/gradient", "description": "Gradient for the outlines, used in place of `worldStroke`." },
     "worldStrokeVisible": { "type": "boolean" },
     "worldStrokeWidth": { "type": "number", "minimum": 0, "maximum": 10 },
 
@@ -71,48 +93,68 @@
     "tiltX": { "type": "number", "minimum": -180, "maximum": 180 },
     "tiltY": { "type": "number", "minimum": -180, "maximum": 180 },
 
+    "animationsEnabled": { "type": "boolean", "description": "false holds the design still." },
+    "viewMode": { "type": "string", "enum": ["globe", "flat"], "description": "3D globe or flat map." },
+    "flatProjection": {
+      "type": "string",
+      "enum": ["mercator", "equalEarth", "naturalEarth1", "winkel3", "robinson"],
+      "description": "Projection for the flat map view. It applies to solid maps (renderMode \"solid\"); dotted maps always use Mercator."
+    },
+    "riversVisible": { "type": "boolean" },
+    "citiesVisible": { "type": "boolean" },
+    "citiesMinPop": { "type": "number", "minimum": 0, "maximum": 50000000, "description": "Show only cities with at least this population." },
+
     "shaderSettings": {
       "type": "object",
-      "description": "Per-shader configuration. `effect` picks which shader runs; the remaining fields are knobs honored by the selected effect.",
+      "description": "The shader pass. `effect` picks it; the other keys are knobs, and each effect reads only some of them.",
       "properties": {
         "effect": {
           "type": "string",
-          "enum": ["none", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "edge", "threshold", "toon", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt", "chromatic", "wave", "stripes", "rgb", "chroma"]
+          "enum": ["none", "bloom", "chromatic", "crt", "halftone", "pixel", "threshold", "glitch", "edge", "wave", "metal", "pencil", "toon", "stripes", "badtv", "rgb", "chroma", "corrupt", "bayer", "iridescent", "risograph", "newsprint", "aurora", "atkinson", "ascii"]
         },
         "intensity": { "type": "number", "minimum": 0, "maximum": 100 },
-        "cellSize": { "type": "number", "minimum": 0, "maximum": 30 },
+        "split": { "type": "number", "minimum": 0, "maximum": 100 },
         "grain": { "type": "number", "minimum": 0, "maximum": 100 },
         "scanlines": { "type": "number", "minimum": 0, "maximum": 100 },
-        "motion": { "type": "number", "minimum": 0, "maximum": 100 },
+        "cellSize": { "type": "number", "minimum": 0, "maximum": 30 },
         "threshold": { "type": "number", "minimum": 0, "maximum": 100 },
-        "split": { "type": "number", "minimum": 0, "maximum": 100 }
+        "warp": { "type": "number", "minimum": 0, "maximum": 100 },
+        "motion": { "type": "number", "minimum": 0, "maximum": 100 }
       },
       "additionalProperties": true
     },
 
     "globeSettings": {
       "type": "object",
-      "description": "3D globe chrome: auto-spin, glow halo, grid mesh, network arcs, etc.",
+      "description": "3D globe chrome: auto-spin, glow halo, grid mesh, network arcs, data markers.",
       "properties": {
         "look": { "type": "string", "enum": ["classic", "borderless"] },
         "autoSpin": { "type": "boolean", "description": "Legacy field. The current control is `autoSpinSpeed` (0 to 100, where 0 stops the spin); when this is `false` on import, autoSpinSpeed is forced to 0." },
         "autoSpinSpeed": { "type": "number", "minimum": 0, "maximum": 100, "description": "Globe auto-rotation speed from 0 to 100 (0 stops the spin)." },
+        "dotLift": { "type": "number", "minimum": 0, "maximum": 100, "description": "How far the dots sit above the sphere." },
         "glow": { "type": "boolean" },
         "glowStrength": { "type": "number", "minimum": 0, "maximum": 100 },
         "glowSpread": { "type": "number", "minimum": 0, "maximum": 100 },
         "glowColor": { "type": ["string", "null"], "pattern": "^#?[0-9a-fA-F]{3,8}$", "description": "Hex color for the glow halo. null picks one from the look and the dot color.", "examples": ["#ff00aa", null] },
         "grid": { "type": "boolean" },
+        "gridColor": { "$ref": "#/$defs/hex", "description": "Solid tint for all grid lines unless gridGradient is set." },
+        "gridGradient": { "$ref": "#/$defs/gradient", "description": "Gradient for the grid lines, by latitude (south → north)." },
+        "gridLift": { "type": "number", "minimum": 0, "maximum": 100, "description": "How far the grid lines sit above the sphere." },
+        "gridSize": { "type": "number", "minimum": 5, "maximum": 90, "description": "Degrees between grid lines." },
         "gridStrength": { "type": "number", "minimum": 0, "maximum": 100 },
-        "gridColor": { "type": "string", "description": "Hex string. Solid tint for all grid lines unless gridGradient is set." },
-        "gridGradient": {
-          "type": ["object", "null"],
-          "description": "Optional 2-stop gradient applied as per-vertex colors interpolated by latitude (south → north).",
-          "properties": {
-            "from": { "type": "string" },
-            "to": { "type": "string" }
-          }
-        },
         "network": { "type": "boolean", "description": "City pulses + great-circle route arcs." },
+        "networkStrength": { "type": "number", "minimum": 0, "maximum": 100 },
+        "networkArcs": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Arc density from 0 to 100, or legacy bool (true = default density, false = hidden)." },
+        "networkPulses": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Pulse density from 0 to 100, or legacy bool (true = default density, false = hidden)." },
+        "arcColor": { "type": ["string", "null"], "pattern": "^#?[0-9a-fA-F]{3,8}$", "description": "Hex string. Uniform tint for all network arc lines/trails/heads. null falls back to per-route hardcoded polychrome." },
+        "pulseColor": { "type": ["string", "null"], "pattern": "^#?[0-9a-fA-F]{3,8}$", "description": "Hex string. Uniform tint for all city pulse cores + rings. null falls back to per-hub hardcoded polychrome." },
+        "networkMono": { "type": "boolean", "description": "Deprecated. Was the polychrome/mono toggle for network rendering. Ignored. Use arcColor / pulseColor instead." },
+        "routes": { "type": "boolean", "description": "Route lines, drawn with the borderless look only." },
+        "routesStrength": { "type": "number", "minimum": 0, "maximum": 100 },
+        "surface": { "type": "boolean" },
+        "surfaceStrength": { "type": "number", "minimum": 0, "maximum": 100 },
+        "surfaceColor": { "$ref": "#/$defs/hex", "description": "Solid tint for the sphere fill unless surfaceGradient is set." },
+        "surfaceGradient": { "$ref": "#/$defs/gradient", "description": "Gradient for the sphere fill, by latitude (south → north)." },
         "data": { "type": "boolean", "description": "Show the pasted data markers and their arcs. false hides them but keeps dataPoints." },
         "dataPoints": {
           "type": "array",
@@ -130,24 +172,7 @@
           "examples": [[{ "lat": 40.7, "lng": -74, "value": 10 }, { "lat": 51.5, "lng": -0.1, "value": 6 }]]
         },
         "dataArcs": { "type": "boolean", "description": "Draw an arc from each data point to the next, in list order. Needs at least 2 points; arcs show in globe view only." },
-        "dataMarkerColor": { "type": ["string", "null"], "pattern": "^#?[0-9a-fA-F]{3,8}$", "description": "Hex color for the data markers and their arcs. null uses the default cyan (#7edfff).", "examples": ["#ff8800", null] },
-        "networkStrength": { "type": "number", "minimum": 0, "maximum": 100 },
-        "networkArcs": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Arc density from 0 to 100, or legacy bool (true = default density, false = hidden)." },
-        "networkPulses": { "type": ["number", "boolean"], "minimum": 0, "maximum": 100, "description": "Pulse density from 0 to 100, or legacy bool (true = default density, false = hidden)." },
-        "networkMono": { "type": "boolean", "description": "Deprecated. Was the polychrome/mono toggle for network rendering. Ignored. Use arcColor / pulseColor instead." },
-        "arcColor": { "type": ["string", "null"], "description": "Hex string. Uniform tint for all network arc lines/trails/heads. null falls back to per-route hardcoded polychrome." },
-        "pulseColor": { "type": ["string", "null"], "description": "Hex string. Uniform tint for all city pulse cores + rings. null falls back to per-hub hardcoded polychrome." },
-        "surface": { "type": "boolean" },
-        "surfaceStrength": { "type": "number", "minimum": 0, "maximum": 100 },
-        "surfaceColor": { "type": "string", "description": "Hex string. Solid tint for the sphere fill unless surfaceGradient is set." },
-        "surfaceGradient": {
-          "type": ["object", "null"],
-          "description": "Optional 2-stop gradient applied as per-vertex colors on the sphere geometry, interpolated by latitude (south → north).",
-          "properties": {
-            "from": { "type": "string" },
-            "to": { "type": "string" }
-          }
-        }
+        "dataMarkerColor": { "type": ["string", "null"], "pattern": "^#?[0-9a-fA-F]{3,8}$", "description": "Hex color for the data markers and their arcs. null uses the default cyan (#7edfff).", "examples": ["#ff8800", null] }
       },
       "additionalProperties": true
     },
@@ -168,33 +193,15 @@
       "type": "object",
       "description": "Animated gradient-mesh tuning. Applies when backgroundStyle is `flow`.",
       "properties": {
-        "colorA": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
-        "colorB": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
-        "colorC": { "type": "string", "pattern": "^#?[0-9a-fA-F]{3,8}$" },
+        "colorA": { "$ref": "#/$defs/hex" },
+        "colorB": { "$ref": "#/$defs/hex" },
+        "colorC": { "$ref": "#/$defs/hex" },
         "motion": { "type": "number", "minimum": 0, "maximum": 100 },
         "turbulence": { "type": "number", "minimum": 0, "maximum": 100 },
         "grain": { "type": "number", "minimum": 0, "maximum": 100 },
         "scale": { "type": "number", "minimum": 0, "maximum": 100 },
         "brightness": { "type": "number", "minimum": 0, "maximum": 200 }
       }
-    },
-
-    "animationsEnabled": { "type": "boolean" },
-
-    "preset": {
-      "type": "string",
-      "description": "Optional. When set, the importer applies this preset's defaults first, then layers the other fields on top.",
-      "enum": ["default", "halftone", "risograph", "newsprint", "aurora", "pixel", "bayer", "atkinson", "wireframe", "crt", "glitch", "badtv", "bloom", "metal", "iridescent", "pencil", "corrupt", "toon", "threshold", "vapor", "topographic"]
-    },
-
-    "flatProjection": {
-      "type": "string",
-      "enum": ["mercator", "equalEarth", "naturalEarth1", "winkel3", "robinson"],
-      "description": "Projection for the flat map view. It applies to solid maps (renderMode \"solid\"); dotted maps always use Mercator."
-    },
-
-    "riversVisible": { "type": "boolean" },
-    "citiesVisible": { "type": "boolean" },
-    "citiesMinPop": { "type": "number", "minimum": 0 }
+    }
   }
 }

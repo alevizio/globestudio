@@ -3,8 +3,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
-import { DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
-import { FLAT_PROJECTION_OPTIONS } from "../config/constants.js";
+import { DEFAULT_SHADER_SETTINGS, shaderEffectOptions } from "../config/shader-effects.js";
+import { dotShapeOptions, FLAT_PROJECTION_OPTIONS } from "../config/constants.js";
 import { lookPresets } from "../data/look-presets.js";
 import { FLAT_PROJECTION_KEYS } from "../three/world-texture.js";
 import {
@@ -259,6 +259,146 @@ describe("share-config", () => {
     const tooMany = Array.from({ length: points.maxItems + 1 }, (_, index) => ({ lat: 0, lng: index % 180, value: 1 }));
     expect(kept("dataPoints", tooMany)).toHaveLength(points.maxItems);
     for (const example of points.examples) expect(kept("dataPoints", example)).toEqual(example);
+  });
+
+  describe("the config schema, key by key", () => {
+    const schemaPath = resolve(dirname(fileURLToPath(import.meta.url)), "../../public/schema/config.json");
+    const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
+    const def = (prop) => (prop.$ref ? { ...schema.$defs[prop.$ref.replace("#/$defs/", "")], ...prop } : prop);
+    const props = (prop) => def(prop).properties;
+    // Not settings: an exported file's $schema, the app's version number in
+    // it, and the link format marker v of a ?c= payload. The parser reads
+    // none of them.
+    const MARKERS = ["$schema", "version", "v"];
+    const NESTED = ["shaderSettings", "globeSettings", "spaceSettings", "flowSettings"];
+    const GRADIENT = { from: "#000000", to: "#ffffff" };
+
+    // The keys normalizeConfig reads from the object `place` puts it in,
+    // recorded as it reads them. `answers` lets it read on past a check.
+    const keysRead = (place, answers = {}) => {
+      const seen = new Set();
+      normalizeConfig(place(new Proxy({}, {
+        get: (_, key) => {
+          if (typeof key === "string") seen.add(key);
+          return answers[key];
+        },
+      })));
+      return [...seen].sort();
+    };
+    const sorted = (keys) => [...keys].sort();
+
+    it("documents every key the parser reads, and no other", () => {
+      const top = Object.keys(schema.properties).filter((key) => !MARKERS.includes(key));
+      expect(sorted(top)).toEqual(keysRead((config) => config));
+      for (const key of NESTED) {
+        expect(sorted(Object.keys(props(schema.properties[key]))), key).toEqual(keysRead((value) => ({ [key]: value })));
+      }
+      expect(sorted(Object.keys(schema.$defs.gradient.properties))).toEqual(keysRead((value) => ({ dotGradient: value }), GRADIENT));
+      const svg = { type: "image/svg+xml", dataUrl: "data:image/svg+xml,%3Csvg%3E%3C%2Fsvg%3E", svgSource: "<svg></svg>" };
+      expect(sorted(Object.keys(props(schema.properties.customShape)))).toEqual(keysRead((value) => ({ customShape: value }), svg));
+      const point = props(schema.properties.globeSettings).dataPoints.items.properties;
+      expect(sorted(Object.keys(point))).toEqual(keysRead((value) => ({ globeSettings: { dataPoints: [value] } }), { lat: 0, lng: 0 }));
+      // The parser needs none of them.
+      expect(schema.required ?? []).toEqual([]);
+    });
+
+    // What the parser keeps of one value, read back from where it was put.
+    const top = (key) => (value) => normalizeConfig({ [key]: value })?.[key];
+    const nested = (parent, key) => (value) => normalizeConfig({ [parent]: { [key]: value } }, {})?.[parent]?.[key];
+    const inGradient = (key) => (value) => normalizeConfig({ dotGradient: { ...GRADIENT, [key]: value } })?.dotGradient?.[key];
+    const HEX_CANDIDATES = ["#ff8800", "ff8800", "#abc", "#ff880080", "red", "#12", "#123456789", ""];
+
+    // The values a property's type, enum, range and pattern allow, against
+    // what the parser keeps, clamps or drops.
+    const expectAsDocumented = (name, prop, kept) => {
+      const { type, enum: allowed, minimum, maximum, pattern, maxLength, examples = [] } = def(prop);
+      const types = [type].flat();
+      if (types.includes("null")) expect(kept(null), name).toBeNull();
+      if (allowed) {
+        for (const value of allowed) expect(kept(value), `${name} ${value}`).toEqual(value);
+        expect(kept("not-a-value"), name).toBeUndefined();
+        return;
+      }
+      if (types.includes("boolean")) {
+        expect(kept(true), name).toBe(true);
+        expect(kept(false), name).toBe(false);
+        if (!types.includes("number")) expect(kept("yes"), name).toBeUndefined();
+      }
+      if (types.includes("number")) {
+        expect([typeof minimum, typeof maximum], `${name} documents its range`).toEqual(["number", "number"]);
+        expect(kept(minimum), name).toBe(minimum);
+        expect(kept(maximum), name).toBe(maximum);
+        expect(kept(minimum - 1), `${name} below its range`).toBe(minimum);
+        expect(kept(maximum + 1), `${name} above its range`).toBe(maximum);
+        expect(kept("lots"), name).toBeUndefined();
+      }
+      if (types.includes("string")) {
+        for (const example of examples) if (typeof example === "string") expect(kept(example), `${name} ${example}`).toBeDefined();
+        if (pattern) {
+          const re = new RegExp(pattern);
+          for (const candidate of [...examples.filter((example) => typeof example === "string"), ...HEX_CANDIDATES]) {
+            expect(kept(candidate) !== undefined, `${name} ${JSON.stringify(candidate)}`).toBe(re.test(candidate));
+          }
+        }
+        if (maxLength) expect(Array.from(kept("x".repeat(maxLength + 5))), `${name} maxLength`).toHaveLength(maxLength);
+      }
+    };
+
+    it("takes the values each setting documents, in the ranges it gives", () => {
+      for (const [key, prop] of Object.entries(schema.properties)) {
+        if (MARKERS.includes(key) || NESTED.includes(key) || key === "customShape") continue;
+        if (def(prop).properties) continue; // gradients, below
+        expectAsDocumented(key, prop, top(key));
+      }
+      for (const parent of NESTED) {
+        for (const [key, prop] of Object.entries(props(schema.properties[parent]))) {
+          if (key === "dataPoints") continue; // its own test, above
+          if (def(prop).properties) continue;
+          expectAsDocumented(`${parent}.${key}`, prop, nested(parent, key));
+        }
+      }
+      for (const [key, prop] of Object.entries(schema.$defs.gradient.properties)) {
+        expectAsDocumented(`gradient.${key}`, prop, inGradient(key));
+      }
+    });
+
+    it("points every gradient at the one gradient the parser reads", () => {
+      const gradients = [
+        ...Object.entries(schema.properties),
+        ...Object.entries(props(schema.properties.globeSettings)).map(([key, prop]) => [`globeSettings.${key}`, prop]),
+      ].filter(([key]) => /Gradient$/.test(key));
+      expect(gradients.map(([key]) => key).sort()).toEqual([
+        "dotGradient", "globeSettings.gridGradient", "globeSettings.surfaceGradient", "worldFillGradient", "worldStrokeGradient",
+      ]);
+      for (const [key, prop] of gradients) expect(prop.$ref, key).toBe("#/$defs/gradient");
+      const full = { ...GRADIENT, angle: 90, fromAlpha: 0.5, toAlpha: 1 };
+      expect(normalizeConfig({ worldStrokeGradient: full }).worldStrokeGradient).toEqual(full);
+      expect(normalizeConfig({ globeSettings: { gridGradient: full } }, {}).globeSettings.gridGradient).toEqual(full);
+      expect(normalizeConfig({ dotGradient: { from: "#000000" } })).toBeNull();
+    });
+
+    it("lists the shapes and effects the app offers", () => {
+      expect(schema.properties.shape.enum).toEqual(dotShapeOptions.map((option) => option.value ?? option));
+      expect(props(schema.properties.shaderSettings).effect.enum).toEqual(shaderEffectOptions.map((option) => option.value));
+    });
+
+    it("describes a custom shape the parser keeps", () => {
+      const shape = def(schema.properties.customShape);
+      expect(shape.properties.type.enum).toEqual(["image/svg+xml", "image/png", "image/jpeg", "image/webp"]);
+      expect(shape.required).toEqual(["type", "dataUrl"]);
+      const png = { name: "Logo", type: "image/png", dataUrl: "data:image/png;base64,iVBORw0KGgo=" };
+      expect(normalizeConfig({ customShape: png }).customShape).toEqual(png);
+      expect(normalizeConfig({ customShape: null }).customShape).toBeNull();
+      expect(normalizeConfig({ customShape: "<svg></svg>" })).toBeNull();
+      const tooLong = { ...png, dataUrl: `data:image/png;base64,${"A".repeat(shape.properties.dataUrl.maxLength)}` };
+      expect(normalizeConfig({ customShape: tooLong })).toBeNull();
+    });
+
+    it("documents the link format the app writes", () => {
+      expect(schema.properties.v.enum).toEqual([1, 2]);
+      expect(JSON.parse(new URL(buildShareUrl({}, "https://globestudio.app")).searchParams.get("c")).v).toBe(2);
+      expect(schema.properties.version.const).toBe(1);
+    });
   });
 
   it("drops invalid view state + overlay values", () => {

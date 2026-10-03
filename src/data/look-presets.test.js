@@ -46,13 +46,6 @@ describe("look-presets contract", () => {
     }
   });
 
-  it("preset ids are a subset of the config schema `preset` enum", () => {
-    const allowed = new Set(configSchema.properties.preset.enum);
-    for (const preset of lookPresets) {
-      expect(allowed.has(preset.id), `preset id ${preset.id} missing from config.json#properties.preset.enum`).toBe(true);
-    }
-  });
-
   it("name + blurb fit within the documented length budget", () => {
     const nameMax = lookPresetSchema.properties.name.maxLength;
     const blurbMax = lookPresetSchema.properties.blurb.maxLength;

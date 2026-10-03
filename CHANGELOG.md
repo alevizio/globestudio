@@ -43,6 +43,15 @@ All notable changes to Globestudio are tracked here. Format follows
   bring back the glow and grid Sonar turns off, and a link that changed one
   shader setting turned the look's shader off. Links copied from the app
   open as before.
+- The config schema at `/schema/config.json` matches what the app reads.
+  `shape` takes `Particle Grid`, the effect list has `ascii`, and
+  `viewMode`, the `warp` knob, `dotLift`, `gridLift`, `gridSize`, `routes`,
+  `routesStrength`, gradient opacities and the custom shape's fields are
+  documented. It no longer lists `preset`, which the app never read, or
+  `rotateAnimating`, which it stopped reading when shape rotation became a
+  single speed slider, or requires `version`, and it says `stateSelection`
+  is a FIPS code, not a postal code. A test now checks the schema against
+  the parser key by key.
 - An embed that gets only a share config, which is all `@globestudio/react`
   and `@globestudio/element` send, shows the config's Flat view and its
   Solid background color. It used to show a globe on the default dark page
