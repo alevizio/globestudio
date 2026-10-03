@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { EmbedView } from "./embed-view.jsx";
 import { links as legacyLinks } from "../utils/fixtures/legacy-share-links.json";
 
@@ -178,6 +178,18 @@ describe("EmbedView", () => {
       open(`look=topographic&c=${encodeURIComponent(JSON.stringify({ v: 2, shaderSettings: { intensity: 80 } }))}`);
       await view();
       expect(drawn.props.shaderSettings).toMatchObject({ effect: "wave", intensity: 80 });
+    });
+  });
+
+  describe("a US state", () => {
+    it("is drawn from its outline, with the same empty country list on every render", async () => {
+      // A new list on each render rebuilt the globe's solid textures.
+      const { rerender } = embed({ selection: "country:USA", stateSelection: "06", renderMode: "solid" });
+      await waitFor(() => expect(drawn.props?.selectionCollection).toBeTruthy());
+      const codes = drawn.props.selectionCountryCodes;
+      expect(codes).toEqual([]);
+      rerender(<EmbedView />);
+      expect(drawn.props.selectionCountryCodes).toBe(codes);
     });
   });
 

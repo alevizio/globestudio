@@ -151,6 +151,10 @@ const findAreaIds = (selectionValue) => {
   return option.ids || [];
 };
 
+// A state is drawn from its outline, with no country codes. The same list on
+// every render: a new one rebuilds the globe's solid textures.
+const NO_COUNTRY_CODES = [];
+
 export const EmbedView = () => {
   const search = typeof window !== "undefined" ? window.location.search : "";
   // If the host URL carries ?c=…, the recipient gets the sender's exact
@@ -504,7 +508,7 @@ export const EmbedView = () => {
           citiesMinPop={settings.citiesMinPop ?? 0}
           customTopology={null}
           customTopologyVisible={false}
-          selectionCountryCodes={stateCollection ? [] : ids}
+          selectionCountryCodes={stateCollection ? NO_COUNTRY_CODES : ids}
           selectionCollection={stateCollection}
           background={isSpaceBackground ? SPACE_BACKGROUND_BASE : isFlowBackground ? FLOW_BACKGROUND_BASE : settings.background}
           transparent={settings.transparent || isSpaceBackground || isFlowBackground}
