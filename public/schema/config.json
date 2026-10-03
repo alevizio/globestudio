@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://globestudio.app/schema/config.json",
   "title": "Globestudio configuration",
-  "description": "A Globestudio design: the file Export → Share → Export configuration saves, and the JSON a share link carries URL encoded in its ?c= parameter. It matches normalizeConfig in src/utils/share-config.js, which every link, embed and import goes through. Every key is optional, and the app drops any key or value this schema does not allow. In shaderSettings, globeSettings, spaceSettings and flowSettings, keys a config leaves out keep the values of the look the link opens on (/looks/<id>, or /embed with look=<id>), and get the app defaults on a link that names no look.",
+  "description": "A Globestudio design: the file Export → Share → Export configuration saves, and the JSON a share link carries URL encoded in its ?c= parameter. It matches normalizeConfig in src/utils/share-config.js, which every link, embed and import goes through. Every key is optional, and the app drops any key or value this schema does not allow. In shaderSettings, globeSettings, spaceSettings and flowSettings, keys a config leaves out keep the values of the look the link opens on (/looks/<id>, or /embed with look=<id>), and get the app defaults on a link that names no look. A link carries the config URL encoded in its address, and an embed address must stay under 32,000 characters, so a custom shape file or a long list of data points may not fit in an embed.",
   "type": "object",
   "additionalProperties": true,
   "$defs": {
@@ -69,7 +69,7 @@
     "asciiSymbol": { "type": "string", "maxLength": 12, "description": "Text drawn as each dot when `shape` is `ASCII`. Longer text is cut to 12 characters." },
     "customShape": {
       "type": ["object", "null"],
-      "description": "The image drawn as each dot when `shape` is `Custom`, or null. An SVG is cleaned of scripts and event handlers before use.",
+      "description": "The image drawn as each dot when `shape` is `Custom`, or null. An SVG is cleaned of scripts and event handlers before use. The file rides in the link, so one of more than a few dozen kB won't fit in an embed address, which must stay under 32,000 characters.",
       "required": ["type", "dataUrl"],
       "properties": {
         "name": { "type": "string", "maxLength": 80, "description": "File name. Longer names are cut to 80 characters." },

@@ -81,7 +81,7 @@ the pen in a new tab.
 - `country:<ISO3>`: one country by 3-letter ISO 3166-1 alpha-3 code
   (`USA`, `FRA`, `JPN`, `BRA`, `DEU`, …).
 - `continent:<Name>`: `Africa`, `Asia`, `Europe`, `North America`,
-  `South America`, `Oceania`, `Antarctica`.
+  `South America`, `Oceania`.
 - `subregion:<Name>`: a UN subregion, e.g. `Western Europe`, `South-Eastern Asia`.
 
 For one US state, DC or territory, use `country:USA` and set `stateSelection`
@@ -147,6 +147,11 @@ URL.
 - WebGL2 required; the embed falls back gracefully when GL is unavailable, but
   functionality is degraded.
 - Rendering is client-side; there is no server-side render endpoint yet.
+- Keep an embed address under 32,000 characters: the site turns away one a
+  little longer. The config rides in it URL encoded, so a custom shape file
+  or a long list of data points may not fit.
+- `globeSettings.dataPoints` keeps the first 250 points with a valid `lat`
+  and `lng`.
 - MIT licensed. The visuals you export are yours; redistributing the source or
   built bundle requires keeping the LICENSE + NOTICE files (NOTICE credits
   Pixelarticons and the open atlases the tool relies on).

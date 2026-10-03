@@ -3,7 +3,9 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { injectSiteFacts } from "../scripts/site-facts.js";
+import { continentOptions } from "./data/geography.js";
 import { lookPresets } from "./data/look-presets.js";
+import { EMBED_URL_MAX } from "./utils/embed-snippets.js";
 import { PRODUCT_CARD_ALT, TEASER_CARD_ALT, shareCardUrl, swapInTeaserCard } from "./data/share-cards.js";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -90,6 +92,26 @@ describe.each(["public/llms.txt", "public/llms-full.txt"])("%s", (path) => {
 
   it("points React users at the npm package", () => {
     expect(text).toContain("npm i @globestudio/react");
+  });
+});
+
+describe("the limits and names agents read", () => {
+  const llms = read("public/llms-full.txt");
+  const schema = JSON.parse(read("public/schema/config.json"));
+  const maxPoints = schema.properties.globeSettings.properties.dataPoints.maxItems;
+  const embedLimit = `${EMBED_URL_MAX.toLocaleString("en-US")} characters`;
+
+  it("lists the continents the app offers, and only those", () => {
+    const entry = llms.match(/`continent:<Name>`:(.*?)\n- /s)[1];
+    const listed = [...entry.matchAll(/`([^`]+)`/g)].map((match) => match[1]);
+    expect(listed.sort()).toEqual(continentOptions.map((option) => option.label.replace(" (Continent)", "")).sort());
+  });
+
+  it("states the embed address limit and the data point cap", () => {
+    expect(llms).toContain(embedLimit);
+    expect(llms).toContain(`${maxPoints} points`);
+    expect(schema.description).toContain(embedLimit);
+    expect(schema.properties.customShape.description).toContain(embedLimit);
   });
 });
 
