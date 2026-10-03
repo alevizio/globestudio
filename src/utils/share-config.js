@@ -58,12 +58,14 @@ const MAX_ASCII_SYMBOL_LENGTH = 12;
 const enumValues = (items) => new Set(items.map((item) => item.value ?? item));
 const SHAPES = enumValues(dotShapeOptions);
 const SHADER_EFFECTS = enumValues(shaderEffectOptions);
+// The four lists below are exported for share-config.test.js, which checks
+// that the config schema lists exactly these values.
 // "transparent" is the panel's Transparent option. Dropping it made a shared
 // transparent look open on whatever style the recipient last used.
-const BACKGROUND_STYLES = new Set(["solid", "space", "flow", "transparent"]);
-const RENDER_MODES = new Set(["dots", "solid"]);
-const VIEW_MODES = new Set(["globe", "flat"]);
-const GLOBE_LOOKS = new Set(["classic", "borderless"]);
+export const BACKGROUND_STYLES = new Set(["solid", "space", "flow", "transparent"]);
+export const RENDER_MODES = new Set(["dots", "solid"]);
+export const VIEW_MODES = new Set(["globe", "flat"]);
+export const GLOBE_LOOKS = new Set(["classic", "borderless"]);
 // The renderer's projection keys (FLAT_PROJECTION_OPTIONS in
 // config/constants.js). share-config.test.js checks the two lists match.
 const FLAT_PROJECTIONS = new Set(["mercator", "equalEarth", "naturalEarth1", "winkel3", "robinson"]);

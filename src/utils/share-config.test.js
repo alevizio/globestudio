@@ -10,10 +10,14 @@ import { US_STATE_FIPS } from "../data/us-state-codes.js";
 import { lookFromPath } from "../hooks/use-route-look.js";
 import { FLAT_PROJECTION_KEYS } from "../three/world-texture.js";
 import {
+  BACKGROUND_STYLES,
   buildShareUrl,
   clearShareConfigFromUrl,
+  GLOBE_LOOKS,
   normalizeConfig,
   parseShareConfig,
+  RENDER_MODES,
+  VIEW_MODES,
 } from "./share-config.js";
 
 afterEach(() => {
@@ -395,6 +399,15 @@ describe("share-config", () => {
     it("lists the shapes and effects the app offers", () => {
       expect(schema.properties.shape.enum).toEqual(dotShapeOptions.map((option) => option.value ?? option));
       expect(props(schema.properties.shaderSettings).effect.enum).toEqual(shaderEffectOptions.map((option) => option.value));
+    });
+
+    it("lists exactly the values the parser takes for each choice", () => {
+      // The value checks above catch a value the schema adds; these catch
+      // one the parser adds and the schema misses.
+      expect(sorted(schema.properties.backgroundStyle.enum)).toEqual(sorted(BACKGROUND_STYLES));
+      expect(sorted(schema.properties.renderMode.enum)).toEqual(sorted(RENDER_MODES));
+      expect(sorted(schema.properties.viewMode.enum)).toEqual(sorted(VIEW_MODES));
+      expect(sorted(props(schema.properties.globeSettings).look.enum)).toEqual(sorted(GLOBE_LOOKS));
     });
 
     it("describes a custom shape the parser keeps", () => {
