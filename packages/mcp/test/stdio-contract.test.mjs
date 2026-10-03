@@ -412,7 +412,7 @@ test("a % sign survives both ways: MCP links in the app, app links in the MCP", 
     svgSource,
     dataUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgSource)}`,
   };
-  const carried = { shape: "Custom", customShape, asciiSymbol: "100%", stateSelection: "50% off %41" };
+  const carried = { shape: "Custom", customShape, asciiSymbol: "100% %41" };
 
   // MCP -> app: build_share_url keeps every value, and the app opens it as is.
   const { json } = await callTool("build_share_url", { look: "default", dotColor: "#ff0000", config: carried });
@@ -437,6 +437,22 @@ test("a % sign survives both ways: MCP links in the app, app links in the MCP", 
   assert.deepEqual(doubled.json.config, { asciiSymbol: "%", density: 55 });
   assert.deepEqual(doubled.json.config, appConfigOf(twice));
   assert.deepEqual(appConfigOf(doubled.json.share_url), { asciiSymbol: "%", density: 55 });
+});
+
+test("a US state reads the same in the MCP and the app: postal code or FIPS code, nothing else", async () => {
+  const { US_STATE_FIPS } = await appModule("data/us-state-codes.js");
+  const cases = [["all", "all"], ...Object.entries(US_STATE_FIPS), ...Object.values(US_STATE_FIPS).map((id) => [id, id])];
+  for (const [input, stored] of cases) {
+    const { json } = await callTool("build_share_url", { look: "default", selection: "country:USA", config: { stateSelection: input } });
+    assert.equal(json.ignored, undefined, input);
+    assert.equal(json.config.stateSelection, stored, input);
+    assert.equal(appConfigOf(json.share_url).stateSelection, stored, input);
+  }
+  for (const unknown of ["ZZ", "ca", "99", "California"]) {
+    const { json } = await callTool("build_share_url", { look: "default", selection: "country:USA", config: { stateSelection: unknown } });
+    assert.deepEqual(json.ignored, ["stateSelection"], unknown);
+    assert.equal(appConfigOf(json.share_url).stateSelection, undefined, unknown);
+  }
 });
 
 test("a custom glow color survives both ways: MCP links in the app, app links in the MCP", async () => {

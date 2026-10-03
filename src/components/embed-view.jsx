@@ -9,7 +9,9 @@ import {
 import { DEFAULT_GLOBE_SETTINGS, GLOBE_MORPH_DURATION } from "../config/globe-settings.js";
 import { effectPresets, DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { areaOptions } from "../data/geography.js";
-import { createCountryMapData } from "../utils/dot-generation.js";
+import { US_COUNTRY_ID } from "../config/constants.js";
+import { useUsStatesLoader } from "../hooks/use-us-states-loader.js";
+import { createCountryMapData, createStateMapData, makeFeatureCollection } from "../utils/dot-generation.js";
 import { centerOfPoints } from "../utils/face-points.js";
 import { createDottedSvg } from "../utils/svg-markup.js";
 import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
@@ -184,7 +186,23 @@ export const EmbedView = () => {
   // The share config's selection (if any) overrides the URL params' one.
   const effectiveSelection = shareConfig?.selection || raw.selection;
   const ids = useMemo(() => findAreaIds(effectiveSelection), [effectiveSelection]);
-  const mapData = useMemo(() => createCountryMapData(ids, settings.density), [ids, settings.density]);
+  // A US state in the share config, drawn as the studio draws it. The
+  // states atlas loads only for a config that names one.
+  const stateId = effectiveSelection === `country:${US_COUNTRY_ID}` && settings.stateSelection !== "all"
+    ? settings.stateSelection
+    : null;
+  const [usStates, setUsStates] = useState([]);
+  useUsStatesLoader(stateId ? effectiveSelection : "world", usStates.length, setUsStates);
+  const stateCollection = useMemo(() => {
+    const state = stateId && usStates.find((item) => item._id === stateId);
+    return state ? makeFeatureCollection([state]) : null;
+  }, [stateId, usStates]);
+  const mapData = useMemo(
+    () => (stateCollection
+      ? createStateMapData(stateCollection, settings.density, settings.shape)
+      : createCountryMapData(ids, settings.density)),
+    [ids, settings.density, settings.shape, stateCollection],
+  );
   const prefersReducedMotion = usePrefersReducedMotion();
   // A design saved with its animations off holds still, as in the studio.
   const motionFrozen = prefersReducedMotion || params.staticMode || settings.animationsEnabled === false;
@@ -208,9 +226,9 @@ export const EmbedView = () => {
     };
     face();
     return () => cancelAnimationFrame(frame);
-    // Only a new selection turns the globe.
+    // Only a new selection, or its state once the atlas loads, turns the globe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveSelection]);
+  }, [effectiveSelection, stateCollection]);
   const [inserting, setInserting] = useState(false);
   const isSpaceBackground = settings.backgroundStyle === "space";
   const isFlowBackground = settings.backgroundStyle === "flow";
@@ -486,8 +504,8 @@ export const EmbedView = () => {
           citiesMinPop={settings.citiesMinPop ?? 0}
           customTopology={null}
           customTopologyVisible={false}
-          selectionCountryCodes={ids}
-          selectionCollection={null}
+          selectionCountryCodes={stateCollection ? [] : ids}
+          selectionCollection={stateCollection}
           background={isSpaceBackground ? SPACE_BACKGROUND_BASE : isFlowBackground ? FLOW_BACKGROUND_BASE : settings.background}
           transparent={settings.transparent || isSpaceBackground || isFlowBackground}
           morphMode={raw.view === "flat" ? "flat" : "globe"}

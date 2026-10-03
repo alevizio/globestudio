@@ -43,6 +43,7 @@ import { CUSTOM_SHAPE_MAX_BYTES, dotShapeOptions } from "../config/constants.js"
 import { DEFAULT_FLOW_SETTINGS, DEFAULT_SPACE_SETTINGS } from "../config/backgrounds.js";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS, shaderEffectOptions } from "../config/shader-effects.js";
+import { US_STATE_FIPS } from "../data/us-state-codes.js";
 import { sanitizeSvgSource } from "./custom-shape.js";
 import { clampNumber } from "./math.js";
 
@@ -85,6 +86,15 @@ const normalizeNumber = (value, min, max) => {
   const number = Number(value);
   if (!Number.isFinite(number)) return undefined;
   return clampNumber(number, min, max);
+};
+// A US state by its FIPS code (the us-atlas id the State picker stores) or
+// its postal code, stored as the FIPS code. Anything else is dropped: the
+// studio showed the first state in its list for a value it didn't know.
+const US_STATE_IDS = new Set(Object.values(US_STATE_FIPS));
+const normalizeStateSelection = (value) => {
+  if (typeof value !== "string") return undefined;
+  if (value === "all" || US_STATE_IDS.has(value)) return value;
+  return Object.hasOwn(US_STATE_FIPS, value) ? US_STATE_FIPS[value] : undefined;
 };
 const normalizeProjection = (value) =>
   normalizeEnum(
@@ -197,7 +207,7 @@ export const normalizeConfig = (config, base = APP_DEFAULTS) => {
   const next = {};
 
   apply(next, "selection", typeof config.selection === "string" && /^(world|country:[A-Z]{3}|continent:[\w\s-]+|subregion:[\w\s-]+)$/.test(config.selection) ? config.selection : undefined);
-  apply(next, "stateSelection", typeof config.stateSelection === "string" ? config.stateSelection.slice(0, 32) : undefined);
+  apply(next, "stateSelection", normalizeStateSelection(config.stateSelection));
   apply(next, "background", normalizeHex(config.background));
   apply(next, "transparent", normalizeBoolean(config.transparent));
   apply(next, "backgroundStyle", normalizeEnum(config.backgroundStyle, BACKGROUND_STYLES));

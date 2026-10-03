@@ -598,10 +598,13 @@ const App = () => {
 
   const selected = useMemo(() => {
     const selectedCountryId = selection.startsWith("country:") ? selection.replace("country:", "") : "";
-    const shouldUseState = selectedCountryId === US_COUNTRY_ID && stateSelection !== "all" && usStates.length > 0;
+    // A state the atlas doesn't know (saved before links dropped them)
+    // shows the whole country, not the first state in the list.
+    const selectedState = selectedCountryId === US_COUNTRY_ID && stateSelection !== "all"
+      ? usStates.find((item) => item._id === stateSelection)
+      : undefined;
 
-    if (shouldUseState) {
-      const selectedState = usStates.find((item) => item._id === stateSelection) || usStates[0];
+    if (selectedState) {
       return {
         mode: "state",
         label: selectedState._displayName,

@@ -49,9 +49,14 @@ All notable changes to Globestudio are tracked here. Format follows
   `routesStrength`, gradient opacities and the custom shape's fields are
   documented. It no longer lists `preset`, which the app never read, or
   `rotateAnimating`, which it stopped reading when shape rotation became a
-  single speed slider, or requires `version`, and it says `stateSelection`
-  is a FIPS code, not a postal code. A test now checks the schema against
-  the parser key by key.
+  single speed slider, or requires `version`. A test now checks the schema
+  against the parser key by key.
+- A link can name a US state by its postal code (`CA`) as well as by the
+  FIPS code the studio stores (`06`). A state the app doesn't know is
+  dropped, where the studio used to show Alabama, the first state in its
+  list. Embeds draw the state a config names, as the studio does, where
+  they showed the whole country. The MCP server reads states the same way;
+  `@globestudio/mcp` 0.2.1 needs an npm publish for local installs.
 - An embed that gets only a share config, which is all `@globestudio/react`
   and `@globestudio/element` send, shows the config's Flat view and its
   Solid background color. It used to show a globe on the default dark page

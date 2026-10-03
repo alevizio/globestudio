@@ -75,6 +75,25 @@ const normalizeNumber = (value: unknown, min: number, max: number): number | und
   if (!Number.isFinite(number)) return undefined;
   return clampNumber(number, min, max);
 };
+// src/data/us-state-codes.js US_STATE_FIPS: each US state, DC and territory
+// by postal code, with the FIPS code the app stores as stateSelection.
+const US_STATE_FIPS: Record<string, string> = {
+  AL: "01", AK: "02", AZ: "04", AR: "05", CA: "06", CO: "08", CT: "09", DE: "10", DC: "11",
+  FL: "12", GA: "13", HI: "15", ID: "16", IL: "17", IN: "18", IA: "19", KS: "20", KY: "21",
+  LA: "22", ME: "23", MD: "24", MA: "25", MI: "26", MN: "27", MS: "28", MO: "29", MT: "30",
+  NE: "31", NV: "32", NH: "33", NJ: "34", NM: "35", NY: "36", NC: "37", ND: "38", OH: "39",
+  OK: "40", OR: "41", PA: "42", RI: "44", SC: "45", SD: "46", TN: "47", TX: "48", UT: "49",
+  VT: "50", VA: "51", WA: "53", WV: "54", WI: "55", WY: "56", AS: "60", GU: "66", MP: "69",
+  PR: "72", VI: "78",
+};
+const US_STATE_IDS = new Set(Object.values(US_STATE_FIPS));
+// A FIPS code as is, a postal code as its FIPS code; anything else is
+// dropped, as in the app.
+const normalizeStateSelection = (value: unknown): string | undefined => {
+  if (typeof value !== "string") return undefined;
+  if (value === "all" || US_STATE_IDS.has(value)) return value;
+  return Object.prototype.hasOwnProperty.call(US_STATE_FIPS, value) ? US_STATE_FIPS[value] : undefined;
+};
 const normalizeProjection = (value: unknown) =>
   normalizeEnum(
     typeof value === "string" && Object.prototype.hasOwnProperty.call(FLAT_PROJECTION_ALIASES, value) ? FLAT_PROJECTION_ALIASES[value] : value,
@@ -262,7 +281,7 @@ export const normalizeConfig = (config: unknown): ShareConfig => {
   const next: ShareConfig = {};
 
   apply(next, "selection", typeof config.selection === "string" && SELECTION_RE.test(config.selection) ? config.selection : undefined);
-  apply(next, "stateSelection", typeof config.stateSelection === "string" ? config.stateSelection.slice(0, 32) : undefined);
+  apply(next, "stateSelection", normalizeStateSelection(config.stateSelection));
   apply(next, "background", normalizeHex(config.background));
   apply(next, "transparent", normalizeBoolean(config.transparent));
   apply(next, "backgroundStyle", normalizeEnum(config.backgroundStyle, BACKGROUND_STYLES));

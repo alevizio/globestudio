@@ -84,6 +84,10 @@ the pen in a new tab.
   `South America`, `Oceania`, `Antarctica`.
 - `subregion:<Name>`: a UN subregion, e.g. `Western Europe`, `South-Eastern Asia`.
 
+For one US state, DC or territory, use `country:USA` and set `stateSelection`
+in the `c` config to its postal code (`CA`) or its FIPS code (`06`). The
+studio and embeds draw it; a code the app doesn't know shows the whole country.
+
 ## Preset catalog (21 looks)
 
 Each is at `https://globestudio.app/looks/<id>` (marketing page) or

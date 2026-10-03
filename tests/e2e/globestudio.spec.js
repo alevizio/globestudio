@@ -61,6 +61,39 @@ const walkTabStops = async (page, count) => {
   return stops;
 };
 
+// Canvas pixels painted in a pure red, the color the tests below give the
+// markers or dots: how many, and the size of the box around them. Nothing
+// else they draw comes close to it. A clipped page shot, not an element
+// one: in the flat view under swiftshader the element screenshot's
+// "stable" wait timed out on this canvas.
+const redArea = async (page) => {
+  const clip = await page.locator(".globe-background canvas").boundingBox();
+  const png = await page.screenshot({ clip });
+  return page.evaluate(async (b64) => {
+    const img = new Image();
+    img.src = `data:image/png;base64,${b64}`;
+    await img.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const context = canvas.getContext("2d");
+    context.drawImage(img, 0, 0);
+    const { data } = context.getImageData(0, 0, img.width, img.height);
+    let count = 0;
+    let [left, top, right, bottom] = [Infinity, Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i] > 150 && data[i + 1] < 80 && data[i + 2] < 80) {
+        count += 1;
+        const x = (i / 4) % img.width;
+        const y = Math.floor(i / 4 / img.width);
+        [left, top, right, bottom] = [Math.min(left, x), Math.min(top, y), Math.max(right, x), Math.max(bottom, y)];
+      }
+    }
+    return { count, width: right - left + 1, height: bottom - top + 1 };
+  }, png.toString("base64"));
+};
+const redPixels = async (page) => (await redArea(page)).count;
+
 test("home renders the globe canvas", async ({ page }) => {
   await page.goto("/");
   await waitForCanvas(page);
@@ -97,6 +130,38 @@ test("an embed with a look and only some settings keeps the look's shader", asyn
   await page.goto(`/embed?look=topographic&c=${encodeURIComponent(JSON.stringify(config))}`);
   await waitForCanvas(page);
   await expect(page.locator(".globe-background")).toHaveClass(/\beffect-wave\b/);
+});
+
+test.describe("a US state in a share link", () => {
+  test.use({ contextOptions: { reducedMotion: "reduce" } });
+  const link = (path, config) => `${path}?c=${encodeURIComponent(JSON.stringify({ v: 2, selection: "country:USA", ...config }))}`;
+
+  test("opens the studio on the state its postal code names", async ({ page }) => {
+    await page.goto(link("/", { stateSelection: "CA" }));
+    await expect(page.getByRole("button", { name: "State: California" })).toBeVisible({ timeout: CANVAS_TIMEOUT });
+  });
+
+  test("opens the whole country for a code the app doesn't know, not the first state", async ({ page }) => {
+    await page.goto(link("/", { stateSelection: "ZZ" }));
+    await expect(page.getByRole("button", { name: "State: All States" })).toBeVisible({ timeout: CANVAS_TIMEOUT });
+  });
+
+  test("draws only that state in an embed, as the studio does", async ({ page }) => {
+    // Red dots on a flat map, so every dot faces the camera. The country's
+    // dots spread wide; California's, which the state view fits to the
+    // frame as the studio does, stand tall.
+    const design = { viewMode: "flat", dotColor: "#ff0000", background: "#000000", globeSettings: { glow: false } };
+    const shape = async () => {
+      const { count, width, height } = await redArea(page);
+      return count > 500 ? width / height : null;
+    };
+    await page.goto(link("/embed", design));
+    await waitForCanvas(page);
+    await expect.poll(shape, { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(1);
+    await page.goto(link("/embed", { ...design, stateSelection: "06" }));
+    await waitForCanvas(page);
+    await expect.poll(shape, { timeout: CANVAS_TIMEOUT }).toBeLessThan(0.8);
+  });
 });
 
 test("retired look URLs land on the gallery", async ({ page }) => {
@@ -337,31 +402,6 @@ test.describe("with reduced motion", () => {
 
 test.describe("the Data section", () => {
   test.use({ contextOptions: { reducedMotion: "reduce" } });
-
-  // Canvas pixels painted in the pure red the markers are given below. The
-  // dots, glow and background never come close to it. A clipped page shot,
-  // not an element one: in the flat view under swiftshader the element
-  // screenshot's "stable" wait timed out on this canvas.
-  const redPixels = async (page) => {
-    const clip = await page.locator(".globe-background canvas").boundingBox();
-    const png = await page.screenshot({ clip });
-    return page.evaluate(async (b64) => {
-      const img = new Image();
-      img.src = `data:image/png;base64,${b64}`;
-      await img.decode();
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const context = canvas.getContext("2d");
-      context.drawImage(img, 0, 0);
-      const { data } = context.getImageData(0, 0, img.width, img.height);
-      let count = 0;
-      for (let i = 0; i < data.length; i += 4) {
-        if (data[i] > 150 && data[i + 1] < 80 && data[i + 2] < 80) count += 1;
-      }
-      return count;
-    }, png.toString("base64"));
-  };
 
   test("its paste box shows the points a share link loads and keeps them on edit", async ({ page }) => {
     const points = [

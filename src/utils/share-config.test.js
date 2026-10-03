@@ -6,6 +6,7 @@ import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS, shaderEffectOptions } from "../config/shader-effects.js";
 import { dotShapeOptions, FLAT_PROJECTION_OPTIONS } from "../config/constants.js";
 import { lookPresets } from "../data/look-presets.js";
+import { US_STATE_FIPS } from "../data/us-state-codes.js";
 import { FLAT_PROJECTION_KEYS } from "../three/world-texture.js";
 import {
   buildShareUrl,
@@ -394,6 +395,14 @@ describe("share-config", () => {
       expect(normalizeConfig({ customShape: tooLong })).toBeNull();
     });
 
+    it("lists every US state value the parser takes", () => {
+      const documented = schema.properties.stateSelection.anyOf.flatMap((option) => option.enum ?? [option.const]);
+      expect(sorted(documented)).toEqual(sorted(["all", ...Object.keys(US_STATE_FIPS), ...Object.values(US_STATE_FIPS)]));
+      for (const value of documented) {
+        expect(normalizeConfig({ stateSelection: value }).stateSelection, value).toBe(US_STATE_FIPS[value] ?? value);
+      }
+    });
+
     it("documents the link format the app writes", () => {
       expect(schema.properties.v.enum).toEqual([1, 2]);
       expect(JSON.parse(new URL(buildShareUrl({}, "https://globestudio.app")).searchParams.get("c")).v).toBe(2);
@@ -425,6 +434,20 @@ describe("share-config", () => {
     expect(parsed).not.toHaveProperty("version");
   });
 
+  it("reads a US state by its postal code or its FIPS code, and drops anything else", () => {
+    const state = (stateSelection) => normalizeConfig({ selection: "country:USA", stateSelection })?.stateSelection;
+    // The FIPS code is the us-atlas id the studio's State picker stores.
+    expect(state("all")).toBe("all");
+    expect(state("06")).toBe("06");
+    expect(state("CA")).toBe("06");
+    expect(state("DC")).toBe("11");
+    expect(state("PR")).toBe("72");
+    // The studio showed Alabama, the first state in its list, for these.
+    for (const unknown of ["ca", "ZZ", "99", "6", "California", "50% off", "", 6, null]) {
+      expect(state(unknown), String(unknown)).toBeUndefined();
+    }
+  });
+
   describe("values with a % sign", () => {
     const roundTrip = (config) => parseShareConfig(new URL(buildShareUrl(config, "https://globestudio.app")).search);
 
@@ -447,13 +470,6 @@ describe("share-config", () => {
         dataUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgSource)}`,
       };
       expect(roundTrip({ shape: "Custom", customShape })).toEqual({ shape: "Custom", customShape });
-    });
-
-    it("round-trips % in the state selection text", () => {
-      expect(roundTrip({ selection: "country:USA", stateSelection: "50% off %E2" })).toEqual({
-        selection: "country:USA",
-        stateSelection: "50% off %E2",
-      });
     });
 
     it("marks new links v2 and reads them with a single decode", () => {
@@ -483,6 +499,21 @@ describe("share-config", () => {
       }
     });
 
+    // stateSelection takes only a state's code now. Two hand made links here
+    // used it to carry free text, which is dropped; every link the app made
+    // carries "all" or the code its State picker stores.
+    const STATE_VALUES = new Set(["all", ...Object.values(US_STATE_FIPS)]);
+    const withoutStateText = (config) => {
+      if (config?.stateSelection === undefined || STATE_VALUES.has(config.stateSelection)) return config;
+      const { stateSelection, ...rest } = config;
+      return rest;
+    };
+
+    it("carry no state text but in two hand made links", () => {
+      const withText = links.filter(({ expected, now }) => withoutStateText(now ?? expected) !== (now ?? expected));
+      expect(withText.map((link) => link.name)).toEqual(["stateSelection with %", "unicode text"]);
+    });
+
     it("open exactly as before", () => {
       // The Data section added globeSettings.data after 39d9382, defaulting
       // to true (markers shown). An old link can't carry it, so the parser
@@ -494,7 +525,7 @@ describe("share-config", () => {
       };
       for (const { name, url, expected, now } of links) {
         if (now) continue;
-        expect(withoutNewDefaults(parseShareConfig(new URL(url).search)), name).toEqual(expected);
+        expect(withoutNewDefaults(parseShareConfig(new URL(url).search)), name).toEqual(withoutStateText(expected));
       }
     });
 
@@ -509,7 +540,7 @@ describe("share-config", () => {
       ]);
       for (const { name, url, expected, now } of rescued) {
         expect(expected, name).toBe(null);
-        expect(parseShareConfig(new URL(url).search), name).toEqual(now);
+        expect(parseShareConfig(new URL(url).search), name).toEqual(withoutStateText(now));
       }
     });
   });
