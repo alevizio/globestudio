@@ -43,7 +43,7 @@ const SHADER_EFFECTS = new Set([
   "wave", "metal", "pencil", "toon", "stripes", "badtv", "rgb", "chroma", "corrupt", "bayer",
   "iridescent", "risograph", "newsprint", "aurora", "atkinson", "ascii",
 ]);
-const BACKGROUND_STYLES = new Set(["solid", "space", "flow"]);
+const BACKGROUND_STYLES = new Set(["solid", "space", "flow", "transparent"]);
 const RENDER_MODES = new Set(["dots", "solid"]);
 const VIEW_MODES = new Set(["globe", "flat"]);
 const GLOBE_LOOKS = new Set(["classic", "borderless"]);
@@ -252,6 +252,7 @@ const GLOBE_RULES: Record<string, Rule> = {
   surfaceStrength: percent,
   surfaceColor: normalizeHex,
   surfaceGradient: normalizeGradient,
+  data: normalizeBoolean,
   dataPoints: normalizeDataPoints,
   dataArcs: normalizeBoolean,
   dataMarkerColor: hexOrNull,
@@ -286,6 +287,8 @@ export const normalizeConfig = (config: unknown): ShareConfig => {
   apply(next, "background", normalizeHex(config.background));
   apply(next, "transparent", normalizeBoolean(config.transparent));
   apply(next, "backgroundStyle", normalizeEnum(config.backgroundStyle, BACKGROUND_STYLES));
+  // As the app does: the Transparent style always comes with the flag.
+  if (next.backgroundStyle === "transparent") next.transparent = true;
   apply(next, "density", normalizeNumber(config.density, 1, 100));
   apply(next, "dotSize", normalizeNumber(config.dotSize, 0.1, 30));
   apply(next, "dotColor", normalizeHex(config.dotColor));

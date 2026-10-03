@@ -482,6 +482,25 @@ test("a custom glow color survives both ways: MCP links in the app, app links in
   assert.deepEqual(asAppApplies(read.json.config), appConfigOf(link));
 });
 
+test("the Transparent style and a hidden Data layer survive both ways, compared as the link carries them", async () => {
+  // No app defaults merged in here: they would put data back to true.
+  const config = { backgroundStyle: "transparent", globeSettings: { data: false, dataArcs: true } };
+  const carried = { backgroundStyle: "transparent", transparent: true, globeSettings: { data: false, dataArcs: true } };
+
+  // MCP -> app: build_share_url keeps them, and the app opens them.
+  const { json } = await callTool("build_share_url", { look: "default", config });
+  assert.equal(json.ignored, undefined);
+  assert.deepEqual(json.config, carried);
+  assert.deepEqual(parseShareConfig(new URL(json.share_url).search, {}), carried);
+
+  // app -> MCP: read_share_url keeps them, and so does a change to the link.
+  const link = appBuildShareUrl({ version: 1, ...carried }, SITE, "/");
+  const read = await callTool("read_share_url", { url: link });
+  assert.deepEqual(read.json.config, carried);
+  const edited = await callTool("build_share_url", { share_url: link, dotColor: "#ff0000" });
+  assert.deepEqual(parseShareConfig(new URL(edited.json.share_url).search, {}), { ...carried, dotColor: "#ff0000" });
+});
+
 test("read_share_url reads every old v1 link the way the app does, and hands back an equivalent link", async () => {
   // Built by the app's encoder before v2 (see the fixture's _comment).
   const { links } = JSON.parse(readFileSync(new URL("../../../src/utils/fixtures/legacy-share-links.json", import.meta.url), "utf8"));

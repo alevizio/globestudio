@@ -68,6 +68,10 @@ All notable changes to Globestudio are tracked here. Format follows
   and `find_presets` return the names and one line blurbs the studio shows
   (Bloom was "Soft glowing aurora"), and `find_presets` matches every tag
   the studio's command palette searches by. In `@globestudio/mcp` 0.2.1.
+- The MCP server keeps the Transparent background style and a hidden Data
+  layer (`globeSettings.data`). It reported both as ignored and dropped them
+  from a link it changed, so the background turned solid and hidden markers
+  came back. In `@globestudio/mcp` 0.2.1.
 - `llms-full.txt` no longer lists Antarctica, which the app doesn't offer
   as a continent. It and the config schema now say that an embed address
   must stay under 32,000 characters and that a config keeps at most 250
