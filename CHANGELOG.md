@@ -63,6 +63,10 @@ All notable changes to Globestudio are tracked here. Format follows
   holds only changes, like the `c` of an MCP look link, embedded over
   Default. A config alone still embeds over Default. `@globestudio/react`
   0.1.1 and `@globestudio/element` 0.1.1 need an npm publish.
+- The MCP server describes each look in the app's words: `list_presets`
+  and `find_presets` return the names and one line blurbs the studio shows
+  (Bloom was "Soft glowing aurora"), and `find_presets` matches every tag
+  the studio's command palette searches by. In `@globestudio/mcp` 0.2.1.
 - An embed that gets only a share config, which is all `@globestudio/react`
   and `@globestudio/element` send, shows the config's Flat view and its
   Solid background color. It used to show a globe on the default dark page

@@ -183,6 +183,18 @@ test("list_presets matches the app's preset list, so link looks resolve", async 
   assert.deepEqual(json.map((p) => p.id), lookPresets.map((p) => p.id));
 });
 
+test("list_presets names and describes each look as the app does, with every tag the app searches by", async () => {
+  const { presetTags } = await appModule("data/preset-tags.js");
+  const { json } = await callTool("list_presets", {});
+  const card = ({ id, name, blurb }) => ({ id, name, blurb });
+  assert.deepEqual(json.map(card), lookPresets.map(card));
+  // The server may know more vibe words than the app's command palette,
+  // never fewer.
+  for (const preset of json) {
+    for (const tag of presetTags[preset.id]) assert.ok(preset.tags.includes(tag), `${preset.id} lacks the app's tag "${tag}"`);
+  }
+});
+
 // --- read_share_url: every link the app produces decodes to what the app applies.
 
 test("read_share_url decodes real studio links copied from the app exactly as the app does", async () => {

@@ -41,29 +41,32 @@ const SITE_URL = "https://globestudio.app";
  * from the main app. Kept inline so the MCP package has zero runtime deps on
  * the app source (publishable to npm independently). If you add a preset to
  * the app, also add it here — they have to match for share URLs to resolve.
+ * Names and blurbs are the app's word for word. Tags hold every app tag,
+ * then a few more vibe words find_presets matches. The contract test checks
+ * all three.
  */
 const PRESETS = [
   { id: "default", name: "Default", blurb: "Clean cartography", tags: ["clean", "minimal", "neutral", "simple", "starter"] },
   { id: "halftone", name: "Halftone", blurb: "Newspaper print, browser-rendered", tags: ["print", "vintage", "editorial", "newspaper", "dots", "retro"] },
-  { id: "risograph", name: "Risograph", blurb: "Two-ink print, slightly off-register", tags: ["print", "pink", "cyan", "riso", "ink", "vibrant", "modern", "zine"] },
-  { id: "newsprint", name: "Newsprint", blurb: "CMYK process color halftone", tags: ["cmyk", "print", "newspaper", "editorial", "vintage", "magazine"] },
-  { id: "aurora", name: "Aurora", blurb: "Soft glowing bands across the globe", tags: ["glow", "atmospheric", "soft", "dreamy", "blue", "green", "space", "night"] },
-  { id: "pixel", name: "Pixel", blurb: "8-bit blocky dot grid", tags: ["8-bit", "retro", "game", "blocky", "square", "low-fi", "nintendo"] },
-  { id: "bayer", name: "Bayer", blurb: "Ordered-dither monochrome", tags: ["dither", "retro", "mac", "classic", "ordered", "monochrome"] },
-  { id: "atkinson", name: "Atkinson", blurb: "Original Mac dither pattern", tags: ["dither", "blue-noise", "mac", "classic", "monochrome", "apple"] },
-  { id: "wireframe", name: "Wireframe", blurb: "Edge-traced technical drawing", tags: ["line", "outline", "edge", "technical", "sketch", "blueprint", "skeletal"] },
-  { id: "crt", name: "CRT", blurb: "Cathode-ray scanlines + phosphor glow", tags: ["retro", "scanline", "tv", "monitor", "phosphor", "vintage", "80s"] },
-  { id: "glitch", name: "Glitch", blurb: "Datamosh, broken signal", tags: ["broken", "distorted", "error", "datamosh", "harsh"] },
-  { id: "badtv", name: "Bad TV", blurb: "VHS noise, analog distortion", tags: ["vhs", "analog", "distorted", "retro", "scanline", "tape"] },
-  { id: "bloom", name: "Bloom", blurb: "Soft glowing aurora", tags: ["glow", "soft", "dreamy", "atmospheric", "warm", "halo"] },
-  { id: "metal", name: "Metal", blurb: "Polished chrome reflection", tags: ["chrome", "shiny", "polished", "futuristic", "premium"] },
-  { id: "iridescent", name: "Iridescent", blurb: "Holographic shimmer", tags: ["holographic", "foil", "rainbow", "shimmer", "y2k", "sticker"] },
-  { id: "pencil", name: "Pencil", blurb: "Hand-sketched hatching", tags: ["sketch", "hatching", "drawn", "traditional", "illustration"] },
-  { id: "corrupt", name: "Corrupt", blurb: "Memory-corruption green glitch", tags: ["broken", "matrix", "terminal", "green", "code"] },
-  { id: "toon", name: "Toon", blurb: "Flat cel-shaded comic colors", tags: ["cartoon", "comic", "flat", "anime", "bold"] },
-  { id: "threshold", name: "Threshold", blurb: "Hard high-contrast B&W", tags: ["monochrome", "contrast", "bold", "minimal", "noir"] },
-  { id: "vapor", name: "Vapor", blurb: "Synthwave purple-pink gradient", tags: ["synthwave", "vaporwave", "80s", "retro", "neon", "purple", "pink"] },
-  { id: "topographic", name: "Sonar", blurb: "Rings rippling on a sonar screen", tags: ["sonar", "radar", "rings", "signal", "green"] },
+  { id: "risograph", name: "Risograph", blurb: "Pink + cyan ink, misregistered on purpose", tags: ["print", "pink", "cyan", "riso", "ink", "vibrant", "modern", "zine"] },
+  { id: "newsprint", name: "Newsprint", blurb: "CMYK, four plates, rotated like the pros", tags: ["cmyk", "print", "newspaper", "editorial", "vintage", "magazine"] },
+  { id: "aurora", name: "Aurora", blurb: "Northern-lights bands across the planet", tags: ["glow", "atmospheric", "soft", "dreamy", "blue", "green", "space", "night"] },
+  { id: "pixel", name: "Pixel", blurb: "An 8-bit world atlas", tags: ["8-bit", "retro", "game", "blocky", "square", "low-fi", "nintendo"] },
+  { id: "bayer", name: "Bayer", blurb: "Classic-Mac threshold dither", tags: ["dither", "retro", "mac", "classic", "ordered", "monochrome"] },
+  { id: "atkinson", name: "Atkinson", blurb: "Atkinson dither, sparser than Bayer", tags: ["dither", "blue-noise", "mac", "classic", "monochrome", "apple"] },
+  { id: "wireframe", name: "Wireframe", blurb: "Edge-traced, like a hand pulled print", tags: ["line", "outline", "edge", "technical", "sketch", "blueprint", "skeletal"] },
+  { id: "crt", name: "CRT", blurb: "Cathode-ray phosphor glow", tags: ["retro", "scanline", "tv", "monitor", "phosphor", "vintage", "80s"] },
+  { id: "glitch", name: "Glitch", blurb: "Signal break, RGB split", tags: ["broken", "distorted", "error", "datamosh", "harsh"] },
+  { id: "badtv", name: "Bad TV", blurb: "Analog tape decay", tags: ["vhs", "analog", "distorted", "retro", "scanline", "tape"] },
+  { id: "bloom", name: "Bloom", blurb: "Atmosphere on fire", tags: ["glow", "soft", "dreamy", "atmospheric", "warm", "halo"] },
+  { id: "metal", name: "Metal", blurb: "Liquid chrome, soft reflections", tags: ["chrome", "shiny", "polished", "futuristic", "premium"] },
+  { id: "iridescent", name: "Iridescent", blurb: "Holographic foil sticker", tags: ["holographic", "foil", "rainbow", "shimmer", "y2k", "sticker"] },
+  { id: "pencil", name: "Pencil", blurb: "Pencil-traced continents", tags: ["sketch", "hatching", "drawn", "traditional", "illustration"] },
+  { id: "corrupt", name: "Corrupt", blurb: "Datamosh corruption, on purpose", tags: ["glitch", "broken", "datamosh", "harsh", "experimental", "matrix", "terminal", "green", "code"] },
+  { id: "toon", name: "Toon", blurb: "Cel-shaded pop-art world", tags: ["cartoon", "cel-shaded", "pop-art", "bold", "comic", "illustration", "flat", "anime"] },
+  { id: "threshold", name: "Threshold", blurb: "Pure two-tone binary", tags: ["binary", "two-tone", "minimal", "editorial", "contrast", "stark", "poster", "monochrome", "bold", "noir"] },
+  { id: "vapor", name: "Vapor", blurb: "Synthwave horizon, pastel split", tags: ["synthwave", "vaporwave", "retro", "neon", "pastel", "80s", "miami", "purple", "pink"] },
+  { id: "topographic", name: "Sonar", blurb: "Rings on a sonar screen", tags: ["sonar", "radar", "rings", "signal", "green", "tech", "scifi"] },
 ];
 
 /**
