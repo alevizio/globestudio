@@ -47,6 +47,18 @@ test("initialize reports the server and its usage instructions", () => {
   assert.match(client.getInstructions() ?? "", /read_share_url/);
 });
 
+test("the instructions point coding agents to the agent skill", () => {
+  assert.match(client.getInstructions() ?? "", /npx skills add alevizio\/globestudio/);
+});
+
+test("initialize reports the version npm and the MCP registry list", { skip: Boolean(process.env.MCP_URL) }, () => {
+  const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  const registry = JSON.parse(readFileSync(new URL("../server.json", import.meta.url), "utf8"));
+  assert.equal(client.getServerVersion()?.version, version);
+  assert.equal(registry.version, version);
+  assert.deepEqual(registry.packages.map((entry) => entry.version), [version]);
+});
+
 test("tools/list shows all six tools", async () => {
   const { tools } = await client.listTools();
   assert.deepEqual(tools.map((t) => t.name).sort(), [
