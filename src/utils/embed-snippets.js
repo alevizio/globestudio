@@ -44,11 +44,14 @@ export const buildIframeSnippet = ({ config, width, height }) =>
   title="Globestudio dotted globe"
 ></iframe>`;
 
+// A number is a JSX expression, a size like "100%" a JSX string.
+const jsxValue = (value) => (typeof value === "number" ? `{${value}}` : JSON.stringify(String(value)));
+
 // <Globe> takes the JSON as it is and encodes it for the embed URL itself.
 export const buildReactSnippet = ({ config, width, height }) =>
   `import { Globe } from "@globestudio/react";\n\n<Globe\n${
     config ? `  config={${JSON.stringify(config)}}\n` : ""
-  }  width={${width}}\n  height={${height}}\n/>`;
+  }  width=${jsxValue(width)}\n  height=${jsxValue(height)}\n/>`;
 
 const escapeAttribute = (value) =>
   value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

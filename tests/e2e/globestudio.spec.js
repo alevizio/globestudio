@@ -912,7 +912,7 @@ test.describe("Embed code", () => {
     await expect(kinds.getByRole("tab", { name: "iframe" })).toHaveAttribute("aria-selected", "true");
     const panel = dialog.getByRole("tabpanel");
 
-    // The size comes from the Image tab's fields.
+    // Full width, at the height the canvas has on screen.
     const iframe = await copySnippet(page, dialog);
     expect(iframe).toBe(await panel.locator("code").textContent());
     const attrs = await page.evaluate((html) => {
@@ -922,8 +922,9 @@ test.describe("Embed code", () => {
     const src = new URL(attrs.src);
     expect(`${src.origin}${src.pathname}`).toBe("https://globestudio.app/embed");
     expect(Object.fromEntries(src.searchParams)).toEqual({ c: config });
-    expect(Number(attrs.width)).toBeGreaterThanOrEqual(64);
-    expect(Number(attrs.height)).toBeGreaterThanOrEqual(64);
+    expect(attrs.width).toBe("100%");
+    const canvasHeight = await page.locator(".globe-background canvas").first().evaluate((node) => node.clientHeight);
+    expect(Number(attrs.height)).toBe(canvasHeight);
 
     // Arrow keys move between the options, taking focus along.
     await kinds.getByRole("tab", { name: "iframe" }).press("ArrowRight");
@@ -931,7 +932,7 @@ test.describe("Embed code", () => {
     await expect(kinds.getByRole("tab", { name: "React" })).toHaveAttribute("aria-selected", "true");
     const react = await copySnippet(page, dialog);
     expect(react).toBe(
-      `import { Globe } from "@globestudio/react";\n\n<Globe\n  config={${JSON.stringify(config)}}\n  width={${attrs.width}}\n  height={${attrs.height}}\n/>`,
+      `import { Globe } from "@globestudio/react";\n\n<Globe\n  config={${JSON.stringify(config)}}\n  width="100%"\n  height={${attrs.height}}\n/>`,
     );
 
     await kinds.getByRole("tab", { name: "React" }).press("End");
@@ -967,7 +968,7 @@ test.describe("Embed code", () => {
     const dialog = await openShareTab(page);
     const snippet = await copySnippet(page, dialog);
     // Paste it into an empty page, pointed at this build instead of production.
-    const sized = snippet.replace(/width="\d+"/, 'width="1200"').replace(/height="\d+"/, 'height="600"');
+    const sized = snippet.replace(/width="[^"]*"/, 'width="1200"').replace(/height="\d+"/, 'height="600"');
     await page.setContent(`<body style="margin:0">${sized.replace("https://globestudio.app", baseURL)}</body>`);
     const embed = page.frameLocator("iframe");
     await expect(embed.locator(".globe-background canvas")).toBeVisible({ timeout: CANVAS_TIMEOUT });

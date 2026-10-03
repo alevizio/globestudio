@@ -44,6 +44,12 @@ describe("buildReactSnippet", () => {
     );
   });
 
+  it("writes a string size as a JSX string", () => {
+    expect(buildReactSnippet({ config: null, width: "100%", height: 480 })).toBe(
+      `import { Globe } from "@globestudio/react";\n\n<Globe\n  width="100%"\n  height={480}\n/>`,
+    );
+  });
+
   it("holds the config as a JS string that reads back unchanged", () => {
     const snippet = buildReactSnippet({ config: CONFIG, width: 1200, height: 800 });
     const literal = snippet.match(/config=\{(.*)\}\n {2}width/s)[1];

@@ -626,7 +626,9 @@ export const ExportModal = ({
                       : "Copy share link"}
                 </span>
               </button>
-              <EmbedCode getShareUrl={getShareUrl} width={width} height={height} />
+              {/* Full width at the canvas's height on screen: the Image
+                  tab's size is a PNG size, often twice the window. */}
+              <EmbedCode getShareUrl={getShareUrl} width="100%" height={Math.round(canvasHeight || 480)} />
               <button
                 type="button"
                 className="export-modal-cta is-secondary"

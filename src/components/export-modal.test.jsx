@@ -254,17 +254,21 @@ describe("ExportModal", () => {
       expect(follows(screen.getByRole("tabpanel"), config)).toBe(true);
     });
 
-    it("uses the size set on the Image tab", () => {
+    it("is full width at the canvas's height on screen, whatever the export size", () => {
       renderModal({ getShareUrl: () => SHARE_URL });
-      fireEvent.change(screen.getByLabelText("Export width"), { target: { value: "900" } });
-      fireEvent.change(screen.getByLabelText("Export height"), { target: { value: "500" } });
+      // An export size is a PNG size, often twice the screen. The embed
+      // code ignores it.
+      fireEvent.change(screen.getByLabelText("Export width"), { target: { value: "2400" } });
+      fireEvent.change(screen.getByLabelText("Export height"), { target: { value: "1600" } });
       fireEvent.click(screen.getByRole("tab", { name: "Share" }));
-      expect(shownCode()).toContain('width="900"');
-      expect(shownCode()).toContain('height="500"');
+      expect(shownCode()).toContain('width="100%"');
+      expect(shownCode()).toContain('height="800"');
       fireEvent.click(screen.getByRole("tab", { name: "React" }));
       expect(shownCode()).toBe(
-        `import { Globe } from "@globestudio/react";\n\n<Globe\n  config={${JSON.stringify(CONFIG)}}\n  width={900}\n  height={500}\n/>`,
+        `import { Globe } from "@globestudio/react";\n\n<Globe\n  config={${JSON.stringify(CONFIG)}}\n  width="100%"\n  height={800}\n/>`,
       );
+      fireEvent.click(screen.getByRole("tab", { name: "Web component" }));
+      expect(shownCode()).toContain('height="800"');
     });
   });
 
