@@ -14,6 +14,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "sitemap": "node scripts/generate-sitemap.js",
+    "skill:references": "node scripts/generate-skill-references.js",
     "og:generate": "node scripts/generate-og-default.js",
     "og:animate": "node scripts/generate-og-animated.js",
     "thumbs:generate": "node scripts/generate-look-thumbs.js",
