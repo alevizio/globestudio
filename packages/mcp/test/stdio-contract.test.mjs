@@ -27,8 +27,8 @@ const APP_LINKS = JSON.parse(readFileSync(new URL("./fixtures/app-links.json", i
 const SITE = "https://globestudio.app";
 
 // read_share_url lists only what a link carries; the app also fills the
-// nested settings, with its defaults on a link that names no look (which is
-// how appConfigOf reads every link). Merge those back in to compare.
+// nested settings, with its defaults on a link that names no look or carries
+// version, as every link the app writes does. Merge those back in to compare.
 const APP_NESTED_DEFAULTS = {
   shaderSettings: DEFAULT_SHADER_SETTINGS,
   globeSettings: DEFAULT_GLOBE_SETTINGS,
@@ -43,7 +43,14 @@ const asAppApplies = (config) => {
   }
   return out;
 };
-const appConfigOf = (url) => parseShareConfig(new URL(url).search);
+// As the studio reads a link: over the look its path names
+// (use-share-config-import.js). An /embed link's ?c= is read with the app
+// defaults, as before the embed layered ?c= over its look itself.
+const appConfigOf = (url) => {
+  const { pathname, search } = new URL(url);
+  const id = /^\/looks\/([a-z0-9-]+)\/?$/i.exec(pathname)?.[1];
+  return parseShareConfig(search, lookPresets.find((preset) => preset.id === id)?.settings);
+};
 
 const SERVER_PATH = fileURLToPath(new URL("../dist/index.js", import.meta.url));
 
@@ -413,7 +420,8 @@ test("build_share_url reports config keys the app would drop", async () => {
     config: { bogus: 1, density: "lots", globeSettings: { autoSpin: false, nope: true } },
   });
   assert.deepEqual(json.ignored, ["bogus", "density", "globeSettings.nope"]);
-  assert.deepEqual(appConfigOf(json.share_url), { globeSettings: { ...DEFAULT_GLOBE_SETTINGS, autoSpin: false } });
+  const vapor = lookPresets.find((preset) => preset.id === "vapor").settings;
+  assert.deepEqual(appConfigOf(json.share_url), { globeSettings: { ...vapor.globeSettings, autoSpin: false } });
 });
 
 test("a % sign survives both ways: MCP links in the app, app links in the MCP", async () => {
