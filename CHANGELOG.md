@@ -43,7 +43,11 @@ All notable changes to Globestudio are tracked here. Format follows
   bring back the glow and grid Sonar turns off, and a link that changed one
   shader setting turned the look's shader off. Links and files the app
   wrote carry `version`, which marks a whole design, and open as before,
-  paired with a look too.
+  paired with a look too. Embeds change on deploy, with no package
+  upgrade: when a config without `version` comes with a look, as in
+  embed.js `data-look` with `data-config`, an `/embed?look=…&c=…` address
+  or an `embed_url` from the MCP server 0.2.0, the embed now keeps the
+  look's values for the settings the config leaves out.
 - The config schema at `/schema/config.json` matches what the app reads.
   `shape` takes `Particle Grid`, the effect list has `ascii`, and
   `viewMode`, the `warp` knob, `dotLift`, `gridLift`, `gridSize`, `routes`,
