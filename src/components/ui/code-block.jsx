@@ -3,7 +3,8 @@ import { Check, Clipboard } from "../icons.jsx";
 
 // Reusable <pre> wrapper with a click-to-copy button. Used in /docs for
 // the iframe / React / script-tag snippets. The button shows a check
-// glyph for 1.5s after a successful copy, then resets. Falls back to
+// glyph for 1.5s after a successful copy, then resets, and "Copy failed"
+// for 3s when the clipboard refuses. A status line reads both out. Falls back to
 // document.execCommand on browsers without the async clipboard API
 // (rare in 2026 but cheap to support — covers locked-down corp Macs).
 // `wrap` is for one-line commands: on a phone they wrap between arguments
@@ -24,7 +25,9 @@ const Args = ({ text }) =>
   ));
 
 export const CodeBlock = ({ children, language, className = "", wrap = false, keyboardScroll = false, onCopy: onCopied }) => {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState("idle");
+  const copied = status === "copied";
+  const failed = status === "failed";
   const timerRef = useRef(0);
   const preRef = useRef(null);
   const [scrolls, setScrolls] = useState(false);
@@ -47,6 +50,7 @@ export const CodeBlock = ({ children, language, className = "", wrap = false, ke
   );
 
   const onCopy = async () => {
+    window.clearTimeout(timerRef.current);
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(children);
@@ -60,12 +64,13 @@ export const CodeBlock = ({ children, language, className = "", wrap = false, ke
         document.execCommand("copy");
         document.body.removeChild(ta);
       }
-      setCopied(true);
-      timerRef.current = window.setTimeout(() => setCopied(false), 1500);
+      setStatus("copied");
+      timerRef.current = window.setTimeout(() => setStatus("idle"), 1500);
       onCopied?.();
     } catch {
-      // Clipboard write blocked — fail silently; the snippet is still
-      // selectable.
+      // Clipboard write blocked. Say so; the snippet is still selectable.
+      setStatus("failed");
+      timerRef.current = window.setTimeout(() => setStatus("idle"), 3000);
     }
   };
 
@@ -79,14 +84,14 @@ export const CodeBlock = ({ children, language, className = "", wrap = false, ke
           type="button"
           className="code-block-copy"
           onClick={onCopy}
-          aria-label={copied ? "Copied" : "Copy code to clipboard"}
+          aria-label={copied ? "Copied" : failed ? "Copy failed" : "Copy code to clipboard"}
         >
           {copied ? (
             <Check size={12} aria-hidden="true" />
           ) : (
             <Clipboard size={12} aria-hidden="true" />
           )}
-          <span>{copied ? "Copied" : "Copy"}</span>
+          <span>{copied ? "Copied" : failed ? "Copy failed" : "Copy"}</span>
         </button>
       </div>
       <pre
@@ -96,6 +101,9 @@ export const CodeBlock = ({ children, language, className = "", wrap = false, ke
       >
         <code>{wrap ? <Args text={children} /> : children}</code>
       </pre>
+      <span className="visually-hidden" role="status">
+        {copied ? "Copied" : failed ? "Copy failed" : ""}
+      </span>
     </div>
   );
 };

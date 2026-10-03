@@ -41,6 +41,9 @@ All notable changes to Globestudio are tracked here. Format follows
 - In the export dialog, focus stays on Copy SVG, Copy as vectors and Export
   PNG after you press them, so the next Tab goes on from there. It used to
   jump back to the dialog itself. The other dialogs get the same fix.
+- A code block's Copy button says Copy failed for a moment when the browser
+  refuses the clipboard, where it used to stay on Copy. A screen reader hears
+  the result of each copy.
 - Picking a look changes the styling only: the region you chose and the
   data you pasted stay. A `/looks/<id>` link keeps a returning visitor's
   saved region and data too; a first visit still opens on World.

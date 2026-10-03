@@ -16,6 +16,10 @@ afterEach(() => {
   delete document.execCommand;
 });
 
+// Copy for AI's status line is the last one; the code block above it has
+// its own.
+const aiStatus = () => screen.getAllByRole("status").at(-1);
+
 const renderBlock = (props = {}) =>
   render(<AgentShare getShareUrl={() => SHARE_URL} lookName="Halftone" regionName="Europe" {...props} />);
 
@@ -71,7 +75,7 @@ describe("AgentShare", () => {
     expect(prompt).toContain("density 60");
     expect(prompt).toContain("https://globestudio.app/mcp");
     const button = screen.getByRole("button", { name: /Prompt copied to clipboard/ });
-    expect(screen.getByRole("status").textContent).toBe("Prompt copied to clipboard");
+    expect(aiStatus().textContent).toBe("Prompt copied to clipboard");
     // The button stays mounted, so keyboard focus stays where it was.
     expect(button).toBeTruthy();
   });
@@ -108,7 +112,7 @@ describe("AgentShare", () => {
     expect(copied).toContain(`Link: ${SHARE_URL}`);
     expect(document.querySelector("textarea")).toBeNull();
     expect(document.activeElement).toBe(button);
-    expect(screen.getByRole("status").textContent).toBe("Prompt copied to clipboard");
+    expect(aiStatus().textContent).toBe("Prompt copied to clipboard");
   });
 
   it("falls back when the Clipboard API refuses", async () => {
@@ -130,7 +134,7 @@ describe("AgentShare", () => {
       fireEvent.click(screen.getByRole("button", { name: /Copy for AI/ }));
     });
     expect(screen.getByRole("button", { name: /Copy failed\. Try again/ })).toBeTruthy();
-    expect(screen.getByRole("status").textContent).toBe("Copy failed");
+    expect(aiStatus().textContent).toBe("Copy failed");
   });
 
   it("shows the Claude Code command and the Claude app steps first", () => {

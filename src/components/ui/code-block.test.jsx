@@ -54,6 +54,36 @@ describe("CodeBlock", () => {
     expect(onCopy).toHaveBeenCalledTimes(1);
   });
 
+  it("says when the copy is refused, out loud too, and goes back to Copy", async () => {
+    vi.useFakeTimers();
+    try {
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText: vi.fn(() => Promise.reject(new Error("denied"))) },
+      });
+      render(<CodeBlock language="Codex">{COMMAND}</CodeBlock>);
+      await copy();
+      expect(screen.getByRole("button", { name: "Copy failed" }).textContent).toBe("Copy failed");
+      expect(screen.getByRole("status").textContent).toBe("Copy failed");
+      act(() => vi.advanceTimersByTime(3000));
+      expect(screen.getByRole("button", { name: "Copy code to clipboard" }).textContent).toBe("Copy");
+      expect(screen.getByRole("status").textContent).toBe("");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("reads out a copy that worked", async () => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn(() => Promise.resolve()) },
+    });
+    render(<CodeBlock language="Codex">{COMMAND}</CodeBlock>);
+    expect(screen.getByRole("status").textContent).toBe("");
+    await copy();
+    expect(screen.getByRole("status").textContent).toBe("Copied");
+  });
+
   it("falls back to execCommand without the Clipboard API", async () => {
     document.execCommand = vi.fn(() => true);
     render(<CodeBlock language="Codex">{COMMAND}</CodeBlock>);
