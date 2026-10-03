@@ -1,0 +1,32 @@
+{
+  "name": "globestudio",
+  "description": "Globestudio for Claude Code: dotted world maps and animated 3D globes.",
+  "owner": {
+    "name": "Alejandro Vizio",
+    "url": "https://alevizio.com"
+  },
+  "plugins": [
+    {
+      "name": "globestudio",
+      "source": "./skills/globestudio",
+      "description": "Make, edit and embed dotted world maps and 3D globes. Bundles the globestudio skill with the hosted Globestudio MCP server.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Alejandro Vizio",
+        "url": "https://alevizio.com"
+      },
+      "homepage": "https://globestudio.app",
+      "repository": "https://github.com/alevizio/globestudio",
+      "license": "MIT",
+      "keywords": ["globe", "dotted-map", "world-map", "embed", "mcp"],
+      "category": "design",
+      "skills": ["./"],
+      "mcpServers": {
+        "globestudio": {
+          "type": "http",
+          "url": "https://globestudio.app/mcp"
+        }
+      }
+    }
+  ]
+}

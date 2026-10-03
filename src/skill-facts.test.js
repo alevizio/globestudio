@@ -91,11 +91,11 @@ const mcpTabCommands = () => {
   return commands;
 };
 
-describe("SKILL.md", () => {
-  const skill = read(`${SKILL_DIR}/SKILL.md`);
-  const [, frontmatter, body] = skill.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-  const fields = parseFrontmatter(frontmatter);
+const skill = read(`${SKILL_DIR}/SKILL.md`);
+const [, frontmatter, body] = skill.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+const fields = parseFrontmatter(frontmatter);
 
+describe("SKILL.md", () => {
   it("keeps to the six frontmatter fields every agent and claude.ai accept", () => {
     const allowed = ["name", "description", "license", "compatibility", "metadata", "allowed-tools"];
     for (const key of Object.keys(fields)) expect(allowed, key).toContain(key);
@@ -177,5 +177,33 @@ describe("SKILL.md", () => {
 
   it("uses no em or en dashes", () => {
     expect(skill).not.toMatch(/[\u2013\u2014]/);
+  });
+});
+
+describe("the Claude Code plugin", () => {
+  // /plugin marketplace add alevizio/globestudio reads this file.
+  const marketplace = JSON.parse(read(".claude-plugin/marketplace.json"));
+  const [plugin] = marketplace.plugins;
+
+  it("offers one plugin, installed as globestudio@globestudio", () => {
+    expect(marketplace.plugins).toHaveLength(1);
+    expect(plugin.name).toBe(fields.name);
+    expect(marketplace.name).toBe(fields.name);
+  });
+
+  it("is the skill folder, with the skill's version", () => {
+    expect(resolve(repoRoot, plugin.source)).toBe(resolve(repoRoot, SKILL_DIR));
+    expect(plugin.skills).toEqual(["./"]);
+    expect(plugin.version).toBe(fields.metadata.version);
+    expect(plugin.license).toBe(fields.license);
+    // Claude Code copies the plugin folder into its cache and runs npm
+    // install there when it finds a package.json, and a plugin.json in a
+    // skill folder turns every copied skill into a plugin.
+    expect(existsSync(resolve(repoRoot, plugin.source, "package.json"))).toBe(false);
+    expect(existsSync(resolve(repoRoot, plugin.source, ".claude-plugin"))).toBe(false);
+  });
+
+  it("bundles the hosted MCP server", () => {
+    expect(plugin.mcpServers).toEqual({ globestudio: { type: "http", url: MCP_URL } });
   });
 });
