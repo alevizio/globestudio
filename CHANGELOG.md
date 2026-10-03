@@ -57,6 +57,12 @@ All notable changes to Globestudio are tracked here. Format follows
   list. Embeds draw the state a config names, as the studio does, where
   they showed the whole country. The MCP server reads states the same way;
   `@globestudio/mcp` 0.2.1 needs an npm publish for local installs.
+- `<Globe look config>` from `@globestudio/react` and `<globe-studio look
+  config>` from `@globestudio/element` layer the config over the look you
+  name. They dropped the look whenever a config was set, so a config that
+  holds only changes, like the `c` of an MCP look link, embedded over
+  Default. A config alone still embeds over Default. `@globestudio/react`
+  0.1.1 and `@globestudio/element` 0.1.1 need an npm publish.
 - An embed that gets only a share config, which is all `@globestudio/react`
   and `@globestudio/element` send, shows the config's Flat view and its
   Solid background color. It used to show a globe on the default dark page

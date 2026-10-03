@@ -8,6 +8,7 @@ import {
 } from "./embed-snippets.js";
 import { buildShareUrl, parseShareConfig } from "./share-config.js";
 import { buildEmbedUrl } from "../../packages/web-component/index.js";
+import { globestudio } from "../../packages/react/src/index.tsx";
 
 // A design whose values hold every character that needs escaping somewhere:
 // quotes and angle brackets for HTML, a backslash for JS, "%" and "&" for
@@ -158,6 +159,31 @@ describe("buildWebComponentSnippet", () => {
     const [, second] = buildWebComponentSnippet({ config: null, height: 480 }).split("\n");
     expect(second).toBe('<globe-studio height="480"></globe-studio>');
   });
+});
+
+describe("the embed URL the packages build", () => {
+  const builders = {
+    "@globestudio/element": buildEmbedUrl,
+    "@globestudio/react": (options) => globestudio.embedUrl(options),
+  };
+  for (const [name, build] of Object.entries(builders)) {
+    it(`${name} sends the look with a config, so the embed layers the config over that look`, () => {
+      const url = new URL(build({ look: "topographic", config: CONFIG, source: "site" }));
+      expect(url.searchParams.get("look")).toBe("topographic");
+      expect(url.searchParams.get("c")).toBe(CONFIG);
+      expect(url.searchParams.get("source")).toBe("site");
+      expect(parseShareConfig(url.search)).toEqual(DECODED);
+    });
+
+    it(`${name} sends no look with a config alone, which the embed layers over Default as before`, () => {
+      expect(new URL(build({ config: CONFIG })).searchParams.has("look")).toBe(false);
+    });
+
+    it(`${name} embeds Halftone, or the look given, without a config`, () => {
+      expect(build({})).toBe("https://globestudio.app/embed?look=halftone");
+      expect(build({ look: "aurora", source: "site" })).toBe("https://globestudio.app/embed?look=aurora&source=site");
+    });
+  }
 });
 
 describe("buildCodePenData", () => {

@@ -9,10 +9,15 @@
 
 const SITE_URL = "https://globestudio.app";
 
-/** Build the embed URL from a look preset or a pre-built share `config`. */
+/**
+ * Build the embed URL from a look preset, a pre-built share `config`, or
+ * both: the embed layers the config over the look, or over Default when
+ * only a config is given.
+ */
 export const buildEmbedUrl = ({ look, config, source } = {}) => {
   const params = new URLSearchParams();
   if (config) {
+    if (look) params.set("look", look);
     params.set("c", config);
   } else {
     params.set("look", look || "halftone");

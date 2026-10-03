@@ -64,7 +64,9 @@ export interface GlobeProps {
   /**
    * Pre-built share config. When you've used `build_share_url` (e.g.
    * via the MCP server) or the app's Share modal, pass the encoded
-   * payload here and it takes precedence over `look`.
+   * payload here. It is layered over `look` when you pass both, so a
+   * config that holds only changes keeps the rest of that look, and over
+   * Default when you pass it alone.
    */
   config?: string;
   /**
@@ -98,9 +100,12 @@ export interface GlobeProps {
   onLoad?: React.IframeHTMLAttributes<HTMLIFrameElement>["onLoad"];
 }
 
+// With a config, the look is sent only when given: the embed layers the
+// config over that look, or over Default without one.
 const buildEmbedUrl = (props: Pick<GlobeProps, "look" | "config" | "source">) => {
   const params = new URLSearchParams();
   if (props.config) {
+    if (props.look) params.set("look", props.look);
     params.set("c", props.config);
   } else {
     params.set("look", props.look ?? "halftone");

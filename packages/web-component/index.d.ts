@@ -1,13 +1,13 @@
 export interface GlobeStudioOptions {
-  /** Look preset id (e.g. "aurora"). Ignored when `config` is set. */
+  /** Look preset id (e.g. "aurora"). With `config`, the config is layered over it. */
   look?: string;
-  /** Pre-built share config payload (the `?c=` value). Overrides `look`. */
+  /** Pre-built share config payload (the `?c=` value), layered over `look`, or over Default without one. */
   config?: string;
   /** Optional analytics attribution tag. */
   source?: string;
 }
 
-/** Build the embed URL from a look preset or a pre-built share `config`. */
+/** Build the embed URL from a look preset, a pre-built share `config`, or both. */
 export declare function buildEmbedUrl(opts?: GlobeStudioOptions): string;
 
 /** The `<globe-studio>` custom element. */

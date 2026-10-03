@@ -132,6 +132,28 @@ test("an embed with a look and only some settings keeps the look's shader", asyn
   await expect(page.locator(".globe-background")).toHaveClass(/\beffect-wave\b/);
 });
 
+test("<globe-studio look config> embeds the config over that look", async ({ page }) => {
+  // The element points its iframe at globestudio.app; keep it off the
+  // network and open the same embed address on this server instead.
+  await page.route("https://globestudio.app/**", (route) => route.abort());
+  await page.setContent("<!doctype html><title>Element</title><body></body>");
+  await page.addScriptTag({ path: "packages/web-component/index.js", type: "module" });
+  await page.waitForFunction(() => Boolean(customElements.get("globe-studio")));
+  const config = JSON.stringify({ v: 2, shaderSettings: { intensity: 80 } });
+  const src = await page.evaluate((value) => {
+    const element = document.createElement("globe-studio");
+    element.setAttribute("look", "topographic");
+    element.setAttribute("config", value);
+    document.body.append(element);
+    return element.querySelector("iframe").src;
+  }, config);
+  const embed = new URL(src);
+  expect(embed.searchParams.get("look")).toBe("topographic");
+  await page.goto(`${embed.pathname}${embed.search}`);
+  await waitForCanvas(page);
+  await expect(page.locator(".globe-background")).toHaveClass(/\beffect-wave\b/);
+});
+
 test.describe("a US state in a share link", () => {
   test.use({ contextOptions: { reducedMotion: "reduce" } });
   const link = (path, config) => `${path}?c=${encodeURIComponent(JSON.stringify({ v: 2, selection: "country:USA", ...config }))}`;

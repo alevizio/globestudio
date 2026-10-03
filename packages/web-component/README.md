@@ -35,8 +35,8 @@ Or via CDN, no build step:
 
 | Attribute | Default | Notes |
 |---|---|---|
-| `look` | `halftone` | Any shipped preset id. Ignored when `config` is set. |
-| `config` | | Pre-built share config (`?c=` payload). Overrides `look`. |
+| `look` | `halftone` | Any shipped preset id. With `config`, the config is layered over it. |
+| `config` | | Pre-built share config (`?c=` payload), layered over `look`, or over Default without one. |
 | `width` | `100%` | Forwarded to the iframe. |
 | `height` | `480` | Forwarded to the iframe. |
 | `title` | `Globestudio dotted globe` | Accessible label. |
