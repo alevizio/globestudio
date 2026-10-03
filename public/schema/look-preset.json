@@ -9,7 +9,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "Stable kebab-case identifier. Used in `/looks/:id` URLs, `?look=:id` embed params, and the `preset` enum in config.json. Once shipped, an id must not change, because it's a public URL.",
+      "description": "Stable kebab-case identifier. Used in `/looks/:id` URLs and `?look=:id` embed params. Once shipped, an id must not change, because it's a public URL.",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
       "minLength": 2,
       "maxLength": 32,
