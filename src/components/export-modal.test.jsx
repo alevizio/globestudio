@@ -633,17 +633,17 @@ describe("ExportModal", () => {
       expect(tabNames()).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
     });
 
-    it("is left out of a row too narrow for seven tabs, which keeps the Figma tab", () => {
-      stubWindowWidth(640);
+    it("is left out until the dialog has its full width, and the Figma tab stays", () => {
+      stubWindowWidth(687);
       renderModal();
-      expect(window.matchMedia).toHaveBeenCalledWith("(max-width: 640px)");
+      expect(window.matchMedia).toHaveBeenCalledWith("(max-width: 687px)");
       expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
     });
 
     it("comes back when the window is wide enough again", () => {
-      const viewport = stubWindowWidth(640);
+      const viewport = stubWindowWidth(687);
       renderModal();
-      viewport.resize(641);
+      viewport.resize(688);
       expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP", "Skill"]);
     });
 
@@ -652,7 +652,9 @@ describe("ExportModal", () => {
       await openSkillTab();
       expect(selectedTab()).toBe("Skill");
 
-      viewport.resize(640);
+      viewport.resize(688);
+      expect(selectedTab()).toBe("Skill");
+      viewport.resize(687);
       expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
       expect(selectedTab()).toBe("Image");
       expect(screen.queryByRole("heading", { name: "Teach your coding agent Globestudio" })).toBeNull();

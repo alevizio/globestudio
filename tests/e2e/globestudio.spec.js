@@ -1337,7 +1337,7 @@ test.describe("Figma tab", () => {
     // The Figma tab had the focus, and the dialog takes it from there.
     await expect(dialog).toBeFocused();
     // One px wider the row is back in its desktop form, with the Figma tab.
-    // The Skill tab needs a wider row, from 641px.
+    // The Skill tab waits for the dialog's full width, from 688px.
     await page.setViewportSize({ width: 541, height: 720 });
     await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
   });
@@ -1365,13 +1365,15 @@ test.describe("Skill tab", () => {
     return dialog;
   };
   // Where each tab of the dialog's row sits against the row's edges, as in
-  // the 320px phone test.
+  // the 320px phone test. The last tab has to end inside the row's side
+  // padding, which lines the tabs up with the header and the body.
   const measureRow = (dialog) =>
     dialog.getByRole("tablist", { name: "Export type" }).evaluate((list) => {
       const edge = list.getBoundingClientRect();
       return {
         left: edge.left,
         right: edge.right,
+        innerRight: edge.right - parseFloat(getComputedStyle(list).paddingRight),
         overflows: list.scrollWidth > list.clientWidth,
         tabs: [...list.querySelectorAll('[role="tab"]')].map((tab) => {
           const rect = tab.getBoundingClientRect();
@@ -1391,7 +1393,7 @@ test.describe("Skill tab", () => {
     expect(row.overflows).toBe(false);
     for (const tab of row.tabs) {
       expect(tab.left, tab.label).toBeGreaterThanOrEqual(row.left);
-      expect(tab.right, tab.label).toBeLessThanOrEqual(row.right + 0.5);
+      expect(tab.right, tab.label).toBeLessThanOrEqual(row.innerRight + 0.5);
       expect(tab.clipped, tab.label).toBe(false);
       expect(tab.reachable, tab.label).toBe(true);
     }
@@ -1498,15 +1500,18 @@ test.describe("Skill tab", () => {
     });
   }
 
-  test("shows from the width where seven tabs fit, and gives way to Image below it", async ({ page }) => {
+  test("shows from the dialog's full width, where seven tabs fit, and gives way to Image below it", async ({ page }) => {
+    // Without the web font the labels set in a wider fallback, the widest
+    // case the row has to hold.
+    await page.route(/GeistPixel/, (route) => route.abort());
     const dialog = await openSkillTab(page);
-    await page.setViewportSize({ width: 641, height: 800 });
+    await page.setViewportSize({ width: 688, height: 800 });
     await expect(tabRow(dialog)).toHaveText(SEVEN);
     expectRowFits(await measureRow(dialog), SEVEN);
     await expect(tabRow(dialog).last()).toHaveAttribute("aria-selected", "true");
 
     // One px narrower the Skill tab goes, and Image shows. The Figma tab stays.
-    await page.setViewportSize({ width: 640, height: 800 });
+    await page.setViewportSize({ width: 687, height: 800 });
     await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
     await expect(dialog.getByRole("tab", { name: "Image" })).toHaveAttribute("aria-selected", "true");
     await expect(dialog.getByRole("heading", { name: SKILL_HEADING })).toHaveCount(0);
@@ -1515,7 +1520,7 @@ test.describe("Skill tab", () => {
     await expect(dialog).toBeFocused();
 
     // Wide enough again, the dialog goes back to Skill, as it does to Figma.
-    await page.setViewportSize({ width: 641, height: 800 });
+    await page.setViewportSize({ width: 688, height: 800 });
     await expect(tabRow(dialog)).toHaveText(SEVEN);
     await expect(tabRow(dialog).last()).toHaveAttribute("aria-selected", "true");
     await expect(dialog.getByRole("heading", { name: SKILL_HEADING })).toBeVisible();

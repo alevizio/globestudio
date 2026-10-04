@@ -21,9 +21,10 @@ All notable changes to Globestudio are tracked here. Format follows
   update on their own: run `npx skills update` after a new version.
 - A Skill tab in the export dialog, last in the row, gives the three ways
   to add the skill. The docs, the integrations page and the README give all
-  three too, and `llms.txt` gives the npx line. The tab is left out on a
-  phone, in windows narrower than 641px where the row has no room for a
-  seventh tab, and inside the Figma plugin.
+  three too, and `llms.txt` gives the npx line. The tab shows in windows
+  688px wide or more, where the dialog has its full width and room for a
+  seventh tab. It is left out on phones, in narrower windows and inside the
+  Figma plugin.
 - The MCP server's instructions point coding agents to the skill. The
   hosted server changes on deploy; `@globestudio/mcp` 0.2.2 needs an npm
   publish for local installs.

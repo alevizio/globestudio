@@ -35,10 +35,11 @@ const QUALITY_OPTIONS = [
 
 // The styles.css query that puts the tab row in its phone form.
 const PHONE_TABS_QUERY = "(max-width: 540px)";
-// Seven tabs run past the row's edge below about 618px wide. The Skill tab,
-// the seventh, shows from 641px, which leaves room for fonts that set a
-// little wider.
-const SKILL_TABS_QUERY = "(max-width: 640px)";
+// The Skill tab, the seventh, shows from 688px, where the dialog has its
+// full 640px. Below that, seven tabs end in the row's side padding or past
+// the dialog's edge in some engines and fonts: up to 669px wide in WebKit
+// when the web font has not loaded.
+const SKILL_TABS_QUERY = "(max-width: 687px)";
 const FIGMA_PLUGIN_URL = "https://www.figma.com/community/plugin/1641603648370488902/globestudio";
 
 const FPS_OPTIONS = [24, 30, 60];
