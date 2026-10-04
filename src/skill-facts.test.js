@@ -4,7 +4,15 @@ import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { DOT_COLOR, INK, SKILL_REFERENCES_DIR, buildSkillReferences, inkLooks, lookDotColor } from "../scripts/skill-references.js";
+import {
+  DOT_COLOR,
+  INK,
+  SKILL_REFERENCES_DIR,
+  buildSkillReferences,
+  embedFallbacks,
+  inkLooks,
+  lookDotColor,
+} from "../scripts/skill-references.js";
 import { AgentShare } from "./components/agent-share.jsx";
 import { dotShapeOptions } from "./config/constants.js";
 import { shaderEffectOptions } from "./config/shader-effects.js";
@@ -189,6 +197,11 @@ describe("SKILL.md", () => {
   it("states the embed address limit and the data point cap", () => {
     expect(body).toContain(`under ${LIMIT}`);
     expect(body).toContain(`Data points are at most ${MAX_POINTS}`);
+  });
+
+  it("states the density and dot size an embed draws when nothing sets them", () => {
+    const { density, dotSize } = embedFallbacks();
+    expect(body).toContain(`it draws density ${density}, dot size ${dotSize} and a near black page whatever the look`);
   });
 
   it("connects the MCP server with the export dialog's own commands", () => {

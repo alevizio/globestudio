@@ -20,7 +20,9 @@ Every key the app keeps from a config, with what it takes. The schema at https:/
 
 - A link carries the config as `?c=` plus `encodeURIComponent(JSON.stringify(config))`. `"v": 2` in the JSON marks that it was encoded once; the app writes it, and older links without it still open.
 - On `/looks/<id>` and `/embed?look=<id>` the look comes first and the config changes only the keys it names. In `shaderSettings`, `globeSettings`, `spaceSettings` and `flowSettings` the keys a config leaves out keep the look's values.
-- In the studio a look sets only its styling: the region, the data and any key the look doesn't set keep what the person last used there. On `/` with no look every top-level key a config leaves out does, and the four nested objects fill their gaps with the app defaults below. An embed starts from the look alone.
+- In the studio a look sets only its styling: the region, the data points and any other key the look doesn't set keep what the person last used there, and the view opens as a globe. On `/` with no look every top-level key a config leaves out does, and the four nested objects fill their gaps with the app defaults below.
+- An embed starts from the look, except for four values: unless the address or the config sets them, it draws density 40, dot size 10, a near black page in place of a solid background color, and no transparency.
+- A file imported in the export dialog's Share tab carries no look, so the four nested objects fill their gaps with the app defaults: a file must hold the whole design, as the studio's own exports do.
 - `version`: Written as 1 by the app in every exported file and share link, where it marks a whole design: in shaderSettings, globeSettings, spaceSettings and flowSettings, keys the config leaves out get the app defaults, even on a look. Leave it out of a config that changes only some settings of a look.
 - Default look is the value the Default look sets, where it sets one. App default is what a nested object falls back to with no look.
 

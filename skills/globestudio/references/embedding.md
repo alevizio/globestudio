@@ -125,10 +125,10 @@ For pages that allow a script tag but not an npm install. It turns every element
 
 | Parameter | Takes | Default | Notes |
 |---|---|---|---|
-| `background` | hex, `#` optional, or `transparent` |  | Page color behind the canvas. Without it the page takes the config's solid background, if any. |
+| `background` | hex, `#` optional, or `transparent` |  | Page color behind the canvas. Without it the page takes the config's solid background, or else stays near black whatever the look's own color. |
 | `look` | a look id | `default` | The look the embed starts from. An unknown id shows Default. |
-| `density` | 1 to 90 | `40` | Dot density. A value of 0 or less, or not a number, keeps the look's. |
-| `dotSize` | 0.1 to 25 | `10` | Dot size. A value of 0 or less, or not a number, keeps the look's. |
+| `density` | 1 to 90 | `40` | Dot density. Without it or the config's `density`, the embed draws 40 whatever the look. A value of 0 or less, or not a number, keeps the look's. |
+| `dotSize` | 0.1 to 25 | `10` | Dot size. Without it or the config's `dotSize`, the embed draws 10 whatever the look. A value of 0 or less, or not a number, keeps the look's. |
 | `dotColor` | hex, `#` optional |  | Dot color. |
 | `worldFill` | hex, `#` optional |  | Land fill in solid maps. |
 | `renderMode` | `dots` or `solid` |  | Dots or filled land. |
@@ -140,7 +140,7 @@ For pages that allow a script tag but not an npm install. It turns every element
 | `view` | `globe` or `flat` |  | 3D globe or flat map. Wins over the config's `viewMode`; without either it is a globe. |
 | `static` | `1` or `0` | `0` | `1` holds every animation still, for design tool canvases and screenshots. |
 | `source` | text | `embed` | Analytics tag, sent back in the resize message. |
-| `transparent` | `1` or `0` | `0` | `1` makes the page see-through, to sit on the host page. |
+| `transparent` | `1` or `0` | `0` | `1` makes the page see-through, to sit on the host page. A look's own transparency (Wireframe) needs it too, or the config's `"backgroundStyle": "transparent"`. |
 | `theme` | `light` |  | Switches the glow and grid to a palette for light pages, and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. |
 | `plugin` | `figma` |  | The old Figma plugin's picker shell. Not for embeds. |
 | `c` | a config, URL encoded |  | Layered last, over the look and the parameters above. See Passing a design. |
@@ -149,8 +149,8 @@ For pages that allow a script tag but not an npm install. It turns every element
 ## Passing a design
 
 - `config` (the packages) and `c` (the address) take the design's JSON. Give the packages the JSON string, `JSON.stringify(design)`; they encode it. In an address, encode it once with `encodeURIComponent`.
-- With a look, the config changes only the keys it names and the look keeps the rest. Alone, it goes over Default.
-- A config with `version`, as the studio writes, is a whole design and starts from the app defaults even with a look.
+- With a look, the config changes only the keys it names and the look keeps the rest, except that an embed draws density 40, dot size 10, a near black page in place of a solid background color, and no transparency unless the address or the config sets them. Alone, the config goes over Default.
+- A config with `version`, as the studio writes, is a whole design: inside `shaderSettings`, `globeSettings`, `spaceSettings` and `flowSettings` the keys it leaves out get the app defaults, even with a look.
 - The address must stay under 32,000 characters, so check the length of `https://globestudio.app/embed?c=` plus the encoded config. A custom shape file or a long list of data points is what goes over.
 
 ## Light pages, transparency and size
