@@ -69,7 +69,10 @@ All notable changes to Globestudio are tracked here. Format follows
   `look` nor `config` is not one of them: the packages ask for Halftone
   then, so it changes too, to Halftone's density 50 and dot size 11.
   Look-only embeds on other sites change on deploy, with no package
-  upgrade, toward the look as designed.
+  upgrade, toward the look as designed. A look-only Wireframe embed on a
+  light page is now white ink on that page and all but disappears: set a
+  dark `background`, or `theme=light` on an `/embed` address for graphite
+  ink.
 - A look link that sets only some of the shader, globe, Space or Flow
   settings, as MCP links and hand written links do, keeps the rest of the
   look, in the studio and in embeds. A Sonar link with data points used to
