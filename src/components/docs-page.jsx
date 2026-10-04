@@ -183,7 +183,7 @@ export const DocsPage = () => {
           <p>
             The Globestudio skill teaches coding agents such as Claude Code,
             Codex and Cursor how a design travels in a link, how to embed one
-            and which look fits a brief. Add it to a project with any of these:
+            and which look fits a brief. Add it with any of these:
           </p>
           <CodeBlock language="npx skills" wrap>{SKILL_COMMANDS.npx}</CodeBlock>
           <CodeBlock language="GitHub CLI" wrap>{SKILL_COMMANDS.gh}</CodeBlock>

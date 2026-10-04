@@ -20,8 +20,8 @@ All notable changes to Globestudio are tracked here. Format follows
   when the skill or its references fall behind. Installed copies don't
   update on their own: run `npx skills update` after a new version.
 - The export dialog's MCP tab gives the skill's install line under the
-  client commands, and the docs, the integrations page, the README and
-  `llms.txt` give all three ways to add it.
+  client commands, the docs, the integrations page and the README give all
+  three ways to add it, and `llms.txt` gives the npx line.
 - The MCP server's instructions point coding agents to the skill. The
   hosted server changes on deploy; `@globestudio/mcp` 0.2.2 needs an npm
   publish for local installs.
