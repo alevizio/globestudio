@@ -65,8 +65,11 @@ All notable changes to Globestudio are tracked here. Format follows
   `data-look`. Values the address or the config set still win, and a
   background color set either way keeps Wireframe's page solid. Embeds
   with no look, and designs copied from the studio, which carry every
-  value, draw as before. Look-only embeds on other sites change on deploy,
-  with no package upgrade, toward the look as designed.
+  value, draw as before. A `<Globe />` or `<globe-studio>` with neither
+  `look` nor `config` is not one of them: the packages ask for Halftone
+  then, so it changes too, to Halftone's density 50 and dot size 11.
+  Look-only embeds on other sites change on deploy, with no package
+  upgrade, toward the look as designed.
 - A look link that sets only some of the shader, globe, Space or Flow
   settings, as MCP links and hand written links do, keeps the rest of the
   look, in the studio and in embeds. A Sonar link with data points used to
