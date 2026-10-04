@@ -6,6 +6,14 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [1.1.0] - 2026-10-04
+
+Coding agents get the Globestudio skill and a Claude Code plugin, the
+export dialog gets Figma, MCP and Skill tabs, and embeds draw designs and
+looks as the studio does.
+
 ### Added
 
 - A Gemini CLI extension. `gemini extensions install

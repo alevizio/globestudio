@@ -6,12 +6,12 @@
     <atom:link href="https://globestudio.app/changelog.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 03 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 04 Oct 2026 12:00:00 GMT</lastBuildDate>
     <item>
       <title>Agent skill</title>
       <link>https://globestudio.app/changelog</link>
       <guid isPermaLink="false">https://globestudio.app/changelog#agent-skill</guid>
-      <pubDate>Sat, 03 Oct 2026 12:00:00 GMT</pubDate>
+      <pubDate>Sun, 04 Oct 2026 12:00:00 GMT</pubDate>
       <description><![CDATA[<ul>
   <li>The Globestudio skill for coding agents: npx skills add alevizio/globestudio teaches Claude Code, Codex, Cursor and others the share links, the embed packages and the looks</li>
   <li>A Claude Code plugin adds the skill and the hosted MCP server in one go: claude plugin marketplace add alevizio/globestudio</li>

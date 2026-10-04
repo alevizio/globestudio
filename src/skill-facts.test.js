@@ -317,7 +317,9 @@ describe("the Gemini CLI extension", () => {
   it("is named after the skill and bundles the hosted MCP server over streamable HTTP", () => {
     expect(gemini.name).toBe(fields.name);
     expect(gemini.mcpServers).toEqual({ globestudio: { httpUrl: MCP_URL } });
-    expect(gemini.version).toMatch(/^\d+\.\d+\.\d+$/);
+    // Gemini installs from the latest release, so the manifest says its version.
+    const app = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
+    expect(gemini.version).toBe(app.version);
   });
 
   it("ships nothing else Gemini would load from the repo root", () => {
