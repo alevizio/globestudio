@@ -364,4 +364,6 @@ outside this repo, check those licenses first, ODbL in particular.
 
 Made by **[@alevizio](https://github.com/alevizio)** · [alevizio.com](https://alevizio.com) · [twitter.com/alevizio](https://twitter.com/alevizio)
 
+Listed on [Three.js Resources](https://threejsresources.com/tool/globestudio)
+
 </div>
