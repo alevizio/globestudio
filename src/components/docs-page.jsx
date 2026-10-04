@@ -181,17 +181,23 @@ export const DocsPage = () => {
             Agent skill
           </SectionHeading>
           <p>
-            The Globestudio skill teaches coding agents such as Claude Code,
-            Codex and Cursor how a design travels in a link, how to embed one
-            and which look fits a brief. Add it with any of these:
+            Ask your coding agent for a globe and get one that fits the page:
+            the Globestudio skill teaches Claude Code, Codex, Cursor and other
+            agents how a design travels in a link, how to embed one and which
+            look fits a brief. Add it with any of these:
           </p>
           <CodeBlock language="npx skills" wrap>{SKILL_COMMANDS.npx}</CodeBlock>
           <CodeBlock language="GitHub CLI" wrap>{SKILL_COMMANDS.gh}</CodeBlock>
           <CodeBlock language="Claude Code plugin" wrap>{SKILL_COMMANDS.plugin}</CodeBlock>
           <p>
-            The Claude Code plugin also connects the hosted MCP server.{" "}
-            <code>npx skills</code> sends anonymous install data to skills.sh
-            unless you set <code>DISABLE_TELEMETRY=1</code>.
+            The Claude Code plugin also connects the hosted MCP server. In
+            Gemini CLI, run{" "}
+            <code>gemini extensions install https://github.com/alevizio/globestudio</code>.
+            In the Claude app, download{" "}
+            <a href="https://github.com/alevizio/globestudio/releases/latest/download/globestudio-skill.zip">globestudio-skill.zip</a>{" "}
+            from the latest release and upload it in Settings, Capabilities,
+            Skills. <code>npx skills</code> sends anonymous install data to
+            skills.sh unless you set <code>DISABLE_TELEMETRY=1</code>.
           </p>
         </section>
 

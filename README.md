@@ -220,9 +220,10 @@ Full tool list and setup in [`packages/mcp/README.md`](packages/mcp/README.md).
 
 ## Use it from coding agents (skill)
 
-The Globestudio skill teaches coding agents such as Claude Code, Codex and
-Cursor how a design travels in a link, how to embed one with the packages or
-an iframe, and which look fits a brief. Add it to a project:
+Ask your coding agent for a globe and get one that fits the page. The
+Globestudio skill teaches Claude Code, Codex, Cursor and other agents how a
+design travels in a link, how to embed one with the packages or an iframe,
+and which look fits a brief. Add it to a project:
 
 ```bash
 npx skills add alevizio/globestudio
@@ -237,6 +238,11 @@ gh skill install alevizio/globestudio globestudio
 claude plugin marketplace add alevizio/globestudio
 claude plugin install globestudio@globestudio
 ```
+
+In Gemini CLI, `gemini extensions install https://github.com/alevizio/globestudio`
+adds the skill and the MCP server. In the Claude app, download
+[`globestudio-skill.zip`](https://github.com/alevizio/globestudio/releases/latest/download/globestudio-skill.zip)
+from the latest release and upload it in Settings, Capabilities, Skills.
 
 `npx skills` sends anonymous install data to skills.sh unless you set
 `DISABLE_TELEMETRY=1`. The skill is plain markdown in
