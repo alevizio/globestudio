@@ -356,6 +356,9 @@ export const IntegrationsPage = () => {
             <p>{tool.blurb}</p>
             <CodeBlock
               language={tool.language ?? (tool.snippet.startsWith("<") ? "html" : "url")}
+              // A card with its own language label holds a one-line command,
+              // which wraps on a phone like the "more" blocks below.
+              wrap={Boolean(tool.language)}
             >
               {tool.snippet}
             </CodeBlock>
