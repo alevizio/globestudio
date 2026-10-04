@@ -154,8 +154,8 @@ Every query param the `/embed` route reads, as parsed in
 |---|---|---|---|
 | `look` | preset id (one of the 21 looks) | `default` | Base look preset. The params below override it |
 | `selection` | `world` · `country:<ISO3>` · `continent:<Name>` · `subregion:<Name>` | `world` | What geography to draw |
-| `density` | number, 1 to 90 | `40` | Dot grid density (invalid values fall back to the preset's) |
-| `dotSize` | number, 0.1 to 25 | `10` | Dot size (invalid values fall back to the preset's) |
+| `density` | number, 1 to 90 | the look's; `40` with no look | Dot grid density. Without it or the `c` config's, the look's own (invalid values fall back to the preset's) |
+| `dotSize` | number, 0.1 to 25 | the look's; `10` with no look | Dot size. Without it or the `c` config's, the look's own (invalid values fall back to the preset's) |
 | `dotColor` | hex, `#` optional | preset's | Dot color |
 | `worldFill` | hex, `#` optional | preset's | Land fill color |
 | `renderMode` | `dots` · `solid` | preset's | Dot field or solid landmass |
@@ -165,9 +165,9 @@ Every query param the `/embed` route reads, as parsed in
 | `autoSpin` | `1` · `0` | `1` | Auto-rotate the globe |
 | `static` | `1` · `0` | `0` | Freeze all motion (static previews in design-tool canvases) |
 | `view` | `globe` · `flat` | the `c` config's view, else `globe` | 3D globe or flat map. Wins over the config's view |
-| `background` | hex, `#` optional, or `transparent` | unset | Page background behind the canvas. Without it the page is painted only when the `c` config has a Solid background color. `transparent` is the same as `transparent=1` |
+| `background` | hex, `#` optional, or `transparent` | unset | Page background behind the canvas. Without it the page takes the `c` config's Solid background color, or else the look's own when the address names a look; with neither it stays the dark theme color. A color here or in the config keeps the page solid on Wireframe, which is see-through on its own. `transparent` is the same as `transparent=1` |
 | `theme` | `dark` · `light` | `dark` | Globe chrome palette. `light` reads cleanly on light host pages |
-| `transparent` | `1` · `0` | `0` | See-through document, composites onto the host page |
+| `transparent` | `1` · `0` | the look's; `0` with no look | See-through document, composites onto the host page. Wireframe is see-through without it; `0` turns that off |
 | `plugin` | `figma` | unset | The picker shell that versions 1 and 2 of the Figma plugin load: Look, Country or region, Density and View (Globe or Flat) pickers above an Insert button. Globe inserts a PNG; Flat inserts editable vectors, or a PNG past 2,500 dots or with the solid Bloom look. The current plugin loads the full studio at `/?plugin=figma` instead |
 | `source` | string | `embed` | Analytics tag, echoed in resize `postMessage`s |
 | `c` | URL-encoded config JSON | unset | Full share-config payload (what the Share dialog produces). Overrides the preset and the params above |
