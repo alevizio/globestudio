@@ -11,7 +11,7 @@ import {
   buildSkillReferences,
   ELEMENT_VERSION,
   PACKAGES_FLOOR,
-  embedFallbacks,
+  embedNoLookValues,
   inkLooks,
   lookDotColor,
 } from "../scripts/skill-references.js";
@@ -216,9 +216,16 @@ describe("SKILL.md", () => {
     expect(body).toContain(`Both packages need ${PACKAGES_FLOOR} or later`);
   });
 
-  it("states the density and dot size an embed draws when nothing sets them", () => {
-    const { density, dotSize } = embedFallbacks();
-    expect(body).toContain(`it draws density ${density}, dot size ${dotSize} and a near black page whatever the look`);
+  it("says an embed draws the look as the studio does, and Default with no look", () => {
+    // embed-view.jsx parseParams: the look's values when the address names
+    // one, and Default's without.
+    const { density, dotSize } = embedNoLookValues();
+    const { settings } = lookPresets.find((look) => look.id === "default");
+    expect({ density, dotSize }).toEqual({ density: settings.density, dotSize: settings.dotSize });
+    expect(body).toContain("An embed draws the look as the studio does, its density, dot size, background and transparency included");
+    expect(body).toContain(`With no look it draws Default: density ${density}, dot size ${dotSize}`);
+    const transparent = lookPresets.filter((look) => look.settings.transparent).map((look) => look.name);
+    expect(body).toContain(`keeps the page solid on a transparent look (${transparent.join(", ")})`);
   });
 
   it("connects the MCP server with the export dialog's own commands", () => {

@@ -166,7 +166,7 @@ ${generated("src/data/look-presets.js, src/data/preset-seo.js and src/data/prese
 
 ${lookPresets.length} looks. Each is a starting point: ${code("/looks/<id>")} opens it in the studio, ${code("/embed?look=<id>")} embeds it, and a ${code("?c=")} config on either changes some settings and keeps the look's values for the rest. The id goes in the address; the name is what people see.
 
-An embed is the exception for four values: unless the address or the config sets them, it draws ${EMBED_FALLBACKS}, whatever the look. Copy the look's ${code("density")}, ${code("dotSize")} and ${code("background")} below into the config when an embed must match the studio.
+An embed draws the look as the studio does, with the density, dot size and background below, unless the address or the config sets them. ${PAINTED_PAGE}
 
 These ids differ from the effect they run: ${differing
     .map((look) => `${code(look.id)} (${look.name}) runs ${code(look.settings.shaderSettings.effect)}`)
@@ -292,7 +292,7 @@ Every key the app keeps from a config, with what it takes. The schema at ${SITE}
 - A link carries the config as ${code("?c=")} plus ${code("encodeURIComponent(JSON.stringify(config))")}. ${code("\"v\": 2")} in the JSON marks that it was encoded once; the app writes it, and older links without it still open.
 - On ${code("/looks/<id>")} and ${code("/embed?look=<id>")} the look comes first and the config changes only the keys it names. In ${code("shaderSettings")}, ${code("globeSettings")}, ${code("spaceSettings")} and ${code("flowSettings")} the keys a config leaves out keep the look's values.
 - In the studio a look sets only its styling: the region, the data points and any other key the look doesn't set keep what the person last used there, and the view opens as a globe. On ${code("/")} with no look every top-level key a config leaves out does, and the four nested objects fill their gaps with the app defaults below.
-- An embed starts from the look, except for four values: unless the address or the config sets them, it draws ${EMBED_FALLBACKS}.
+- An embed draws the look as the studio does, its density, dot size, background and transparency included, and the address's parameters and the config change what they name. ${PAINTED_PAGE} ${NO_LOOK}
 - A file imported in the export dialog's Share tab carries no look, so the four nested objects fill their gaps with the app defaults: a file must hold the whole design, as the studio's own exports do.
 - ${code("version")}: ${describe(schema.properties.version)}
 - Default look is the value the Default look sets, where it sets one. App default is what a nested object falls back to with no look.
@@ -440,20 +440,20 @@ const readEmbedParams = () => {
 
 // A fallback wrapped in unset() is the look's own value when the address
 // names a look, and the value inside it when it names none.
-const noLookFallback = (arg) => arg.match(/^unset\((.+)\)$/)?.[1] ?? arg;
+const noLookFallback = (arg) => arg.match(/^unset\((.+)\)$/)?.[1];
 
-// The density and dot size an embed draws when neither the address nor the
-// config sets them: parseParams' fallbacks, which buildSettings puts ahead
-// of the look's own values.
-export const embedFallbacks = () => {
+// The density and dot size an embed with no look draws when neither the
+// address nor the config sets them: the values inside parseParams' unset().
+export const embedNoLookValues = () => {
   const { seen } = readEmbedParams();
   const value = (name) => Number(noLookFallback(seen.get(name).args[0]));
   return { density: value("density"), dotSize: value("dotSize") };
 };
-const FALLBACKS = embedFallbacks();
-// What an embed draws, whatever the look, unless the address or the config
-// says otherwise. Its page color and transparency come only from those too.
-const EMBED_FALLBACKS = `density ${FALLBACKS.density}, dot size ${FALLBACKS.dotSize}, a near black page in place of a solid background color, and no transparency`;
+const NO_LOOK_VALUES = embedNoLookValues();
+const NO_LOOK = `With no look, an embed draws Default: density ${NO_LOOK_VALUES.density}, dot size ${NO_LOOK_VALUES.dotSize}, on a near black page unless the address or the config sets a background.`;
+// buildSettings in embed-view.jsx: a color the address or the config sets
+// turns the look's own transparency off.
+const PAINTED_PAGE = `A ${code("background")} color in the address or the config keeps the page solid on a transparent look (${names(lookPresets.filter((look) => look.settings.transparent))}).`;
 
 // Every query parameter /embed reads. What each does is written here; the
 // names, defaults and ranges are read from embed-view.jsx, and a parameter
@@ -461,8 +461,8 @@ const EMBED_FALLBACKS = `density ${FALLBACKS.density}, dot size ${FALLBACKS.dotS
 const EMBED_PARAMS = {
   look: { takes: "a look id", notes: "The look the embed starts from. An unknown id shows Default." },
   selection: { takes: "a region, as in the config", notes: "What the map shows." },
-  density: { notes: `Dot density. Without it or the config's \`density\`, the embed draws ${FALLBACKS.density} whatever the look. A value of 0 or less, or not a number, keeps the look's.` },
-  dotSize: { notes: `Dot size. Without it or the config's \`dotSize\`, the embed draws ${FALLBACKS.dotSize} whatever the look. A value of 0 or less, or not a number, keeps the look's.` },
+  density: { notes: "Dot density. Without it or the config's `density`, the look's. A value of 0 or less, or not a number, keeps the look's." },
+  dotSize: { notes: "Dot size. Without it or the config's `dotSize`, the look's. A value of 0 or less, or not a number, keeps the look's." },
   dotColor: { takes: "hex, `#` optional", notes: "Dot color." },
   worldFill: { takes: "hex, `#` optional", notes: "Land fill in solid maps." },
   renderMode: { takes: "`dots` or `solid`", notes: "Dots or filled land." },
@@ -473,8 +473,8 @@ const EMBED_PARAMS = {
   view: { takes: "`globe` or `flat`", notes: "3D globe or flat map. Wins over the config's `viewMode`; without either it is a globe." },
   static: { notes: "`1` holds every animation still, for design tool canvases and screenshots." },
   source: { takes: "text", notes: "Analytics tag, sent back in the resize message." },
-  background: { takes: "hex, `#` optional, or `transparent`", notes: "Page color behind the canvas. Without it the page takes the config's solid background, or else stays near black whatever the look's own color." },
-  transparent: { notes: `\`1\` makes the page see-through, to sit on the host page. A look's own transparency (${names(lookPresets.filter((look) => look.settings.transparent))}) needs it too, or the config's \`"backgroundStyle": "transparent"\`.` },
+  background: { takes: "hex, `#` optional, or `transparent`", notes: "Page color behind the canvas. Without it the page takes the config's solid background, or else the look's. A color here keeps the page solid on a transparent look." },
+  transparent: { notes: `\`1\` makes the page see-through, to sit on the host page. A look's own transparency (${names(lookPresets.filter((look) => look.settings.transparent))}) needs no parameter; \`0\` turns it off.` },
   theme: { takes: "`light`", notes: `Switches the glow and grid to a palette for light pages, and turns the white ink of ${names(inkLooks())} graphite.` },
   plugin: { takes: "`figma`", notes: "The old Figma plugin's picker shell. Not for embeds." },
 };
@@ -488,8 +488,10 @@ const embedParams = () => {
   }
   return [...seen].map(([name, { kind, args }]) => {
     const { takes, notes } = EMBED_PARAMS[name];
-    if (kind === "bool") return [code(name), "`1` or `0`", code(noLookFallback(args[0]) === "true" ? 1 : 0), notes];
-    if (kind === "num" || kind === "sizeNum") return [code(name), `${args[1]} to ${args[2]}`, code(noLookFallback(args[0])), notes];
+    // A fallback the look supplies, and the one with no look.
+    const shown = (arg, format) => (noLookFallback(arg) ? `the look's; ${code(format(noLookFallback(arg)))} with no look` : code(format(arg)));
+    if (kind === "bool") return [code(name), "`1` or `0`", shown(args[0], (arg) => (arg === "true" ? 1 : 0)), notes];
+    if (kind === "num" || kind === "sizeNum") return [code(name), `${args[1]} to ${args[2]}`, shown(args[0], (arg) => arg), notes];
     const fallback = body.match(new RegExp(`params\\.get\\("${name}"\\)\\s*\\|\\|\\s*"([^"]+)"`))?.[1];
     return [code(name), takes, fallback ? code(fallback) : "", notes];
   });
@@ -605,7 +607,7 @@ ${table(["Parameter", "Takes", "Default", "Notes"], [
 ## Passing a design
 
 - ${code("config")} (the packages) and ${code("c")} (the address) take the design's JSON. Give the packages the JSON string, ${code("JSON.stringify(design)")}; they encode it. In an address, encode it once with ${code("encodeURIComponent")}.
-- With a look, the config changes only the keys it names and the look keeps the rest, except that an embed draws ${EMBED_FALLBACKS} unless the address or the config sets them. Alone, the config goes over Default.
+- With a look, the config changes only the keys it names and the look keeps the rest, its density, dot size, background and transparency included. ${PAINTED_PAGE} Alone, the config goes over Default.
 - A config with ${code("version")}, as the studio writes, is a whole design: inside ${code("shaderSettings")}, ${code("globeSettings")}, ${code("spaceSettings")} and ${code("flowSettings")} the keys it leaves out get the app defaults, even with a look.
 - From the MCP server's ${code("build_share_url")}, give a package the result's ${code("look")} and ${code("JSON.stringify")} of its ${code("config")}, not the ${code("c")} of its ${code("embed_url")}: that address carries the region, the colors and the density as their own parameters, so its ${code("c")} can lack them.
 - The address must stay under ${number(EMBED_URL_MAX)} characters, so check the length of ${code(`${SITE}/embed?c=`)} plus the encoded config. A custom shape file or a long list of data points is what goes over.
