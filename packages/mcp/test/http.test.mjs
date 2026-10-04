@@ -47,8 +47,10 @@ test("initialize reports the server and its usage instructions", () => {
   assert.match(client.getInstructions() ?? "", /read_share_url/);
 });
 
-test("the instructions point coding agents to the agent skill", () => {
-  assert.match(client.getInstructions() ?? "", /npx skills add alevizio\/globestudio/);
+test("the instructions suggest the agent skill to the user, not install it", () => {
+  const instructions = client.getInstructions() ?? "";
+  assert.match(instructions, /suggest that the user add the Globestudio skill/);
+  assert.match(instructions, /npx skills add alevizio\/globestudio/);
 });
 
 test("initialize reports the version npm and the MCP registry list", { skip: Boolean(process.env.MCP_URL) }, () => {
