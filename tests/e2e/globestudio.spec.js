@@ -838,9 +838,15 @@ test.describe("export dialog on a 320px wide phone", () => {
     const scrolling = dialog.locator("pre").filter({ hasText: "https://globestudio.app/mcp" }).last();
     expect(await scrolling.evaluate((pre) => pre.scrollWidth > pre.clientWidth)).toBe(true);
     await expect(scrolling).toHaveAttribute("tabindex", "0");
+    // axe reads colors as drawn, so wait out the client toggle's sliding
+    // pill: mid-slide a label sits half on the pill and fails contrast.
+    const clients = dialog.getByRole("tablist", { name: "Connect your agent" });
+    const settled = () => expect.poll(() => clients.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+    await settled();
     await expectNoSeriousAxeViolations(page);
     await dialog.getByRole("tab", { name: "Cursor" }).tap();
     await expect(dialog.getByRole("group", { name: "mcp.json" })).toHaveAttribute("tabindex", "0");
+    await settled();
     await expectNoSeriousAxeViolations(page);
   });
 });
