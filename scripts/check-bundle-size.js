@@ -86,6 +86,10 @@ const BUDGETS = [
   // critical stylesheet doesn't grow.
   { prefix: "agent-share-",      ext: ".js",  raw:   6_500,  gzip:   3_000, lazy: true },
   { prefix: "agent-share-",      ext: ".css", raw:   2_000,  gzip:   1_000, lazy: true },
+  // The export dialog's Skill tab (the agent skill's install commands),
+  // fetched only when that tab opens. It uses the dialog's own styles, so it
+  // has no CSS.
+  { prefix: "agent-skill-",      ext: ".js",  raw:   2_500,  gzip:   1_200, lazy: true },
   // Config defaults split into shared chunks once look-presets is imported by
   // a lazy route (gallery) as well as the main app.
   { prefix: "globe-settings-",   ext: ".js",  raw:   3_000,  gzip:   1_500, lazy: false },

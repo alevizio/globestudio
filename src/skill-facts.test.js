@@ -16,6 +16,7 @@ import {
   lookDotColor,
 } from "../scripts/skill-references.js";
 import { AgentShare } from "./components/agent-share.jsx";
+import { AgentSkill } from "./components/agent-skill.jsx";
 import { dotShapeOptions } from "./config/constants.js";
 import { shaderEffectOptions } from "./config/shader-effects.js";
 import { continentOptions, subregionOptions } from "./data/geography.js";
@@ -323,7 +324,15 @@ describe("the install commands", () => {
     },
   );
 
-  it("the export dialog's MCP tab gives the npx line", () => {
-    expect(read("src/components/agent-share.jsx")).toContain(`"${npx}"`);
+  it("the export dialog's Skill tab gives all three, and the telemetry opt out", () => {
+    const { container } = render(createElement(AgentSkill));
+    const commands = [];
+    for (const tab of screen.getAllByRole("tab")) {
+      fireEvent.click(tab);
+      commands.push(screen.getByRole("tabpanel").querySelector("pre code").textContent);
+    }
+    expect(commands).toEqual([npx, `${marketplaceAdd} && ${pluginInstall}`, gh]);
+    expect(container.textContent).toContain("DISABLE_TELEMETRY=1");
+    cleanup();
   });
 });

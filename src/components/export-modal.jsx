@@ -13,6 +13,10 @@ import { canCopyImageToClipboard } from "../utils/export.js";
 const AgentShare = lazy(() =>
   import("./agent-share.jsx").then((m) => ({ default: m.AgentShare })),
 );
+// The Skill tab's install commands load the same way, in a chunk of their own.
+const AgentSkill = lazy(() =>
+  import("./agent-skill.jsx").then((m) => ({ default: m.AgentSkill })),
+);
 
 const ASPECT_OPTIONS = [
   { id: "original", label: "Original", ratio: null },
@@ -31,10 +35,30 @@ const QUALITY_OPTIONS = [
 
 // The styles.css query that puts the tab row in its phone form.
 const PHONE_TABS_QUERY = "(max-width: 540px)";
+// Seven tabs run past the row's edge below about 618px wide. The Skill tab,
+// the seventh, shows from 641px, which leaves room for fonts that set a
+// little wider.
+const SKILL_TABS_QUERY = "(max-width: 640px)";
 const FIGMA_PLUGIN_URL = "https://www.figma.com/community/plugin/1641603648370488902/globestudio";
 
 const FPS_OPTIONS = [24, 30, 60];
 const DURATION_OPTIONS = [3, 5, 8, 12];
+
+// Whether a media query matches, kept up to date as the window changes.
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia(query).matches;
+  });
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(query);
+    const onChange = (event) => setMatches(event.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [query]);
+  return matches;
+};
 
 const computeDimensions = (baseW, baseH, aspectId, scale) => {
   const aspect = ASPECT_OPTIONS.find((a) => a.id === aspectId)?.ratio ?? null;
@@ -59,7 +83,7 @@ const computeDimensions = (baseW, baseH, aspectId, scale) => {
   return { width: Math.round(w * scale), height: Math.round(h * scale) };
 };
 
-const Tabs = ({ tab, setTab, hasVideo, hasFigma, figmaPlugin = false }) => {
+const Tabs = ({ tab, setTab, hasVideo, hasFigma, hasSkill, figmaPlugin = false }) => {
   // Inside the Figma plugin only what can land on the canvas: an image or
   // editable vectors.
   const tabs = [
@@ -69,6 +93,7 @@ const Tabs = ({ tab, setTab, hasVideo, hasFigma, figmaPlugin = false }) => {
     hasFigma && { id: "figma", label: "Figma" },
     !figmaPlugin && { id: "share", label: "Share" },
     !figmaPlugin && { id: "mcp", label: "MCP" },
+    hasSkill && { id: "skill", label: "Skill" },
   ].filter(Boolean);
 
   // Refs to each tab button so we can measure the active one and slide
@@ -241,21 +266,15 @@ export const ExportModal = ({
 }) => {
   const [selectedTab, setTab] = useState("image");
   // Six tabs don't fit the tab row's phone form, so the Figma tab is left
-  // out of it there, and inside the Figma plugin. If it goes while it is
-  // selected (a window made narrow, a phone turned upright), Image shows.
-  const [phoneTabs, setPhoneTabs] = useState(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return false;
-    return window.matchMedia(PHONE_TABS_QUERY).matches;
-  });
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return undefined;
-    const mq = window.matchMedia(PHONE_TABS_QUERY);
-    const onChange = (event) => setPhoneTabs(event.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
+  // out of it there, and inside the Figma plugin. The Skill tab, the
+  // seventh, is left out of those and of a row too narrow for seven. If a
+  // tab goes while it is selected (a window made narrow, a phone turned
+  // upright), Image shows.
+  const phoneTabs = useMediaQuery(PHONE_TABS_QUERY);
+  const narrowTabs = useMediaQuery(SKILL_TABS_QUERY);
   const hasFigma = !figmaPlugin && !phoneTabs;
-  const tab = selectedTab === "figma" && !hasFigma ? "image" : selectedTab;
+  const hasSkill = hasFigma && !narrowTabs;
+  const tab = (selectedTab === "figma" && !hasFigma) || (selectedTab === "skill" && !hasSkill) ? "image" : selectedTab;
   const [aspect, setAspect] = useState(initialAspect);
   // In the Figma plugin each opening starts from the crop that fits the
   // current view (square globe, wide flat map).
@@ -427,7 +446,14 @@ export const ExportModal = ({
           </button>
         </header>
 
-        <Tabs tab={tab} setTab={setTab} hasVideo={videoSupported} hasFigma={hasFigma} figmaPlugin={figmaPlugin} />
+        <Tabs
+          tab={tab}
+          setTab={setTab}
+          hasVideo={videoSupported}
+          hasFigma={hasFigma}
+          hasSkill={hasSkill}
+          figmaPlugin={figmaPlugin}
+        />
 
         <div className="export-modal-body">
         <div key={tab} className="export-modal-pane">
@@ -681,6 +707,14 @@ export const ExportModal = ({
                   isLookEdited={isLookEdited}
                   regionName={regionName}
                 />
+              </Suspense>
+            </ErrorBoundary>
+          )}
+
+          {tab === "skill" && (
+            <ErrorBoundary fallback={null}>
+              <Suspense fallback={<div className="export-modal-pending is-skill" aria-busy="true" />}>
+                <AgentSkill />
               </Suspense>
             </ErrorBoundary>
           )}
