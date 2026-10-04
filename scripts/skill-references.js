@@ -432,18 +432,23 @@ const readEmbedParams = () => {
   const source = read("src/components/embed-view.jsx");
   const body = source.match(/const parseParams = \(search, shareConfig\) => \{([\s\S]*?)\n\};/)[1];
   const seen = new Map();
-  for (const [, kind, name, args] of body.matchAll(/\b(params\.get|sizeNum|num|bool)\("(\w+)"(?:,\s*([^)]*))?\)/g)) {
+  for (const [, kind, name, args] of body.matchAll(/\b(params\.get|sizeNum|num|bool)\("(\w+)"(?:,\s*((?:[^()]|\([^()]*\))*))?\)/g)) {
     if (!seen.has(name)) seen.set(name, { kind, args: args ? args.split(",").map((arg) => arg.trim()) : [] });
   }
   return { body, seen };
 };
+
+// A fallback wrapped in unset() is the look's own value when the address
+// names a look, and the value inside it when it names none.
+const noLookFallback = (arg) => arg.match(/^unset\((.+)\)$/)?.[1] ?? arg;
 
 // The density and dot size an embed draws when neither the address nor the
 // config sets them: parseParams' fallbacks, which buildSettings puts ahead
 // of the look's own values.
 export const embedFallbacks = () => {
   const { seen } = readEmbedParams();
-  return { density: Number(seen.get("density").args[0]), dotSize: Number(seen.get("dotSize").args[0]) };
+  const value = (name) => Number(noLookFallback(seen.get(name).args[0]));
+  return { density: value("density"), dotSize: value("dotSize") };
 };
 const FALLBACKS = embedFallbacks();
 // What an embed draws, whatever the look, unless the address or the config
@@ -483,8 +488,8 @@ const embedParams = () => {
   }
   return [...seen].map(([name, { kind, args }]) => {
     const { takes, notes } = EMBED_PARAMS[name];
-    if (kind === "bool") return [code(name), "`1` or `0`", code(args[0] === "true" ? 1 : 0), notes];
-    if (kind === "num" || kind === "sizeNum") return [code(name), `${args[1]} to ${args[2]}`, code(args[0]), notes];
+    if (kind === "bool") return [code(name), "`1` or `0`", code(noLookFallback(args[0]) === "true" ? 1 : 0), notes];
+    if (kind === "num" || kind === "sizeNum") return [code(name), `${args[1]} to ${args[2]}`, code(noLookFallback(args[0])), notes];
     const fallback = body.match(new RegExp(`params\\.get\\("${name}"\\)\\s*\\|\\|\\s*"([^"]+)"`))?.[1];
     return [code(name), takes, fallback ? code(fallback) : "", notes];
   });

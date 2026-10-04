@@ -37,6 +37,13 @@ const FigmaPluginPickers = lazy(() =>
 // packages send.
 const parseParams = (search, shareConfig) => {
   const params = new URLSearchParams(search);
+  // A look in the address brings its own density, dot size, background and
+  // transparency, as the studio draws it: what the address leaves out stays
+  // null here and buildSettings takes the look's. Without one the embed
+  // keeps the values it always drew, which are Default's, and so does the
+  // Figma plugin shell, whose pickers choose the look after the address.
+  const ownLook = Boolean(params.get("look"));
+  const unset = (fallback) => (ownLook ? null : fallback);
   // Numeric params clamp to the studio slider ranges so hostile query
   // strings can't push the renderer outside what the UI can produce.
   const num = (key, fallback, min, max) => {
@@ -69,8 +76,8 @@ const parseParams = (search, shareConfig) => {
   const clearBg = bg === "transparent";
   return {
     look: params.get("look") || "default",
-    density: sizeNum("density", 40, 1, 90),
-    dotSize: sizeNum("dotSize", 10, 0.1, 25),
+    density: sizeNum("density", unset(40), 1, 90),
+    dotSize: sizeNum("dotSize", unset(10), 0.1, 25),
     dotColor: params.get("dotColor") ? `#${params.get("dotColor").replace(/^#/, "")}` : null,
     worldFill: params.get("worldFill") ? `#${params.get("worldFill").replace(/^#/, "")}` : null,
     renderMode: params.get("renderMode") || null,
@@ -84,13 +91,13 @@ const parseParams = (search, shareConfig) => {
     // canvas mode so the static preview doesn't burn frames.
     staticMode: bool("static", false),
     source: params.get("source") || "embed",
-    background: bg && !clearBg ? `#${bg.replace(/^#/, "")}` : "#0a0a0a",
+    background: bg && !clearBg ? `#${bg.replace(/^#/, "")}` : unset("#0a0a0a"),
     // Whether the host explicitly asked for a page background, or the share
-    // config brings its own color. The visible page color comes from the
-    // --preview-bg CSS var cascade (not the GlobeBackground prop), so the
-    // embed root only paints it when asked — see the root div's style below.
-    hasBackground: bg ? !clearBg : Boolean(shareConfig?.background),
-    transparent: clearBg || bool("transparent", false),
+    // config or the look brings its own color. The visible page color comes
+    // from the --preview-bg CSS var cascade (not the GlobeBackground prop), so
+    // the embed root only paints it when asked: see the root div's style below.
+    hasBackground: bg ? !clearBg : Boolean(shareConfig?.background) || ownLook,
+    transparent: clearBg || bool("transparent", unset(false)),
     // Render theme. The globe's default palette (glow, grid, surface) is
     // tuned for dark backgrounds; `theme=light` flips it to a graphite-on-
     // cream palette so a transparent embed reads cleanly on a light host
@@ -120,8 +127,10 @@ const buildSettings = (raw, shareConfig) => {
     dotColor: raw.dotColor || preset.settings.dotColor,
     worldFill: raw.worldFill || preset.settings.worldFill,
     renderMode: raw.renderMode || preset.settings.renderMode,
-    background: raw.background,
-    transparent: raw.transparent,
+    background: raw.background ?? preset.settings.background,
+    // A color the address or the config paints keeps the page opaque over a
+    // see-through look (Wireframe), unless they also ask for transparency.
+    transparent: raw.transparent ?? (raw.background || shareConfig?.background ? false : preset.settings.transparent),
     tiltX: raw.tiltX,
     tiltY: raw.tiltY,
     globeSettings: {

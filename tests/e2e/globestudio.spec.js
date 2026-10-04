@@ -165,6 +165,85 @@ test("<globe-studio look config> embeds the config over that look", async ({ pag
   await expect(page.locator(".globe-background")).toHaveClass(/\beffect-wave\b/);
 });
 
+test.describe("an embed of a look alone", () => {
+  test.use({ viewport: { width: 900, height: 600 }, contextOptions: { reducedMotion: "reduce" } });
+
+  // The look as the studio holds it on /looks/<id>. A setting is saved once
+  // it changes, so one that stays at the studio's default isn't there.
+  const studioLook = async (page, id) => {
+    await page.goto(`/looks/${id}`);
+    await waitForCanvas(page);
+    const saved = (key) => page.evaluate((name) => JSON.parse(localStorage.getItem(`globestudio:${name}`)), key);
+    await expect.poll(() => saved("dotSize"), { timeout: CANVAS_TIMEOUT }).not.toBeNull();
+    return {
+      density: await saved("density"),
+      dotSize: await saved("dotSize"),
+      transparent: (await saved("transparent")) === true,
+      page: await page.locator(".app-shell").evaluate((node) => node.style.getPropertyValue("--preview-bg")),
+    };
+  };
+
+  // A screenshot once two in a row match, so the globe has settled.
+  const settledShot = async (page, path) => {
+    await page.goto(path);
+    await waitForCanvas(page);
+    let shot = null;
+    await expect
+      .poll(async () => {
+        const previous = shot;
+        await page.waitForTimeout(300);
+        shot = await page.screenshot();
+        return Boolean(previous?.equals(shot));
+      }, { timeout: CANVAS_TIMEOUT })
+      .toBe(true);
+    return shot;
+  };
+
+  // Share of pixels that differ between two screenshots, counting a pixel
+  // when any channel is off by more than 16.
+  const shotDiff = (page, a, b) =>
+    page.evaluate(async (urls) => {
+      const [x, y] = await Promise.all(urls.map(async (url) => {
+        const img = new Image();
+        img.src = url;
+        await img.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const context = canvas.getContext("2d");
+        context.drawImage(img, 0, 0);
+        return context.getImageData(0, 0, img.width, img.height);
+      }));
+      if (x.width !== y.width || x.height !== y.height) return 1;
+      let differing = 0;
+      for (let index = 0; index < x.data.length; index += 4) {
+        for (let channel = 0; channel < 4; channel += 1) {
+          if (Math.abs(x.data[index + channel] - y.data[index + channel]) > 16) {
+            differing += 1;
+            break;
+          }
+        }
+      }
+      return differing / (x.width * x.height);
+    }, [a, b].map((shot) => `data:image/png;base64,${shot.toString("base64")}`));
+
+  for (const id of ["pixel", "wireframe"]) {
+    test(`draws ${id} with the studio's density, dot size and page`, async ({ page }) => {
+      const look = await studioLook(page, id);
+      const own = await settledShot(page, `/embed?look=${id}&static=1`);
+      if (look.transparent) {
+        await expect(page.locator('.embed-view[data-transparent="true"]')).toHaveCount(1);
+      } else {
+        await expect(page.locator(".embed-view")).toHaveCSS("--preview-bg", look.page);
+      }
+      // The same embed with the studio's values in its address.
+      const pageParam = look.transparent ? "transparent=1" : `background=${look.page.slice(1)}`;
+      const named = await settledShot(page, `/embed?look=${id}&static=1&density=${look.density}&dotSize=${look.dotSize}&${pageParam}`);
+      expect(await shotDiff(page, own, named)).toBeLessThan(0.01);
+    });
+  }
+});
+
 test.describe("a US state in a share link", () => {
   test.use({ contextOptions: { reducedMotion: "reduce" } });
   const link = (path, config) => `${path}?c=${encodeURIComponent(JSON.stringify({ v: 2, selection: "country:USA", ...config }))}`;

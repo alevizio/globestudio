@@ -125,8 +125,8 @@ For pages that allow a script tag but not an npm install. It turns every element
 
 | Parameter | Takes | Default | Notes |
 |---|---|---|---|
-| `background` | hex, `#` optional, or `transparent` |  | Page color behind the canvas. Without it the page takes the config's solid background, or else stays near black whatever the look's own color. |
 | `look` | a look id | `default` | The look the embed starts from. An unknown id shows Default. |
+| `background` | hex, `#` optional, or `transparent` |  | Page color behind the canvas. Without it the page takes the config's solid background, or else stays near black whatever the look's own color. |
 | `density` | 1 to 90 | `40` | Dot density. Without it or the config's `density`, the embed draws 40 whatever the look. A value of 0 or less, or not a number, keeps the look's. |
 | `dotSize` | 0.1 to 25 | `10` | Dot size. Without it or the config's `dotSize`, the embed draws 10 whatever the look. A value of 0 or less, or not a number, keeps the look's. |
 | `dotColor` | hex, `#` optional |  | Dot color. |

@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { EmbedView } from "./embed-view.jsx";
 import { links as legacyLinks } from "../utils/fixtures/legacy-share-links.json";
+import { lookPresets } from "../data/look-presets.js";
+import { backgroundKind, previewBackground } from "../utils/canvas-background.js";
 
 // The WebGL globe is replaced by a stand-in that shows the view it was
 // asked to draw, and keeps the rest of what it was given.
@@ -181,6 +183,103 @@ describe("EmbedView", () => {
     });
   });
 
+  // The studio applies a look's settings as they are (App.jsx applyLook) and
+  // shows previewBackground behind it. An embed of the look alone used to
+  // draw density 40, dot size 10 and the dark theme page whatever the look.
+  describe("a look alone", () => {
+    const open = (search) => {
+      window.history.replaceState(null, "", `/embed?${search}`);
+      return render(<EmbedView />);
+    };
+    const config = (design) => `c=${encodeURIComponent(JSON.stringify({ v: 2, ...design }))}`;
+    const look = (id) => lookPresets.find((preset) => preset.id === id).settings;
+    // The dotted map is as many rows tall as the density.
+    const drawnDensity = () => drawn.props.mapData.image.height;
+    const pageColor = (container) => page(container).style.getPropertyValue("--preview-bg");
+
+    it.each(lookPresets.map((look) => [look.id, look.settings]))(
+      "draws %s with its own density, dot size and page, as the studio does",
+      async (id, settings) => {
+        const { container } = open(`look=${id}`);
+        await view();
+        expect(drawnDensity()).toBe(settings.density);
+        expect(drawn.props.dotSize).toBe(settings.dotSize);
+        const kind = backgroundKind(settings);
+        expect(drawn.props.transparent).toBe(kind !== "solid");
+        if (kind === "solid") {
+          expect(pageColor(container)).toBe(previewBackground({ ...settings, uiTheme: "dark" }));
+        } else {
+          expect(page(container).getAttribute("style")).toBeNull();
+        }
+        expect(page(container).dataset.transparent).toBe(kind === "transparent" ? "true" : undefined);
+      },
+    );
+
+    it("draws the address's density, dot size and page over the look's", async () => {
+      const { container } = open("look=pixel&density=30&dotSize=5&background=204060");
+      await view();
+      expect(drawnDensity()).toBe(30);
+      expect(drawn.props.dotSize).toBe(5);
+      expect(pageColor(container)).toBe("#204060");
+    });
+
+    it("keeps a page the address paints, or makes opaque, over a see-through look", async () => {
+      const painted = open("look=wireframe&background=204060");
+      await view();
+      expect(drawn.props.transparent).toBe(false);
+      expect(pageColor(painted.container)).toBe("#204060");
+      painted.unmount();
+      const opaque = open("look=wireframe&transparent=0");
+      await view();
+      expect(drawn.props.transparent).toBe(false);
+      expect(pageColor(opaque.container)).toBe(look("wireframe").background);
+    });
+
+    it("makes the page see-through when the address asks, over an opaque look", async () => {
+      for (const search of ["look=pixel&transparent=1", "look=pixel&background=transparent"]) {
+        const { container, unmount } = open(search);
+        await view();
+        expect(drawn.props.transparent).toBe(true);
+        expect(page(container).dataset.transparent).toBe("true");
+        unmount();
+      }
+    });
+
+    it("draws the config's values over the look's, and the look's for the rest", async () => {
+      const { container, unmount } = open(`look=pixel&${config({ density: 20, dotSize: 4, background: "#123456" })}`);
+      await view();
+      expect(drawnDensity()).toBe(20);
+      expect(drawn.props.dotSize).toBe(4);
+      expect(pageColor(container)).toBe("#123456");
+      unmount();
+      const partial = open(`look=pixel&${config({ density: 20 })}`);
+      await view();
+      expect(drawnDensity()).toBe(20);
+      expect(drawn.props.dotSize).toBe(look("pixel").dotSize);
+      expect(pageColor(partial.container)).toBe(look("pixel").background);
+    });
+
+    it("keeps a page the config paints over a see-through look", async () => {
+      const { container } = open(`look=wireframe&${config({ background: "#123456" })}`);
+      await view();
+      expect(drawn.props.transparent).toBe(false);
+      expect(pageColor(container)).toBe("#123456");
+    });
+
+    it("leaves an embed with no look as it was: density 40, dot size 10 and the dark theme page", async () => {
+      for (const search of ["", "view=flat", config({ dotColor: "#ff0000" })]) {
+        const { container, unmount } = open(search);
+        await view();
+        expect(drawnDensity()).toBe(40);
+        expect(drawn.props.dotSize).toBe(10);
+        expect(drawn.props.background).toBe("#0a0a0a");
+        expect(drawn.props.transparent).toBe(false);
+        expect(page(container).getAttribute("style")).toBeNull();
+        unmount();
+      }
+    });
+  });
+
   describe("a US state", () => {
     it("is drawn from its outline, with the same empty country list on every render", async () => {
       // A new list on each render rebuilt the globe's solid textures.
@@ -215,12 +314,12 @@ describe("EmbedView", () => {
       }
     });
 
-    it("is left to the page when neither the address nor the config has a color", async () => {
+    it("is left to the page when neither the address nor the config has a color, nor a look", async () => {
       const { container, unmount } = embed({ viewMode: "flat" });
       await view();
       expect(page(container).getAttribute("style")).toBeNull();
       unmount();
-      const bare = embed(null, "look=halftone");
+      const bare = embed(null, "view=flat");
       await view();
       expect(page(bare.container).getAttribute("style")).toBeNull();
     });
