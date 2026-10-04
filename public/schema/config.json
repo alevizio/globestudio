@@ -64,7 +64,7 @@
       "enum": ["Circle", "Hexagon", "Triangle", "Pentagon", "Square", "Voxel", "Particle Grid", "Diamond", "Star", "Plus", "Ring", "ASCII", "Custom"],
       "description": "Dot shape. `ASCII` draws `asciiSymbol` and `Custom` draws `customShape`."
     },
-    "dotRotation": { "type": "number", "minimum": 0, "maximum": 360, "description": "Rotation of every dot, in degrees." },
+    "dotRotation": { "type": "number", "minimum": 0, "maximum": 360, "description": "Rotation of every dot, in degrees. The studio reads it; embeds draw every dot unrotated." },
     "shapeRotationSpeed": { "type": "number", "minimum": 0, "maximum": 100, "description": "Shape rotation speed from 0 to 100 (0 stops the animation)." },
     "sizeVary": { "type": "boolean", "description": "Add per-dot size jitter." },
     "asciiSymbol": { "type": "string", "maxLength": 12, "description": "Text drawn as each dot when `shape` is `ASCII`. Longer text is cut to 12 characters." },
@@ -76,7 +76,7 @@
         "name": { "type": "string", "maxLength": 80, "description": "File name. Longer names are cut to 80 characters." },
         "type": { "type": "string", "enum": ["image/svg+xml", "image/png", "image/jpeg", "image/webp"] },
         "dataUrl": { "type": "string", "maxLength": 409600, "description": "The image as a data URL: base64 for PNG, JPEG and WebP, URL encoded markup for SVG." },
-        "svgSource": { "type": "string", "description": "SVG only: the markup. When present the app reads it in place of `dataUrl`." }
+        "svgSource": { "type": "string", "description": "SVG only: the markup. When present the app reads it in place of `dataUrl`, which a custom shape still needs." }
       }
     },
 

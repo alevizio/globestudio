@@ -388,7 +388,13 @@ ${table(
 const reactProps = () => {
   const source = read("packages/react/src/index.tsx");
   const body = source.match(/export interface GlobeProps \{([\s\S]*?)\n\}/)[1];
-  return [...body.matchAll(/\/\*\*([\s\S]*?)\*\/\s*(\w+)\??:\s*([^;]+);/g)].map(([, doc, name, type]) => {
+  const documented = [...body.matchAll(/\/\*\*([\s\S]*?)\*\/\s*(\w+)\??:\s*([^;]+);/g)];
+  // A prop with no doc comment would drop out of the table without a word.
+  const members = body.replace(/\/\*\*[\s\S]*?\*\//g, "").match(/^\s*\w+\??:/gm) ?? [];
+  if (members.length !== documented.length) {
+    throw new Error(`GlobeProps in packages/react/src/index.tsx has ${members.length} props and ${documented.length} doc comments`);
+  }
+  return documented.map(([, doc, name, type]) => {
     const text = doc.replace(/^\s*\*\s?/gm, "").replace(/\s+/g, " ").trim();
     const fallback = text.match(/Defaults to `([^`]+)`/)?.[1];
     const notes = text.replace(/\s*Defaults to `[^`]+`[^.]*\./, "").trim();
@@ -589,7 +595,6 @@ ${table(["Attribute", "Sets", "Default"], loaderAttributes())}
 ${table(["Parameter", "Takes", "Default", "Notes"], [
   ...embedParams(),
   [code("c"), "a config, URL encoded", "", "Layered last, over the look and the parameters above. See Passing a design."],
-  [code("locale"), "`es`, `fr`, `de`, `zh`, `ar` or `pt`", "", "Language for country names."],
 ])}
 
 ## Passing a design
@@ -610,7 +615,7 @@ ${table(["Parameter", "Takes", "Default", "Notes"], [
 
 ## Check it renders
 
-Rendering needs WebGL 2. Run the project's dev server and look at the page, or take a screenshot of the embed address with a headless browser. Headless Chromium has no GPU, so give it software GL, as Globestudio's own browser tests do:
+Rendering needs WebGL 2. Run the project's dev server and look at the page. When the project already has Playwright, a screenshot of the embed address works too; don't install a browser for this, and if you can do neither, say the render wasn't checked. Headless Chromium has no GPU, so give it software GL, as Globestudio's own browser tests do:
 
 \`\`\`js
 import { chromium } from "playwright";

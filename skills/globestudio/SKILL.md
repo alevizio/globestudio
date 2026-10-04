@@ -141,7 +141,7 @@ To connect the hosted server, which needs no account or key: `claude mcp add --t
 4. Set `title` to say what the globe shows, for screen readers. Keep `loading="lazy"` for a globe below the fold.
 5. Give the container an explicit height. An iframe doesn't size itself, and the packages default to 480 px.
 6. On a light page, give the design a light `background` and a dark `dotColor` on a look that keeps it, or a transparent background with dots that show on the page. The packages never send `theme`, so there Halftone, Wireframe, Toon and Threshold need a solid dark `background`. In a plain iframe, `theme=light` turns their ink graphite and suits the glow and grid to a light page.
-7. Check that it renders: run the dev server and look, or take a headless screenshot of the `/embed` address (recipe in [references/embedding.md](references/embedding.md)). If you can do neither, say so rather than claim it works.
+7. Check that it renders: run the dev server and look, or, when the project already has Playwright, take a headless screenshot of the `/embed` address (recipe in [references/embedding.md](references/embedding.md)). Don't install a browser just for this. If you can do neither, say so rather than claim it works.
 
 ```jsx
 import { Globe } from "@globestudio/react";

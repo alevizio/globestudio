@@ -42,7 +42,7 @@ Every key the app keeps from a config, with what it takes. The schema at https:/
 | `dotGradient` | gradient or null (see Gradients) |  | Gradient for the dots, used in place of `dotColor`. |
 | `dotsVisible` | true or false | `true` |  |
 | `shape` | `Circle`, `Hexagon`, `Triangle`, `Pentagon`, `Square`, `Voxel`, `Particle Grid`, `Diamond`, `Star`, `Plus`, `Ring`, `ASCII`, `Custom` | `"Circle"` | Dot shape. `ASCII` draws `asciiSymbol` and `Custom` draws `customShape`. |
-| `dotRotation` | 0 to 360 |  | Rotation of every dot, in degrees. |
+| `dotRotation` | 0 to 360 |  | Rotation of every dot, in degrees. The studio reads it; embeds draw every dot unrotated. |
 | `shapeRotationSpeed` | 0 to 100 |  | Shape rotation speed from 0 to 100 (0 stops the animation). |
 | `sizeVary` | true or false |  | Add per-dot size jitter. |
 | `asciiSymbol` | text, up to 12 characters | `"*"` | Text drawn as each dot when `shape` is `ASCII`. Longer text is cut to 12 characters. |
@@ -203,7 +203,7 @@ The image drawn as each dot when `shape` is `Custom`, or null. An SVG is cleaned
 | `name` | text, up to 80 characters | File name. Longer names are cut to 80 characters. |
 | `type` | `image/svg+xml`, `image/png`, `image/jpeg`, `image/webp` |  |
 | `dataUrl` | text, up to 409,600 characters | The image as a data URL: base64 for PNG, JPEG and WebP, URL encoded markup for SVG. |
-| `svgSource` | text | SVG only: the markup. When present the app reads it in place of `dataUrl`. |
+| `svgSource` | text | SVG only: the markup. When present the app reads it in place of `dataUrl`, which a custom shape still needs. |
 
 ## Shapes
 

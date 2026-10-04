@@ -144,7 +144,6 @@ For pages that allow a script tag but not an npm install. It turns every element
 | `theme` | `light` |  | Switches the glow and grid to a palette for light pages, and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. |
 | `plugin` | `figma` |  | The old Figma plugin's picker shell. Not for embeds. |
 | `c` | a config, URL encoded |  | Layered last, over the look and the parameters above. See Passing a design. |
-| `locale` | `es`, `fr`, `de`, `zh`, `ar` or `pt` |  | Language for country names. |
 
 ## Passing a design
 
@@ -164,7 +163,7 @@ For pages that allow a script tag but not an npm install. It turns every element
 
 ## Check it renders
 
-Rendering needs WebGL 2. Run the project's dev server and look at the page, or take a screenshot of the embed address with a headless browser. Headless Chromium has no GPU, so give it software GL, as Globestudio's own browser tests do:
+Rendering needs WebGL 2. Run the project's dev server and look at the page. When the project already has Playwright, a screenshot of the embed address works too; don't install a browser for this, and if you can do neither, say the render wasn't checked. Headless Chromium has no GPU, so give it software GL, as Globestudio's own browser tests do:
 
 ```js
 import { chromium } from "playwright";
