@@ -8,6 +8,9 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ### Added
 
+- A Gemini CLI extension. `gemini extensions install
+  https://github.com/alevizio/globestudio` adds the agent skill and the
+  hosted MCP server, from `gemini-extension.json` at the repo root.
 - The Globestudio agent skill, in `skills/globestudio`. It teaches coding
   agents such as Claude Code, Codex and Cursor how a design travels in a
   link, how to embed one with the packages or an iframe, and which look fits

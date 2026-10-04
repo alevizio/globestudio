@@ -309,6 +309,25 @@ describe("the Claude Code plugin", () => {
   });
 });
 
+// Gemini CLI installs a repo as an extension from gemini-extension.json and
+// loads every skills/<name>/SKILL.md beside it on its own.
+describe("the Gemini CLI extension", () => {
+  const gemini = JSON.parse(readFileSync(resolve(repoRoot, "gemini-extension.json"), "utf8"));
+
+  it("is named after the skill and bundles the hosted MCP server over streamable HTTP", () => {
+    expect(gemini.name).toBe(fields.name);
+    expect(gemini.mcpServers).toEqual({ globestudio: { httpUrl: MCP_URL } });
+    expect(gemini.version).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+
+  it("ships nothing else Gemini would load from the repo root", () => {
+    expect(gemini.contextFileName).toBeUndefined();
+    for (const folder of ["commands", "agents", "hooks", "policies"]) {
+      expect(existsSync(resolve(repoRoot, folder)), folder).toBe(false);
+    }
+  });
+});
+
 describe("the install commands", () => {
   const marketplace = JSON.parse(read(".claude-plugin/marketplace.json"));
   const [plugin] = marketplace.plugins;
