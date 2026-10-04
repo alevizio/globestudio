@@ -3,7 +3,9 @@ name: globestudio
 description: "Creates, edits and embeds dotted world maps and animated 3D globes with Globestudio (globestudio.app), a free open source studio with 21 looks. Use when the user wants a dotted map, a dotted or 3D globe, a spinning earth or a stylized world map for a website hero, background, slide, social post or video; when they paste a globestudio.app link or a ?c= config; or when code uses @globestudio/react, @globestudio/element, the globe-studio web component or globestudio.app/embed. Also use it to highlight a country, continent or region, plot points and arcs, match brand colors, or prepare PNG, SVG, MP4, WebM or GIF exports, even if the user never names Globestudio. Not for interactive tiled maps, routing, geocoding or GIS analysis (Mapbox, MapLibre, deck.gl), or for ordinary charts."
 license: MIT
 metadata:
+  author: alevizio
   version: "1.0.0"
+  mcp-server: globestudio
 ---
 
 # Globestudio
@@ -158,6 +160,21 @@ export const Hero = () => (
 - Hand back a studio link, `https://globestudio.app/looks/<id>?c=...`, with one sentence on what it shows. Offer embed code if the user has a site.
 - You can't render or export an image from chat. Never say you made one. Exports happen in the studio: open the link and press D for the export dialog.
 - Prefer the studio link to a config file. A file carries no look, so it must hold the whole design: on import, the nested settings it leaves out get the app defaults. Write it with `"$schema": "https://globestudio.app/schema/config.json"`; the user imports it in the export dialog's Share tab.
+
+## Examples
+
+- The user says "add a spinning dotted globe of our offices in Austin, Berlin and Singapore to the hero" in a Next.js project. Inspect the page, install `@globestudio/react`, keep a config with `"selection": "world"` and the three offices as `globeSettings.dataPoints` coordinates in a named constant, and render `<Globe>` with a `title` and a height. The hero then shows a spinning globe with three markers.
+- The user pastes a globestudio.app link and asks to make it calmer, with the MCP tools connected. Call `read_share_url`, then `build_share_url` with that link as `share_url` and lower `shaderSettings.motion` and `globeSettings.autoSpinSpeed`. Hand back the new link and say what changed, after checking `ignored` is empty.
+- The user asks in chat for "a dotted map of Japan in our brand green for a slide". Build `/looks/default?c=` with `"selection": "country:JPN"`, the green as `dotColor` and `"viewMode": "flat"`, hand back the link, and tell them to open it and press D to export a PNG.
+
+## Troubleshooting
+
+- The globe is blank: the viewer's browser has no WebGL 2, or the address is wrong. Open the same `/embed` address in a desktop browser; if it draws there, the device is the cause.
+- The site refuses the address, or the globe never loads: the address is over 32,000 characters. Drop the custom shape image or trim the data points.
+- A region or color didn't change: the key was dropped. Check it against [references/config.md](references/config.md) (uppercase alpha-3 codes, a look whose Dot color is kept), or read `ignored` in the MCP result.
+- `<Globe>` or `<globe-studio>` shows Default instead of its look: the package is 0.1.0. Update it to 0.1.1 or later.
+- The Globestudio MCP tools aren't listed: the server isn't connected. Build the link yourself, and give the user the connect command from With the MCP server if they'll keep making designs.
+- White dots vanish on a light page: the look paints its own white ink (Halftone, Wireframe, Toon, Threshold). Give it a solid dark `background`, use `theme=light` in a plain iframe, or pick a look that keeps `dotColor`.
 
 ## Exports
 
