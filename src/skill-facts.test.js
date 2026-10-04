@@ -9,6 +9,8 @@ import {
   INK,
   SKILL_REFERENCES_DIR,
   buildSkillReferences,
+  ELEMENT_VERSION,
+  PACKAGES_FLOOR,
   embedFallbacks,
   inkLooks,
   lookDotColor,
@@ -197,6 +199,20 @@ describe("SKILL.md", () => {
   it("states the embed address limit and the data point cap", () => {
     expect(body).toContain(`under ${LIMIT}`);
     expect(body).toContain(`Data points are at most ${MAX_POINTS}`);
+  });
+
+  it("pins the element's current version and asks for the packages' fixed one", () => {
+    const parts = (version) => version.split(".").map(Number);
+    const atLeast = (have, floor) => {
+      for (const [index, part] of have.entries()) if (part !== floor[index]) return part > floor[index];
+      return true;
+    };
+    for (const path of ["packages/react/package.json", "packages/web-component/package.json"]) {
+      expect(atLeast(parts(JSON.parse(read(path)).version), parts(PACKAGES_FLOOR)), path).toBe(true);
+    }
+    expect(body).toContain(`https://esm.sh/@globestudio/element@${ELEMENT_VERSION}`);
+    expect(body).not.toMatch(/esm\.sh\/@globestudio\/element["\s]/);
+    expect(body).toContain(`Both packages need ${PACKAGES_FLOOR} or later`);
   });
 
   it("states the density and dot size an embed draws when nothing sets them", () => {

@@ -134,7 +134,8 @@ To connect the hosted server, which needs no account or key: `claude mcp add --t
 2. Pick the embed. Details, props and attributes are in [references/embedding.md](references/embedding.md).
    - React, Next.js, Remix, or Astro with React: `npm install @globestudio/react` and `<Globe>`. It renders a plain iframe, so it works in a server component; pass `onLoad` or a ref only from a client component.
    - Vue, Svelte, Solid, Angular, Astro or HTML with a bundler: `npm install @globestudio/element`, `import "@globestudio/element"` in client code, then `<globe-studio>`. The element only draws in the browser, so under server rendering load it on the client.
-   - No build step: `<script type="module" src="https://esm.sh/@globestudio/element"></script>`.
+   - No build step: `<script type="module" src="https://esm.sh/@globestudio/element@0.1.1"></script>`, pinned so the page runs the version you chose.
+   - Both packages need 0.1.1 or later: 0.1.0 drops `look` whenever `config` is set, so the globe shows Default. When a `<Globe>` or `<globe-studio>` ignores its look, check the version in `package.json` first.
    - Webflow, Framer, WordPress, Notion or another CMS: an iframe of the `/embed` address, or embed.js where scripts are allowed.
 3. Keep the design in a named constant or a JSON file, not a long inline string, and pass `JSON.stringify` of it as `config`. With a `look`, the config only holds the changes.
 4. Set `title` to say what the globe shows, for screen readers. Keep `loading="lazy"` for a globe below the fold.

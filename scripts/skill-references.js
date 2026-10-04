@@ -486,6 +486,11 @@ const embedParams = () => {
 
 // A look that keeps dotColor (see DOT_COLOR), so the example looks as it reads.
 const EXAMPLE_LOOK = "crt";
+// The element's version in packages/web-component/package.json, pinned in the
+// script tag a page loads.
+export const ELEMENT_VERSION = JSON.parse(read("packages/web-component/package.json")).version;
+// 0.1.0 of both packages dropped look whenever config was set.
+export const PACKAGES_FLOOR = "0.1.1";
 const EXAMPLE_DESIGN = { v: 2, selection: "continent:Europe", dotColor: "#7dd3fc" };
 // The design as a JavaScript object literal.
 const literal = (object) => `{ ${Object.entries(object).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join(", ")} }`;
@@ -526,7 +531,7 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 
 ## React: @globestudio/react
 
-${code("npm install @globestudio/react")}. ${code("<Globe>")} renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component pass only serializable props; ${code("onLoad")} or a ref needs a client component.
+${code("npm install @globestudio/react")}, ${PACKAGES_FLOOR} or later: 0.1.0 dropped ${code("look")} whenever ${code("config")} was set, so a config of changes embedded over Default. ${code("<Globe>")} renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component pass only serializable props; ${code("onLoad")} or a ref needs a client component.
 
 ${table(["Prop", "Type", "Default", "Notes"], reactProps())}
 
@@ -542,14 +547,14 @@ export const Hero = () => (
 
 ## Web component: @globestudio/element
 
-${code("npm install @globestudio/element")}, then ${code('import "@globestudio/element"')}, which registers ${code("<globe-studio>")}. The import is safe on a server, but the element only draws in the browser, so under server rendering (Nuxt, SvelteKit, Astro) load it in client code. ${code("defineGlobeStudio(tag)")} registers it under another tag name.
+${code("npm install @globestudio/element")}, ${PACKAGES_FLOOR} or later for the same reason, then ${code('import "@globestudio/element"')}, which registers ${code("<globe-studio>")}. The import is safe on a server, but the element only draws in the browser, so under server rendering (Nuxt, SvelteKit, Astro) load it in client code. ${code("defineGlobeStudio(tag)")} registers it under another tag name.
 
 ${table(["Attribute", "Default"], elementAttributes())}
 
-With no build step:
+With no build step, load a pinned version, so the page runs code you chose:
 
 \`\`\`html
-<script type="module" src="https://esm.sh/@globestudio/element"></script>
+<script type="module" src="https://esm.sh/@globestudio/element@${ELEMENT_VERSION}"></script>
 <globe-studio look="${EXAMPLE_LOOK}" config='${JSON.stringify(EXAMPLE_DESIGN)}' height="480" title="Dotted globe of Europe"></globe-studio>
 \`\`\`
 

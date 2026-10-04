@@ -29,7 +29,7 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 
 ## React: @globestudio/react
 
-`npm install @globestudio/react`. `<Globe>` renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component pass only serializable props; `onLoad` or a ref needs a client component.
+`npm install @globestudio/react`, 0.1.1 or later: 0.1.0 dropped `look` whenever `config` was set, so a config of changes embedded over Default. `<Globe>` renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component pass only serializable props; `onLoad` or a ref needs a client component.
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
@@ -56,7 +56,7 @@ export const Hero = () => (
 
 ## Web component: @globestudio/element
 
-`npm install @globestudio/element`, then `import "@globestudio/element"`, which registers `<globe-studio>`. The import is safe on a server, but the element only draws in the browser, so under server rendering (Nuxt, SvelteKit, Astro) load it in client code. `defineGlobeStudio(tag)` registers it under another tag name.
+`npm install @globestudio/element`, 0.1.1 or later for the same reason, then `import "@globestudio/element"`, which registers `<globe-studio>`. The import is safe on a server, but the element only draws in the browser, so under server rendering (Nuxt, SvelteKit, Astro) load it in client code. `defineGlobeStudio(tag)` registers it under another tag name.
 
 | Attribute | Default |
 |---|---|
@@ -68,10 +68,10 @@ export const Hero = () => (
 | `title` | `Globestudio dotted globe` |
 | `loading` | `lazy` |
 
-With no build step:
+With no build step, load a pinned version, so the page runs code you chose:
 
 ```html
-<script type="module" src="https://esm.sh/@globestudio/element"></script>
+<script type="module" src="https://esm.sh/@globestudio/element@0.1.1"></script>
 <globe-studio look="crt" config='{"v":2,"selection":"continent:Europe","dotColor":"#7dd3fc"}' height="480" title="Dotted globe of Europe"></globe-studio>
 ```
 
