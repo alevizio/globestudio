@@ -277,6 +277,12 @@ describe("the Claude Code plugin", () => {
   it("bundles the hosted MCP server", () => {
     expect(plugin.mcpServers).toEqual({ globestudio: { type: "http", url: MCP_URL } });
   });
+
+  it("has its tools named in SKILL.md as Claude Code names them, from the plugin and from claude mcp add", () => {
+    const [server] = Object.keys(plugin.mcpServers);
+    expect(body).toContain(`mcp__plugin_${plugin.name}_${server}__build_share_url`);
+    expect(body).toContain(`mcp__${server}__build_share_url`);
+  });
 });
 
 describe("the install commands", () => {

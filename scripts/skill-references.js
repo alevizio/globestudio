@@ -592,6 +592,7 @@ ${table(["Parameter", "Takes", "Default", "Notes"], [
 - ${code("config")} (the packages) and ${code("c")} (the address) take the design's JSON. Give the packages the JSON string, ${code("JSON.stringify(design)")}; they encode it. In an address, encode it once with ${code("encodeURIComponent")}.
 - With a look, the config changes only the keys it names and the look keeps the rest, except that an embed draws ${EMBED_FALLBACKS} unless the address or the config sets them. Alone, the config goes over Default.
 - A config with ${code("version")}, as the studio writes, is a whole design: inside ${code("shaderSettings")}, ${code("globeSettings")}, ${code("spaceSettings")} and ${code("flowSettings")} the keys it leaves out get the app defaults, even with a look.
+- From the MCP server's ${code("build_share_url")}, give a package the result's ${code("look")} and ${code("JSON.stringify")} of its ${code("config")}, not the ${code("c")} of its ${code("embed_url")}: that address carries the region, the colors and the density as their own parameters, so its ${code("c")} can lack them.
 - The address must stay under ${number(EMBED_URL_MAX)} characters, so check the length of ${code(`${SITE}/embed?c=`)} plus the encoded config. A custom shape file or a long list of data points is what goes over.
 
 ## Light pages, transparency and size

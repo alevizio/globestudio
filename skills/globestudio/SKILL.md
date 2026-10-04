@@ -20,7 +20,7 @@ Three addresses matter:
 
 Look at what you have before you start.
 
-1. The Globestudio MCP tools are connected (a `globestudio` server with `build_share_url` and `read_share_url`): use them. See With the MCP server.
+1. The Globestudio MCP tools are connected (`build_share_url` and `read_share_url` on a server whose name contains `globestudio`): use them. See With the MCP server.
 2. You are in a code project (files, a `package.json`, HTML pages) and the globe goes on a page: inspect the project first, then see In a code project.
 3. You only have chat: build the link yourself and hand it back. See In chat.
 
@@ -117,16 +117,16 @@ Dot color: kept shows `dotColor` and `dotGradient` as set, changed shifts them, 
 
 ## With the MCP server
 
-The tools are on the server named `globestudio` (in Claude Code they show as `mcp__globestudio__build_share_url` and so on).
+The tools are on a server whose name contains `globestudio`. In Claude Code they show as `mcp__globestudio__build_share_url` and so on after `claude mcp add`, or as `mcp__plugin_globestudio_globestudio__build_share_url` from the Globestudio plugin.
 
 - Pick a look with `find_presets` and a vibe word ("print", "synthwave", "sonar"), or `list_presets` for all of them.
 - For a link the user pastes, call `read_share_url` first, then `build_share_url` with `share_url` set to that link and only the settings to change. Building from scratch loses what the link had.
 - For a new design, call `build_share_url` with `look` and the changes: `selection`, `dotColor`, `background`, `density`, `shape`, and any other key under `config`.
 - Read `ignored` in every result. Each key listed was dropped: fix it from [references/config.md](references/config.md), or tell the user.
-- For a design with changes, embed the returned `embed_url` in an iframe or pass its config to a package. `embed_snippet` only embeds a look as it ships. `preview_url` gives a look's thumbnail and live embed.
+- For a design with changes, put the returned `embed_url` in an iframe, or give a package the result's `look` and `JSON.stringify` of its `config`. Don't pass the `c` of `embed_url` to a package: that address carries the region, colors and density as their own parameters, so its `c` can lack them. `embed_snippet` only embeds a look as it ships. `preview_url` gives a look's thumbnail and live embed.
 - `build_share_url` refuses a `look` together with a link the studio wrote, since that link holds every setting. To switch looks, start from the new look and pass the settings to keep.
 
-To connect the hosted server, which needs no account or key: `claude mcp add --transport http globestudio https://globestudio.app/mcp` in Claude Code, `codex mcp add globestudio --url https://globestudio.app/mcp` in Codex, or https://globestudio.app/mcp as a custom connector in the Claude app. Suggest it when the user will keep making designs; it isn't needed for one link.
+To connect the hosted server, which needs no account or key: `claude mcp add --transport http globestudio https://globestudio.app/mcp` in Claude Code, `codex mcp add globestudio --url https://globestudio.app/mcp` in Codex, or https://globestudio.app/mcp as a custom connector in the Claude app. Suggest it when the user will keep making designs; it isn't needed for one link. Skip it when the tools are already listed, as they are with the Globestudio plugin, or the user gets the same tools twice.
 
 ## In a code project
 

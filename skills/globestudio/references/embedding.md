@@ -151,6 +151,7 @@ For pages that allow a script tag but not an npm install. It turns every element
 - `config` (the packages) and `c` (the address) take the design's JSON. Give the packages the JSON string, `JSON.stringify(design)`; they encode it. In an address, encode it once with `encodeURIComponent`.
 - With a look, the config changes only the keys it names and the look keeps the rest, except that an embed draws density 40, dot size 10, a near black page in place of a solid background color, and no transparency unless the address or the config sets them. Alone, the config goes over Default.
 - A config with `version`, as the studio writes, is a whole design: inside `shaderSettings`, `globeSettings`, `spaceSettings` and `flowSettings` the keys it leaves out get the app defaults, even with a look.
+- From the MCP server's `build_share_url`, give a package the result's `look` and `JSON.stringify` of its `config`, not the `c` of its `embed_url`: that address carries the region, the colors and the density as their own parameters, so its `c` can lack them.
 - The address must stay under 32,000 characters, so check the length of `https://globestudio.app/embed?c=` plus the encoded config. A custom shape file or a long list of data points is what goes over.
 
 ## Light pages, transparency and size
