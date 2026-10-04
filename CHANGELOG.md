@@ -57,6 +57,16 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ### Fixed
 
+- An embed with a look draws the look as the studio does: its density,
+  dot size, background and transparency, where the address and the config
+  leave them out. It drew density 40 and dot size 10 on a near black page
+  whatever the look, and Wireframe on that page rather than see-through.
+  This covers `/embed?look=…`, the packages' `look` prop and embed.js
+  `data-look`. Values the address or the config set still win, and a
+  background color set either way keeps Wireframe's page solid. Embeds
+  with no look, and designs copied from the studio, which carry every
+  value, draw as before. Look-only embeds on other sites change on deploy,
+  with no package upgrade, toward the look as designed.
 - A look link that sets only some of the shader, globe, Space or Flow
   settings, as MCP links and hand written links do, keeps the rest of the
   look, in the studio and in embeds. A Sonar link with data points used to
