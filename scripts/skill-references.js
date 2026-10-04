@@ -68,6 +68,54 @@ const KNOB_SETS = [
 const knobsFor = (effect) =>
   effect === "none" ? [] : ["intensity", ...KNOB_SETS.filter(([, set]) => set.has(effect)).map(([knob]) => knob), "grain"];
 
+// What each effect's shader does with dotColor and dotGradient, read from
+// src/three/post-effects.js. The INK ones return the theme's ink (uInk:
+// white, graphite with theme=light) in place of the source color, and
+// skill-facts.test.js holds that set to the shader. An effect with no entry
+// stops the build.
+export const INK = "ignored: white ink, graphite with `theme=light`";
+export const DOT_COLOR = {
+  none: "kept",
+  bloom: "kept",
+  chromatic: "kept",
+  crt: "kept",
+  halftone: INK,
+  pixel: "kept",
+  threshold: INK,
+  glitch: "kept",
+  edge: INK,
+  wave: "kept",
+  metal: "ignored: chrome",
+  pencil: "ignored: graphite on paper",
+  toon: INK,
+  stripes: "kept",
+  badtv: "kept",
+  rgb: "kept",
+  chroma: "kept",
+  corrupt: "changed: snapped to pure RGB colors",
+  bayer: "kept",
+  iridescent: "changed: light colors turn to a shifting foil hue",
+  risograph: "changed: light colors turn to pink and cyan ink",
+  newsprint: "ignored: a CMYK print on white paper",
+  aurora: "changed: green, cyan and magenta bands over it",
+  atkinson: "kept",
+  ascii: INK,
+};
+const effectDotColor = (effect) => {
+  if (!DOT_COLOR[effect]) throw new Error(`DOT_COLOR in scripts/skill-references.js has no entry for the effect ${effect}`);
+  return DOT_COLOR[effect];
+};
+const lookEffect = (look) => look.settings.shaderSettings.effect ?? "none";
+// A look that draws solid land has no dots to color.
+export const lookDotColor = (look) =>
+  look.settings.renderMode === "solid" ? "no dots: solid land, colored by `worldFill`" : effectDotColor(lookEffect(look));
+// The looks whose shader paints the theme's ink over the dots.
+export const inkLooks = () => lookPresets.filter((look) => lookDotColor(look) === INK);
+const names = (looks) => {
+  const all = looks.map((look) => look.name);
+  return all.length > 1 ? `${all.slice(0, -1).join(", ")} and ${all.at(-1)}` : all.join("");
+};
+
 // ---- looks.md --------------------------------------------------------------
 
 const describeDots = (settings) =>
@@ -89,7 +137,7 @@ const buildLooks = () => {
   );
   const sections = lookPresets.map((look) => {
     const { settings } = look;
-    const effect = settings.shaderSettings.effect ?? "none";
+    const effect = lookEffect(look);
     const knobs = knobsFor(effect);
     const shader = effect === "none"
       ? "none"
@@ -103,6 +151,7 @@ const buildLooks = () => {
       `- Studio: ${SITE}/looks/${look.id}`,
       `- Embed: ${SITE}/embed?look=${look.id}`,
       `- Effect: ${shader}`,
+      `- Dot color: ${lookDotColor(look)}`,
       `- Map: ${describeDots(settings)}`,
       `- Background: ${describeBackground(settings)}`,
       `- Globe: glow ${onOff(globe.glow)}, grid ${onOff(globe.grid)}, network ${onOff(globe.network)}`,
@@ -121,6 +170,8 @@ These ids differ from the effect they run: ${differing
     .map((look) => `${code(look.id)} (${look.name}) runs ${code(look.settings.shaderSettings.effect)}`)
     .join(", ")}. Put the look id in the address and the effect id in ${code("shaderSettings.effect")}.
 
+Dot color says what the look's shader does with ${code("dotColor")} and ${code("dotGradient")}. Only a look that keeps them can show a brand color. ${names(inkLooks())} paint white ink whatever the config sets, or graphite with ${code("theme=light")} on an ${code("/embed")} address and in the studio's light theme. Halftone also fills the whole globe with its dots, so a selected country stands out only in the flat view.
+
 ## Contents
 
 - All looks: one line each
@@ -129,12 +180,13 @@ These ids differ from the effect they run: ${differing
 ## All looks
 
 ${table(
-  ["id", "Name", "Blurb", "Effect", "Shape", "Background"],
+  ["id", "Name", "Blurb", "Effect", "Dot color", "Shape", "Background"],
   lookPresets.map((look) => [
     code(look.id),
     look.name,
     look.blurb,
-    code(look.settings.shaderSettings.effect ?? "none"),
+    code(lookEffect(look)),
+    lookDotColor(look),
     look.settings.renderMode === "solid" ? "solid land" : look.settings.shape,
     describeBackground(look.settings),
   ]),
@@ -249,11 +301,11 @@ ${nestedSection("shaderSettings")}
 
 ### Knobs each effect reads
 
-Every effect reads intensity and grain; the others only where listed. ${code("none")} draws no shader pass.
+Every effect reads intensity and grain; the others only where listed. ${code("none")} draws no shader pass. Dot color says what the effect does with ${code("dotColor")} and ${code("dotGradient")}.
 
 ${table(
-  ["Effect", "Label", "Knobs"],
-  shaderEffectOptions.map(({ value, label }) => [code(value), label, list(knobsFor(value))]),
+  ["Effect", "Label", "Knobs", "Dot color"],
+  shaderEffectOptions.map(({ value, label }) => [code(value), label, list(knobsFor(value)), effectDotColor(value)]),
 )}
 
 ${nestedSection("globeSettings")}
@@ -383,7 +435,7 @@ const EMBED_PARAMS = {
   source: { takes: "text", notes: "Analytics tag, sent back in the resize message." },
   background: { takes: "hex, `#` optional, or `transparent`", notes: "Page color behind the canvas. Without it the page takes the config's solid background, if any." },
   transparent: { notes: "`1` makes the page see-through, to sit on the host page." },
-  theme: { takes: "`light`", notes: "Switches the glow and grid to a palette for light pages." },
+  theme: { takes: "`light`", notes: `Switches the glow and grid to a palette for light pages, and turns the white ink of ${names(inkLooks())} graphite.` },
   plugin: { takes: "`figma`", notes: "The old Figma plugin's picker shell. Not for embeds." },
 };
 
@@ -408,12 +460,14 @@ const embedParams = () => {
   });
 };
 
-const EXAMPLE_DESIGN = { v: 2, selection: "continent:Europe", dotColor: "#f6f2ea" };
+// A look that keeps dotColor (see DOT_COLOR), so the example looks as it reads.
+const EXAMPLE_LOOK = "crt";
+const EXAMPLE_DESIGN = { v: 2, selection: "continent:Europe", dotColor: "#7dd3fc" };
 // The design as a JavaScript object literal.
 const literal = (object) => `{ ${Object.entries(object).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join(", ")} }`;
 
 const buildEmbedding = () => {
-  const exampleUrl = buildEmbedUrl({ look: "halftone", config: JSON.stringify(EXAMPLE_DESIGN) });
+  const exampleUrl = buildEmbedUrl({ look: EXAMPLE_LOOK, config: JSON.stringify(EXAMPLE_DESIGN) });
   return `# Embedding Globestudio
 
 ${generated("packages/react/src/index.tsx, packages/web-component/index.js, public/embed.js, src/components/embed-view.jsx and src/utils/embed-snippets.js")}
@@ -458,7 +512,7 @@ import { Globe } from "@globestudio/react";
 const HERO_GLOBE = ${literal(EXAMPLE_DESIGN)};
 
 export const Hero = () => (
-  <Globe look="halftone" config={JSON.stringify(HERO_GLOBE)} height={520} title="Dotted globe of Europe" />
+  <Globe look="${EXAMPLE_LOOK}" config={JSON.stringify(HERO_GLOBE)} height={520} title="Dotted globe of Europe" />
 );
 \`\`\`
 
@@ -472,7 +526,7 @@ With no build step:
 
 \`\`\`html
 <script type="module" src="https://esm.sh/@globestudio/element"></script>
-<globe-studio look="halftone" config='${JSON.stringify(EXAMPLE_DESIGN)}' height="480" title="Dotted globe of Europe"></globe-studio>
+<globe-studio look="${EXAMPLE_LOOK}" config='${JSON.stringify(EXAMPLE_DESIGN)}' height="480" title="Dotted globe of Europe"></globe-studio>
 \`\`\`
 
 ## Plain iframe
@@ -488,7 +542,7 @@ With no build step:
 ></iframe>
 \`\`\`
 
-That address is what the packages build for ${code('look="halftone"')} and the config above.
+That address is what the packages build for ${code(`look="${EXAMPLE_LOOK}"`)} and the config above.
 
 ## Script loader: embed.js
 
@@ -518,7 +572,8 @@ ${table(["Parameter", "Takes", "Default", "Notes"], [
 
 ## Light pages, transparency and size
 
-- The packages send only the look, the config and ${code("source")}. Make the design suit the page in its config: a light ${code("background")} with dark dots, or ${code("\"backgroundStyle\": \"transparent\"")}.
+- The packages send only the look, the config and ${code("source")}, never ${code("theme")}. Make the design suit the page in its config: a light ${code("background")} with a dark ${code("dotColor")} on a look that keeps it (see Dot color in looks.md), or ${code("\"backgroundStyle\": \"transparent\"")} with dots that show on the page.
+- ${names(inkLooks())} paint white ink whatever ${code("dotColor")} says, so on a light page a transparent one all but disappears. With the packages, give them a solid dark ${code("background")}; in a plain iframe, ${code("theme=light")} turns their ink graphite.
 - In a plain iframe, ${code("theme=light")} also switches the glow and grid to a palette for light pages, and ${code("transparent=1")} or ${code("background=transparent")} lets the page show through.
 - Give the iframe or its container an explicit height; the packages default to 480 px. The embed posts ${code("{ type: \"globestudio-resize\", height, source }")} to the parent page, which embed.js uses to size elements that have no height of their own.
 - Set ${code("title")} to say what the globe shows, for screen readers, and keep ${code("loading=\"lazy\"")} for globes below the fold.

@@ -4,12 +4,13 @@ import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { SKILL_REFERENCES_DIR, buildSkillReferences } from "../scripts/skill-references.js";
+import { DOT_COLOR, INK, SKILL_REFERENCES_DIR, buildSkillReferences, inkLooks, lookDotColor } from "../scripts/skill-references.js";
 import { AgentShare } from "./components/agent-share.jsx";
 import { dotShapeOptions } from "./config/constants.js";
 import { shaderEffectOptions } from "./config/shader-effects.js";
 import { continentOptions, subregionOptions } from "./data/geography.js";
 import { lookPresets } from "./data/look-presets.js";
+import { EFFECT_INDEX } from "./three/post-effects.js";
 import { MCP_URL } from "./utils/agent-prompt.js";
 import { EMBED_URL_MAX } from "./utils/embed-snippets.js";
 import { parseShareConfig } from "./utils/share-config.js";
@@ -24,6 +25,28 @@ const MAX_POINTS = schema.properties.globeSettings.properties.dataPoints.maxItem
 const groupName = (option) => option.label.replace(/ \((Continent|Subregion)\)$/, "");
 const SKILL_DIR = "skills/globestudio";
 const LIMIT = `${EMBED_URL_MAX.toLocaleString("en-US")} characters`;
+
+describe("what each look does with the dot color", () => {
+  it("has an entry for every effect", () => {
+    expect(Object.keys(DOT_COLOR).sort()).toEqual(shaderEffectOptions.map(({ value }) => value).sort());
+  });
+
+  it("calls ink exactly the effects whose shader returns the theme's ink", () => {
+    const shader = read("src/three/post-effects.js");
+    // main() picks the pass whose EFFECT_INDEX uEffect falls on.
+    const passes = new Map(
+      [...shader.matchAll(/uEffect > (\d+)\.5 && uEffect < \d+\.5\) \{\s*color = (\w+)\(vUv\)/g)].map(
+        ([, below, pass]) => [Number(below) + 1, pass],
+      ),
+    );
+    const body = (pass) => shader.match(new RegExp(`vec4 ${pass}\\(vec2 uv\\) \\{([\\s\\S]*?)\\n  \\}\\n`))[1];
+    const ink = Object.entries(EFFECT_INDEX)
+      .filter(([, index]) => passes.has(index) && /return vec4\(uInk\b/.test(body(passes.get(index))))
+      .map(([effect]) => effect);
+    expect(ink.length).toBeGreaterThan(0);
+    expect(Object.keys(DOT_COLOR).filter((effect) => DOT_COLOR[effect] === INK).sort()).toEqual(ink.sort());
+  });
+});
 
 describe("the skill's reference files", () => {
   const built = buildSkillReferences();
@@ -70,7 +93,9 @@ const parseFrontmatter = (text) => {
   const fields = {};
   let parent = null;
   for (const line of text.split("\n")) {
-    const [, indent, key, raw] = line.match(/^( *)([\w-]+):\s*(.*)$/);
+    const match = line.match(/^( *)([\w-]+):\s*(.*)$/);
+    if (!match) throw new Error(`SKILL.md frontmatter line not understood: ${JSON.stringify(line)}`);
+    const [, indent, key, raw] = match;
     const value = raw.startsWith('"') ? JSON.parse(raw) : raw;
     if (indent) fields[parent][key] = value;
     else if (raw === "") fields[(parent = key)] = {};
@@ -125,8 +150,13 @@ describe("SKILL.md", () => {
     expect(body.split("\n").length).toBeLessThanOrEqual(500);
   });
 
-  it("names every look with its id and the studio's name and blurb", () => {
-    for (const { id, name, blurb } of lookPresets) expect(body).toContain(`| \`${id}\` | ${name} | ${blurb} |`);
+  it("names every look with its id, the studio's name and blurb, and what it does with the dot color", () => {
+    for (const look of lookPresets) {
+      const dotColor = lookDotColor(look).split(":")[0];
+      expect(body).toContain(`| \`${look.id}\` | ${look.name} | ${look.blurb} | ${dotColor} |`);
+    }
+    const ink = inkLooks().map((look) => look.name);
+    expect(body).toContain(`${ink.slice(0, -1).join(", ")} and ${ink.at(-1)} paint white ink`);
     expect(body).toContain("`topographic` is the look people see as Sonar");
     for (const { id, settings } of lookPresets) {
       const effect = settings.shaderSettings.effect;
@@ -137,7 +167,11 @@ describe("SKILL.md", () => {
 
   it("gives configs the app keeps whole", () => {
     const examples = [...body.matchAll(/```json\n([\s\S]*?)```/g)].map(([, text]) => JSON.parse(text));
-    expect(examples.length).toBeGreaterThan(0);
+    // The code example's constant, an object literal with bare keys.
+    for (const [, literal] of body.matchAll(/^const \w+ = (\{.*\});$/gm)) {
+      examples.push(JSON.parse(literal.replace(/([{,]\s*)(\w+):/g, '$1"$2":')));
+    }
+    expect(examples.length).toBeGreaterThan(2);
     for (const example of examples) {
       const { v, ...config } = example;
       expect(v).toBe(2);
@@ -177,6 +211,30 @@ describe("SKILL.md", () => {
 
   it("uses no em or en dashes", () => {
     expect(skill).not.toMatch(/[\u2013\u2014]/);
+  });
+
+  // Agents copy the examples first, and a look that paints its own ink shows
+  // none of the color an example sets.
+  it.each(["SKILL.md", "references/embedding.md"])("%s sets a dot color only on a look that keeps it", (path) => {
+    const text = read(`${SKILL_DIR}/${path}`);
+    const decode = (code) => {
+      try {
+        return decodeURIComponent(code);
+      } catch {
+        return code;
+      }
+    };
+    let checked = 0;
+    for (const { 0: block, index } of text.matchAll(/```\w*\n[\s\S]*?```/g)) {
+      if (!/dotColor|dotGradient/.test(decode(block))) continue;
+      // The look the code names, or else the /looks/<id> its caption names.
+      const id = block.match(/look[=:]\s*"?([a-z]+)/)?.[1] ?? [...text.slice(0, index).matchAll(/\/looks\/([a-z]+)/g)].at(-1)?.[1];
+      const look = lookPresets.find((preset) => preset.id === id);
+      expect(look, block).toBeDefined();
+      expect(lookDotColor(look), `${id} in ${block}`).toBe("kept");
+      checked += 1;
+    }
+    expect(checked).toBeGreaterThan(0);
   });
 });
 

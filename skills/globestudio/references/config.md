@@ -83,35 +83,35 @@ The shader pass. `effect` picks it; the other keys are knobs, and each effect re
 
 ### Knobs each effect reads
 
-Every effect reads intensity and grain; the others only where listed. `none` draws no shader pass.
+Every effect reads intensity and grain; the others only where listed. `none` draws no shader pass. Dot color says what the effect does with `dotColor` and `dotGradient`.
 
-| Effect | Label | Knobs |
-|---|---|---|
-| `none` | None |  |
-| `bloom` | Bloom | intensity, split, warp, motion, grain |
-| `chromatic` | Chromatic | intensity, split, warp, motion, grain |
-| `crt` | CRT | intensity, split, cellSize, scanlines, warp, motion, grain |
-| `halftone` | Halftone | intensity, cellSize, scanlines, motion, grain |
-| `pixel` | Pixel | intensity, cellSize, scanlines, grain |
-| `threshold` | Threshold | intensity, threshold, warp, motion, grain |
-| `glitch` | Glitch | intensity, split, scanlines, motion, grain |
-| `edge` | Edge | intensity, threshold, grain |
-| `wave` | Wave | intensity, split, warp, motion, grain |
-| `metal` | Metal | intensity, motion, grain |
-| `pencil` | Pencil | intensity, grain |
-| `toon` | Toon | intensity, grain |
-| `stripes` | Stripes | intensity, cellSize, motion, grain |
-| `badtv` | Bad TV | intensity, motion, grain |
-| `rgb` | RGB | intensity, motion, grain |
-| `chroma` | Chroma | intensity, motion, grain |
-| `corrupt` | Corrupt | intensity, cellSize, motion, grain |
-| `bayer` | Bayer dither | intensity, cellSize, grain |
-| `iridescent` | Iridescent | intensity, cellSize, motion, grain |
-| `risograph` | Risograph | intensity, split, cellSize, grain |
-| `newsprint` | Newsprint | intensity, cellSize, grain |
-| `aurora` | Aurora | intensity, cellSize, motion, grain |
-| `atkinson` | Atkinson dither | intensity, cellSize, grain |
-| `ascii` | ASCII | intensity, cellSize, grain |
+| Effect | Label | Knobs | Dot color |
+|---|---|---|---|
+| `none` | None |  | kept |
+| `bloom` | Bloom | intensity, split, warp, motion, grain | kept |
+| `chromatic` | Chromatic | intensity, split, warp, motion, grain | kept |
+| `crt` | CRT | intensity, split, cellSize, scanlines, warp, motion, grain | kept |
+| `halftone` | Halftone | intensity, cellSize, scanlines, motion, grain | ignored: white ink, graphite with `theme=light` |
+| `pixel` | Pixel | intensity, cellSize, scanlines, grain | kept |
+| `threshold` | Threshold | intensity, threshold, warp, motion, grain | ignored: white ink, graphite with `theme=light` |
+| `glitch` | Glitch | intensity, split, scanlines, motion, grain | kept |
+| `edge` | Edge | intensity, threshold, grain | ignored: white ink, graphite with `theme=light` |
+| `wave` | Wave | intensity, split, warp, motion, grain | kept |
+| `metal` | Metal | intensity, motion, grain | ignored: chrome |
+| `pencil` | Pencil | intensity, grain | ignored: graphite on paper |
+| `toon` | Toon | intensity, grain | ignored: white ink, graphite with `theme=light` |
+| `stripes` | Stripes | intensity, cellSize, motion, grain | kept |
+| `badtv` | Bad TV | intensity, motion, grain | kept |
+| `rgb` | RGB | intensity, motion, grain | kept |
+| `chroma` | Chroma | intensity, motion, grain | kept |
+| `corrupt` | Corrupt | intensity, cellSize, motion, grain | changed: snapped to pure RGB colors |
+| `bayer` | Bayer dither | intensity, cellSize, grain | kept |
+| `iridescent` | Iridescent | intensity, cellSize, motion, grain | changed: light colors turn to a shifting foil hue |
+| `risograph` | Risograph | intensity, split, cellSize, grain | changed: light colors turn to pink and cyan ink |
+| `newsprint` | Newsprint | intensity, cellSize, grain | ignored: a CMYK print on white paper |
+| `aurora` | Aurora | intensity, cellSize, motion, grain | changed: green, cyan and magenta bands over it |
+| `atkinson` | Atkinson dither | intensity, cellSize, grain | kept |
+| `ascii` | ASCII | intensity, cellSize, grain | ignored: white ink, graphite with `theme=light` |
 
 ## globeSettings
 

@@ -47,10 +47,10 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 ```jsx
 import { Globe } from "@globestudio/react";
 
-const HERO_GLOBE = { v: 2, selection: "continent:Europe", dotColor: "#f6f2ea" };
+const HERO_GLOBE = { v: 2, selection: "continent:Europe", dotColor: "#7dd3fc" };
 
 export const Hero = () => (
-  <Globe look="halftone" config={JSON.stringify(HERO_GLOBE)} height={520} title="Dotted globe of Europe" />
+  <Globe look="crt" config={JSON.stringify(HERO_GLOBE)} height={520} title="Dotted globe of Europe" />
 );
 ```
 
@@ -72,14 +72,14 @@ With no build step:
 
 ```html
 <script type="module" src="https://esm.sh/@globestudio/element"></script>
-<globe-studio look="halftone" config='{"v":2,"selection":"continent:Europe","dotColor":"#f6f2ea"}' height="480" title="Dotted globe of Europe"></globe-studio>
+<globe-studio look="crt" config='{"v":2,"selection":"continent:Europe","dotColor":"#7dd3fc"}' height="480" title="Dotted globe of Europe"></globe-studio>
 ```
 
 ## Plain iframe
 
 ```html
 <iframe
-  src="https://globestudio.app/embed?look=halftone&c=%7B%22v%22%3A2%2C%22selection%22%3A%22continent%3AEurope%22%2C%22dotColor%22%3A%22%23f6f2ea%22%7D"
+  src="https://globestudio.app/embed?look=crt&c=%7B%22v%22%3A2%2C%22selection%22%3A%22continent%3AEurope%22%2C%22dotColor%22%3A%22%237dd3fc%22%7D"
   width="100%"
   height="480"
   style="border: 0;"
@@ -88,7 +88,7 @@ With no build step:
 ></iframe>
 ```
 
-That address is what the packages build for `look="halftone"` and the config above.
+That address is what the packages build for `look="crt"` and the config above.
 
 ## Script loader: embed.js
 
@@ -141,7 +141,7 @@ For pages that allow a script tag but not an npm install. It turns every element
 | `static` | `1` or `0` | `0` | `1` holds every animation still, for design tool canvases and screenshots. |
 | `source` | text | `embed` | Analytics tag, sent back in the resize message. |
 | `transparent` | `1` or `0` | `0` | `1` makes the page see-through, to sit on the host page. |
-| `theme` | `light` |  | Switches the glow and grid to a palette for light pages. |
+| `theme` | `light` |  | Switches the glow and grid to a palette for light pages, and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. |
 | `plugin` | `figma` |  | The old Figma plugin's picker shell. Not for embeds. |
 | `c` | a config, URL encoded |  | Layered last, over the look and the parameters above. See Passing a design. |
 | `locale` | `es`, `fr`, `de`, `zh`, `ar` or `pt` |  | Language for country names. |
@@ -155,7 +155,8 @@ For pages that allow a script tag but not an npm install. It turns every element
 
 ## Light pages, transparency and size
 
-- The packages send only the look, the config and `source`. Make the design suit the page in its config: a light `background` with dark dots, or `"backgroundStyle": "transparent"`.
+- The packages send only the look, the config and `source`, never `theme`. Make the design suit the page in its config: a light `background` with a dark `dotColor` on a look that keeps it (see Dot color in looks.md), or `"backgroundStyle": "transparent"` with dots that show on the page.
+- Halftone, Wireframe, Toon and Threshold paint white ink whatever `dotColor` says, so on a light page a transparent one all but disappears. With the packages, give them a solid dark `background`; in a plain iframe, `theme=light` turns their ink graphite.
 - In a plain iframe, `theme=light` also switches the glow and grid to a palette for light pages, and `transparent=1` or `background=transparent` lets the page show through.
 - Give the iframe or its container an explicit height; the packages default to 480 px. The embed posts `{ type: "globestudio-resize", height, source }` to the parent page, which embed.js uses to size elements that have no height of their own.
 - Set `title` to say what the globe shows, for screen readers, and keep `loading="lazy"` for globes below the fold.
@@ -171,7 +172,7 @@ const browser = await chromium.launch({
   args: ["--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--use-angle=swiftshader"],
 });
 const page = await browser.newPage({ viewport: { width: 1200, height: 800 } });
-await page.goto("https://globestudio.app/embed?look=halftone&c=%7B%22v%22%3A2%2C%22selection%22%3A%22continent%3AEurope%22%2C%22dotColor%22%3A%22%23f6f2ea%22%7D&static=1");
+await page.goto("https://globestudio.app/embed?look=crt&c=%7B%22v%22%3A2%2C%22selection%22%3A%22continent%3AEurope%22%2C%22dotColor%22%3A%22%237dd3fc%22%7D&static=1");
 await page.locator("canvas").first().waitFor();
 await page.waitForTimeout(3000);
 await page.screenshot({ path: "globe.png" });

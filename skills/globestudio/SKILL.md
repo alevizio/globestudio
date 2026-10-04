@@ -28,7 +28,7 @@ If the project already draws globes or maps with cobe, globe.gl, D3, Mapbox or a
 
 ## Workflow
 
-1. Pick a look from the table below. Default is plain white dots; start there when the brief is about brand colors more than a style. For more on each look, read [references/looks.md](references/looks.md).
+1. Pick a look from the table below. Only a look whose Dot color is kept shows `dotColor` as set. Default is plain white dots that take any color; start there when the brief is about brand colors more than a style. For more on each look, read [references/looks.md](references/looks.md).
 2. Set the region with `selection`, even when it is `world`: `country:JPN`, `continent:Europe` or `subregion:Western Europe`.
 3. Set the dots and colors: `dotColor` or `dotGradient`, `background` or `"backgroundStyle": "transparent"`, `density`, `dotSize`, `shape`.
 4. Add data if there is any: `globeSettings.dataPoints`, and `dataArcs` to join them.
@@ -36,7 +36,7 @@ If the project already draws globes or maps with cobe, globe.gl, D3, Mapbox or a
 6. Check it: every key is one the app keeps ([references/config.md](references/config.md)), numbers are in range, and an embed address stays under 32,000 characters. With the MCP server, read the `ignored` array instead.
 7. Hand back the studio link, one sentence on what it shows, and embed code if the user has a site.
 
-The Halftone look over Japan in green, on a transparent background, goes on `/looks/halftone`:
+Japan in green on a transparent background goes on `/looks/default`:
 
 ```json
 {
@@ -69,33 +69,36 @@ Three cities joined by arcs, on `/looks/topographic`:
 
 ## Looks
 
-| id | Name | Feel |
-|---|---|---|
-| `default` | Default | Clean cartography |
-| `halftone` | Halftone | Newspaper print, browser-rendered |
-| `risograph` | Risograph | Pink + cyan ink, misregistered on purpose |
-| `newsprint` | Newsprint | CMYK, four plates, rotated like the pros |
-| `aurora` | Aurora | Northern-lights bands across the planet |
-| `pixel` | Pixel | An 8-bit world atlas |
-| `bayer` | Bayer | Classic-Mac threshold dither |
-| `atkinson` | Atkinson | Atkinson dither, sparser than Bayer |
-| `wireframe` | Wireframe | Edge-traced, like a hand pulled print |
-| `crt` | CRT | Cathode-ray phosphor glow |
-| `glitch` | Glitch | Signal break, RGB split |
-| `badtv` | Bad TV | Analog tape decay |
-| `bloom` | Bloom | Atmosphere on fire |
-| `metal` | Metal | Liquid chrome, soft reflections |
-| `iridescent` | Iridescent | Holographic foil sticker |
-| `pencil` | Pencil | Pencil-traced continents |
-| `corrupt` | Corrupt | Datamosh corruption, on purpose |
-| `toon` | Toon | Cel-shaded pop-art world |
-| `threshold` | Threshold | Pure two-tone binary |
-| `vapor` | Vapor | Synthwave horizon, pastel split |
-| `topographic` | Sonar | Rings on a sonar screen |
+Dot color: kept shows `dotColor` and `dotGradient` as set, changed shifts them, ignored paints the look's own ink or palette, and no dots means solid land, colored by `worldFill`.
+
+| id | Name | Feel | Dot color |
+|---|---|---|---|
+| `default` | Default | Clean cartography | kept |
+| `halftone` | Halftone | Newspaper print, browser-rendered | ignored |
+| `risograph` | Risograph | Pink + cyan ink, misregistered on purpose | changed |
+| `newsprint` | Newsprint | CMYK, four plates, rotated like the pros | ignored |
+| `aurora` | Aurora | Northern-lights bands across the planet | changed |
+| `pixel` | Pixel | An 8-bit world atlas | kept |
+| `bayer` | Bayer | Classic-Mac threshold dither | kept |
+| `atkinson` | Atkinson | Atkinson dither, sparser than Bayer | kept |
+| `wireframe` | Wireframe | Edge-traced, like a hand pulled print | ignored |
+| `crt` | CRT | Cathode-ray phosphor glow | kept |
+| `glitch` | Glitch | Signal break, RGB split | kept |
+| `badtv` | Bad TV | Analog tape decay | kept |
+| `bloom` | Bloom | Atmosphere on fire | no dots |
+| `metal` | Metal | Liquid chrome, soft reflections | ignored |
+| `iridescent` | Iridescent | Holographic foil sticker | changed |
+| `pencil` | Pencil | Pencil-traced continents | ignored |
+| `corrupt` | Corrupt | Datamosh corruption, on purpose | changed |
+| `toon` | Toon | Cel-shaded pop-art world | ignored |
+| `threshold` | Threshold | Pure two-tone binary | ignored |
+| `vapor` | Vapor | Synthwave horizon, pastel split | kept |
+| `topographic` | Sonar | Rings on a sonar screen | kept |
 
 ## Gotchas
 
 - `topographic` is the look people see as Sonar. Ask for `sonar` by id and you get an unknown look, which embeds as Default. Three look ids also differ from the effect they run: `wireframe` runs `edge`, `vapor` runs `chromatic` and `topographic` runs `wave`. Look ids go in the address, effect ids in `shaderSettings.effect`.
+- Halftone, Wireframe, Toon and Threshold paint white ink whatever `dotColor` or `dotGradient` says, because their shader draws the ink itself; `theme=light` on an `/embed` address turns it graphite. Metal, Pencil and Newsprint ignore the color too, and Risograph, Iridescent, Aurora and Corrupt change it. Put a brand color on a look whose Dot color is kept. Halftone also turns the whole globe into dots, so a selected country stands out only with `"viewMode": "flat"`.
 - Countries are `country:` plus an uppercase ISO 3166-1 alpha-3 code, like `country:JPN`. The app drops `country:jpn` and `country:JP` without a word, so the map doesn't show that country. Continents are Africa, Asia, Europe, North America, Oceania and South America; there is no Antarctica. Subregions and the small territories the map can't draw are in [references/config.md](references/config.md).
 - A US state is `"selection": "country:USA"` plus `"stateSelection": "CA"` (postal code) or `"06"` (FIPS code). Anything else is dropped.
 - URL-encode the JSON once with `encodeURIComponent`. A raw `#` in a hex color starts the address's fragment and cuts the config off.
@@ -135,16 +138,16 @@ To connect the hosted server, which needs no account or key: `claude mcp add --t
 3. Keep the design in a named constant or a JSON file, not a long inline string, and pass `JSON.stringify` of it as `config`. With a `look`, the config only holds the changes.
 4. Set `title` to say what the globe shows, for screen readers. Keep `loading="lazy"` for a globe below the fold.
 5. Give the container an explicit height. An iframe doesn't size itself, and the packages default to 480 px.
-6. On a light page, give the design a light `background` and dark dots, or a transparent background. In a plain iframe, `theme=light` also suits the glow and grid to a light page.
+6. On a light page, give the design a light `background` and a dark `dotColor` on a look that keeps it, or a transparent background with dots that show on the page. The packages never send `theme`, so there Halftone, Wireframe, Toon and Threshold need a solid dark `background`. In a plain iframe, `theme=light` turns their ink graphite and suits the glow and grid to a light page.
 7. Check that it renders: run the dev server and look, or take a headless screenshot of the `/embed` address (recipe in [references/embedding.md](references/embedding.md)). If you can do neither, say so rather than claim it works.
 
 ```jsx
 import { Globe } from "@globestudio/react";
 
-const HERO_GLOBE = { v: 2, selection: "continent:Europe", dotColor: "#f6f2ea" };
+const HERO_GLOBE = { v: 2, selection: "continent:Europe", dotColor: "#7dd3fc" };
 
 export const Hero = () => (
-  <Globe look="halftone" config={JSON.stringify(HERO_GLOBE)} height={520} title="Dotted globe of Europe" />
+  <Globe look="crt" config={JSON.stringify(HERO_GLOBE)} height={520} title="Dotted globe of Europe" />
 );
 ```
 
