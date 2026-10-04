@@ -36,7 +36,7 @@ In the app, the export dialog's Share tab writes a `<Globe config=… />` snippe
 | `look` | `LookId` | `"halftone"` | Autocomplete on every shipped preset |
 | `width` | `number \| string` | `"100%"` | A number means pixels |
 | `height` | `number \| string` | `480` | A number means pixels |
-| `config` | `string` | | Pre-built share-URL payload, layered over `look` when you pass both, or over Default alone |
+| `config` | `string` | | The design's JSON string (`JSON.stringify(design)`), not URL encoded. Layered over `look` when you pass both, or over Default alone |
 | `title` | `string` | `"Globestudio dotted globe"` | A11y label |
 | `className` | `string` | | Forwarded |
 | `style` | `CSSProperties` | | Merged after `border: 0` |

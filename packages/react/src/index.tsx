@@ -62,11 +62,12 @@ export interface GlobeProps {
    */
   height?: number | string;
   /**
-   * Pre-built share config. When you've used `build_share_url` (e.g.
-   * via the MCP server) or the app's Share modal, pass the encoded
-   * payload here. It is layered over `look` when you pass both, so a
-   * config that holds only changes keeps the rest of that look, and over
-   * Default when you pass it alone.
+   * The design's share config as a JSON string, `JSON.stringify(design)`,
+   * not URL encoded: the component encodes it for the embed address. The
+   * app's Share tab writes one; from the MCP server's `build_share_url`,
+   * stringify the `config` it returns. It is layered over `look` when you
+   * pass both, so a config that holds only changes keeps the rest of that
+   * look, and over Default when you pass it alone.
    */
   config?: string;
   /**
