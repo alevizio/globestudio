@@ -19,9 +19,11 @@ All notable changes to Globestudio are tracked here. Format follows
   built from the app's code with `npm run skill:references`, and a test fails
   when the skill or its references fall behind. Installed copies don't
   update on their own: run `npx skills update` after a new version.
-- The export dialog's MCP tab gives the skill's install line under the
-  client commands, the docs, the integrations page and the README give all
-  three ways to add it, and `llms.txt` gives the npx line.
+- A Skill tab in the export dialog, last in the row, gives the three ways
+  to add the skill. The docs, the integrations page and the README give all
+  three too, and `llms.txt` gives the npx line. The tab is left out on a
+  phone, in windows narrower than 641px where the row has no room for a
+  seventh tab, and inside the Figma plugin.
 - The MCP server's instructions point coding agents to the skill. The
   hosted server changes on deploy; `@globestudio/mcp` 0.2.2 needs an npm
   publish for local installs.
@@ -44,7 +46,7 @@ All notable changes to Globestudio are tracked here. Format follows
   screen, full width at the height the globe has on screen. A design too large for an embed URL, which takes a custom shape
   file of a few dozen kB or a long list of data points, gets a line saying
   so in place of the code.
-- The export dialog has an MCP tab, last in the row. It holds what sat at
+- The export dialog has an MCP tab, after Share. It holds what sat at
   the bottom of the Share tab: the commands that connect Claude, Codex and
   Cursor come first, then Copy for AI. On a phone the tabs share the row, so
   the last one no longer runs past the dialog's edge.

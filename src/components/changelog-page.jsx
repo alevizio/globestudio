@@ -21,7 +21,7 @@ const ENTRIES = [
     items: [
       "The Globestudio skill for coding agents: npx skills add alevizio/globestudio teaches Claude Code, Codex, Cursor and others the share links, the embed packages and the looks",
       "A Claude Code plugin adds the skill and the hosted MCP server in one go: claude plugin marketplace add alevizio/globestudio",
-      "The MCP tab, the docs and the integrations page give the install line",
+      "A Skill tab in the export dialog, the docs and the integrations page give the install commands",
     ],
   },
   {
