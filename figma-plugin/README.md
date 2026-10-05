@@ -52,14 +52,14 @@ It works in Figma design files and in FigJam.
 │  │  ┌────────────────────────────────────────────┐  │  │
 │  │  │  ui.html ─ thin postMessage bridge         │  │  │
 │  │  │  ┌──────────────────────────────────────┐  │  │  │
-│  │  │  │  <iframe src=globestudio.app/embed   │  │  │  │
+│  │  │  │  <iframe src=globestudio.app/        │  │  │  │
 │  │  │  │   ?plugin=figma>                     │  │  │  │
-│  │  │  │                                       │  │  │  │
-│  │  │  │  Live preview plus Look, Country or  │  │  │  │
-│  │  │  │  region, Density and View pickers.   │  │  │  │
-│  │  │  │  "Insert into Figma" button at the   │  │  │  │
-│  │  │  │  bottom sends a canvas PNG, plus a   │  │  │  │
-│  │  │  │  map SVG in the Flat view, via       │  │  │  │
+│  │  │  │                                      │  │  │  │
+│  │  │  │  The studio in its phone layout:     │  │  │  │
+│  │  │  │  the globe, a sheet with every       │  │  │  │
+│  │  │  │  control and a Paste a share link    │  │  │  │
+│  │  │  │  field. "Insert into Figma" sends    │  │  │  │
+│  │  │  │  a PNG, or the flat map's SVG, via   │  │  │  │
 │  │  │  │  postMessage ────────────────────────┼──┼─►│  │
 │  │  │  └──────────────────────────────────────┘  │  │  │
 │  │  └────────────────────────────────────────────┘  │  │
@@ -85,7 +85,7 @@ It works in Figma design files and in FigJam.
 2. Top-left menu → **Plugins → Development → Import plugin from manifest…**
 3. Pick this folder's `manifest.json`.
 4. Run **Plugins → Development → Globestudio**. The panel opens with a live globe.
-5. Pick a look, a country or region, a density and Globe or Flat, then press **Insert into Figma**.
+5. Design a globe or a flat map, or paste a share link from globestudio.app, then press **Insert into Figma**.
 
 Insert lands at the viewport center. The Globe view sends no SVG, so the map arrives as a PNG of the globe preview, at the panel canvas size, on a rectangle. The Flat view of a dotted look also sends an SVG of the flat dotted map: with up to 2,500 dots it arrives as editable vectors, in named layers (Background, Dots and, for looks with overlays, Effects). A denser flat map, or Bloom's solid one, arrives as a PNG of the flat preview on a rectangle, as the line above the Insert button says. When an insert lands as a PNG and a Globestudio PNG rectangle is selected, it updates that rectangle in place instead of adding a new one; editable vectors always land as a new layer.
 

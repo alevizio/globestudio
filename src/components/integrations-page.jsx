@@ -239,7 +239,7 @@ const INTEGRATIONS = [
     bg: "#0a0a0a",
     fg: "#ffffff",
     blurb:
-      "The Globestudio plugin is live on Figma Community and runs the full studio: 21 looks, any country or region and every control. Click Insert to add an image, or the flat map as editable vectors up to 2,500 dots. Made a globe on the site? Paste its share link into the plugin and that exact design loads. Also works in FigJam via the embed URL. Without the plugin, the studio's export dialog has a Figma tab that copies your design as vectors or as an image, ready to paste into a file.",
+      "The Globestudio plugin is live on Figma Community and runs the full studio: 21 looks, any country or region and every control. Click Insert to add an image, or the flat map as editable vectors up to 2,500 dots. Paste a share link from the site into the plugin to load that exact design. Also works in FigJam via the embed URL. Without the plugin, the studio's export dialog has a Figma tab that copies your design as vectors or as an image, ready to paste into a file.",
     snippet: `https://globestudio.app/embed?look=risograph`,
     cta: {
       href: "https://www.figma.com/community/plugin/1641603648370488902/globestudio",
