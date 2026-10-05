@@ -426,8 +426,11 @@ const App = () => {
   // software renderer or a sustained low frame rate, "on" forces it (tests,
   // and a slow device remembered from an earlier visit) and "off" is the
   // visitor turning the effects back on. It only drops the CSS halo and caps
-  // the preview's pixel ratio, never the saved design, so share links and
-  // exports are the same either way.
+  // the preview's pixel ratio, never the saved design, so share links, PNG
+  // (captureAtScale) and SVG are the same either way. Video records the live
+  // canvas, so on a dense screen a WebM comes out at one device pixel; GIF
+  // and MP4 scale it to at most 640 and 1024 px, so only a smaller window
+  // changes them.
   const [lowPowerPref, setLowPowerPref] = usePersistedState("lowPower", "auto");
   const [lowPowerDetected, setLowPowerDetected] = useState(false);
   const [lowPowerNoticeDismissed, setLowPowerNoticeDismissed] = useState(false);
