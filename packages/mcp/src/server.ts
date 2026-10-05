@@ -24,7 +24,7 @@ import {
 import { z } from "zod";
 import {
   encodeShareConfig,
-  hasColors,
+  hasHexColorsMark,
   isRecord,
   legacyColorsToLinear,
   mergeConfig,
@@ -33,6 +33,7 @@ import {
   parseShareLink,
   type ShareConfig,
   toLinearHex,
+  withColorSpace,
 } from "./share-config.js";
 
 // --- Constants ---------------------------------------------------------------
@@ -233,7 +234,7 @@ const BuildShareUrlSchema = z.object({
   background: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().describe("Background hex color."),
   density: z.number().int().min(10).max(100).optional().describe("Dot density 10-100 (lower = sparser)."),
   shape: z.enum(DOT_SHAPES).optional().describe("Dot shape."),
-  config: z.record(z.unknown()).optional().describe("Any other setting, using the keys read_share_url returns in config."),
+  config: z.record(z.unknown()).optional().describe("Any other setting, using the keys read_share_url returns in config. With \"v\": 3 its colors render as their hex, as in a link."),
 });
 
 const ReadShareUrlSchema = z.object({
@@ -500,7 +501,13 @@ const buildShareUrl = (input: z.infer<typeof BuildShareUrlSchema>) => {
   // "look" is NOT a ?c= config key (the app's normalizeConfig silently drops
   // it); the preset rides on the URL instead: /looks/<id> path for the
   // studio, ?look=<id> for the embed.
-  const requested: Record<string, unknown> = { ...(input.config ?? {}) };
+  // "v": 3 in config says its colors are hex colors, as in a link's ?c=
+  // (read_share_url returns it for a link that has them). Without it they
+  // are old colors, as a link's were before v3.
+  const configHexColors = hasHexColorsMark(input.config);
+  const { v: _v, ...configWithoutV } = input.config ?? {};
+  const given = configHexColors ? configWithoutV : input.config;
+  const requested: Record<string, unknown> = { ...(given ?? {}) };
   if (typeof requested.selection === "string") requested.selection = normalizeSelection(requested.selection);
   if (input.selection) requested.selection = normalizeSelection(input.selection);
   if (input.dotColor) requested.dotColor = input.dotColor;
@@ -510,19 +517,23 @@ const buildShareUrl = (input: z.infer<typeof BuildShareUrlSchema>) => {
   const changes = normalizeConfig(requested);
 
   const look = input.look ?? base?.look ?? null;
-  // A color set here is the hex to show, so the link gets hex colors, and
-  // the old colors of a link it changes are turned into hex colors that
-  // render the same. Without one, a link keeps the colors it has.
-  const hexColors = Boolean(base?.hexColors) || hasColors(changes);
+  // The dot color set here is the hex to show, and so are the colors of a
+  // config with "v": 3, so the link gets hex colors, and the old colors of
+  // the link it changes or of the config are turned into hex colors that
+  // render the same. Otherwise a link keeps the colors it has.
+  const hexColors = Boolean(base?.hexColors) || configHexColors || input.dotColor !== undefined;
+  const changed = hexColors && !configHexColors
+    ? { ...legacyColorsToLinear(changes), ...(input.dotColor ? { dotColor: changes.dotColor } : {}) }
+    : changes;
   const baseConfig = base && hexColors && !base.hexColors ? legacyColorsToLinear(base.config) : base?.config ?? {};
-  const config = mergeConfig(baseConfig, changes);
-  const ignored = input.config ? ignoredKeys(input.config, changes) : [];
+  const config = mergeConfig(baseConfig, changed);
+  const ignored = given ? ignoredKeys(given, changes) : [];
 
   return {
     share_url: studioUrl(look, config, hexColors),
     embed_url: embedUrl(look, config, base?.embedOptions ?? {}, hexColors),
     look,
-    config,
+    config: withColorSpace(config, hexColors),
     ...(ignored.length > 0 ? { ignored, ignored_note: IGNORED_NOTE } : {}),
   };
 };
@@ -556,7 +567,7 @@ const readShareUrl = (input: z.infer<typeof ReadShareUrlSchema>) => {
     look: link.look,
     source_origin: link.origin,
     summary: summarize(link.look, link.config),
-    config: link.config,
+    config: withColorSpace(link.config, link.hexColors),
     ...(Object.keys(link.embedOptions).length > 0 ? { embed_options: link.embedOptions } : {}),
     share_url: studioUrl(link.look, link.config, link.hexColors),
     embed_url: embedUrl(link.look, link.config, link.embedOptions, link.hexColors),
@@ -664,7 +675,7 @@ const TOOL_DEFS = [
         shape: { type: "string", enum: [...DOT_SHAPES] },
         config: {
           type: "object",
-          description: "Any other setting, using the keys read_share_url returns in config, e.g. {\"viewMode\": \"flat\"} or {\"globeSettings\": {\"autoSpin\": false}}. Nested settings merge key by key; keys Globestudio does not accept come back in ignored.",
+          description: "Any other setting, using the keys read_share_url returns in config, e.g. {\"viewMode\": \"flat\"} or {\"globeSettings\": {\"autoSpin\": false}}. Nested settings merge key by key; keys Globestudio does not accept come back in ignored. With \"v\": 3, as read_share_url returns for a link that has it, its colors render as their hex; without it they render darker, as in links before v3.",
           additionalProperties: true,
         },
       },

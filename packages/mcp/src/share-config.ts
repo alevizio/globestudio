@@ -386,8 +386,9 @@ export const encodeShareConfig = (config: ShareConfig, hexColors = false) =>
 // --- Colors -------------------------------------------------------------------
 // Mirrors src/utils/color-space.js. The app reads a color the old way, which
 // renders it darker than its hex (round(255 * SRGBToLinear(c)) per channel),
-// unless the design has hex colors. A color an agent sets is meant as the hex
-// to show, so a link that gets one is turned into hex colors.
+// unless the design has hex colors. A dot color an agent sets, and the colors
+// of a config with "v": 3, are meant as the hex to show, so a link that gets
+// one is turned into hex colors.
 
 const COLOR_HEX_RE = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 const COLOR_FIELDS = ["dotColor", "worldFill", "worldStroke"];
@@ -415,14 +416,16 @@ export const toLinearHex = (value: unknown): unknown => {
   return out === `#${digits.toLowerCase()}` ? value : out;
 };
 
-const colorKeys = (config: ShareConfig) => [
-  ...[...COLOR_FIELDS, ...GRADIENT_FIELDS].filter((key) => key in config),
-  ...(isRecord(config.globeSettings) ? [...GLOBE_COLOR_FIELDS, ...GLOBE_GRADIENT_FIELDS].filter((key) => key in (config.globeSettings as ShareConfig)) : []),
-  ...(isRecord(config.flowSettings) ? FLOW_COLOR_FIELDS.filter((key) => key in (config.flowSettings as ShareConfig)) : []),
-];
+/** Whether a config an agent passes says its colors are hex colors: "v": 3, as in a link. */
+export const hasHexColorsMark = (config: unknown) => isRecord(config) && config.v === HEX_COLORS_VERSION;
 
-/** Whether a config sets any color the app reads by the design's color space. */
-export const hasColors = (config: ShareConfig) => colorKeys(config).length > 0;
+/**
+ * A config as the tools return it: with hex colors it starts with "v": 3, as
+ * its link's ?c= does, so JSON.stringify of it, the config a package takes,
+ * reads the same as the link, and build_share_url takes it back as is.
+ */
+export const withColorSpace = (config: ShareConfig, hexColors: boolean): ShareConfig =>
+  (hexColors ? { v: HEX_COLORS_VERSION, ...config } : config);
 
 const convertFields = (source: Record<string, unknown>, colors: string[], gradients: string[]) => {
   const next: ShareConfig = { ...source };

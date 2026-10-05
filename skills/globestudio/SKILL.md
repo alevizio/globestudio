@@ -123,7 +123,7 @@ The tools are on a server whose name contains `globestudio`. In Claude Code they
 
 - Pick a look with `find_presets` and a vibe word ("print", "synthwave", "sonar"), or `list_presets` for all of them.
 - For a link the user pastes, call `read_share_url` first, then `build_share_url` with `share_url` set to that link and only the settings to change. Building from scratch loses what the link had.
-- For a new design, call `build_share_url` with `look` and the changes: `selection`, `dotColor`, `background`, `density`, `shape`, and any other key under `config`.
+- For a new design, call `build_share_url` with `look` and the changes: `selection`, `dotColor`, `background`, `density`, `shape`, and any other key under `config`. `dotColor` renders as its hex; colors under `config` do only with `"v": 3` in it, as in a link, and `read_share_url` returns it for a link that has it.
 - Read `ignored` in every result. Each key listed was dropped: fix it from [references/config.md](references/config.md), or tell the user.
 - For a design with changes, put the returned `embed_url` in an iframe, or give a package the result's `look` and `JSON.stringify` of its `config`. Don't pass the `c` of `embed_url` to a package: that address carries the region, colors and density as their own parameters, so its `c` can lack them. `embed_snippet` only embeds a look as it ships. `preview_url` gives a look's thumbnail and live embed.
 - `build_share_url` refuses a `look` together with a link the studio wrote, since that link holds every setting. To switch looks, start from the new look and pass the settings to keep.

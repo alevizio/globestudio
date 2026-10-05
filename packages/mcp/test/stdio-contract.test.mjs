@@ -469,7 +469,7 @@ test("a % sign survives both ways: MCP links in the app, app links in the MCP", 
   // MCP -> app: build_share_url keeps every value, and the app opens it as is.
   const { json } = await callTool("build_share_url", { look: "default", dotColor: "#ff0000", config: carried });
   assert.equal(json.ignored, undefined);
-  assert.deepEqual(json.config, { dotColor: "#ff0000", ...carried });
+  assert.deepEqual(json.config, { v: 3, dotColor: "#ff0000", ...carried });
   assert.deepEqual(appConfigOf(json.share_url), { dotColor: "#ff0000", ...carried, hexColors: true });
   // The dot color rides in the embed's ?c= too (see embedUrl in server.ts).
   assert.deepEqual(appConfigOf(json.embed_url), { dotColor: "#ff0000", ...carried, hexColors: true });
@@ -580,9 +580,52 @@ test("read_share_url reads ?dotColor= and ?worldFill= the way the embed does", a
   // Under one, the embed turns them into the hex colors that render the same.
   const c = encodeURIComponent(JSON.stringify({ v: 3, shape: "Ring" }));
   const mixed = await callTool("read_share_url", { url: `/embed?dotColor=808080&worldFill=ff8000&background=808080&c=${c}` });
-  assert.deepEqual(mixed.json.config, { dotColor: "#373737", worldFill: "#ff3700", background: "#808080", shape: "Ring" });
+  assert.deepEqual(mixed.json.config, { v: 3, dotColor: "#373737", worldFill: "#ff3700", background: "#808080", shape: "Ring" });
   const rebuilt = new URL(mixed.json.embed_url);
   assert.equal(rebuilt.searchParams.get("dotColor"), null);
   assert.equal(rebuilt.searchParams.get("background"), "808080");
   assert.deepEqual(appConfigOf(mixed.json.embed_url), { dotColor: "#373737", worldFill: "#ff3700", shape: "Ring", hexColors: true });
+});
+
+// The documented way to hand an MCP design to @globestudio/react or the
+// element is JSON.stringify of the returned config, so it must say what the
+// link says about its colors: "v": 3 when they are hex colors.
+const asPackageReads = (config) => parseShareConfig(`?c=${encodeURIComponent(JSON.stringify(config))}`, {});
+
+test("a package reads the returned config the way the app reads the returned link", async () => {
+  const { url } = APP_LINKS.studio.find((link) => link.from === "/looks/vapor");
+  const edited = await callTool("build_share_url", { share_url: url, dotColor: "#ff0066" });
+  assert.equal(edited.json.config.v, 3);
+  assert.deepEqual(asPackageReads(edited.json.config), parseShareConfig(new URL(edited.json.share_url).search, {}));
+
+  const read = await callTool("read_share_url", { url: edited.json.share_url });
+  assert.equal(read.json.config.v, 3);
+  assert.deepEqual(asPackageReads(read.json.config), parseShareConfig(new URL(edited.json.share_url).search, {}));
+
+  // A link with old colors returns its config as before, with no v.
+  const old = await callTool("read_share_url", { url });
+  assert.equal(old.json.config.v, undefined);
+  assert.equal(asPackageReads(old.json.config).hexColors, undefined);
+});
+
+test("settings kept from a link with old colors keep them on a new look", async () => {
+  // SKILL.md: to switch looks, start from the new look and pass the settings
+  // to keep. Those colors are the link's old colors, not new ones.
+  const { url } = APP_LINKS.studio.find((link) => link.from === "/looks/vapor");
+  const before = appConfigOf(url);
+  const read = await callTool("read_share_url", { url });
+  const { json } = await callTool("build_share_url", { look: "halftone", config: read.json.config });
+  assert.equal(json.ignored, undefined);
+  assert.equal(JSON.parse(new URL(json.share_url).searchParams.get("c")).v, 2);
+  const after = parseShareConfig(new URL(json.share_url).search, {});
+  for (const key of ["dotColor", "worldFill", "worldStroke"]) assert.equal(after[key], before[key], key);
+  assert.equal(after.globeSettings.gridColor, before.globeSettings.gridColor);
+  assert.equal(after.hexColors, undefined);
+});
+
+test("colors under config are the hex to show with \"v\": 3, as in a link", async () => {
+  const { json } = await callTool("build_share_url", { look: "default", config: { v: 3, renderMode: "solid", worldFill: "#4080c0" } });
+  assert.equal(json.ignored, undefined);
+  assert.deepEqual(json.config, { v: 3, renderMode: "solid", worldFill: "#4080c0" });
+  assert.deepEqual(parseShareConfig(new URL(json.share_url).search, {}), { renderMode: "solid", worldFill: "#4080c0", hexColors: true });
 });
