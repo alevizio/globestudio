@@ -27,10 +27,11 @@ const waitForCanvas = async (page) => {
   return canvas;
 };
 
-const expectNoSeriousAxeViolations = async (page) => {
+// `include` narrows the audit to one CSS selector; the whole page without it.
+const expectNoSeriousAxeViolations = async (page, include) => {
   await page.addScriptTag({ content: axeSource.source });
-  const violations = await page.evaluate(async () => {
-    const result = await window.axe.run(document, {
+  const violations = await page.evaluate(async (selector) => {
+    const result = await window.axe.run(selector ?? document, {
       runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] },
     });
     return result.violations
@@ -40,7 +41,7 @@ const expectNoSeriousAxeViolations = async (page) => {
         impact: violation.impact,
         targets: violation.nodes.map((node) => node.target.join(" ")),
       }));
-  });
+  }, include);
   expect(violations).toEqual([]);
 };
 
@@ -953,6 +954,40 @@ for (const path of ["/", "/docs", "/integrations", "/brand", "/privacy"]) {
     await expectNoSeriousAxeViolations(page);
   });
 }
+
+// The React starter's degit command, on the two pages that offer it.
+test.describe("React starter on a 320px wide phone", () => {
+  test.use({ viewport: { width: 320, height: 568 }, isMobile: true, hasTouch: true, permissions: ["clipboard-read", "clipboard-write"] });
+
+  const DEGIT = "npx degit alevizio/globestudio/examples/starter-react my-globe";
+  const STACKBLITZ = "https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react";
+
+  for (const [path, label, link] of [
+    ["/docs", "degit", "open it in StackBlitz"],
+    ["/integrations", "Starter project", "Open the starter in StackBlitz →"],
+  ]) {
+    test(`${path} keeps the command in its box, copies it whole and links to StackBlitz`, async ({ page }) => {
+      await page.goto(path);
+      const block = page.locator(".code-block").filter({ has: page.locator(".code-block-language", { hasText: new RegExp(`^${label}$`) }) });
+      const pre = block.locator("pre");
+      await expect(pre).toHaveText(DEGIT);
+      await block.scrollIntoViewIfNeeded();
+      // The path is one argument too long for the box: the box scrolls, by
+      // keyboard too, and the page does not.
+      expect(await pre.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
+      await expect(pre).toHaveAttribute("tabindex", "0");
+      await expect(pre).toHaveAttribute("aria-label", label);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)).toBe(false);
+      await block.getByRole("button", { name: "Copy code to clipboard" }).click();
+      await expect(block.getByRole("button", { name: "Copied" })).toBeVisible();
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(DEGIT);
+      await expect(page.getByRole("link", { name: link, exact: true })).toHaveAttribute("href", STACKBLITZ);
+      // The starter's block only: at this width the pages' other snippets
+      // scroll without taking focus, which this test doesn't cover.
+      await expectNoSeriousAxeViolations(page, `.code-block[data-language="${label}"]`);
+    });
+  }
+});
 
 test("axe passes with export modal open and focus returns on close", async ({ page }) => {
   await page.goto("/");

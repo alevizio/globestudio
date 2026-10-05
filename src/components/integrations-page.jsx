@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { STARTER_DEGIT, STARTER_STACKBLITZ } from "../data/starter-react.js";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { PagePager } from "./ui/page-pager.jsx";
 import { DottedGlobe } from "./icons.jsx";
@@ -165,7 +166,7 @@ const McpLogo = ({ size = 28 }) => (
 // .md on github.com was strictly worse UX. If a platform-native CTA
 // fits (an install link for a published Figma plugin, an npm install
 // line, a wordpress.org plugin slug), add it via `cta: { href, label }`
-// per entry; otherwise the card is complete.
+// per entry, or a list of them; otherwise the card is complete.
 const INTEGRATIONS = [
   {
     id: "mcp",
@@ -290,14 +291,18 @@ const INTEGRATIONS = [
     bg: "#20232A",
     fg: "#61DAFB",
     blurb:
-      `One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box. Works in React, Next.js, Remix, Astro. On a light page, add theme="light" to a see-through look like Wireframe. For your own design, the export dialog's Share tab has the snippet under Embed code, next to an iframe and a web component version.`,
+      `One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box. Works in React, Next.js, Remix, Astro. On a light page, add theme="light" to a see-through look like Wireframe. For your own design, the export dialog's Share tab has the snippet under Embed code, next to an iframe and a web component version. For a new project, copy the starter: a Vite app with a globe on the page.`,
     snippet: `npm install @globestudio/react
 
 // Then:
 import { Globe } from "@globestudio/react";
 
 <Globe look="halftone" width={640} height={480} />`,
-    cta: { href: "https://www.npmjs.com/package/@globestudio/react", label: "View on npm" },
+    more: [{ label: "Starter project", code: STARTER_DEGIT }],
+    cta: [
+      { href: "https://www.npmjs.com/package/@globestudio/react", label: "View on npm" },
+      { href: STARTER_STACKBLITZ, label: "Open the starter in StackBlitz" },
+    ],
   },
 ];
 
@@ -363,21 +368,23 @@ export const IntegrationsPage = () => {
               {tool.snippet}
             </CodeBlock>
             {tool.more?.map((item) => (
-              <CodeBlock key={item.label} language={item.label} wrap>
+              // The starter's path is one long argument that can run past a
+              // phone's box; then the box scrolls and takes keyboard focus.
+              <CodeBlock key={item.label} language={item.label} wrap keyboardScroll>
                 {item.code}
               </CodeBlock>
             ))}
-            {tool.cta && (
-              <p className="integrations-recipe">
+            {[tool.cta ?? []].flat().map((cta) => (
+              <p key={cta.href} className="integrations-recipe">
                 <a
-                  href={tool.cta.href}
+                  href={cta.href}
                   target="_blank"
                   rel="noreferrer noopener"
                 >
-                  {tool.cta.label} →
+                  {cta.label} →
                 </a>
               </p>
-            )}
+            ))}
           </section>
         ))}
 

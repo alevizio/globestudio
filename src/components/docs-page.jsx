@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { lookPresets } from "../data/look-presets.js";
+import { STARTER_DEGIT, STARTER_STACKBLITZ } from "../data/starter-react.js";
 import { lookThumbProps } from "../utils/look-thumbs.js";
 import { useBodyScrollable } from "../hooks/use-body-scrollable.js";
 import { PagePager } from "./ui/page-pager.jsx";
@@ -136,6 +137,16 @@ export const DocsPage = () => {
             No install. Paste it into any React/Next.js/Astro/Remix project:
           </p>
           <CodeBlock language="jsx">{REACT_SNIPPET}</CodeBlock>
+          <p>
+            For a new project, start from the React starter: a Vite app that
+            shows a globe with <code>@globestudio/react</code>. Copy it with
+            degit, or{" "}
+            <a href={STARTER_STACKBLITZ} target="_blank" rel="noreferrer noopener">
+              open it in StackBlitz
+            </a>
+            .
+          </p>
+          <CodeBlock language="degit" wrap keyboardScroll>{STARTER_DEGIT}</CodeBlock>
 
           <SectionHeading
             id="script-tag-loader"
