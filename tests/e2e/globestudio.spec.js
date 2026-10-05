@@ -112,6 +112,13 @@ test("a look link's own settings win over the look", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => localStorage.getItem("globestudio:density"))).toBe("77");
 });
 
+test("a look link that still ends in app=1, as the MCP server built them, opens its settings", async ({ page }) => {
+  // app=1 was the pre-launch teaser bypass. The server no longer adds it,
+  // and the links out there that carry it keep working.
+  await page.goto(`/looks/halftone?c=${encodeURIComponent(JSON.stringify({ v: 2, density: 77 }))}&app=1`);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("globestudio:density"))).toBe("77");
+});
+
 test("a look link with only some settings keeps the look's glow, grid and shader", async ({ page }) => {
   // What an MCP link for Sonar with data points carries, plus one shader knob.
   const config = {
