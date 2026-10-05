@@ -4,6 +4,7 @@ import { EmbedView } from "./embed-view.jsx";
 import { links as legacyLinks } from "../utils/fixtures/legacy-share-links.json";
 import { lookPresets } from "../data/look-presets.js";
 import { backgroundKind, previewBackground } from "../utils/canvas-background.js";
+import { toLinearHex } from "../utils/color-space.js";
 
 // The WebGL globe is replaced by a stand-in that shows the view it was
 // asked to draw, and keeps the rest of what it was given.
@@ -180,6 +181,44 @@ describe("EmbedView", () => {
       open(`look=topographic&c=${encodeURIComponent(JSON.stringify({ v: 2, shaderSettings: { intensity: 80 } }))}`);
       await view();
       expect(drawn.props.shaderSettings).toMatchObject({ effect: "wave", intensity: 80 });
+    });
+  });
+
+  // Colors are read the old way, darker than their hex, as every embed has
+  // drawn them, unless the share config has hex colors (utils/color-space.js).
+  describe("colors", () => {
+    const open = (search) => {
+      window.history.replaceState(null, "", `/embed?${search}`);
+      return render(<EmbedView />);
+    };
+    const config = (design) => `c=${encodeURIComponent(JSON.stringify(design))}`;
+    const toon = lookPresets.find((preset) => preset.id === "toon").settings;
+
+    it("keeps the old reading for a look, ?dotColor=, ?worldFill= and an old config", async () => {
+      open("look=toon&worldFill=4080c0");
+      await view();
+      expect(drawn.props).toMatchObject({ hexColors: false, dotColor: toon.dotColor, worldFill: "#4080c0" });
+      expect(drawn.props.globeSettings.gridColor).toBe(toon.globeSettings.gridColor);
+    });
+
+    it("keeps the old reading for ?dotColor= and a v2 config", async () => {
+      open(`dotColor=ff8000&${config({ v: 2, worldFill: "#4080c0" })}`);
+      await view();
+      expect(drawn.props).toMatchObject({ hexColors: false, dotColor: "#ff8000", worldFill: "#4080c0" });
+    });
+
+    it("draws a v3 config's colors as hex colors, with the look's and the params' turned to match", async () => {
+      open(`look=toon&dotColor=808080&${config({ v: 3, worldStroke: "#4080c0", globeSettings: { arcColor: "#ff8000" } })}`);
+      await view();
+      expect(drawn.props).toMatchObject({
+        hexColors: true,
+        // The param and the look's own colors, as hex colors that render the same...
+        dotColor: "#373737",
+        worldFill: toLinearHex(toon.worldFill),
+        // ...and the config's, as sent.
+        worldStroke: "#4080c0",
+      });
+      expect(drawn.props.globeSettings.arcColor).toBe("#ff8000");
     });
   });
 

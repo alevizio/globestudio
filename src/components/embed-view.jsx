@@ -16,6 +16,7 @@ import { centerOfPoints } from "../utils/face-points.js";
 import { createDottedSvg } from "../utils/svg-markup.js";
 import { usePrefersReducedMotion } from "../hooks/use-prefers-reduced-motion.js";
 import { parseShareConfig } from "../utils/share-config.js";
+import { legacyColorsToLinear, toLinearHex } from "../utils/color-space.js";
 import { clampNumber } from "../utils/math.js";
 import { restoreFigmaPicks, saveFigmaPicks } from "../utils/figma-picks.js";
 
@@ -111,7 +112,14 @@ const parseParams = (search, shareConfig) => {
 };
 
 const buildSettings = (raw, shareConfig) => {
-  const preset = lookPresets.find((p) => p.id === raw.look) || lookPresets[0];
+  const found = lookPresets.find((p) => p.id === raw.look) || lookPresets[0];
+  // The look's colors and the ?dotColor= and ?worldFill= params are old
+  // colors, read the old way, so every embed made so far renders as it
+  // always has. Under a share config with hex colors (a v3 link) they are
+  // turned into the hex colors that render the same (utils/color-space.js).
+  const hexColors = Boolean(shareConfig?.hexColors);
+  const preset = hexColors ? { ...found, settings: legacyColorsToLinear(found.settings) } : found;
+  const paramColor = (color) => (color && hexColors ? toLinearHex(color) : color);
   // Three layers, each one overriding the last:
   //   1. The preset's full setting tree (the baseline).
   //   2. Individual query params (?density=70, ?dotColor=ffffff, …).
@@ -124,8 +132,8 @@ const buildSettings = (raw, shareConfig) => {
     selection: raw.selection || preset.settings.selection,
     density: raw.density || preset.settings.density,
     dotSize: raw.dotSize || preset.settings.dotSize,
-    dotColor: raw.dotColor || preset.settings.dotColor,
-    worldFill: raw.worldFill || preset.settings.worldFill,
+    dotColor: paramColor(raw.dotColor) || preset.settings.dotColor,
+    worldFill: paramColor(raw.worldFill) || preset.settings.worldFill,
     renderMode: raw.renderMode || preset.settings.renderMode,
     background: raw.background ?? preset.settings.background,
     // A color the address or the config paints keeps the page opaque over a
@@ -484,6 +492,7 @@ export const EmbedView = () => {
           // plain showcase/teaser iframes can skip the preserved buffer.
           exportable={params.plugin === "figma"}
           selectedDots={new Set()}
+          hexColors={Boolean(settings.hexColors)}
           dotColor={settings.dotColor}
           dotSize={settings.dotSize}
           // The share config's own look settings, where it has them. The
