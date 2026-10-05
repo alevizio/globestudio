@@ -179,6 +179,27 @@ describe("the embed URL the packages build", () => {
       expect(new URL(build({ config: CONFIG })).searchParams.has("look")).toBe(false);
     });
 
+    it(`${name} reads the config out of a share link pasted in its place`, () => {
+      // The token as it reads in the link, still URL encoded. Links the MCP
+      // server built ended in &app=1, the old teaser bypass.
+      const token = SHARE_URL.split("?c=")[1].split("&")[0];
+      for (const pasted of [
+        `https://globestudio.app/looks/halftone?c=${token}&app=1`,
+        `?c=${token}&app=1`,
+        `c=${token}`,
+        `https://globestudio.app/embed?look=vapor&c=${token}&theme=light#top`,
+      ]) {
+        const url = new URL(build({ config: pasted }));
+        expect(parseShareConfig(url.search), pasted).toEqual(DECODED);
+        expect(url.searchParams.has("app")).toBe(false);
+      }
+    });
+
+    it(`${name} passes a JSON config through as written, even one holding a ? and c=`, () => {
+      const json = JSON.stringify({ v: 2, asciiSymbol: "?", selection: "country:JPN", customShape: { name: "?a=1&c=2" } });
+      expect(new URL(build({ config: json })).searchParams.get("c")).toBe(json);
+    });
+
     it(`${name} embeds Halftone, or the look given, without a config`, () => {
       expect(build({})).toBe("https://globestudio.app/embed?look=halftone");
       expect(build({ look: "aurora", source: "site" })).toBe("https://globestudio.app/embed?look=aurora&source=site");

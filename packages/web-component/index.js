@@ -9,6 +9,18 @@
 
 const SITE_URL = "https://globestudio.app";
 
+// A share link or its query passed as config ("https://globestudio.app/?c=…&app=1",
+// "?c=…", "c=…") gives its c param, as written: whatever follows the token
+// (app=1 on older links, other params, a #hash) is not part of it, and left
+// in, the config failed to parse. A JSON config or a token passes through.
+const configToken = (config) => {
+  if (/^\s*\{/.test(config)) return config;
+  const q = config.indexOf("?");
+  const query = q >= 0 ? config.slice(q + 1) : config.startsWith("c=") ? config : "";
+  const param = query.split("#")[0].split("&").find((part) => part.startsWith("c="));
+  return param === undefined ? config : param.slice(2);
+};
+
 /**
  * Build the embed URL from a look preset, a pre-built share `config`, or
  * both: the embed layers the config over the look, or over Default when
@@ -18,7 +30,7 @@ export const buildEmbedUrl = ({ look, config, source } = {}) => {
   const params = new URLSearchParams();
   if (config) {
     if (look) params.set("look", look);
-    params.set("c", config);
+    params.set("c", configToken(String(config)));
   } else {
     params.set("look", look || "halftone");
   }

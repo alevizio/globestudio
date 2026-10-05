@@ -101,13 +101,25 @@ export interface GlobeProps {
   onLoad?: React.IframeHTMLAttributes<HTMLIFrameElement>["onLoad"];
 }
 
+// A share link or its query passed as config ("https://globestudio.app/?c=…&app=1",
+// "?c=…", "c=…") gives its c param, as written: whatever follows the token
+// (app=1 on older links, other params, a #hash) is not part of it, and left
+// in, the config failed to parse. A JSON config or a token passes through.
+const configToken = (config: string) => {
+  if (/^\s*\{/.test(config)) return config;
+  const q = config.indexOf("?");
+  const query = q >= 0 ? config.slice(q + 1) : config.startsWith("c=") ? config : "";
+  const param = query.split("#")[0].split("&").find((part) => part.startsWith("c="));
+  return param === undefined ? config : param.slice(2);
+};
+
 // With a config, the look is sent only when given: the embed layers the
 // config over that look, or over Default without one.
 const buildEmbedUrl = (props: Pick<GlobeProps, "look" | "config" | "source">) => {
   const params = new URLSearchParams();
   if (props.config) {
     if (props.look) params.set("look", props.look);
-    params.set("c", props.config);
+    params.set("c", configToken(props.config));
   } else {
     params.set("look", props.look ?? "halftone");
   }
