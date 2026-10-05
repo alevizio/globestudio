@@ -155,7 +155,8 @@ export const DocsPage = () => {
             and more lives on the <a href="/integrations">Integrations</a>{" "}
             page. For Figma, the export dialog (<KbdKey>D</KbdKey>) also has a
             Figma tab: it copies the design as vectors or as an image, ready
-            to paste into a file.
+            to paste into a file. In the Figma plugin, paste a share link to
+            open that exact design there.
           </p>
         </section>
 
@@ -168,6 +169,12 @@ export const DocsPage = () => {
             dialog (<KbdKey>D</KbdKey>), the Share tab gives you a{" "}
             <code>?c=&lt;encoded&gt;</code> link that restores your exact canvas
             state on someone else's machine.
+          </p>
+          <p>
+            The Figma plugin opens these links too. Paste one into its Paste
+            a share link field, or anywhere in the plugin outside a text
+            field, and the design loads, ready to insert. Look links
+            (<code>/looks/halftone</code>) and embed links work the same way.
           </p>
           <p>
             The same tab has an Embed code section. It shows the design on

@@ -62,6 +62,7 @@ A JSON Schema for configuration files is at
 - On a light page, both take `theme="light"`, the same as `theme=light` on an `/embed` URL. Use it on a see-through globe such as Wireframe: on a look's own dark page, its graphite ink is lost
 - In the app, the export dialog's Share tab has Embed code for the design on screen, as an iframe, a React snippet or a web component snippet
 - The export dialog's Figma tab copies the design as vectors or as an image to paste into Figma, and links to the Community plugin
+- The Figma plugin opens a pasted share link: a `/?c=…`, `/looks/<id>` or `/embed` link loads that design in the plugin, ready to insert
 - [Framer code component](https://github.com/alevizio/globestudio/blob/main/examples/framer-component/GlobestudioGlobe.tsx): for Framer Code Components
 - [Script-tag loader](https://github.com/alevizio/globestudio/blob/main/public/embed.js): vanilla JS for plain HTML
 

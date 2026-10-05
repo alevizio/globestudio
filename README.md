@@ -185,7 +185,10 @@ A JSON Schema for the `c` payload lives at
 For Figma there are two ways in. The export dialog's Figma tab copies the
 design as vectors or as an image, ready to paste into a file, and it links
 to the Community plugin, which runs the full studio inside Figma. The tab is
-left out on a phone, where the tab row has no room for it.
+left out on a phone, where the tab row has no room for it. To bring a design
+you made on the site into Figma, paste its share link into the plugin: into
+its Paste a share link field, or anywhere outside a text field. Look and embed
+links work too.
 
 [globestudio.app/integrations](https://globestudio.app/integrations) has
 copy-paste setups for AI agents (MCP), Webflow, Framer, Figma, Notion,

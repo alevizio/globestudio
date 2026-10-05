@@ -180,6 +180,7 @@ export const Hero = () => (
 ## Exports
 
 - In the export dialog (press D), a person can export PNG at 1x to 4x in several aspect ratios or copy it as an image, record WebM, MP4 or GIF, export SVG, copy the design for Figma, and get the share link, embed code, a CodePen and the JSON config.
+- To bring a design into Figma, the person pastes its share link (a studio, `/looks/<id>` or `/embed` link) into the Globestudio Figma plugin, where it loads ready to insert.
 - An agent can make links, embed addresses and code, and the JSON config, and can screenshot the `/embed` address with a headless browser.
 - MP4 has no transparency, GIF transparency has hard edges, and SVG drops the shader effect.
 

@@ -21,6 +21,15 @@ If the file has local color variables, a **Your colors** strip above the
 studio sets the dot color to the one you click. The studio keeps its
 settings in the browser like on the web.
 
+To bring a design made on globestudio.app into Figma, copy its share link
+and paste it into the plugin: into the **Paste a share link** field at the
+top of the sheet, or anywhere outside a text field. The design loads, ready
+to insert, and a short line says so, or that the text was not a Globestudio
+link. Look links (`/looks/<id>`) and embed links work too, from
+globestudio.app, www.globestudio.app and the Vercel preview hosts. The
+studio reads the paste event itself, so this needs no clipboard permission
+in Figma's iframe, and no new plugin version: it ships with the site.
+
 Studio changes reach every installed copy as soon as globestudio.app
 deploys. Changes to `ui.html`, `code.js` or `manifest.json` reach
 designers through a new plugin version, published from the desktop app
