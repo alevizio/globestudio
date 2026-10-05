@@ -416,15 +416,12 @@ const parseLink = (raw: string): ParsedLink => {
 // Studio: /looks/<id> applies the preset and ?c= layers the settings on top
 // (the app's share-config import wins over the route preset by design, see
 // src/hooks/use-share-config-import.js); a studio link without a look lands
-// on "/" and ?c= carries everything. app=1 is the app's non-persisting teaser
-// bypass: while the pre-launch coming-soon gate is up, recipients without it
-// land on the waitlist and the config is discarded. Harmless after launch
-// (the param is ignored).
+// on "/" and ?c= carries everything.
 const studioUrl = (look: string | null, config: ShareConfig) => {
   const path = look ? `/looks/${look}` : "/";
   return Object.keys(config).length > 0
-    ? `${SITE_URL}${path}?c=${encodeShareConfig(config)}&app=1`
-    : `${SITE_URL}${path}?app=1`;
+    ? `${SITE_URL}${path}?c=${encodeShareConfig(config)}`
+    : `${SITE_URL}${path}`;
 };
 
 // Embed: dedicated query params where they exist (embed-view.jsx parseParams,

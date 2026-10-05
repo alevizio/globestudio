@@ -170,10 +170,34 @@ test("build_share_url rejects unknown selections", async () => {
   assert.match(text, /Unknown selection/);
 });
 
-test("build_share_url without overrides is the preset URL with the teaser bypass", async () => {
+test("build_share_url without overrides is the bare preset URL", async () => {
   const { json } = await callTool("build_share_url", { look: "vapor" });
-  assert.equal(json.share_url, "https://globestudio.app/looks/vapor?app=1");
+  assert.equal(json.share_url, "https://globestudio.app/looks/vapor");
   assert.equal(json.embed_url, "https://globestudio.app/embed?look=vapor");
+});
+
+test("links from before the teaser bypass was dropped still read, and what comes back has no app=1", async () => {
+  // The server used to end every share_url in app=1, a bypass for the
+  // pre-launch teaser. Links like these are out in the wild.
+  const config = { selection: "country:JPN", density: 40 };
+  const old = `${SITE}/looks/halftone?c=${encodeURIComponent(JSON.stringify({ v: 2, ...config }))}&app=1`;
+  const read = await callTool("read_share_url", { url: old });
+  assert.equal(read.json.look, "halftone");
+  assert.deepEqual(read.json.config, config);
+
+  const changed = await callTool("build_share_url", { share_url: old, shape: "Star" });
+  assert.deepEqual(appConfigOf(changed.json.share_url), { ...config, shape: "Star" });
+
+  const bare = await callTool("read_share_url", { url: `${SITE}/looks/aurora?app=1` });
+  const studio = await callTool("read_share_url", { url: `${SITE}/?app=1` });
+  const built = await callTool("build_share_url", { look: "halftone", dotColor: "#3df4ff" });
+  for (const { json } of [read, changed, bare, studio, built]) {
+    for (const url of [json.share_url, json.embed_url]) {
+      assert.equal(new URL(url).searchParams.has("app"), false, url);
+    }
+  }
+  assert.equal(bare.json.share_url, `${SITE}/looks/aurora`);
+  assert.equal(studio.json.share_url, `${SITE}/`);
 });
 
 test("embed_snippet validates the look id", async () => {
