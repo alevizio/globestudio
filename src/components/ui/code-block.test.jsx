@@ -127,6 +127,8 @@ describe("CodeBlock", () => {
           Object.assign(widths, next);
           act(() => observers.forEach((callback) => callback()));
         },
+        // New widths with no resize: the text changed inside the same box.
+        setWidths: (next) => Object.assign(widths, next),
       };
     };
 
@@ -156,6 +158,35 @@ describe("CodeBlock", () => {
       expect(pre.tabIndex).toBe(0);
       resize({ clientWidth: 260, scrollWidth: 260 });
       expect(pre.hasAttribute("tabindex")).toBe(false);
+    });
+
+    it("measures again once the code font loads, which moves the text but not the box", () => {
+      const { setWidths } = layOut({ scrollWidth: 242, clientWidth: 230 });
+      const fonts = new EventTarget();
+      Object.defineProperty(document, "fonts", { configurable: true, value: fonts });
+      try {
+        const { container, unmount } = render(
+          <CodeBlock language="Codex" wrap keyboardScroll>
+            {COMMAND}
+          </CodeBlock>,
+        );
+        const pre = container.querySelector("pre");
+        // The fallback font ran past the box.
+        expect(pre.tabIndex).toBe(0);
+        // The narrower web font fits. The box kept its size, so only the
+        // font event says so.
+        setWidths({ scrollWidth: 230 });
+        act(() => {
+          fonts.dispatchEvent(new Event("loadingdone"));
+        });
+        expect(pre.hasAttribute("tabindex")).toBe(false);
+        expect(screen.queryByRole("group")).toBeNull();
+        const remove = vi.spyOn(fonts, "removeEventListener");
+        unmount();
+        expect(remove).toHaveBeenCalledWith("loadingdone", expect.any(Function));
+      } finally {
+        delete document.fonts;
+      }
     });
 
     it("is off unless asked for, so the docs snippets keep their tab order", () => {

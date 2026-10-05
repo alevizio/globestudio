@@ -989,6 +989,35 @@ test.describe("React starter on a 320px wide phone", () => {
   }
 });
 
+// A command box joins the tab order only while it scrolls. The code font
+// often loads after the first measure and runs narrower than the fallback,
+// so a box that fits once it lands must leave the tab order again.
+for (const width of [320, 390]) {
+  test.describe(`command boxes at ${width}px`, () => {
+    test.use({ viewport: { width, height: 844 }, isMobile: true, hasTouch: true });
+
+    for (const [path, labels] of [
+      ["/docs", ["degit"]],
+      ["/integrations", ["Claude Code", "Codex", "Cursor mcp.json", "Local server", "GitHub CLI", "Claude Code plugin", "Starter project"]],
+    ]) {
+      test(`${path} puts a box in the tab order only while it scrolls`, async ({ page }) => {
+        await page.goto(path);
+        await page.evaluate(() => document.fonts.ready);
+        const mismatched = () =>
+          page.evaluate(
+            (names) =>
+              names.filter((name) => {
+                const pre = document.querySelector(`.code-block[data-language="${name}"] pre`);
+                return pre.scrollWidth > pre.clientWidth !== pre.hasAttribute("tabindex");
+              }),
+            labels,
+          );
+        await expect.poll(mismatched).toEqual([]);
+      });
+    }
+  });
+}
+
 test("axe passes with export modal open and focus returns on close", async ({ page }) => {
   await page.goto("/");
   await waitForCanvas(page);

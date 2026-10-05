@@ -39,7 +39,13 @@ export const CodeBlock = ({ children, language, className = "", wrap = false, ke
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(pre);
-    return () => observer.disconnect();
+    // The code font often lands after this first measure. It changes how far
+    // the text runs but not the box, so the observer misses it: measure again.
+    document.fonts?.addEventListener("loadingdone", measure);
+    return () => {
+      observer.disconnect();
+      document.fonts?.removeEventListener("loadingdone", measure);
+    };
   }, [keyboardScroll, children]);
 
   useEffect(
