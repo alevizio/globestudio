@@ -225,6 +225,9 @@ export const GlobeBackground = ({
   const uiThemeRef = useRef(uiTheme);
   const transformRef = useRef({ mapDepth, tiltX, tiltY });
   const [isDraggingGlobe, setIsDraggingGlobe] = useState(false);
+  // An updater that throws hands an error from an event or timer to the
+  // parent's error boundary (see the lost context handling below).
+  const [, showError] = useState();
 
   // Phone framing state, read by the animate loop. The sheet's top is only
   // measured when something may have moved it (a class change, a resize, its
@@ -626,12 +629,21 @@ export const GlobeBackground = ({
     // to avoid burning CPU on a dead context. On restore, we re-trigger a
     // full reload because rebuilding every material/geometry is more code
     // than this is worth at our complexity.
+    //
+    // A context that is still lost 10s on isn't coming back by itself, so
+    // the parent's error card, with its Reload button, takes the blank
+    // canvas's place. A restore before then reloads as below; a GPU process
+    // restart on a slow machine can take several seconds to restore.
+    let lostTimer = 0;
     const handleContextLost = (event) => {
       event.preventDefault();
       window.cancelAnimationFrame(frame);
       frame = 0;
       console.warn("WebGL context lost — pausing render loop");
       trackClientError("webgl", "context lost");
+      lostTimer = window.setTimeout(() => showError(() => {
+        throw new Error("WebGL context lost");
+      }), 10000);
     };
     const handleContextRestored = () => {
       console.warn("WebGL context restored — reloading to rebuild GPU resources");
@@ -1615,6 +1627,7 @@ export const GlobeBackground = ({
 
     return () => {
       window.cancelAnimationFrame(frame);
+      window.clearTimeout(lostTimer);
       if (releaseTimer) window.clearTimeout(releaseTimer);
       document.removeEventListener("visibilitychange", handleVisibility);
       renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
