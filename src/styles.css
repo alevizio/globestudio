@@ -4847,6 +4847,16 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   }
 }
 
+/* Phones held sideways: as wide as the bar it would cover most of the short
+   strip of globe above the open sheet, so it keeps to the top right corner,
+   under Export. */
+@media (pointer: coarse) and (max-height: 500px) {
+  .low-power-notice {
+    left: auto;
+    width: min(320px, calc(100vw - 20px));
+  }
+}
+
 /* Cmd+K command palette. Same frosted-glass language as the other
    modals; sits a touch higher (top: 18vh) so it reads as a docked
    surface rather than a centered modal — the canonical command-palette

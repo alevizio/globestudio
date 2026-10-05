@@ -105,3 +105,36 @@ test.describe("when a slow GPU turns low power mode on mid-visit", () => {
     await page.mouse.up();
   });
 });
+
+// Held sideways, the phone layout leaves a short strip of globe between the
+// top bar and the open sheet, so the notice keeps to the top right corner
+// under Export instead of spanning that strip.
+test.describe("in low power mode on a phone held sideways", () => {
+  test.use({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem("globestudio:lowPower", JSON.stringify("on"));
+      localStorage.setItem("globestudio:panelCollapsed", JSON.stringify(false));
+    });
+  });
+
+  test("the notice sits under Export, clear of the open sheet", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".globe-background canvas")).toBeVisible({ timeout: CANVAS_TIMEOUT });
+    const notice = page.getByRole("status").filter({ hasText: NOTICE });
+    const sheet = page.locator(".control-rail");
+    await expect(notice).toBeVisible();
+    const settled = (locator) => locator.evaluate((node) => Promise.all(node.getAnimations().map((a) => a.finished)));
+    await settled(notice);
+    await settled(sheet);
+
+    const box = await notice.boundingBox();
+    const exportButton = await page.locator(".top-bar-export").boundingBox();
+    const sheetBox = await sheet.boundingBox();
+    expect(box.width).toBeLessThanOrEqual(320);
+    expect(Math.abs(box.x + box.width - (exportButton.x + exportButton.width))).toBeLessThan(1);
+    expect(box.y).toBeGreaterThanOrEqual(exportButton.y + exportButton.height);
+    expect(box.y + box.height).toBeLessThanOrEqual(sheetBox.y);
+  });
+});
