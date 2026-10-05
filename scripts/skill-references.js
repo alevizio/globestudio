@@ -32,6 +32,7 @@ import { presetSeo } from "../src/data/preset-seo.js";
 import { presetTags } from "../src/data/preset-tags.js";
 import { US_STATE_FIPS } from "../src/data/us-state-codes.js";
 import { EMBED_URL_MAX } from "../src/utils/embed-snippets.js";
+import { vectorDrops, vectorNote } from "../src/utils/vector-note.js";
 import { GlobeStudioElement, buildEmbedUrl } from "../packages/web-component/index.js";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -131,6 +132,10 @@ const describeBackground = (settings) => {
 
 const onOff = (value) => (value ? "on" : "off");
 
+// What SVG and Copy as vectors keep of the look, in the export dialog's words.
+const lookVectors = (look) =>
+  vectorNote(vectorDrops(look.settings)) ?? "SVG and Copy as vectors keep the whole look.";
+
 const buildLooks = () => {
   const differing = lookPresets.filter(
     (look) => look.settings.shaderSettings.effect && look.settings.shaderSettings.effect !== look.id,
@@ -155,6 +160,7 @@ const buildLooks = () => {
       `- Map: ${describeDots(settings)}`,
       `- Background: ${describeBackground(settings)}`,
       `- Globe: glow ${onOff(globe.glow)}, grid ${onOff(globe.grid)}, network ${onOff(globe.network)}`,
+      `- Vectors: ${lookVectors(look)}`,
       `- Use it for: ${presetSeo[look.id].useCases.join("; ")}`,
       `- Tags: ${list(presetTags[look.id])}`,
     ].join("\n");
@@ -196,7 +202,7 @@ ${table(
 
 ## Each look
 
-Effect lists the look's own value for each knob the effect reads (0 to 100, cellSize 0 to 30). Map, background and globe are the look's baseline, which a config replaces key by key.
+Effect lists the look's own value for each knob the effect reads (0 to 100, cellSize 0 to 30). Map, background and globe are the look's baseline, which a config replaces key by key. Vectors is what the export dialog's SVG tab says about the look: SVG and the Figma tab's Copy as vectors keep the dots, their shapes and colors, and the rest needs PNG or video.
 
 ${sections.join("\n\n")}
 `;

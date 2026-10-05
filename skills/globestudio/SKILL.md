@@ -108,7 +108,7 @@ Dot color: kept shows `dotColor` and `dotGradient` as set, changed shifts them, 
 - Data points are at most 250, each `{ "lat": 35.68, "lng": 139.69, "value": 3 }`. A config takes no country names or codes as data, so turn country values into coordinates first. Marker area follows `value`, and `dataArcs` joins the points in list order, in the globe view only.
 - GeoJSON overlays never reach a link or an embed; the studio keeps them in the browser. For a GeoJSON layer, send the user to the studio and a PNG or SVG export.
 - Dotted maps always use Mercator. `flatProjection` applies only with `"renderMode": "solid"`.
-- SVG export drops the shader effect and the glow, because those exist only in WebGL. Use PNG or video to keep the look.
+- SVG export and the Figma tab's Copy as vectors keep the dots, their shapes and colors, and drop the shader effect, the glow, solid land and a Space background, because those exist only in WebGL. Only Default comes through whole, and each look's Vectors line in [references/looks.md](references/looks.md) says what it loses. Use PNG or video to keep the look.
 - The viewer's browser needs WebGL 2. With reduced motion on, the globe holds still.
 - A config that carries `version` is a whole design, as the studio writes in every link and file: inside `shaderSettings`, `globeSettings`, `spaceSettings` and `flowSettings` the keys it leaves out get the app defaults, even on a look. Leave `version` out of configs you write, so the look fills in the rest. Editing a link the studio wrote, keep its `version` and change only what you must. The MCP tools drop `version` but keep every key the link had, so their links open the same.
 - In `shaderSettings`, `globeSettings`, `spaceSettings` and `flowSettings` you can give only some keys; on a look the rest keep the look's values.
@@ -182,7 +182,7 @@ export const Hero = () => (
 - In the export dialog (press D), a person can export PNG at 1x to 4x in several aspect ratios or copy it as an image, record WebM, MP4 or GIF, export SVG, copy the design for Figma, and get the share link, embed code, a CodePen and the JSON config.
 - To bring a design into Figma, the person pastes its share link (a studio, `/looks/<id>` or `/embed` link) into the Globestudio Figma plugin, where it loads ready to insert.
 - An agent can make links, embed addresses and code, and the JSON config, and can screenshot the `/embed` address with a headless browser.
-- MP4 has no transparency, GIF transparency has hard edges, and SVG drops the shader effect.
+- MP4 has no transparency, GIF transparency has hard edges, and SVG drops the shader effect. The SVG and Figma tabs name what a design loses in vectors and point to the image.
 
 ## Reference files
 

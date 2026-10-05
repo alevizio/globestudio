@@ -43,7 +43,7 @@ Dot color says what the look's shader does with `dotColor` and `dotGradient`. On
 
 ## Each look
 
-Effect lists the look's own value for each knob the effect reads (0 to 100, cellSize 0 to 30). Map, background and globe are the look's baseline, which a config replaces key by key.
+Effect lists the look's own value for each knob the effect reads (0 to 100, cellSize 0 to 30). Map, background and globe are the look's baseline, which a config replaces key by key. Vectors is what the export dialog's SVG tab says about the look: SVG and the Figma tab's Copy as vectors keep the dots, their shapes and colors, and the rest needs PNG or video.
 
 ### default
 
@@ -56,6 +56,7 @@ Default: Clean cartography.
 - Map: Circle dots, `#ffffff`, density 40, size 10
 - Background: solid `#0a0a0a`
 - Globe: glow on, grid on, network on
+- Vectors: SVG and Copy as vectors keep the whole look.
 - Use it for: Landing-page hero behind a headline; Conference slide background where attention belongs elsewhere; Brand system base that designers customize per project
 - Tags: clean, minimal, neutral, simple, starter
 
@@ -70,6 +71,7 @@ Halftone: Newspaper print, browser-rendered.
 - Map: Circle dots, `#ffffff`, density 50, size 11
 - Background: solid `#0a0a0c`
 - Globe: glow off, grid off, network on
+- Vectors: The halftone pattern only comes through in PNG.
 - Use it for: Magazine spread or editorial header where print feel matters; Annual report covers and section dividers; Vinyl sleeve or risograph-adjacent print collateral
 - Tags: print, vintage, editorial, newspaper, dots, retro
 
@@ -84,6 +86,7 @@ Risograph: Pink + cyan ink, misregistered on purpose.
 - Map: Circle dots, `#ffffff`, density 55, size 12
 - Background: solid `#1a1410`
 - Globe: glow off, grid off, network on
+- Vectors: The pink and cyan inks only come through in PNG.
 - Use it for: Indie magazine and zine layouts; Print-adjacent merch (posters, stickers, lookbooks); Editorial illustration headers in design newsletters
 - Tags: print, pink, cyan, riso, ink, vibrant, modern, zine
 
@@ -98,6 +101,7 @@ Newsprint: CMYK, four plates, rotated like the pros.
 - Map: Circle dots, `#ffffff`, density 60, size 11
 - Background: solid `#15110c`
 - Globe: glow off, grid off, network on
+- Vectors: The CMYK halftone only comes through in PNG.
 - Use it for: Comic-style infographics and explainer panels; Pulp / retro magazine pastiches; Editorial section dividers in print-feel digital articles
 - Tags: cmyk, print, newspaper, editorial, vintage, magazine
 
@@ -112,6 +116,7 @@ Aurora: Northern-lights bands across the planet.
 - Map: Particle Grid dots, `#ffffff`, density 70, size 12
 - Background: space
 - Globe: glow on, grid on, network on
+- Vectors: The aurora bands and the space background only come through in PNG.
 - Use it for: Tech / SaaS landing hero with subtle continuous motion; Conference reveal sequence into a static logo lockup; Stream / podcast graphic background that doesn't compete with the talent
 - Tags: glow, atmospheric, soft, dreamy, blue, green, space, night
 
@@ -126,6 +131,7 @@ Pixel: An 8-bit world atlas.
 - Map: Square dots, `#ffffff`, density 75, size 15
 - Background: solid `#0a0814`
 - Globe: glow off, grid off, network on
+- Vectors: The pixelation only comes through in PNG.
 - Use it for: Indie game studio website hero; Retro-themed conference branding; Pixel-art marketing pages for nostalgia-led products
 - Tags: 8-bit, retro, game, blocky, square, low-fi, nintendo
 
@@ -140,6 +146,7 @@ Bayer: Classic-Mac threshold dither.
 - Map: Square dots, `#ffffff`, density 70, size 12
 - Background: solid `#171719`
 - Globe: glow off, grid off, network on
+- Vectors: The dithering only comes through in PNG.
 - Use it for: Retro-tech product launches and nostalgia-driven brand systems; Software and SaaS pages with an "early Mac" look; Game studio sites for pixel-art or 1-bit games
 - Tags: dither, retro, mac, classic, ordered, monochrome
 
@@ -154,6 +161,7 @@ Atkinson: Atkinson dither, sparser than Bayer.
 - Map: Square dots, `#ffffff`, density 65, size 11
 - Background: solid `#171719`
 - Globe: glow off, grid off, network on
+- Vectors: The dithering only comes through in PNG.
 - Use it for: Mac-nostalgic indie software product pages; Vintage computing meetup branding; Print-feel illustration for retrospective design articles
 - Tags: dither, blue-noise, mac, classic, monochrome, apple
 
@@ -168,6 +176,7 @@ Wireframe: Edge-traced, like a hand pulled print.
 - Map: Triangle dots, `#ffffff`, density 90, size 16
 - Background: transparent
 - Globe: glow off, grid on, network on
+- Vectors: The traced edges only come through in PNG.
 - Use it for: Developer-tool product pages; Architecture and engineering portfolio sites; Scientific / research publication headers
 - Tags: line, outline, edge, technical, sketch, blueprint, skeletal
 
@@ -182,6 +191,7 @@ CRT: Cathode-ray phosphor glow.
 - Map: ASCII dots, `#ffffff`, density 70, size 14
 - Background: solid `#020a10`
 - Globe: glow on, grid on, network on
+- Vectors: The scanlines and glow only come through in PNG.
 - Use it for: 80s-aesthetic product launches; Retro-gaming and synthwave brand systems; Conference / podcast intro graphics
 - Tags: retro, scanline, tv, monitor, phosphor, vintage, 80s
 
@@ -196,6 +206,7 @@ Glitch: Signal break, RGB split.
 - Map: Square dots, `#ffffff`, density 75, size 14
 - Background: solid `#08020c`
 - Globe: glow off, grid on, network on
+- Vectors: The glitches only come through in PNG.
 - Use it for: Music / record label sites for electronic genres; Launch teasers and pre-reveal mystery graphics; Cyberpunk-aesthetic conference branding
 - Tags: broken, distorted, error, datamosh, harsh
 
@@ -210,6 +221,7 @@ Bad TV: Analog tape decay.
 - Map: Square dots, `#ffffff`, density 70, size 13
 - Background: solid `#060608`
 - Globe: glow off, grid off, network on
+- Vectors: The tape static only comes through in PNG.
 - Use it for: Mockumentary and faux-archival video opener graphics; Vaporwave / retro music project branding; Lo-fi podcast cover art and stream backgrounds
 - Tags: vhs, analog, distorted, retro, scanline, tape
 
@@ -224,6 +236,7 @@ Bloom: Atmosphere on fire.
 - Map: solid land, fill `#5a5a64`, outline `#f6f2ea`
 - Background: space
 - Globe: glow on, grid on, network on
+- Vectors: SVG draws this map as dots. The solid land, the bloom and the space background only come through in PNG.
 - Use it for: SaaS landing-page hero graphics; Consumer product launches in fintech, healthtech, or wellness; Investor deck closers and final-slide visuals
 - Tags: glow, soft, dreamy, atmospheric, warm, halo
 
@@ -238,6 +251,7 @@ Metal: Liquid chrome, soft reflections.
 - Map: Voxel dots, `#ffffff`, density 70, size 13
 - Background: solid `#08080e`
 - Globe: glow off, grid off, network on
+- Vectors: The chrome shading only comes through in PNG.
 - Use it for: Consumer-electronics product launches; Automotive and engineering brand systems; Conference branding for hardware-focused events
 - Tags: chrome, shiny, polished, futuristic, premium
 
@@ -252,6 +266,7 @@ Iridescent: Holographic foil sticker.
 - Map: Star dots, `#ffffff`, density 70, size 13
 - Background: solid `#000000`
 - Globe: glow off, grid off, network on
+- Vectors: The foil shimmer only comes through in PNG.
 - Use it for: Y2K-revival fashion and lifestyle brand systems; Membership and credit-card product pages; Conference branding for design and creative-tech events
 - Tags: holographic, foil, rainbow, shimmer, y2k, sticker
 
@@ -266,6 +281,7 @@ Pencil: Pencil-traced continents.
 - Map: ASCII dots, `#ffffff`, density 60, size 14
 - Background: solid `#14100a`
 - Globe: glow off, grid off, network on
+- Vectors: The pencil strokes and paper only come through in PNG.
 - Use it for: Editorial illustration in design publications; Craft / handmade brand systems; Travel-feature article headers and section dividers
 - Tags: sketch, hatching, drawn, traditional, illustration
 
@@ -280,6 +296,7 @@ Corrupt: Datamosh corruption, on purpose.
 - Map: Square dots, `#ffffff`, density 80, size 12
 - Background: solid `#100008`
 - Globe: glow off, grid off, network on
+- Vectors: The datamosh only comes through in PNG.
 - Use it for: Electronic-music album art and label sites; Glitch-art exhibition catalog covers; Anti-corporate / critical-design publication headers
 - Tags: glitch, broken, datamosh, harsh, experimental
 
@@ -294,6 +311,7 @@ Toon: Cel-shaded pop-art world.
 - Map: Circle dots, `#3df4ff`, density 60, size 13
 - Background: solid `#0b1a2c`
 - Globe: glow on, grid on, network on
+- Vectors: The cel shading only comes through in PNG.
 - Use it for: Pop-art editorial and zine covers; Animated brand-system spots with a cartoon character voice; Children's-book or YA publication interior spreads
 - Tags: cartoon, cel-shaded, pop-art, bold, comic, illustration
 
@@ -308,6 +326,7 @@ Threshold: Pure two-tone binary.
 - Map: Square dots, `#f6f2ea`, density 65, size 11
 - Background: solid `#0a0a0a`
 - Globe: glow off, grid off, network on
+- Vectors: The two-tone threshold only comes through in PNG.
 - Use it for: Editorial magazine covers and section openers; Black-and-white screen-print poster design; Minimalist annual report dividers
 - Tags: binary, two-tone, minimal, editorial, contrast, stark, poster
 
@@ -322,6 +341,7 @@ Vapor: Synthwave horizon, pastel split.
 - Map: Diamond dots, `#ff9ec5`, density 60, size 12
 - Background: solid `#1c0a2a`
 - Globe: glow on, grid on, network on
+- Vectors: The color split only comes through in PNG.
 - Use it for: Synthwave / vaporwave EP and album art; Late-night SaaS or gaming product launches; Cyberpunk-adjacent editorial spreads and zines
 - Tags: synthwave, vaporwave, retro, neon, pastel, 80s, miami
 
@@ -336,5 +356,6 @@ Sonar: Rings on a sonar screen.
 - Map: Ring dots, `#c8ddc7`, density 70, size 11
 - Background: solid `#0f1419`
 - Globe: glow off, grid off, network on
+- Vectors: The wave distortion only comes through in PNG.
 - Use it for: Security, monitoring and network product launches; Maritime, aviation and tracking data stories; Sci-fi interfaces and game backgrounds
 - Tags: sonar, radar, rings, signal, green, tech, scifi

@@ -25,6 +25,7 @@ import { EFFECT_INDEX } from "./three/post-effects.js";
 import { MCP_URL } from "./utils/agent-prompt.js";
 import { EMBED_URL_MAX } from "./utils/embed-snippets.js";
 import { parseShareConfig } from "./utils/share-config.js";
+import { vectorDrops } from "./utils/vector-note.js";
 
 // The agent skill in skills/globestudio states product facts that agents act
 // on without checking, so each one is held to the code that defines it.
@@ -237,6 +238,12 @@ describe("SKILL.md", () => {
     expect(body).toContain(`With no look it draws Default: density ${density}, dot size ${dotSize}`);
     const transparent = lookPresets.filter((look) => look.settings.transparent).map((look) => look.name);
     expect(body).toContain(`keeps the page solid on a transparent look (${transparent.join(", ")})`);
+  });
+
+  it("says which look SVG keeps whole, as the export dialog's note has it", () => {
+    const whole = lookPresets.filter((look) => vectorDrops(look.settings).length === 0).map((look) => look.name);
+    expect(whole).toEqual(["Default"]);
+    expect(body).toContain("Only Default comes through whole");
   });
 
   it("connects the MCP server with the export dialog's own commands", () => {
