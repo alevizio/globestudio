@@ -27,7 +27,11 @@ const BUDGETS = [
   // validation. Keeping that guard in the initial chunk ensures
   // malformed ?c= payloads are rejected before they can mutate render
   // state.
-  { prefix: "index-",            ext: ".js",  raw: 340_000,  gzip:  98_000, lazy: false },
+  // Since Vite 8.0.16 (Rolldown 1.0.3) the shared chunks the shell imports
+  // statically (icons, math, globe-settings and shader-effects, below) fold
+  // into this one, so its budget is the old 340 / 98 kB plus theirs. The
+  // first paint JS is the same bytes in 5 requests instead of 9.
+  { prefix: "index-",            ext: ".js",  raw: 374_000,  gzip: 108_500, lazy: false },
   { prefix: "react-",            ext: ".js",  raw: 210_000,  gzip:  70_000, lazy: false },
   { prefix: "dotted-map-",       ext: ".js",  raw: 430_000,  gzip: 170_000, lazy: false },
   { prefix: "src-",              ext: ".js",  raw:  20_000,  gzip:   8_000, lazy: false },
@@ -40,8 +44,10 @@ const BUDGETS = [
   { prefix: "preload-helper-",   ext: ".js",  raw:   2_000,  gzip:   1_000, lazy: false, optional: true },
   // icons.jsx. Rolldown splits it out of index-*.js once the Figma plugin
   // pickers are a lazy chunk; it is still preloaded on first paint, so it
-  // counts as initial.
-  { prefix: "icons-",            ext: ".js",  raw:  22_000,  gzip:   5_000, lazy: false },
+  // counts as initial. Rolldown 1.0.3 folds it into index-*.js (see above),
+  // so a missing file here is not a regression; the same goes for math,
+  // globe-settings and shader-effects.
+  { prefix: "icons-",            ext: ".js",  raw:  22_000,  gzip:   5_000, lazy: false, optional: true },
   // CSS is unminified — the build pipeline drops -webkit-backdrop-filter
   // / backdrop-filter pairs when minified, breaking modal frosted-glass
   // across browsers (see vite.config.js#cssMinify: false). Budget bumped
@@ -66,7 +72,7 @@ const BUDGETS = [
   // their mobile overrides). Lazy chunk, so it doesn't touch first paint.
   { prefix: "examples-page-",    ext: ".css", raw:  24_000,  gzip:   7_500, lazy: true },
   { prefix: "flow-background-shader-", ext: ".js", raw: 5_000, gzip: 2_000, lazy: true },
-  { prefix: "math-",             ext: ".js",  raw:   4_000,  gzip:   2_500, lazy: true },
+  { prefix: "math-",             ext: ".js",  raw:   4_000,  gzip:   2_500, lazy: true, optional: true },
   // gifenc / mp4-muxer — only fetched when a GIF / MP4 export is requested.
   { prefix: "gifenc-",           ext: ".js",  raw:  12_000,  gzip:   5_500, lazy: true },
   { prefix: "mp4-muxer-",        ext: ".js",  raw:  36_000,  gzip:  11_000, lazy: true },
@@ -92,8 +98,8 @@ const BUDGETS = [
   { prefix: "agent-skill-",      ext: ".js",  raw:   2_500,  gzip:   1_200, lazy: true },
   // Config defaults split into shared chunks once look-presets is imported by
   // a lazy route (gallery) as well as the main app.
-  { prefix: "globe-settings-",   ext: ".js",  raw:   3_000,  gzip:   1_500, lazy: false },
-  { prefix: "shader-effects-",   ext: ".js",  raw:   5_000,  gzip:   1_500, lazy: false },
+  { prefix: "globe-settings-",   ext: ".js",  raw:   3_000,  gzip:   1_500, lazy: false, optional: true },
+  { prefix: "shader-effects-",   ext: ".js",  raw:   5_000,  gzip:   1_500, lazy: false, optional: true },
   // Pre-launch teaser (only loaded when VITE_TEASER=1). Includes the
   // LiquidMetal + the canvas ChromeShader logo shaders — hence the budget.
   { prefix: "teaser-page-",      ext: ".js",  raw:  62_000,  gzip:  20_000, lazy: true },

@@ -50,8 +50,8 @@
     "jsdom": "^29.1.1",
     "playwright": "^1.60.0",
     "satori": "^0.26.0",
-    "vite": "^8.0.12",
-    "vitest": "^4.1.6",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.11",
     "world-countries": "^5.1.0"
   }
 }
