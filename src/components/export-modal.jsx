@@ -627,6 +627,7 @@ export const ExportModal = ({
                 <h3 className="export-modal-label">Or design inside Figma</h3>
                 <p className="export-modal-caption">
                   The Globestudio plugin runs the full studio inside Figma and inserts the result on your canvas.
+                  Paste the share link from the Share tab into it to open this design there.
                 </p>
                 <a className="export-modal-cta is-secondary" href={FIGMA_PLUGIN_URL} target="_blank" rel="noopener">
                   <span>Open the Figma plugin</span>

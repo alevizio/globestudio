@@ -389,7 +389,7 @@ describe("ExportModal", () => {
         ["p", "Vectors keep dot positions, shapes, and colors. Effects and atmosphere are not applied."],
         ["button", "Copy as image"],
         ["h3", "Or design inside Figma"],
-        ["p", "The Globestudio plugin runs the full studio inside Figma and inserts the result on your canvas."],
+        ["p", "The Globestudio plugin runs the full studio inside Figma and inserts the result on your canvas. Paste the share link from the Share tab into it to open this design there."],
         ["a", "Open the Figma plugin"],
       ]);
       expect(screen.getByRole("button", { name: "Copy as vectors" }).className).not.toContain("is-secondary");
