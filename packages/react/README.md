@@ -29,6 +29,12 @@ The component is a styled `<iframe>` over `globestudio.app/embed`, so the heavy 
 
 In the app, the export dialog's Share tab writes a `<Globe config=… />` snippet for the design on screen: pick React under Embed code and copy it.
 
+On a light page, add `theme="light"`, so Wireframe's white ink turns graphite instead of all but vanishing:
+
+```tsx
+<Globe look="wireframe" theme="light" />
+```
+
 ## Props
 
 | Prop | Type | Default | Notes |
@@ -37,6 +43,7 @@ In the app, the export dialog's Share tab writes a `<Globe config=… />` snippe
 | `width` | `number \| string` | `"100%"` | A number means pixels |
 | `height` | `number \| string` | `480` | A number means pixels |
 | `config` | `string` | | The design's JSON string (`JSON.stringify(design)`), not URL encoded. Layered over `look` when you pass both, or over Default alone |
+| `theme` | `"light" \| "dark"` | `"dark"` | `"light"` suits a light page: the glow and grid switch to a palette for light pages, and the white ink of Halftone, Wireframe, Toon and Threshold turns graphite |
 | `title` | `string` | `"Globestudio dotted globe"` | A11y label |
 | `className` | `string` | | Forwarded |
 | `style` | `CSSProperties` | | Merged after `border: 0` |

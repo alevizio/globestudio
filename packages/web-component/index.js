@@ -30,9 +30,10 @@ const configToken = (config) => {
 /**
  * Build the embed URL from a look preset, a pre-built share `config`, or
  * both: the embed layers the config over the look, or over Default when
- * only a config is given.
+ * only a config is given. Only a light `theme` is sent, so a dark,
+ * missing or unknown one leaves the address as it was.
  */
-export const buildEmbedUrl = ({ look, config, source } = {}) => {
+export const buildEmbedUrl = ({ look, config, theme, source } = {}) => {
   const params = new URLSearchParams();
   if (config) {
     if (look) params.set("look", look);
@@ -40,11 +41,12 @@ export const buildEmbedUrl = ({ look, config, source } = {}) => {
   } else {
     params.set("look", look || "halftone");
   }
+  if (theme === "light") params.set("theme", "light");
   if (source) params.set("source", source);
   return `${SITE_URL}/embed?${params.toString()}`;
 };
 
-const OBSERVED = ["look", "config", "source", "width", "height", "title", "loading"];
+const OBSERVED = ["look", "config", "theme", "source", "width", "height", "title", "loading"];
 
 // SSR-safe base: `HTMLElement` is undefined on the server (Next.js, Astro,
 // Remix). Extending a stub there means a bare `import "@globestudio/element"`
@@ -78,6 +80,7 @@ export class GlobeStudioElement extends ElementBase {
     iframe.src = buildEmbedUrl({
       look: this.getAttribute("look") || undefined,
       config: this.getAttribute("config") || undefined,
+      theme: this.getAttribute("theme") || "dark",
       source: this.getAttribute("source") || undefined,
     });
     iframe.setAttribute("width", this.getAttribute("width") || "100%");

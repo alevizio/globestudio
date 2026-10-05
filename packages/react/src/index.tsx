@@ -71,6 +71,13 @@ export interface GlobeProps {
    */
   config?: string;
   /**
+   * The embed's palette. `"light"` switches the glow and grid to a
+   * palette for light pages and turns the white ink of Halftone,
+   * Wireframe, Toon and Threshold graphite. Any other value keeps the
+   * dark one. Defaults to `"dark"`.
+   */
+  theme?: "light" | "dark";
+  /**
    * Accessible title for the embedded iframe. Required for AT/SR.
    * Defaults to `"Globestudio dotted globe"`.
    */
@@ -120,8 +127,9 @@ const configToken = (config: string) => {
 };
 
 // With a config, the look is sent only when given: the embed layers the
-// config over that look, or over Default without one.
-const buildEmbedUrl = (props: Pick<GlobeProps, "look" | "config" | "source">) => {
+// config over that look, or over Default without one. Only a light theme
+// is sent, so a dark or missing one leaves the address as it was.
+const buildEmbedUrl = (props: Pick<GlobeProps, "look" | "config" | "theme" | "source">) => {
   const params = new URLSearchParams();
   if (props.config) {
     if (props.look) params.set("look", props.look);
@@ -129,6 +137,7 @@ const buildEmbedUrl = (props: Pick<GlobeProps, "look" | "config" | "source">) =>
   } else {
     params.set("look", props.look ?? "halftone");
   }
+  if (props.theme === "light") params.set("theme", "light");
   if (props.source) params.set("source", props.source);
   return `${SITE_URL}/embed?${params.toString()}`;
 };
@@ -151,6 +160,9 @@ const buildEmbedUrl = (props: Pick<GlobeProps, "look" | "config" | "source">) =>
  *
  * // From a share URL's config:
  * <Globe config={searchParams.get("c") ?? undefined} />
+ *
+ * // On a light page:
+ * <Globe look="wireframe" theme="light" />
  * ```
  */
 export const Globe = forwardRef<HTMLIFrameElement, GlobeProps>(function Globe(
@@ -162,6 +174,7 @@ export const Globe = forwardRef<HTMLIFrameElement, GlobeProps>(function Globe(
     width = "100%",
     height = 480,
     config,
+    theme,
     title = "Globestudio dotted globe",
     className,
     style,
@@ -170,7 +183,7 @@ export const Globe = forwardRef<HTMLIFrameElement, GlobeProps>(function Globe(
     onLoad,
   } = props;
 
-  const src = buildEmbedUrl({ look, config, source });
+  const src = buildEmbedUrl({ look, config, theme, source });
 
   return (
     <iframe
@@ -192,7 +205,7 @@ export const Globe = forwardRef<HTMLIFrameElement, GlobeProps>(function Globe(
  * you need the URL directly (Next.js `<Image src>`, SSR markup, etc.).
  */
 export const globestudio = {
-  embedUrl(opts: Pick<GlobeProps, "look" | "config" | "source"> = {}) {
+  embedUrl(opts: Pick<GlobeProps, "look" | "config" | "theme" | "source"> = {}) {
     return buildEmbedUrl(opts);
   },
   thumbnailUrl(look: LookId) {

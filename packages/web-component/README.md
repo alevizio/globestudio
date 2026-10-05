@@ -22,6 +22,9 @@ import "@globestudio/element"; // auto-registers <globe-studio>
 
 <!-- From a share config (the ?c= payload from the app's Share tab) -->
 <globe-studio config="…" height="480"></globe-studio>
+
+<!-- On a light page -->
+<globe-studio look="wireframe" theme="light"></globe-studio>
 ```
 
 Or via CDN, no build step:
@@ -37,13 +40,14 @@ Or via CDN, no build step:
 |---|---|---|
 | `look` | `halftone` | Any shipped preset id. With `config`, the config is layered over it. |
 | `config` | | Pre-built share config (`?c=` payload), layered over `look`, or over Default without one. |
+| `theme` | `dark` | `light` suits a light page: the glow and grid switch to a palette for light pages, and the white ink of Halftone, Wireframe, Toon and Threshold turns graphite. Other values are ignored. |
 | `width` | `100%` | Forwarded to the iframe. |
 | `height` | `480` | Forwarded to the iframe. |
 | `title` | `Globestudio dotted globe` | Accessible label. |
 | `loading` | `lazy` | `lazy` defers off-screen embeds. |
 | `source` | | Analytics attribution tag. |
 
-Attributes are reactive: change `look` or `config` and the globe updates.
+Attributes are reactive: change `look`, `config` or `theme` and the globe updates.
 
 In the app, the export dialog's Share tab writes this tag for the design on
 screen: pick Web component under Embed code and copy it.
@@ -55,6 +59,7 @@ import { defineGlobeStudio, buildEmbedUrl } from "@globestudio/element";
 
 defineGlobeStudio("my-globe"); // register under a custom tag
 buildEmbedUrl({ look: "vapor" }); // → "https://globestudio.app/embed?look=vapor"
+buildEmbedUrl({ look: "vapor", theme: "light" }); // → "https://globestudio.app/embed?look=vapor&theme=light"
 ```
 
 MIT © Globestudio

@@ -218,6 +218,24 @@ describe("the embed URL the packages build", () => {
       expect(build({})).toBe("https://globestudio.app/embed?look=halftone");
       expect(build({ look: "aurora", source: "site" })).toBe("https://globestudio.app/embed?look=aurora&source=site");
     });
+
+    it(`${name} asks the embed for its light palette when the theme is light`, () => {
+      expect(build({ look: "wireframe", theme: "light" })).toBe("https://globestudio.app/embed?look=wireframe&theme=light");
+      expect(build({ look: "wireframe", theme: "light", source: "site" })).toBe(
+        "https://globestudio.app/embed?look=wireframe&theme=light&source=site",
+      );
+      const url = new URL(build({ look: "topographic", config: CONFIG, theme: "light" }));
+      expect(url.searchParams.get("theme")).toBe("light");
+      expect(parseShareConfig(url.search)).toEqual(DECODED);
+    });
+
+    it(`${name} leaves the address as it was for a dark, missing or unknown theme`, () => {
+      for (const options of [{}, { look: "aurora", source: "site" }, { look: "topographic", config: CONFIG }]) {
+        for (const theme of [undefined, "", "dark", "Light", "sepia", 1]) {
+          expect(build({ ...options, theme })).toBe(build(options));
+        }
+      }
+    });
   }
 });
 

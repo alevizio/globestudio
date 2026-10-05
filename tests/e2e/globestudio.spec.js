@@ -172,6 +172,67 @@ test("<globe-studio look config> embeds the config over that look", async ({ pag
   await expect(page.locator(".globe-background")).toHaveClass(/\beffect-wave\b/);
 });
 
+test.describe('<globe-studio theme="light">', () => {
+  test.use({ viewport: { width: 900, height: 600 }, contextOptions: { reducedMotion: "reduce" } });
+
+  // Wireframe is see-through, so a page shot with no page color behind it
+  // holds only the globe's own pixels: the share of the page they cover in
+  // graphite, and in white.
+  const inkShares = async (page) => {
+    const png = await page.screenshot({ omitBackground: true });
+    return page.evaluate(async (b64) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const context = canvas.getContext("2d");
+      context.drawImage(img, 0, 0);
+      const { data } = context.getImageData(0, 0, img.width, img.height);
+      let graphite = 0;
+      let white = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 128) continue;
+        if (Math.max(data[i], data[i + 1], data[i + 2]) < 110) graphite += 1;
+        else if (Math.min(data[i], data[i + 1], data[i + 2]) > 200) white += 1;
+      }
+      const pixels = data.length / 4;
+      return { graphite: graphite / pixels, white: white / pixels };
+    }, png.toString("base64"));
+  };
+
+  test("draws Wireframe's ink in graphite for a light page, where it was white", async ({ page }) => {
+    // As the test above: build the address with the element, open it here.
+    await page.route("https://globestudio.app/**", (route) => route.abort());
+    await page.setContent("<!doctype html><title>Element</title><body></body>");
+    await page.addScriptTag({ path: "packages/web-component/index.js", type: "module" });
+    await page.waitForFunction(() => Boolean(customElements.get("globe-studio")));
+    const src = await page.evaluate(() => {
+      const element = document.createElement("globe-studio");
+      element.setAttribute("look", "wireframe");
+      element.setAttribute("theme", "light");
+      document.body.append(element);
+      return element.querySelector("iframe").src;
+    });
+    const embed = new URL(src);
+    expect(embed.searchParams.get("theme")).toBe("light");
+
+    await page.goto(`${embed.pathname}${embed.search}`);
+    await waitForCanvas(page);
+    await expect.poll(async () => (await inkShares(page)).graphite, { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(0.05);
+    expect((await inkShares(page)).white).toBeLessThan(0.001);
+
+    // The same address without the theme: the ink is white, which a light
+    // page doesn't show.
+    embed.searchParams.delete("theme");
+    await page.goto(`${embed.pathname}${embed.search}`);
+    await waitForCanvas(page);
+    await expect.poll(async () => (await inkShares(page)).white, { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(0.05);
+    expect((await inkShares(page)).graphite).toBeLessThan(0.001);
+  });
+});
+
 test("embed.js draws the design of a whole share link pasted into data-config", async ({ page }) => {
   // A link the MCP server built, app=1 and all. The script points its iframe
   // at globestudio.app; keep it off the network and open the same embed

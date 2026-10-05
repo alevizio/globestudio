@@ -3,6 +3,8 @@ export interface GlobeStudioOptions {
   look?: string;
   /** Pre-built share config payload (the `?c=` value), layered over `look`, or over Default without one. */
   config?: string;
+  /** "light" switches the embed to its palette for light pages. Anything else keeps the dark one. */
+  theme?: "light" | "dark";
   /** Optional analytics attribution tag. */
   source?: string;
 }
