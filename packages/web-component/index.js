@@ -13,12 +13,18 @@ const SITE_URL = "https://globestudio.app";
 // "?c=…", "c=…") gives its c param, as written: whatever follows the token
 // (app=1 on older links, other params, a #hash) is not part of it, and left
 // in, the config failed to parse. A JSON config or a token passes through.
+// A JSON config written out after "c=", not URL encoded, can hold the "#" of
+// a color, an "&" or a "?", so it runs to the end.
 const configToken = (config) => {
   if (/^\s*\{/.test(config)) return config;
   const q = config.indexOf("?");
-  const query = q >= 0 ? config.slice(q + 1) : config.startsWith("c=") ? config : "";
-  const param = query.split("#")[0].split("&").find((part) => part.startsWith("c="));
-  return param === undefined ? config : param.slice(2);
+  const query = config.startsWith("c=") ? config : q >= 0 ? config.slice(q + 1) : "";
+  const parts = query.split("&");
+  const i = parts.findIndex((part) => part.startsWith("c="));
+  // Past a "#" the rest is the link's hash, not its query.
+  if (i < 0 || parts.slice(0, i).some((part) => part.includes("#"))) return config;
+  const token = parts.slice(i).join("&").slice(2);
+  return /^\s*\{/.test(token) ? token : token.split(/[&#]/)[0];
 };
 
 /**

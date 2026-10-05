@@ -200,6 +200,14 @@ describe("the embed URL the packages build", () => {
       expect(new URL(build({ config: json })).searchParams.get("c")).toBe(json);
     });
 
+    it(`${name} keeps a JSON config written out after ?c= or c= whole`, () => {
+      // Not URL encoded, so the "#" of a color, an "&" and a "?" are part of it.
+      const json = JSON.stringify({ v: 2, dotColor: "#ff3366", shape: "ASCII", asciiSymbol: "&?" });
+      for (const pasted of [`?c=${json}`, `c=${json}`, `https://globestudio.app/?c=${json}`]) {
+        expect(new URL(build({ config: pasted })).searchParams.get("c"), pasted).toBe(json);
+      }
+    });
+
     it(`${name} embeds Halftone, or the look given, without a config`, () => {
       expect(build({})).toBe("https://globestudio.app/embed?look=halftone");
       expect(build({ look: "aurora", source: "site" })).toBe("https://globestudio.app/embed?look=aurora&source=site");
