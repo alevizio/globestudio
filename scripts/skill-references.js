@@ -30,6 +30,7 @@ import { continentOptions, subregionOptions } from "../src/data/geography.js";
 import { lookPresets } from "../src/data/look-presets.js";
 import { presetSeo } from "../src/data/preset-seo.js";
 import { presetTags } from "../src/data/preset-tags.js";
+import { STARTER_DEGIT } from "../src/data/starter-react.js";
 import { US_STATE_FIPS } from "../src/data/us-state-codes.js";
 import { EMBED_URL_MAX } from "../src/utils/embed-snippets.js";
 import { vectorDrops, vectorNote } from "../src/utils/vector-note.js";
@@ -518,7 +519,7 @@ const buildEmbedding = () => {
   const exampleUrl = buildEmbedUrl({ look: EXAMPLE_LOOK, config: JSON.stringify(EXAMPLE_DESIGN) });
   return `# Embedding Globestudio
 
-${generated("packages/react/src/index.tsx, packages/web-component/index.js, public/embed.js, src/components/embed-view.jsx and src/utils/embed-snippets.js")}
+${generated("packages/react/src/index.tsx, packages/web-component/index.js, public/embed.js, src/components/embed-view.jsx, src/data/starter-react.js and src/utils/embed-snippets.js")}
 
 Every embed is an iframe of ${code(`${SITE}/embed`)}: the packages and the script loader only build that address. The globe renders on globestudio.app, so a page adds no three.js and no map data.
 
@@ -551,6 +552,8 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 ## React: @globestudio/react
 
 ${code("npm install @globestudio/react")}, ${PACKAGES_FLOOR} or later: 0.1.0 dropped ${code("look")} whenever ${code("config")} was set, so a config of changes embedded over Default. ${code("<Globe>")} renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component pass only serializable props; ${code("onLoad")} or a ref needs a client component.
+
+With no project yet, ${code(STARTER_DEGIT)} copies a Vite and React app that already renders a ${code("<Globe>")}. Run ${code("npm install")} and ${code("npm run dev")} in it.
 
 ${table(["Prop", "Type", "Default", "Notes"], reactProps())}
 
