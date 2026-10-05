@@ -72,6 +72,24 @@ describe("readDesignLink", () => {
     expect(both.config).toMatchObject({ selection: "country:JPN", viewMode: "globe" });
   });
 
+  it("keeps the hex colors of a v3 design in an embed link, as the embed draws them", () => {
+    // The Share tab's embed code and the MCP's embed_url carry a v3 ?c= for a
+    // design with a picked color. Its mark has to survive, or the studio
+    // draws those colors darker than the embed and the share link do.
+    const v3 = encodeURIComponent(JSON.stringify({ v: 3, dotColor: "#3366ff" }));
+    const embed = readDesignLink(`${SITE}/embed?look=halftone&c=${v3}`);
+    expect(embed.config).toMatchObject({ dotColor: "#3366ff", hexColors: true });
+    expect(embed.config).toEqual(readDesignLink(`${SITE}/looks/halftone?c=${v3}`).config);
+    // Under it the old-color ?dotColor= and ?worldFill= params turn into the
+    // hex colors that render the same (embed-view.jsx buildSettings).
+    const params = readDesignLink(`${SITE}/embed?dotColor=808080&worldFill=ff8000&c=${encodeURIComponent(JSON.stringify({ v: 3, density: 60 }))}`);
+    expect(params.config).toMatchObject({ dotColor: "#373737", worldFill: "#ff3700", density: 60, hexColors: true });
+    // An embed link without a v3 ?c= reads its colors the old way, unmarked.
+    const old = readDesignLink(`${SITE}/embed?dotColor=808080&c=${encodeURIComponent(JSON.stringify({ v: 2, density: 60 }))}`);
+    expect(old.config.dotColor).toBe("#808080");
+    expect(old.config).not.toHaveProperty("hexColors");
+  });
+
   it("keeps embed params to the embed's ranges and leaves its display options out", () => {
     expect(readDesignLink(`${SITE}/embed?look=halftone&density=500&dotSize=-3&tiltX=90&tiltY=x&background=transparent`).config).toEqual(
       normalizeConfig({ density: 90, tiltX: 45, transparent: true }, halftone.settings),

@@ -1,4 +1,5 @@
 import { lookPresets } from "../data/look-presets.js";
+import { toLinearHex } from "./color-space.js";
 import { matchRoute } from "./route-match.js";
 import { normalizeConfig, parseShareConfig } from "./share-config.js";
 
@@ -18,9 +19,13 @@ const clamp = (text, min, max) => {
 // reads them, with its ranges, and as the MCP's read_share_url does. The
 // docs' embed examples and the MCP's embed links set the region, density
 // and colors this way. Display options (theme, static, source) are left out.
-const readEmbedParams = (params) => {
+// ?dotColor= and ?worldFill= hold old colors. Under a ?c= with hex colors
+// (hexColors) the embed turns them into the hex colors that render the
+// same, and so does this.
+const readEmbedParams = (params, hexColors) => {
   const get = (key) => params.get(key) || undefined;
   const hex = (key) => get(key) && `#${get(key).replace(/^#/, "")}`;
+  const color = (key) => hex(key) && (hexColors ? toLinearHex(hex(key)) : hex(key));
   const flag = (key) => (params.has(key) ? ["1", "true"].includes(params.get(key)) : undefined);
   const size = (key, min, max) => (Number(get(key)) > 0 ? clamp(get(key), min, max) : undefined);
   const clear = get("background") === "transparent";
@@ -29,8 +34,8 @@ const readEmbedParams = (params) => {
     renderMode: get("renderMode"),
     density: size("density", 1, 90),
     dotSize: size("dotSize", 0.1, 25),
-    dotColor: hex("dotColor"),
-    worldFill: hex("worldFill"),
+    dotColor: color("dotColor"),
+    worldFill: color("worldFill"),
     background: clear ? undefined : hex("background"),
     // A color in the address keeps the page opaque, as in the embed.
     transparent: clear || (flag("transparent") ?? (get("background") ? false : undefined)),
@@ -70,9 +75,13 @@ export const readDesignLink = (text, ownHost) => {
     return { look, config };
   }
   // The embed layers ?c= over its own params, except the view, which the
-  // param sets.
-  const params = readEmbedParams(url.searchParams);
+  // param sets. A ?c= with hex colors (a v3 link, like the Share tab's embed
+  // code and the MCP's embed_url for a design with a picked color) keeps its
+  // mark, as parseShareConfig gives it, so the studio draws those colors as
+  // the embed does.
   const shared = parseShareConfig(url.search, {}) ?? {};
+  const hexColors = shared.hexColors === true;
+  const params = readEmbedParams(url.searchParams, hexColors);
   const config = normalizeConfig(
     {
       ...params,
@@ -81,6 +90,7 @@ export const readDesignLink = (text, ownHost) => {
       viewMode: params.viewMode ?? shared.viewMode,
     },
     look?.settings,
+    hexColors,
   );
-  return { look, config };
+  return { look, config: config && hexColors ? { ...config, hexColors: true } : config };
 };
