@@ -12,6 +12,8 @@ access at render time).
 
 Prefer the npm package, which covers all 21 looks:
 `npm install @globestudio/react` (see [`packages/react`](../../packages/react/)).
+For a new project, [`starter-react`](../starter-react/) is a Vite app with
+the package already set up.
 This file is the zero-install alternative; copy it in:
 
 ```bash
