@@ -1367,8 +1367,10 @@ const App = () => {
   // A share link pasted into the Figma plugin, applied the way opening it
   // does: its look first (useRouteLook), then its config over that look
   // (useShareConfigImport). A link with no look opens on none, like "/?c=".
-  // The paste field or the shortcut toast says what happened, so the status
-  // region stays quiet instead of announcing it twice.
+  // The paste field's status line says what happened, in place of "Applied
+  // X". A paste outside the field also shows the shortcut toast, and says it
+  // in the status region too: the toast mounts with its text, which screen
+  // readers can miss.
   const loadDesignLink = ({ look, config }) => {
     if (look) applyLook(look);
     else setCurrentPresetId(null);
@@ -2104,7 +2106,10 @@ const App = () => {
             <Suspense fallback={null}>
               <FigmaPasteLink
                 onLoad={loadDesignLink}
-                onPagePaste={(message) => flashKeyboardHint("⌘V", message)}
+                onPagePaste={(message) => {
+                  flashKeyboardHint("⌘V", message);
+                  setStatusMessage(message);
+                }}
               />
             </Suspense>
           )}

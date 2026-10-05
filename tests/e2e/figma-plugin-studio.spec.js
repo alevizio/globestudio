@@ -93,6 +93,8 @@ test.describe("pasting a share link into the Figma plugin", () => {
   // The shortcut toast a paste outside the field shows lasts 1.4 s, which a
   // busy software GL frame can outlast, so its text is recorded as it lands.
   const toasts = (page) => page.evaluate(() => window.__toasts);
+  // The app's status region, which says it to screen readers too.
+  const announced = (page) => page.locator("div.visually-hidden[role=status]");
 
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -110,6 +112,7 @@ test.describe("pasting a share link into the Figma plugin", () => {
     await page.locator("canvas").first().click();
     await paste(page, `${shareLink({ selection: "country:FRA" }, "/looks/halftone")}&app=1`);
     await expect.poll(() => toasts(page)).toEqual(["⌘VLoaded the design from your link"]);
+    await expect(announced(page)).toHaveText("Loaded the design from your link");
     await openSheet(page);
     await expect(page.locator(".looks-chip", { hasText: "Halftone" })).toHaveClass(/is-current/);
     await expect(region(page)).toContainText("France");
@@ -119,6 +122,7 @@ test.describe("pasting a share link into the Figma plugin", () => {
     await page.locator("canvas").first().click();
     await paste(page, "https://example.com/looks/halftone");
     await expect.poll(() => toasts(page)).toEqual(["⌘VThat is not a Globestudio link"]);
+    await expect(announced(page)).toHaveText("That is not a Globestudio link");
     await openSheet(page);
     await expect(page.locator(".looks-chip", { hasText: "Halftone" })).not.toHaveClass(/is-current/);
     await expect(region(page)).toContainText("World");
@@ -134,6 +138,8 @@ test.describe("pasting a share link into the Figma plugin", () => {
     await expect(status).toHaveText("Loaded the design from your link");
     await expect(region(page)).toContainText("Japan");
     await expect(field).toHaveValue("");
+    // The field's line says it, so the status region doesn't say it again.
+    await expect(announced(page)).toHaveText("");
 
     await paste(page, "not a link");
     await expect(status).toHaveText("That is not a Globestudio link");
