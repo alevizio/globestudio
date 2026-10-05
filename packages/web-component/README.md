@@ -42,7 +42,7 @@ Or via CDN, no build step:
 | Attribute | Default | Notes |
 |---|---|---|
 | `look` | `halftone` | Any shipped preset id. With `config`, the config is layered over it. |
-| `config` | | Pre-built share config (`?c=` payload), layered over `look`, or over Default without one. |
+| `config` | | Pre-built share config (`?c=` payload), layered over `look`, or over Default without one. A whole share link, or its `?c=` query, works too. |
 | `theme` | `dark` | `light` suits a light page: the glow and grid switch to a palette for light pages, and the white ink of Halftone, Wireframe, Toon and Threshold turns graphite. Halftone, Toon and Threshold paint a dark page of their own, so make them see-through in `config` too. Other values are ignored. |
 | `width` | `100%` | Forwarded to the iframe. |
 | `height` | `480` | Forwarded to the iframe. |

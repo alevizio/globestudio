@@ -84,6 +84,9 @@ A JSON Schema for configuration files is at
 - **Render is client-side**: Globestudio doesn't provide a
   server-side image render endpoint (yet). For screenshots, point a
   headless browser at the embed URL.
+- **Write `"v": 3` in a `c` config**: with it, the colors you set
+  render as their hex. Without it they render darker than their hex, as
+  links made before do.
 - **SVG keeps the dots, not the shader**: SVG and Copy as vectors draw
   the flat map, even from the globe view, and keep the dots, their shapes
   and colors. A look's effect, solid land and a Space or Flow background

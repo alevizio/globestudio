@@ -1,7 +1,7 @@
 # Roadmap
 
 What ships today and what we plan next. Updated when the direction changes;
-last revised September 2026, for the 1.0.0 launch.
+last revised October 2026, for 1.2.0.
 
 Plans here can change. If a feature on this list matters to you,
 [open a Discussion](https://github.com/alevizio/globestudio/discussions/categories/ideas)
@@ -23,12 +23,13 @@ The version on `main` already does all of this.
   and pasted SVG
 - Linear gradients with a midpoint and per-stop opacity on dots, land,
   and borders, in a draggable color picker (HEX/RGB/HSB/HSL)
-- Solid mode: filled land and stroked borders, rivers and cities
-  overlays, pasted GeoJSON lines and points, and 5 flat projections
-  (Mercator, Equal Earth, Natural Earth, Winkel Tripel, Robinson). Dotted
-  maps use Mercator
+- Solid mode: filled land and stroked borders for the world, a region, a
+  country or a US state, rivers and cities overlays, pasted GeoJSON lines
+  and points, and 5 flat projections (Mercator, Equal Earth, Natural
+  Earth, Winkel Tripel, Robinson). Dotted maps use Mercator
 - Your own data: paste `lat,lng,value` or `country,value` lines and plot
-  them as markers sized by value, optionally joined by arcs
+  them as markers sized by value, optionally joined by arcs. Try an
+  example fills in eight cities to start from
 - Animated network arcs, rotation, twinkle, and size jitter
 - Cmd+K command palette and a full keyboard system (`S` shuffle,
   `[`/`]` cycle looks, `D` export, `R` reset, `G` toggle view, `H` toggle
@@ -47,6 +48,8 @@ The version on `main` already does all of this.
 - PNG at 1x to 4x, SVG with clean vector dots (6 effects
   approximated with SVG filters), WebM, MP4 (where the browser
   supports it) and GIF video, and a JSON config with `$schema`
+- Copy image, and a Figma tab that copies the design as vectors or as an
+  image. The SVG and Figma tabs say what the vectors leave out
 - Share links that carry your settings, and embed code for an iframe,
   React or a web component
 
@@ -55,21 +58,28 @@ The version on `main` already does all of this.
 - `/embed` route with URL params or a full `?c=` config, and the
   `embed.js` one-line script tag
 - `@globestudio/react`: a drop-in `<Globe />` component
+- A light theme for embeds on light pages: `theme="light"` on both
+  packages, `data-theme="light"` for embed.js, `theme=light` on `/embed`
 - A React starter in `examples/starter-react`, to copy with degit or open
   in StackBlitz
 - `@globestudio/element`: a framework-free `<globe-studio>` web component
-- Figma plugin in the Figma Community
+- Figma plugin in the Figma Community. Paste a share, look or embed link
+  into it to open that design
 - WordPress block and `[globestudio]` shortcode (manual install), and
   any WordPress site via a Custom HTML embed
 - `@globestudio/mcp`: an MCP server so AI assistants can build globes,
   share links, and embed snippets
 - `/integrations`: copy-paste recipes per platform
+- The Globestudio agent skill for coding agents, also as a Claude Code
+  plugin and a Gemini CLI extension, listed on
+  [skills.sh](https://skills.sh/alevizio/globestudio/globestudio)
 
 ### Site and project
 
 - `/docs`, `/changelog` with RSS, `/brand` press kit, `/privacy`, `/examples`
 - `/compare/cobe` and `/compare/geolayers`
-- Per-route prerendered `<head>`, an auto-generated sitemap, `llms.txt`
+- Per-route prerendered `<head>` and page content, a 404 page, an
+  auto-generated sitemap, `llms.txt`
 - Public JSON Schemas for configs and presets; every shipped preset is
   validated against its schema in CI
 - Per-chunk bundle budgets, Lighthouse CI, unit and e2e tests with axe
@@ -80,13 +90,10 @@ The version on `main` already does all of this.
 
 Fixes and polish that follow the 1.0.0 launch.
 
-- Real HTML on look and compare pages. Today they share an empty body
-  and some JSON-LD is only added client side.
-- A real 404 and a sitemap with `lastmod`.
+- A sitemap with `lastmod`.
 - Faster first load on mobile: server-render the headline, generate dots
   off the main thread, and stop redrawing when nothing changes.
-- Keyboard polish: roving focus in the looks bar and focus that stays
-  inside the export dialog.
+- Keyboard polish: roving focus in the looks bar.
 - Security headers, starting with CSP in report-only mode.
 - wordpress.org listing for the WordPress block.
 - GitHub Sponsors enrollment.
@@ -104,8 +111,6 @@ Fixes and polish that follow the 1.0.0 launch.
   quality and size controls on the Video tab.
 - Animation timeline: keyframe rotation, zoom, and effect intensity for
   video export, so you don't have to record the live state.
-- State-level solid rendering: US states work for dots; extend the same
-  filter to the solid world texture.
 - Other projections for dotted maps: reproject the dot field, so the 5
   flat projections work beyond solid mode.
 

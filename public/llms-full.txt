@@ -32,6 +32,11 @@ key it leaves out, so adding `dataPoints` to Sonar keeps its glow and grid off.
 Leave `version` out of such a config: the studio writes it into every design
 it saves, and a config that carries it gets the app defaults for those keys.
 
+Put `"v": 3` in a config you write, so the dot, map, grid, network, marker and
+flow colors render as their hex. Without it they render darker than their hex,
+as they always have, so links made before keep their look. The plain
+`dotColor` and `worldFill` params of `/embed` keep that darker reading too.
+
 ### MCP server
 
 Globestudio runs a hosted MCP server at **`https://globestudio.app/mcp`**

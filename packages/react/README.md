@@ -56,7 +56,7 @@ Halftone, Toon and Threshold paint a dark page of their own, where graphite ink 
 | `look` | `LookId` | `"halftone"` | Autocomplete on every shipped preset |
 | `width` | `number \| string` | `"100%"` | A number means pixels |
 | `height` | `number \| string` | `480` | A number means pixels |
-| `config` | `string` | | The design's JSON string (`JSON.stringify(design)`), not URL encoded. Layered over `look` when you pass both, or over Default alone |
+| `config` | `string` | | The design's JSON string (`JSON.stringify(design)`), not URL encoded. Layered over `look` when you pass both, or over Default alone. A whole share link, or its `?c=` query, works too |
 | `theme` | `"light" \| "dark"` | `"dark"` | `"light"` suits a light page: the glow and grid switch to a palette for light pages, and the white ink of Halftone, Wireframe, Toon and Threshold turns graphite. Halftone, Toon and Threshold paint a dark page of their own, so make them see-through in `config` too |
 | `title` | `string` | `"Globestudio dotted globe"` | A11y label |
 | `className` | `string` | | Forwarded |
@@ -77,11 +77,12 @@ const thumb = globestudio.thumbnailUrl("halftone");
 //          → "https://globestudio.app/looks/halftone.png"
 
 // A share config is URL-encoded JSON: the ?c= value from a link the
-// Share dialog made, or one you build yourself. "v": 2 tells Globestudio
-// it was encoded once, so every value (a "%" too) arrives as written.
-const payload = encodeURIComponent(JSON.stringify({ v: 2, selection: "country:JPN" }));
+// Share dialog made, or one you build yourself. "v": 3 tells Globestudio
+// it was encoded once, so every value (a "%" too) arrives as written, and
+// that its colors render as their hex.
+const payload = encodeURIComponent(JSON.stringify({ v: 3, selection: "country:JPN" }));
 const share = globestudio.shareUrl(payload);
-//          → "https://globestudio.app/?c=%7B%22v%22%3A2%2C%22selection%22%3A%22country%3AJPN%22%7D"
+//          → "https://globestudio.app/?c=%7B%22v%22%3A3%2C%22selection%22%3A%22country%3AJPN%22%7D"
 ```
 
 Use these when you need the URL but not the iframe (e.g. Next.js `<Image src>`, server-rendered markup, OG metadata).
