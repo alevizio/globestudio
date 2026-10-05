@@ -25,6 +25,9 @@ import "@globestudio/element"; // auto-registers <globe-studio>
 
 <!-- On a light page -->
 <globe-studio look="wireframe" theme="light"></globe-studio>
+
+<!-- Halftone, Toon and Threshold paint a dark page, so make them see-through too -->
+<globe-studio look="halftone" theme="light" config='{"backgroundStyle":"transparent"}'></globe-studio>
 ```
 
 Or via CDN, no build step:
@@ -40,7 +43,7 @@ Or via CDN, no build step:
 |---|---|---|
 | `look` | `halftone` | Any shipped preset id. With `config`, the config is layered over it. |
 | `config` | | Pre-built share config (`?c=` payload), layered over `look`, or over Default without one. |
-| `theme` | `dark` | `light` suits a light page: the glow and grid switch to a palette for light pages, and the white ink of Halftone, Wireframe, Toon and Threshold turns graphite. Other values are ignored. |
+| `theme` | `dark` | `light` suits a light page: the glow and grid switch to a palette for light pages, and the white ink of Halftone, Wireframe, Toon and Threshold turns graphite. Halftone, Toon and Threshold paint a dark page of their own, so make them see-through in `config` too. Other values are ignored. |
 | `width` | `100%` | Forwarded to the iframe. |
 | `height` | `480` | Forwarded to the iframe. |
 | `title` | `Globestudio dotted globe` | Accessible label. |

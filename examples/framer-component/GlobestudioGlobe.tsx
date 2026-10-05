@@ -238,6 +238,6 @@ addPropertyControls(GlobestudioGlobe, {
     defaultValue: "dark",
     options: ["dark", "light"],
     optionTitles: ["Dark", "Light"],
-    description: "Light suits a light page: Wireframe's white ink turns graphite.",
+    description: "Light suits a light page: white ink turns graphite. Pair it with Transparent BG or a light Background.",
   },
 })

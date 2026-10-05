@@ -73,8 +73,10 @@ export interface GlobeProps {
   /**
    * The embed's palette. `"light"` switches the glow and grid to a
    * palette for light pages and turns the white ink of Halftone,
-   * Wireframe, Toon and Threshold graphite. Any other value keeps the
-   * dark one. Defaults to `"dark"`.
+   * Wireframe, Toon and Threshold graphite. Halftone, Toon and Threshold
+   * paint a dark page of their own, where that ink is lost, so make them
+   * see-through in `config` too. Any other value keeps the dark one.
+   * Defaults to `"dark"`.
    */
   theme?: "light" | "dark";
   /**

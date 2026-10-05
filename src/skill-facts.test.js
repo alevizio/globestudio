@@ -168,6 +168,17 @@ describe("SKILL.md", () => {
     }
     const ink = inkLooks().map((look) => look.name);
     expect(body).toContain(`${ink.slice(0, -1).join(", ")} and ${ink.at(-1)} paint white ink`);
+    // The light theme's graphite ink is lost on the dark page these looks
+    // paint, so the skill pairs it with a transparent or light background.
+    const ownPage = inkLooks().filter((look) => !look.settings.transparent);
+    for (const { name, settings } of ownPage) {
+      const channels = settings.background.slice(1).match(/../g).map((hex) => parseInt(hex, 16));
+      expect(Math.max(...channels), name).toBeLessThan(0x40);
+    }
+    const own = ownPage.map((look) => look.name);
+    expect(body).toContain(`${own.slice(0, -1).join(", ")} and ${own.at(-1)} paint a dark page of their own`);
+    expect(inkLooks().filter((look) => look.settings.transparent).map((look) => look.name)).toEqual(["Wireframe"]);
+    expect(body).toContain("Wireframe is see-through as it ships");
     expect(body).toContain("`topographic` is the look people see as Sonar");
     for (const { id, settings } of lookPresets) {
       const effect = settings.shaderSettings.effect;

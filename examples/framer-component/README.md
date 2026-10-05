@@ -35,7 +35,9 @@ The component panel on the right shows:
 - **Auto-spin** — boolean toggle
 - **Background** + **Transparent BG** — conditional pair
 - **Theme**: Dark or Light. Light suits a light page: the glow and grid
-  switch to a palette for light pages, and Wireframe's white ink turns graphite
+  switch to a palette for light pages, and Wireframe's white ink turns graphite.
+  Pair it with Transparent BG or a light Background, since graphite ink is
+  lost on the default dark one
 
 ## How it works
 

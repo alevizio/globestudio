@@ -100,7 +100,7 @@ Dot color: kept shows `dotColor` and `dotGradient` as set, changed shifts them, 
 ## Gotchas
 
 - `topographic` is the look people see as Sonar. Ask for `sonar` by id and you get an unknown look, which embeds as Default. Three look ids also differ from the effect they run: `wireframe` runs `edge`, `vapor` runs `chromatic` and `topographic` runs `wave`. Look ids go in the address, effect ids in `shaderSettings.effect`.
-- Halftone, Wireframe, Toon and Threshold paint white ink whatever `dotColor` or `dotGradient` says, because their shader draws the ink itself; `theme="light"` on a package or `theme=light` on an `/embed` address turns it graphite. Metal, Pencil and Newsprint ignore the color too, and Risograph, Iridescent, Aurora and Corrupt change it. Put a brand color on a look whose Dot color is kept. Halftone also turns the whole globe into dots, so a selected country stands out only with `"viewMode": "flat"`.
+- Halftone, Wireframe, Toon and Threshold paint white ink whatever `dotColor` or `dotGradient` says, because their shader draws the ink itself; `theme="light"` on a package or `theme=light` on an `/embed` address turns it graphite, which shows only on a transparent or light background. Metal, Pencil and Newsprint ignore the color too, and Risograph, Iridescent, Aurora and Corrupt change it. Put a brand color on a look whose Dot color is kept. Halftone also turns the whole globe into dots, so a selected country stands out only with `"viewMode": "flat"`.
 - Countries are `country:` plus an uppercase ISO 3166-1 alpha-3 code, like `country:JPN`. The app drops `country:jpn` and `country:JP` without a word, so the map doesn't show that country. Continents are Africa, Asia, Europe, North America, Oceania and South America; there is no Antarctica. Subregions and the small territories the map can't draw are in [references/config.md](references/config.md).
 - A US state is `"selection": "country:USA"` plus `"stateSelection": "CA"` (postal code) or `"06"` (FIPS code). Anything else is dropped.
 - URL-encode the JSON once with `encodeURIComponent`. A raw `#` in a hex color starts the address's fragment and cuts the config off.
@@ -142,7 +142,7 @@ To connect the hosted server, which needs no account or key: `claude mcp add --t
 3. Keep the design in a named constant or a JSON file, not a long inline string, and pass `JSON.stringify` of it as `config`. With a `look`, the config only holds the changes.
 4. Set `title` to say what the globe shows, for screen readers. Keep `loading="lazy"` for a globe below the fold.
 5. Give the container an explicit height. An iframe doesn't size itself, and the packages default to 480 px.
-6. On a light page, set `theme="light"` on `<Globe>` or `<globe-studio>`, or `theme=light` on an `/embed` address. It suits the glow and grid to a light page and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. Then give the design a light `background` and a dark `dotColor` on a look that keeps it, or a transparent background with dots that show on the page.
+6. On a light page, give the design a transparent background with dots that show on the page (Wireframe is see-through as it ships), or a light `background` and a dark `dotColor` on a look that keeps it. Then set `theme="light"` on `<Globe>` or `<globe-studio>`, or `theme=light` on an `/embed` address. It suits the glow and grid to a light page and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. Halftone, Toon and Threshold paint a dark page of their own, where graphite ink is lost, so set it on them only with a transparent or light background.
 7. Check that it renders: run the dev server and look, or, when the project already has Playwright, take a headless screenshot of the `/embed` address (recipe in [references/embedding.md](references/embedding.md)). Don't install a browser just for this. If you can do neither, say so rather than claim it works.
 
 ```jsx
@@ -175,6 +175,7 @@ export const Hero = () => (
 - `<Globe>` or `<globe-studio>` shows Default instead of its look: the package is 0.1.0. Update it to 0.1.1 or later.
 - The Globestudio MCP tools aren't listed: the server isn't connected. Build the link yourself, and give the user the connect command from With the MCP server if they'll keep making designs.
 - White dots vanish on a light page: the look paints its own white ink (Halftone, Wireframe, Toon, Threshold). Set `theme="light"` on the package or `theme=light` on the address, give it a solid dark `background`, or pick a look that keeps `dotColor`. A package that ignores `theme` predates it, so update it.
+- Dots vanish on a dark page with `theme="light"`: Halftone, Toon and Threshold paint a dark page of their own, and graphite ink doesn't show on it. Make the design transparent, give it a light `background`, or drop the theme.
 
 ## Exports
 

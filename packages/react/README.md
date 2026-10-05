@@ -35,6 +35,12 @@ On a light page, add `theme="light"`, so Wireframe's white ink turns graphite in
 <Globe look="wireframe" theme="light" />
 ```
 
+Halftone, Toon and Threshold paint a dark page of their own, where graphite ink is lost, so make them see-through in the config as well:
+
+```tsx
+<Globe look="halftone" theme="light" config='{"backgroundStyle":"transparent"}' />
+```
+
 ## Props
 
 | Prop | Type | Default | Notes |
@@ -43,7 +49,7 @@ On a light page, add `theme="light"`, so Wireframe's white ink turns graphite in
 | `width` | `number \| string` | `"100%"` | A number means pixels |
 | `height` | `number \| string` | `480` | A number means pixels |
 | `config` | `string` | | The design's JSON string (`JSON.stringify(design)`), not URL encoded. Layered over `look` when you pass both, or over Default alone |
-| `theme` | `"light" \| "dark"` | `"dark"` | `"light"` suits a light page: the glow and grid switch to a palette for light pages, and the white ink of Halftone, Wireframe, Toon and Threshold turns graphite |
+| `theme` | `"light" \| "dark"` | `"dark"` | `"light"` suits a light page: the glow and grid switch to a palette for light pages, and the white ink of Halftone, Wireframe, Toon and Threshold turns graphite. Halftone, Toon and Threshold paint a dark page of their own, so make them see-through in `config` too |
 | `title` | `string` | `"Globestudio dotted globe"` | A11y label |
 | `className` | `string` | | Forwarded |
 | `style` | `CSSProperties` | | Merged after `border: 0` |

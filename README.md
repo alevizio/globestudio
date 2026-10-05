@@ -143,6 +143,9 @@ Setup and props: [`packages/react`](packages/react/) and
 On a light page, set `theme="light"` on either one. It sends the `theme`
 param below: the glow and grid switch to a palette for light pages, and
 Wireframe's white ink, which all but vanishes there, turns graphite.
+Halftone, Toon and Threshold paint a dark page of their own, where graphite
+ink is lost, so make them see-through in the config as well:
+`config='{"backgroundStyle":"transparent"}'`.
 
 The export dialog writes this code for the design on screen. Its Share tab
 has an Embed code section with three options, iframe, React and Web
@@ -170,7 +173,7 @@ Every query param the `/embed` route reads, as parsed in
 | `static` | `1` · `0` | `0` | Freeze all motion (static previews in design-tool canvases) |
 | `view` | `globe` · `flat` | the `c` config's view, else `globe` | 3D globe or flat map. Wins over the config's view |
 | `background` | hex, `#` optional, or `transparent` | unset | Page background behind the canvas. Without it the page takes the `c` config's Solid background color, or else the look's own when the address names a look; with neither it stays the dark theme color. A color here or in the config keeps the page solid on Wireframe, which is see-through on its own. `transparent` is the same as `transparent=1` |
-| `theme` | `dark` · `light` | `dark` | Globe chrome palette. `light` reads cleanly on light host pages and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. The packages' `theme="light"` and embed.js `data-theme="light"` send it |
+| `theme` | `dark` · `light` | `dark` | Globe chrome palette. `light` reads cleanly on light host pages and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. Use it on a see-through or light background: on a look's own dark page, the graphite ink is lost. The packages' `theme="light"` and embed.js `data-theme="light"` send it |
 | `transparent` | `1` · `0` | the look's; `0` with no look | See-through document, composites onto the host page. Wireframe is see-through without it; `0` turns that off |
 | `plugin` | `figma` | unset | The picker shell that versions 1 and 2 of the Figma plugin load: Look, Country or region, Density and View (Globe or Flat) pickers above an Insert button. Globe inserts a PNG; Flat inserts editable vectors, or a PNG past 2,500 dots or with the solid Bloom look. The current plugin loads the full studio at `/?plugin=figma` instead |
 | `source` | string | `embed` | Analytics tag, echoed in resize `postMessage`s |

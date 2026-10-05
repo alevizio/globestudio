@@ -37,7 +37,7 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 | `width` | `number \| string` | `"100%"` | Width in CSS units. Numbers become pixels; pass strings for `%`, `vw`, etc. |
 | `height` | `number \| string` | `480` | Height in CSS units. |
 | `config` | `string` |  | The design's share config as a JSON string, `JSON.stringify(design)`, not URL encoded: the component encodes it for the embed address. The app's Share tab writes one; from the MCP server's `build_share_url`, stringify the `config` it returns. It is layered over `look` when you pass both, so a config that holds only changes keeps the rest of that look, and over Default when you pass it alone. |
-| `theme` | `"light" \| "dark"` | `"dark"` | The embed's palette. `"light"` switches the glow and grid to a palette for light pages and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. Any other value keeps the dark one. |
+| `theme` | `"light" \| "dark"` | `"dark"` | The embed's palette. `"light"` switches the glow and grid to a palette for light pages and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. Halftone, Toon and Threshold paint a dark page of their own, where that ink is lost, so make them see-through in `config` too. Any other value keeps the dark one. |
 | `title` | `string` | `"Globestudio dotted globe"` | Accessible title for the embedded iframe. Required for AT/SR. |
 | `className` | `string` |  | Forwarded `className` for the iframe. |
 | `style` | `CSSProperties` |  | Forwarded `style` for the iframe. Merged after the component's default `border: 0` so callers can override anything. |
@@ -161,6 +161,7 @@ For pages that allow a script tag but not an npm install. It turns every element
 - On a light page, set `theme="light"` on `<Globe>` or `<globe-studio>`, `data-theme="light"` for embed.js, or `theme=light` in a plain iframe. It switches the glow and grid to a palette for light pages. Only `light` is sent; any other value leaves the address as it was.
 - Make the design suit the page in its config too: a light `background` with a dark `dotColor` on a look that keeps it (see Dot color in looks.md), or `"backgroundStyle": "transparent"` with dots that show on the page.
 - Halftone, Wireframe, Toon and Threshold paint white ink whatever `dotColor` says, so on a light page a transparent one all but disappears. The light theme turns their ink graphite; without it, give them a solid dark `background`.
+- Graphite ink shows only on a transparent or light background. Halftone, Toon and Threshold paint a dark page of their own, where it is lost, so with the light theme make them see-through as well: `"backgroundStyle": "transparent"` in the config, or `transparent=1` in a plain iframe.
 - In a plain iframe, `transparent=1` or `background=transparent` lets the page show through.
 - Give the iframe or its container an explicit height; the packages default to 480 px. The embed posts `{ type: "globestudio-resize", height, source }` to the parent page, which embed.js uses to size elements that have no height of their own.
 - Set `title` to say what the globe shows, for screen readers, and keep `loading="lazy"` for globes below the fold.

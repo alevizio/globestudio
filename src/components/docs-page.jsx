@@ -115,9 +115,12 @@ export const DocsPage = () => {
             <code>?c=&lt;URL-encoded JSON&gt;</code> for a customized embed.
           </p>
           <p>
-            On a light page, add <code>theme=light</code>. The glow and grid
-            switch to a palette for light pages, and Wireframe's white ink
-            turns graphite. The React and web component packages take it as{" "}
+            On a light page, add <code>theme=light</code> to a globe the page
+            shows through, like Wireframe. Its white ink turns graphite, and
+            the glow and grid switch to a palette for light pages. Halftone,
+            Toon and Threshold paint a dark page of their own, so add{" "}
+            <code>transparent=1</code> as well. The React and web component
+            packages take it as{" "}
             <code>theme="light"</code>, the script-tag loader as{" "}
             <code>data-theme="light"</code>.
           </p>

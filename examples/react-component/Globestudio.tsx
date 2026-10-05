@@ -99,7 +99,9 @@ export interface GlobestudioProps {
 
   /**
    * "light" suits a light page: the glow and grid switch to a palette for
-   * light pages, and Wireframe's white ink turns graphite. Default: "dark".
+   * light pages, and Wireframe's white ink turns graphite. Halftone, Toon
+   * and Threshold paint a dark page of their own, so pair it with
+   * `transparent` or a light `background` there. Default: "dark".
    */
   theme?: "light" | "dark";
 
