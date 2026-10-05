@@ -38,7 +38,7 @@ const readFlatSheet = (page) =>
     return land && { width: flat.width, height: flat.height, land };
   });
 
-const openFlatSheet = async (page, config) => {
+const openFlatSheet = async (page, config, isReady = Boolean) => {
   await page.addInitScript(() => {
     window.__canvases = [];
     const create = Document.prototype.createElement;
@@ -49,7 +49,7 @@ const openFlatSheet = async (page, config) => {
     };
   });
   await page.goto(flatSolid(config));
-  await expect.poll(async () => Boolean(await readFlatSheet(page)), { timeout: TEXTURE_TIMEOUT }).toBe(true);
+  await expect.poll(async () => isReady(await readFlatSheet(page)), { timeout: TEXTURE_TIMEOUT }).toBe(true);
   return readFlatSheet(page);
 };
 
@@ -67,7 +67,13 @@ test("the Flat view's Solid sheet frames a picked country to its box", async ({ 
 });
 
 test("the Flat view's Solid sheet frames a picked US state like its dots", async ({ page }) => {
-  const sheet = await openFlatSheet(page, { selection: "country:USA", stateSelection: "CA" });
+  // Until the states atlas loads the pick shows the whole country, whose sheet
+  // can come first, so wait for the state's: 2048 wide at its dots' 1000:620.
+  const sheet = await openFlatSheet(
+    page,
+    { selection: "country:USA", stateSelection: "CA" },
+    (flat) => flat?.height === Math.round((2048 * 620) / 1000),
+  );
   // The state's dots keep a 28 px margin in a 1000 px sheet (dot-generation.js).
   const margin = (28 / 1000) * sheet.width;
   const slack = 3;
