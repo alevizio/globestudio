@@ -59,7 +59,8 @@ const BUDGETS = [
 
   // Lazy chunks (loaded after first paint)
   // 41 kB gzip since low power mode and the region overlay clip (Oct 2026).
-  { prefix: "globe-background-", ext: ".js",  raw: 120_000,  gzip:  41_000, lazy: true },
+  // 121 kB raw since the flat Solid map frames a picked US state (Oct 2026).
+  { prefix: "globe-background-", ext: ".js",  raw: 121_000,  gzip:  41_000, lazy: true },
   { prefix: "three-",            ext: ".js",  raw: 620_000,  gzip: 160_000, lazy: true },
   { prefix: "geo-",              ext: ".js",  raw:  35_000,  gzip:  12_000, lazy: true },
   { prefix: "states-10m-",       ext: ".js",  raw: 130_000,  gzip:  45_000, lazy: true },
