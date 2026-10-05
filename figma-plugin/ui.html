@@ -56,7 +56,7 @@
     // server sends no-store, so this never bloats the cache.
     var embedEl = document.getElementById("embed");
     function buildEmbedSrc() {
-      return "https://globestudio.app/?plugin=figma&app=1&cb=" + Date.now();
+      return "https://globestudio.app/?plugin=figma&cb=" + Date.now();
     }
     embedEl.src = buildEmbedSrc();
 
