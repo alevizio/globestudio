@@ -677,7 +677,7 @@ describe("ExportModal", () => {
         expect(captions()).toEqual([
           "Copy the design, then paste it into a Figma file.",
           "Vectors keep dot positions, shapes, and colors. Effects and atmosphere are not applied.",
-          "The Globestudio plugin runs the full studio inside Figma and inserts the result on your canvas.",
+          "The Globestudio plugin runs the full studio inside Figma and inserts the result on your canvas. Paste the share link from the Share tab into it to open this design there.",
         ]);
         expect(screen.getByRole("button", { name: "Copy as vectors" }).hasAttribute("aria-describedby")).toBe(false);
         cleanup();
