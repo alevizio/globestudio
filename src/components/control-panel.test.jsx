@@ -181,6 +181,28 @@ describe("ControlPanel Data section", () => {
     expect(example()).not.toBeNull();
   });
 
+  it("fills the box on a tap without focusing it, so a phone keyboard stays shut", () => {
+    const latest = {};
+    render(<Harness latest={latest} />);
+    fireEvent.click(screen.getByRole("button", { name: "Data" }));
+    const textarea = screen.getByRole("textbox", { name: /Data points/ });
+    const example = () => screen.queryByRole("button", { name: "Try an example" });
+
+    fireEvent.pointerDown(example(), { pointerType: "touch" });
+    fireEvent.click(example());
+    expect(textarea.value).toBe(DATA_POINTS_EXAMPLE);
+    expect(latest.globeSettings.dataPoints).toHaveLength(8);
+    expect(example()).toBeNull();
+    expect(document.activeElement).not.toBe(textarea);
+
+    // A mouse click after that still leaves focus in the box.
+    fireEvent.change(textarea, { target: { value: "" } });
+    fireEvent.pointerDown(example(), { pointerType: "mouse" });
+    fireEvent.click(example());
+    expect(textarea.value).toBe(DATA_POINTS_EXAMPLE);
+    expect(document.activeElement).toBe(textarea);
+  });
+
   it("hides Try an example when points arrive from a share link", () => {
     render(
       <Harness

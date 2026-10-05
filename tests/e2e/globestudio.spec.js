@@ -769,6 +769,31 @@ test.describe("the Data section", () => {
     await eye.click();
     await expect.poll(() => redPixels(page), { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(20);
   });
+
+  test.describe("on a phone", () => {
+    test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+    test("Try an example fills the box on a tap and keeps the keyboard shut", async ({ page }) => {
+      await page.goto("/");
+      await waitForCanvas(page);
+      await page.getByRole("button", { name: "All options", expanded: false }).tap();
+      await page.getByRole("button", { name: "Data", exact: true }).tap();
+      const box = page.getByRole("textbox", { name: /Data points/ });
+      const example = page.getByRole("button", { name: "Try an example" });
+      await expect(example).toBeVisible();
+      await expectNoSeriousAxeViolations(page);
+
+      await example.tap();
+      await expect(box).toHaveValue(/^40\.71,-74\.01,19\n/);
+      await expect(page.getByText(/^8 points plotted\./)).toBeVisible();
+      await expect(example).toBeHidden();
+      // Focus in the box would open the phone's keyboard over the markers.
+      await expect(box).not.toBeFocused();
+
+      await box.fill("");
+      await expect(example).toBeVisible();
+    });
+  });
 });
 
 test("the look just picked keeps a readable label while its chip pulses", async ({ page }) => {

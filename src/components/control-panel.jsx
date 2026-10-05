@@ -293,12 +293,19 @@ export const ControlPanel = ({
   // replaces anything typed. It types the example in through the browser,
   // so undo in the box takes it back out; where that isn't supported the
   // text is set directly. Focus lands in the box, as the button goes away.
+  // A tap sets the text without focusing the box, since focus would open
+  // a phone's keyboard over the new markers.
   const dataInputRef = useRef(null);
+  const dataExampleTapped = useRef(false);
   const tryDataExample = () => {
+    const tapped = dataExampleTapped.current;
+    dataExampleTapped.current = false;
     const box = dataInputRef.current;
-    box?.focus();
-    box?.select();
-    if (document.execCommand?.("insertText", false, DATA_POINTS_EXAMPLE) !== true) {
+    if (!tapped) {
+      box?.focus();
+      box?.select();
+    }
+    if (tapped || document.execCommand?.("insertText", false, DATA_POINTS_EXAMPLE) !== true) {
       handleDataText(DATA_POINTS_EXAMPLE);
     }
   };
@@ -1027,7 +1034,14 @@ export const ControlPanel = ({
             spellCheck={false}
           />
           {!dataText.trim() && (
-            <button type="button" className="data-points-sample" onClick={tryDataExample}>
+            <button
+              type="button"
+              className="data-points-sample"
+              onPointerDown={(event) => {
+                dataExampleTapped.current = event.pointerType !== "mouse";
+              }}
+              onClick={tryDataExample}
+            >
               Try an example
             </button>
           )}
