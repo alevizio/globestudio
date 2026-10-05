@@ -43,7 +43,7 @@ Dot color says what the look's shader does with `dotColor` and `dotGradient`. On
 
 ## Each look
 
-Effect lists the look's own value for each knob the effect reads (0 to 100, cellSize 0 to 30). Map, background and globe are the look's baseline, which a config replaces key by key. Vectors is what the export dialog's SVG tab says about the look: SVG and the Figma tab's Copy as vectors keep the dots, their shapes and colors, and the rest needs PNG or video.
+Effect lists the look's own value for each knob the effect reads (0 to 100, cellSize 0 to 30). Map, background and globe are the look's baseline, which a config replaces key by key. Vectors is what the export dialog's SVG tab says about the look. SVG and the Figma tab's Copy as vectors draw the flat map, even from the globe view, with the dots, their shapes and colors. The rest needs PNG or video.
 
 ### default
 

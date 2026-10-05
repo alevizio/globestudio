@@ -129,11 +129,12 @@ From the in-app export dialog: PNG (high-res, rendered at its own scale, not
 the on-screen DPR), SVG, WebM and MP4 video, GIF, and a JSON config (the same
 payload as `?c=`). **Copy image** on the Image tab puts the same PNG on the
 clipboard instead of saving a file, where the browser can write images there.
-SVG and the Figma tab's **Copy as vectors** keep the dots, their shapes and
-colors. A look's shader effect, solid land and a Space background come
-through only in PNG or video, so of the looks only `default` exports to SVG
-whole; when the design has something the vectors leave out, both tabs name
-it and point to the image.
+SVG and the Figma tab's **Copy as vectors** draw the flat map, even from
+the globe view, and keep the dots, their shapes and colors. A look's shader
+effect, solid land and a Space or Flow background come through only in PNG
+or video, so of the looks only `default` exports to SVG whole; when the
+design has something the vectors leave out, both tabs name it and point to
+the image.
 Rendering is client-side; there is no server-side image
 endpoint (yet). For a screenshot, point a headless browser at an `/embed?…`
 URL.

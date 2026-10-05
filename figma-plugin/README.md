@@ -15,7 +15,9 @@ Insert opens the studio's export dialog with two tabs:
   and 16:9 for the flat map. The layer is sized in points, with the extra
   pixels kept for Retina.
 - SVG: the flat map as editable vector dots, up to 2,500 dots. Above
-  that `code.js` inserts the PNG that comes with it instead.
+  that `code.js` inserts the PNG that comes with it instead. When the
+  design has something the vectors leave out, such as a look's effect,
+  the tab names it and points to PNG.
 
 If the file has local color variables, a **Your colors** strip above the
 studio sets the dot color to the one you click. The studio keeps its
