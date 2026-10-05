@@ -1,5 +1,8 @@
 export const MAP_WIDTH = 1000;
 export const MAP_HEIGHT = 620;
+// The margin a US state's dots keep inside that sheet, which its Solid flat
+// map keeps too so the two line up.
+export const STATE_MAP_PADDING = 28;
 export const US_COUNTRY_ID = "USA";
 
 // The phone layout (bottom sheet, no hover tooltips): narrow screens, plus

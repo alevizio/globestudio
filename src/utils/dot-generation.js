@@ -1,6 +1,6 @@
 import DottedMapEngine from "dotted-map";
 import { geoAlbersUsa, geoContains, geoPath } from "d3-geo";
-import { MAP_HEIGHT, MAP_WIDTH } from "../config/constants.js";
+import { MAP_HEIGHT, MAP_WIDTH, STATE_MAP_PADDING } from "../config/constants.js";
 import { pointToGlobeCoordinate } from "./projection.js";
 
 export const makeFeatureCollection = (features) => ({
@@ -9,7 +9,7 @@ export const makeFeatureCollection = (features) => ({
 });
 
 const generateDots = ({ collection, density, shape }) => {
-  const paddingPx = 28;
+  const paddingPx = STATE_MAP_PADDING;
   const projection = geoAlbersUsa();
   projection.fitExtent(
     [

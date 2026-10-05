@@ -1,8 +1,9 @@
 import * as THREE from "three";
 // geoEqualEarth + geoNaturalEarth1 live in d3-geo core; geoWinkel3 +
 // geoRobinson are in the heavier d3-geo-projection extension package.
-import { geoEqualEarth, geoEquirectangular, geoMercator, geoNaturalEarth1, geoPath } from "d3-geo";
+import { geoAlbersUsa, geoEqualEarth, geoEquirectangular, geoMercator, geoNaturalEarth1, geoPath } from "d3-geo";
 import { geoRobinson, geoWinkel3 } from "d3-geo-projection";
+import { MAP_WIDTH, STATE_MAP_PADDING } from "../config/constants.js";
 import { hexToRgb, rgbToHex } from "../utils/color.js";
 
 // Alternative flat-plane projections beyond Mercator. Sphere texture stays
@@ -127,6 +128,9 @@ const regionExtentFeature = (region) => {
 export const createWorldTexture = (countriesFeatureCollection, options = {}) => {
   const {
     region = null,
+    // A picked US state has no dotted-map region: its dots come from Albers
+    // USA fitted to the state (dot-generation.js), so its flat sheet does too.
+    usState = false,
     aspect = null,
     targetWidth = 2048,
     ocean = "#0a0a0c",
@@ -206,7 +210,11 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
   // region we keep the previous equirectangular full-world behaviour for
   // backward compatibility.
   let projection;
-  if (region?.lat && region?.lng) {
+  if (usState) {
+    // The state's dots keep a margin inside their sheet; scaled to this one.
+    const margin = (STATE_MAP_PADDING / MAP_WIDTH) * width;
+    projection = geoAlbersUsa().fitExtent([[margin, margin], [width - margin, height - margin]], countriesFeatureCollection);
+  } else if (region?.lat && region?.lng) {
     // Flat plane texture: honor the selected projection. Falls back to
     // Mercator if the key is unknown.
     const factory = FLAT_PROJECTIONS[projectionKey] ?? FLAT_PROJECTIONS.mercator;

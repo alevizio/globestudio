@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MAP_HEIGHT, MAP_WIDTH, STATE_MAP_PADDING } from "../config/constants.js";
+import { createStateMapData } from "../utils/dot-generation.js";
 import { createWorldTexture } from "./world-texture.js";
 
 // jsdom has no 2D canvas, so this context keeps geometry instead of pixels:
@@ -238,5 +240,53 @@ describe("createWorldTexture flat framing", () => {
 
   it.each(["equalEarth", "naturalEarth1", "winkel3", "robinson"])("fits the flat map to a picked country's box in %s too", (projection) => {
     expectFramed(frame(boxes.Brazil, projection));
+  });
+});
+
+describe("createWorldTexture flat framing of a US state", () => {
+  it("frames a picked state's flat map like its dots, which carry no region", () => {
+    // A state shaped like Colorado's box, in 1 degree steps. Clockwise.
+    const steps = (from, to) => Array.from({ length: Math.abs(to - from) + 1 }, (_, i) => from + Math.sign(to - from) * i);
+    const ring = [
+      ...steps(-109, -102).map((lng) => [lng, 41]),
+      ...steps(41, 37).map((lat) => [-102, lat]),
+      ...steps(-102, -109).map((lng) => [lng, 37]),
+      ...steps(37, 41).map((lat) => [-109, lat]),
+    ];
+    const state = collection([{ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } }]);
+    const { points: dots } = createStateMapData(state, 100, "Circle");
+
+    createWorldTexture(state, { ocean: "transparent", fill: LAND, strokeVisible: false, usState: true, aspect: MAP_WIDTH / MAP_HEIGHT });
+    const { ctx, ops } = recorded;
+    // The land in the dots' units, a sheet MAP_WIDTH wide.
+    const scale = MAP_WIDTH / ctx.canvas.width;
+    const land = ops.filter((op) => op.style === LAND).flatMap((op) => op.path.flat()).map(([x, y]) => [x * scale, y * scale]);
+    const box = (list) => ({
+      minX: Math.min(...list.map(([x]) => x)),
+      maxX: Math.max(...list.map(([x]) => x)),
+      minY: Math.min(...list.map(([, y]) => y)),
+      maxY: Math.max(...list.map(([, y]) => y)),
+    });
+    const landBox = box(land);
+    const dotBox = box(dots.map(({ x, y }) => [x, y]));
+    // Within the dots' margin, spanning it along one side, and around the dots
+    // with at most a dot step to spare (6 at this density).
+    expect(landBox.minX).toBeGreaterThan(STATE_MAP_PADDING - 1);
+    expect(landBox.minY).toBeGreaterThan(STATE_MAP_PADDING - 1);
+    expect(landBox.maxX).toBeLessThan(MAP_WIDTH - STATE_MAP_PADDING + 1);
+    expect(landBox.maxY).toBeLessThan(MAP_HEIGHT - STATE_MAP_PADDING + 1);
+    expect(Math.max(
+      (landBox.maxX - landBox.minX) / (MAP_WIDTH - 2 * STATE_MAP_PADDING),
+      (landBox.maxY - landBox.minY) / (MAP_HEIGHT - 2 * STATE_MAP_PADDING),
+    )).toBeGreaterThan(0.99);
+    [
+      dotBox.minX - landBox.minX,
+      landBox.maxX - dotBox.maxX,
+      dotBox.minY - landBox.minY,
+      landBox.maxY - dotBox.maxY,
+    ].forEach((gap) => {
+      expect(gap).toBeGreaterThan(-1);
+      expect(gap).toBeLessThan(7);
+    });
   });
 });

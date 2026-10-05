@@ -1858,7 +1858,10 @@ export const GlobeBackground = ({
             // sphere UV unwrap stays correct.
             projection: flatProjection,
           })
-        : sphereTexture;
+        // A picked US state's dots carry no region: frame its sheet like them.
+        : selectionCollection?.features?.length && aspect
+          ? createWorldTexture(featureCollection, { ...textureOptions, usState: true, aspect })
+          : sphereTexture;
       if (sphereTexture) applySolid(sphereTexture, flatTexture);
     });
 
