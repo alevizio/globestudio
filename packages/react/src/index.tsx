@@ -125,7 +125,7 @@ const buildEmbedUrl = (props: Pick<GlobeProps, "look" | "config" | "source">) =>
   const params = new URLSearchParams();
   if (props.config) {
     if (props.look) params.set("look", props.look);
-    params.set("c", configToken(props.config));
+    params.set("c", configToken(String(props.config)));
   } else {
     params.set("look", props.look ?? "halftone");
   }

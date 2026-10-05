@@ -208,6 +208,12 @@ describe("the embed URL the packages build", () => {
       }
     });
 
+    it(`${name} builds a URL from a config that is not a string, as before`, () => {
+      // A JavaScript caller can pass the design object itself. That never
+      // opened the design, but it must not throw and take the page down.
+      expect(() => build({ config: { density: 40 } })).not.toThrow();
+    });
+
     it(`${name} embeds Halftone, or the look given, without a config`, () => {
       expect(build({})).toBe("https://globestudio.app/embed?look=halftone");
       expect(build({ look: "aurora", source: "site" })).toBe("https://globestudio.app/embed?look=aurora&source=site");
