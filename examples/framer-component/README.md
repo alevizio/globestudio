@@ -34,6 +34,8 @@ The component panel on the right shows:
 - **Motion**: reserved; passed to the embed but has no effect yet
 - **Auto-spin** — boolean toggle
 - **Background** + **Transparent BG** — conditional pair
+- **Theme**: Dark or Light. Light suits a light page: the glow and grid
+  switch to a palette for light pages, and Wireframe's white ink turns graphite
 
 ## How it works
 

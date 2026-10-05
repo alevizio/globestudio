@@ -49,6 +49,7 @@ interface Props {
   selection: string
   background: string
   transparent: boolean
+  theme: "dark" | "light"
 }
 
 // Build the Globestudio embed URL from the current prop values. Strips the
@@ -65,6 +66,8 @@ const buildEmbedUrl = (props: Props, isStatic: boolean): string => {
   params.set("selection", props.selection)
   if (props.background) params.set("background", props.background.replace(/^#/, ""))
   if (props.transparent) params.set("transparent", "1")
+  // Only light is sent, so a dark globe keeps the address it had.
+  if (props.theme === "light") params.set("theme", "light")
   // ?static=1 freezes all motion — used in Framer canvas mode so the
   // static preview doesn't burn frames. The hosted embed honors this.
   if (isStatic) params.set("static", "1")
@@ -109,6 +112,7 @@ GlobestudioGlobe.defaultProps = {
   selection: "world",
   background: "#0a0a0a",
   transparent: false,
+  theme: "dark",
 }
 
 // Property controls — the designer-facing UI in Framer's right panel.
@@ -227,5 +231,13 @@ addPropertyControls(GlobestudioGlobe, {
     title: "Transparent BG",
     defaultValue: false,
     description: "Lets the Framer canvas show through behind the globe.",
+  },
+  theme: {
+    type: ControlType.Enum,
+    title: "Theme",
+    defaultValue: "dark",
+    options: ["dark", "light"],
+    optionTitles: ["Dark", "Light"],
+    description: "Light suits a light page: Wireframe's white ink turns graphite.",
   },
 })

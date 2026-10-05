@@ -68,6 +68,7 @@ config — so you can take someone else's config and pin one parameter
 | `view` | `"flat" \| "globe"` | `"globe"` | |
 | `background` | `string` | preset's | Hex |
 | `transparent` | `boolean` | false | Overrides `background` when true |
+| `theme` | `"light" \| "dark"` | `"dark"` | `"light"` suits a light page: Wireframe's white ink turns graphite |
 | `staticMode` | `boolean` | false | Freezes motion |
 | `shareToken` | `string` | — | The blob after `?c=` in a share URL |
 | `source` | `string` | `"react-component"` | Analytics tag |

@@ -98,6 +98,12 @@ export interface GlobestudioProps {
   transparent?: boolean;
 
   /**
+   * "light" suits a light page: the glow and grid switch to a palette for
+   * light pages, and Wireframe's white ink turns graphite. Default: "dark".
+   */
+  theme?: "light" | "dark";
+
+  /**
    * Freeze all motion. Use when rendering server-side or in a Framer
    * canvas — preserves CPU/GPU on inactive surfaces.
    */
@@ -151,6 +157,7 @@ const buildSrc = (props: GlobestudioProps): string => {
   const background = stripHash(props.background);
   if (background) params.set("background", background);
   if (props.transparent) params.set("transparent", "1");
+  if (props.theme === "light") params.set("theme", "light");
   if (props.staticMode) params.set("static", "1");
   if (props.shareToken) params.set("c", props.shareToken.replace(/^\??c=/, ""));
   params.set("source", props.source ?? "react-component");
@@ -167,7 +174,7 @@ export const Globestudio = (props: GlobestudioProps) => {
       props.look, props.density, props.dotSize, props.dotColor, props.worldFill,
       props.renderMode, props.selection, props.motion, props.tiltX, props.tiltY,
       props.autoSpin, props.view, props.background, props.transparent,
-      props.staticMode, props.shareToken, props.source, props.origin,
+      props.theme, props.staticMode, props.shareToken, props.source, props.origin,
     ],
   );
 
