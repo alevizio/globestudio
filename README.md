@@ -53,9 +53,11 @@ The studio runs in your browser, and the code is MIT licensed.
   under `prefers-reduced-motion`.
 - Exports: PNG at 1x to 4x (the WebGL scene is re-rendered at that size); SVG
   with clean vector dots (6 effects are approximated with SVG filters, and
-  the full shader look needs PNG or video); WebM, MP4 (where the browser can
-  encode it), and GIF video; and a JSON config. Copy image puts the same PNG
-  on the clipboard, ready to paste into Figma, Slides, Slack or Notion.
+  the full shader look needs PNG or video; when a design has something the
+  vectors leave out, such as a look's effect, solid land or a Space
+  background, the SVG and Figma tabs name it); WebM, MP4 (where the browser
+  can encode it), and GIF video; and a JSON config. Copy image puts the same
+  PNG on the clipboard, ready to paste into Figma, Slides, Slack or Notion.
 - Keyboard shortcuts: `S` shuffle, `[`/`]` cycle looks, `D` export, `R`
   reset, `G` toggle view, `H` toggle panel, `?` help.
 - Accessibility: targets WCAG 2.2 AA and was self-audited. It works from the
@@ -184,11 +186,12 @@ A JSON Schema for the `c` payload lives at
 
 For Figma there are two ways in. The export dialog's Figma tab copies the
 design as vectors or as an image, ready to paste into a file, and it links
-to the Community plugin, which runs the full studio inside Figma. The tab is
-left out on a phone, where the tab row has no room for it. To bring a design
-you made on the site into Figma, paste its share link into the plugin: into
-its Paste a share link field, or anywhere outside a text field. Look and embed
-links work too.
+to the Community plugin, which runs the full studio inside Figma. When the
+look has an effect the vectors can't keep, the tab says so under Copy as
+vectors and points to Copy as image. The tab is left out on a phone, where
+the tab row has no room for it. To bring a design you made on the site into
+Figma, paste its share link into the plugin: into its Paste a share link
+field, or anywhere outside a text field. Look and embed links work too.
 
 [globestudio.app/integrations](https://globestudio.app/integrations) has
 copy-paste setups for AI agents (MCP), Webflow, Framer, Figma, Notion,

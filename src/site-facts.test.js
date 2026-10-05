@@ -6,6 +6,7 @@ import { injectSiteFacts } from "../scripts/site-facts.js";
 import { continentOptions } from "./data/geography.js";
 import { lookPresets } from "./data/look-presets.js";
 import { EMBED_URL_MAX } from "./utils/embed-snippets.js";
+import { vectorDrops } from "./utils/vector-note.js";
 import { PRODUCT_CARD_ALT, TEASER_CARD_ALT, shareCardUrl, swapInTeaserCard } from "./data/share-cards.js";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -92,6 +93,12 @@ describe.each(["public/llms.txt", "public/llms-full.txt"])("%s", (path) => {
 
   it("points React users at the npm package", () => {
     expect(text).toContain("npm i @globestudio/react");
+  });
+
+  it("says which look SVG keeps whole, as the export dialog's note has it", () => {
+    const whole = lookPresets.filter((look) => vectorDrops(look.settings).length === 0).map((look) => look.id);
+    expect(whole).toEqual(["default"]);
+    expect(text).toContain("only `default` exports to SVG whole");
   });
 });
 

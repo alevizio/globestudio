@@ -61,7 +61,7 @@ A JSON Schema for configuration files is at
 - [Web component](https://www.npmjs.com/package/@globestudio/element): `<globe-studio>`, loadable with no build step from `https://esm.sh/@globestudio/element`
 - On a light page, both take `theme="light"`, the same as `theme=light` on an `/embed` URL. Use it on a see-through globe such as Wireframe: on a look's own dark page, its graphite ink is lost
 - In the app, the export dialog's Share tab has Embed code for the design on screen, as an iframe, a React snippet or a web component snippet
-- The export dialog's Figma tab copies the design as vectors or as an image to paste into Figma, and links to the Community plugin
+- The export dialog's Figma tab copies the design as vectors or as an image to paste into Figma, and links to the Community plugin. When the look has an effect the vectors can't keep, the Figma and SVG tabs name it and point to the image
 - The Figma plugin opens a pasted share link: a `/?c=…`, `/looks/<id>` or `/embed` link loads that design in the plugin, ready to insert
 - [Framer code component](https://github.com/alevizio/globestudio/blob/main/examples/framer-component/GlobestudioGlobe.tsx): for Framer Code Components
 - [Script-tag loader](https://github.com/alevizio/globestudio/blob/main/public/embed.js): vanilla JS for plain HTML
@@ -83,3 +83,7 @@ A JSON Schema for configuration files is at
 - **Render is client-side**: Globestudio doesn't provide a
   server-side image render endpoint (yet). For screenshots, point a
   headless browser at the embed URL.
+- **SVG keeps the dots, not the shader**: SVG and Copy as vectors keep
+  the dots, their shapes and colors. A look's effect, solid land and a
+  Space background come through only in PNG or video, so of the looks
+  only `default` exports to SVG whole.

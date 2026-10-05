@@ -129,6 +129,11 @@ From the in-app export dialog: PNG (high-res, rendered at its own scale, not
 the on-screen DPR), SVG, WebM and MP4 video, GIF, and a JSON config (the same
 payload as `?c=`). **Copy image** on the Image tab puts the same PNG on the
 clipboard instead of saving a file, where the browser can write images there.
+SVG and the Figma tab's **Copy as vectors** keep the dots, their shapes and
+colors. A look's shader effect, solid land and a Space background come
+through only in PNG or video, so of the looks only `default` exports to SVG
+whole; when the design has something the vectors leave out, both tabs name
+it and point to the image.
 Rendering is client-side; there is no server-side image
 endpoint (yet). For a screenshot, point a headless browser at an `/embed?…`
 URL.
@@ -188,7 +193,8 @@ exports run client-side in your browser; your designs are never uploaded.
 Press D or click the Export button to open the export dialog. PNG exports
 re-render the canvas at up to 4x resolution, and Copy image puts that PNG on
 the clipboard to paste elsewhere; SVG exports produce vector output
-for print or further editing; WebM, MP4 and GIF exports record the live
+for print or further editing, and the SVG tab says when the look has an
+effect only the PNG keeps; WebM, MP4 and GIF exports record the live
 animation; JSON exports save the full config so others can reproduce your look.
 
 ### Does Globestudio work on mobile?
@@ -205,7 +211,8 @@ file. Paste a share link into the plugin (a `/?c=…`, `/looks/<id>` or `/embed`
 link) and that exact design loads there, ready to insert. Without the plugin,
 the export dialog's Figma tab copies the design as vectors or as an image,
 ready to paste into a Figma file (the tab is left out
-on phones). For websites, paste the iframe or the one-line script embed into Webflow,
+on phones). It says when the look has an effect the vectors can't keep.
+For websites, paste the iframe or the one-line script embed into Webflow,
 Framer or plain HTML, or the embed URL into Notion; it works in WordPress via a
 Custom HTML embed. React apps can use @globestudio/react, and AI assistants can
 use the @globestudio/mcp server. PNG and SVG exports drop into any design tool:

@@ -155,8 +155,10 @@ export const DocsPage = () => {
             and more lives on the <a href="/integrations">Integrations</a>{" "}
             page. For Figma, the export dialog (<KbdKey>D</KbdKey>) also has a
             Figma tab: it copies the design as vectors or as an image, ready
-            to paste into a file. In the Figma plugin, paste a share link to
-            open that exact design there.
+            to paste into a file. When the look has an effect the vectors
+            can't keep, such as scanlines or a glow, the Figma and SVG tabs
+            name it and point to the image. In the Figma plugin, paste a share
+            link to open that exact design there.
           </p>
         </section>
 
