@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { pointToGlobeCoordinate } from "./projection.js";
+import { createStateMapData } from "./dot-generation.js";
+import { latLngToImagePoint, pointToGlobeCoordinate } from "./projection.js";
 
 const image = { width: 1000, height: 500 };
 
@@ -38,5 +39,26 @@ describe("pointToGlobeCoordinate", () => {
   it("clamps polar latitudes", () => {
     const result = pointToGlobeCoordinate({ lat: 95, lng: 0 }, image);
     expect(result.lat).toBe(90);
+  });
+});
+
+describe("latLngToImagePoint", () => {
+  it("puts a point on a US state's flat map where the state's own dots are", () => {
+    // A state shaped like Colorado's box, in 1 degree steps. Clockwise.
+    const steps = (from, to) => Array.from({ length: Math.abs(to - from) + 1 }, (_, i) => from + Math.sign(to - from) * i);
+    const ring = [
+      ...steps(-109, -102).map((lng) => [lng, 41]),
+      ...steps(41, 37).map((lat) => [-102, lat]),
+      ...steps(-102, -109).map((lng) => [lng, 37]),
+      ...steps(37, 41).map((lat) => [-109, lat]),
+    ];
+    const state = { type: "FeatureCollection", features: [{ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } }] };
+    const { image, points } = createStateMapData(state, 100, "Circle");
+    // Its first, middle and last dots, from the top of the state to its bottom.
+    [points[0], points[Math.floor(points.length / 2)], points.at(-1)].forEach((dot) => {
+      const { x, y } = latLngToImagePoint(dot.lat, dot.lng, image);
+      expect(x).toBeCloseTo(dot.x, 2);
+      expect(y).toBeCloseTo(dot.y, 2);
+    });
   });
 });

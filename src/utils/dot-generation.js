@@ -49,7 +49,7 @@ const generateDots = ({ collection, density, shape }) => {
     row += 1;
   }
 
-  return dots;
+  return { dots, projection };
 };
 
 export const createCountryMapData = (countryCodes, density) => {
@@ -71,17 +71,20 @@ export const createCountryMapData = (countryCodes, density) => {
 };
 
 export const createStateMapData = (collection, density, shape) => {
-  const points = generateDots({
+  const { dots, projection } = generateDots({
     collection,
     density,
     shape,
-  }).map((point, index) => ({
+  });
+  const points = dots.map((point, index) => ({
     ...point,
     id: `${point.x}:${point.y}:${index}`,
   }));
 
   return {
-    image: { width: MAP_WIDTH, height: MAP_HEIGHT },
+    // The state has no dotted-map region, so the image carries the dots' own
+    // projection for anything else placed on the flat map, like data markers.
+    image: { width: MAP_WIDTH, height: MAP_HEIGHT, project: projection },
     points,
   };
 };

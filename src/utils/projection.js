@@ -4,6 +4,9 @@ import { clampNumber, inverseMercatorY, mercatorY, normalizeLongitude } from "./
 // the same Mercator + region clipping as the dots. Lets a marker land on the
 // flat plane in lock-step with the dot field.
 export const latLngToImagePoint = (lat, lng, image) => {
+  // A US state's dots come from their own Albers USA fit, not a region.
+  const projected = image.project?.([lng, lat]);
+  if (projected) return { x: projected[0], y: projected[1] };
   const region = image.region;
   if (region?.lat && region?.lng) {
     const lngRange = region.lng.max - region.lng.min;
