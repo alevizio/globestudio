@@ -1,7 +1,9 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { ExportModal } from "./export-modal.jsx";
 import { track } from "./analytics.jsx";
+import { lookPresets } from "../data/look-presets.js";
+import { vectorDrops as dropsOf } from "../utils/vector-note.js";
 
 vi.mock("./analytics.jsx", () => ({ track: vi.fn() }));
 
@@ -597,6 +599,88 @@ describe("ExportModal", () => {
         expect(selectedTab()).toBe(name);
         expect(focusedTab()).toBe(name);
         expect(document.activeElement.tabIndex).toBe(0);
+      }
+    });
+  });
+
+  describe("the note on what vectors leave out", () => {
+    const lookDrops = (id) => dropsOf(lookPresets.find((preset) => preset.id === id).settings);
+    const CRT = lookDrops("crt");
+    const SVG_NOTE = "The scanlines and glow only come through in PNG.";
+    const captions = () => [...document.querySelectorAll(".export-modal-pane .export-modal-caption")].map((p) => p.textContent);
+    const openTab = (name, props) => {
+      renderModal({ copySvg: vi.fn(), exportSvg: vi.fn(), copyPng: vi.fn(), ...props });
+      fireEvent.click(screen.getByRole("tab", { name }));
+    };
+    const allowImageCopy = () => {
+      globalThis.ClipboardItem = class {};
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { write: vi.fn() } });
+    };
+    afterEach(() => {
+      delete globalThis.ClipboardItem;
+      delete navigator.clipboard;
+    });
+
+    it("on the SVG tab, follows the caption and describes both vector buttons", () => {
+      openTab("SVG", { vectorDrops: CRT });
+      expect(captions()).toEqual([
+        "Vector export: dot positions, shapes, and colors. Effects and atmosphere are not applied (post-effects can't be rasterized into vectors).",
+        SVG_NOTE,
+      ]);
+      expect(screen.getByRole("button", { name: "Download SVG", description: SVG_NOTE })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Copy SVG to clipboard", description: SVG_NOTE })).toBeTruthy();
+    });
+
+    it("on the Figma tab, sits under Copy as vectors and points to Copy as image", () => {
+      allowImageCopy();
+      openTab("Figma", { vectorDrops: CRT });
+      const note = "The scanlines and glow only come through with Copy as image.";
+      const pane = document.querySelector(".export-modal-pane");
+      const outline = [...pane.querySelectorAll("p:not(.visually-hidden), button")].map((node) => node.textContent);
+      expect(outline.slice(1, 5)).toEqual([
+        "Copy as vectors",
+        "Vectors keep dot positions, shapes, and colors. Effects and atmosphere are not applied.",
+        note,
+        "Copy as image",
+      ]);
+      expect(screen.getByRole("button", { name: "Copy as vectors", description: note })).toBeTruthy();
+      // The note is text, not a stop: Tab still goes from one copy to the other.
+      expect(screen.getByText(note).tabIndex).toBe(-1);
+    });
+
+    it("points the Figma tab to PNG where the browser can't copy images", () => {
+      openTab("Figma", { vectorDrops: CRT });
+      expect(screen.getByText(SVG_NOTE)).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Copy as image" })).toBeNull();
+    });
+
+    it("tells a solid map it comes out as dots, in each tab's words", () => {
+      const solid = dropsOf({ renderMode: "solid" });
+      openTab("SVG", { vectorDrops: solid });
+      expect(captions()[1]).toBe("SVG draws this map as dots. The solid land only comes through in PNG.");
+      fireEvent.click(screen.getByRole("tab", { name: "Figma" }));
+      expect(screen.getByText("Vectors draw this map as dots. The solid land only comes through in PNG.")).toBeTruthy();
+    });
+
+    it("shows in the Figma plugin's SVG tab too", () => {
+      openTab("SVG", { vectorDrops: CRT, figmaPlugin: true });
+      expect(screen.getByRole("button", { name: "Insert vectors into Figma", description: SVG_NOTE })).toBeTruthy();
+    });
+
+    it("is left out when the vectors keep the whole design, so neither tab changes", () => {
+      allowImageCopy();
+      for (const vectorDrops of [[], undefined]) {
+        openTab("SVG", { vectorDrops });
+        expect(captions()).toHaveLength(1);
+        expect(screen.getByRole("button", { name: "Download SVG" }).hasAttribute("aria-describedby")).toBe(false);
+        fireEvent.click(screen.getByRole("tab", { name: "Figma" }));
+        expect(captions()).toEqual([
+          "Copy the design, then paste it into a Figma file.",
+          "Vectors keep dot positions, shapes, and colors. Effects and atmosphere are not applied.",
+          "The Globestudio plugin runs the full studio inside Figma and inserts the result on your canvas.",
+        ]);
+        expect(screen.getByRole("button", { name: "Copy as vectors" }).hasAttribute("aria-describedby")).toBe(false);
+        cleanup();
       }
     });
   });

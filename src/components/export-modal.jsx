@@ -1,10 +1,11 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
 import { Check, Clipboard, Download, Share2, Upload, X } from "./icons.jsx";
 import { track } from "./analytics.jsx";
 import { ErrorBoundary } from "./error-boundary.jsx";
 import { EmbedCode } from "./embed-code.jsx";
 import { canCopyImageToClipboard } from "../utils/export.js";
+import { vectorNote } from "../utils/vector-note.js";
 
 // The MCP tab's content (client commands, prompt builder and its CSS) loads
 // only when that tab opens. Until it arrives an empty stand-in holds the
@@ -266,6 +267,9 @@ export const ExportModal = ({
   lookName,
   isLookEdited,
   regionName,
+  // What SVG and Copy as vectors leave out of the design (vectorDrops in
+  // utils/vector-note.js). Both say so when it isn't empty.
+  vectorDrops,
 }) => {
   const [selectedTab, setTab] = useState("image");
   // Six tabs don't fit the tab row's phone form, so the Figma tab is left
@@ -315,6 +319,7 @@ export const ExportModal = ({
   const [imageCopyStatus, setImageCopyStatus] = useState("idle");
   const fileInputRef = useRef(null);
   const dialogRef = useRef(null);
+  const vectorNoteId = useId();
   const [importFailed, setImportFailed] = useState(false);
   // A failed import from an earlier visit shouldn't greet the next one.
   useEffect(() => {
@@ -373,6 +378,9 @@ export const ExportModal = ({
   // The button is left out where the browser can't write images there, and
   // inside the Figma plugin, which inserts on the canvas instead.
   const canCopyImage = !figmaPlugin && canCopyImageToClipboard();
+  // Null when the vectors keep the whole design: the tabs then show no note.
+  const svgNote = vectorNote(vectorDrops);
+  const figmaNote = vectorNote(vectorDrops, { figma: true, copyImage: canCopyImage });
   const handleCopyImage = async () => {
     try {
       await copyPng?.({ scale, width, height, aspect });
@@ -543,10 +551,12 @@ export const ExportModal = ({
           {tab === "svg" && (
             <>
               <p className="export-modal-caption">Vector export: dot positions, shapes, and colors. Effects and atmosphere are not applied (post-effects can't be rasterized into vectors).</p>
+              {svgNote && <p id={vectorNoteId} className="export-modal-caption">{svgNote}</p>}
               <button
                 type="button"
                 className={`export-modal-cta ${svgStatus === "saved" ? "is-success" : ""}`}
                 onClick={exportSvg}
+                aria-describedby={svgNote ? vectorNoteId : undefined}
               >
                 {svgStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
                 <span>{figmaPlugin
@@ -557,6 +567,7 @@ export const ExportModal = ({
                 type="button"
                 className={`export-modal-cta is-secondary ${copyStatus === "copied" ? "is-success" : ""}`}
                 onClick={copySvg}
+                aria-describedby={svgNote ? vectorNoteId : undefined}
               >
                 {copyStatus === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
                 <span>
@@ -579,6 +590,7 @@ export const ExportModal = ({
                   type="button"
                   className={`export-modal-cta ${copyStatus === "copied" ? "is-success" : ""}`}
                   onClick={copySvg}
+                  aria-describedby={figmaNote ? vectorNoteId : undefined}
                 >
                   {copyStatus === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
                   <span>
@@ -597,6 +609,7 @@ export const ExportModal = ({
                 <p className="export-modal-caption">
                   Vectors keep dot positions, shapes, and colors. Effects and atmosphere are not applied.
                 </p>
+                {figmaNote && <p id={vectorNoteId} className="export-modal-caption">{figmaNote}</p>}
                 {canCopyImage && (
                   <>
                     <button

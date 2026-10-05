@@ -33,6 +33,7 @@ import {
   makeFeatureCollection,
 } from "./utils/dot-generation.js";
 import { createDottedSvg } from "./utils/svg-markup.js";
+import { vectorDrops } from "./utils/vector-note.js";
 import { centerOfPoints } from "./utils/face-points.js";
 import { backgroundKind, exportBackground, previewBackground } from "./utils/canvas-background.js";
 import {
@@ -783,6 +784,13 @@ const App = () => {
       sizeVary,
       svgBackground,
     ],
+  );
+
+  // What the SVG leaves out of the design as it stands, named in the export
+  // dialog's SVG and Figma tabs.
+  const exportVectorDrops = useMemo(
+    () => vectorDrops({ shaderSettings, renderMode, backgroundStyle, transparent, globeSettings }),
+    [backgroundStyle, globeSettings, renderMode, shaderSettings, transparent],
   );
 
   const reset = () => {
@@ -2251,6 +2259,7 @@ const App = () => {
         lookName={lookPresets.find((p) => p.id === currentPresetId)?.name}
         isLookEdited={isLookEdited}
         regionName={selected.label}
+        vectorDrops={exportVectorDrops}
       />
 
       <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />

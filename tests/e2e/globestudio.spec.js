@@ -1542,6 +1542,77 @@ test.describe("Figma tab", () => {
   });
 });
 
+test.describe("the note on what vectors leave out", () => {
+  // A still globe keeps the frames coming for the clicks in software GL.
+  test.use({ permissions: ["clipboard-read", "clipboard-write"], contextOptions: { reducedMotion: "reduce" } });
+
+  const openDialog = async (page, path) => {
+    await page.goto(path);
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await expect(dialog).toBeVisible();
+    return dialog;
+  };
+  // Glow off, as in the Figma tab tests: the glow has nothing to do with the
+  // note and only slows software GL down.
+  const link = (path, config = {}) => `${path}?c=${encodeURIComponent(JSON.stringify({ v: 1, ...config, globeSettings: { glow: false } }))}`;
+  const note = (dialog) => dialog.getByText(/only comes? through/);
+  const settle = (dialog) => expect.poll(() => dialog.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+
+  test("names what the CRT look loses on the SVG and Figma tabs, and points to the image", async ({ page }) => {
+    const dialog = await openDialog(page, link("/looks/crt"));
+
+    await dialog.getByRole("tab", { name: "SVG" }).click();
+    const svgNote = "The scanlines and glow only come through in PNG.";
+    await expect(note(dialog)).toHaveText(svgNote);
+    await expect(note(dialog)).toHaveClass("export-modal-caption");
+    await expect(dialog.getByRole("button", { name: "Download SVG" })).toHaveAccessibleDescription(svgNote);
+    await expect(dialog.getByRole("button", { name: "Copy SVG to clipboard" })).toHaveAccessibleDescription(svgNote);
+    await settle(dialog);
+    await expectNoSeriousAxeViolations(page);
+
+    await dialog.getByRole("tab", { name: "Figma" }).click();
+    const figmaNote = "The scanlines and glow only come through with Copy as image.";
+    await expect(note(dialog)).toHaveText(figmaNote);
+    const vectors = dialog.getByRole("button", { name: "Copy as vectors" });
+    await expect(vectors).toHaveAccessibleDescription(figmaNote);
+    // Between the two copies, under the vectors it is about. Tab skips it.
+    const order = await dialog.evaluate((el) => {
+      const pane = el.querySelector(".export-modal-pane");
+      return [...pane.querySelectorAll("p:not(.visually-hidden), button")].map((node) => node.textContent);
+    });
+    expect(order.indexOf(figmaNote)).toBe(order.indexOf("Copy as vectors") + 2);
+    expect(order.indexOf("Copy as image")).toBe(order.indexOf(figmaNote) + 1);
+    await vectors.focus();
+    await page.keyboard.press("Tab");
+    await expect(dialog.getByRole("button", { name: "Copy as image" })).toBeFocused();
+    await settle(dialog);
+    await expectNoSeriousAxeViolations(page);
+  });
+
+  // A look whose effect is turned off loses nothing either: the note reads
+  // the design as it is, not the look it started from.
+  for (const [what, path] of [
+    ["Default", link("/")],
+    ["CRT with its effect turned off", link("/looks/crt", { shaderSettings: { effect: "none" } })],
+  ]) {
+    test(`says nothing for ${what}, and leaves the vector buttons as they are`, async ({ page }) => {
+      const dialog = await openDialog(page, path);
+      await dialog.getByRole("tab", { name: "SVG" }).click();
+      const download = dialog.getByRole("button", { name: "Download SVG" });
+      await expect(download).toBeVisible();
+      await expect(note(dialog)).toHaveCount(0);
+      await expect(download).not.toHaveAttribute("aria-describedby");
+      await dialog.getByRole("tab", { name: "Figma" }).click();
+      const vectors = dialog.getByRole("button", { name: "Copy as vectors" });
+      await expect(vectors).toBeVisible();
+      await expect(note(dialog)).toHaveCount(0);
+      await expect(vectors).not.toHaveAttribute("aria-describedby");
+    });
+  }
+});
+
 test.describe("Skill tab", () => {
   test.use({ viewport: { width: 1440, height: 900 }, permissions: ["clipboard-read", "clipboard-write"] });
 
