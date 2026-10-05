@@ -10,8 +10,9 @@ import { clampNumber, hashString, normalizeLongitude, remapTByMidpoint, smoothSt
 import { pointToGlobeCoordinate } from "../utils/projection.js";
 import { latLngToVector3, pointToFlatVector3 } from "./coordinates.js";
 import { createAsciiCanvasTexture, createGlobeDotGeometry, disposeThreeObject } from "./geometry.js";
+import { sceneColor } from "./picked-color.js";
 
-const getGridSettingsSignature = (settings = DEFAULT_GLOBE_SETTINGS) => {
+const getGridSettingsSignature = (settings = DEFAULT_GLOBE_SETTINGS, hexColors = false) => {
   const gridSize = clampNumber(settings.gridSize ?? DEFAULT_GLOBE_SETTINGS.gridSize, 0, 60);
   const gridLift = clampNumber(settings.gridLift ?? DEFAULT_GLOBE_SETTINGS.gridLift, 0, 100);
   const gridColor = settings.gridColor ?? DEFAULT_GLOBE_SETTINGS.gridColor;
@@ -20,10 +21,12 @@ const getGridSettingsSignature = (settings = DEFAULT_GLOBE_SETTINGS) => {
   const grad = settings.gridGradient
     ? `${settings.gridGradient.from ?? ""}|${settings.gridGradient.to ?? ""}`
     : "";
-  return `${gridSize}:${gridLift}:${gridColor}:${grad}`;
+  return `${gridSize}:${gridLift}:${gridColor}:${grad}:${hexColors ? "hex" : "old"}`;
 };
 
-export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
+// hexColors: read gridColor and gridGradient as hex colors
+// (three/picked-color.js).
+export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS, hexColors = false) => {
   const gridSize = clampNumber(settings.gridSize ?? DEFAULT_GLOBE_SETTINGS.gridSize, 0, 60);
   const gridLift = clampNumber(settings.gridLift ?? DEFAULT_GLOBE_SETTINGS.gridLift, 0, 100);
   const gridColor = settings.gridColor ?? DEFAULT_GLOBE_SETTINGS.gridColor ?? "#ffffff";
@@ -32,7 +35,7 @@ export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
   const radius = GLOBE_RADIUS + 0.004 + gridLift * 0.0024;
   const sampleStep = Math.max(2, Math.min(6, gridSize / 6));
   const group = new THREE.Group();
-  group.userData.gridSignature = getGridSettingsSignature(settings);
+  group.userData.gridSignature = getGridSettingsSignature(settings, hexColors);
   // gridSize 0 = "Off" — return an empty group. Otherwise the
   // halfCount / meridianCount formulas would divide by zero and
   // explode into infinite loops. The shared material only gets
@@ -50,15 +53,15 @@ export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
   // "color + dark sphere" instead of the picked color. Normal
   // blending = ink-on-surface; what you pick is what you see.
   const material = new THREE.LineBasicMaterial({
-    color: useGradient ? 0xffffff : new THREE.Color(gridColor),
+    color: useGradient ? 0xffffff : sceneColor(gridColor, hexColors),
     transparent: true,
     opacity: 0.13,
     blending: THREE.NormalBlending,
     depthWrite: false,
     vertexColors: useGradient,
   });
-  const gradFrom = useGradient ? new THREE.Color(gridGradient.from) : null;
-  const gradTo = useGradient ? new THREE.Color(gridGradient.to) : null;
+  const gradFrom = useGradient ? sceneColor(gridGradient.from, hexColors) : null;
+  const gradTo = useGradient ? sceneColor(gridGradient.to, hexColors) : null;
   // Linear lerp by normalized latitude. The radius of the sphere
   // is the GLOBE_RADIUS plus the lift offset, so y/radius gives a
   // value in [-1, 1] for points on the geodesic surface.
@@ -129,12 +132,14 @@ export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS) => {
   return group;
 };
 
+// refs.hexColors is the design's color space, kept by GlobeBackground.
 export const syncGraticule = (refs, settings) => {
   if (!refs?.globeGroup) return;
-  const signature = getGridSettingsSignature(settings);
+  const hexColors = Boolean(refs.hexColors);
+  const signature = getGridSettingsSignature(settings, hexColors);
   if (refs.graticule?.userData?.gridSignature === signature) return;
 
-  const nextGraticule = createGraticule(settings);
+  const nextGraticule = createGraticule(settings, hexColors);
   // Seed the freshly-created material's opacity with the user's CURRENT
   // slider value. The material constructor sets opacity to its hardcoded
   // 0.13 baseline; without this, every rebuild (one per slider tick
@@ -638,7 +643,7 @@ export const applyDotLayerSpin = (group, rotation, morphProgress, chunked = fals
 // the gradient direction vector, normalizes to [0, 1] using the image's
 // bounding box (so the gradient always fully sweeps from one corner to
 // the opposite), then lerps between `from` and `to` colors.
-const buildGradientColorSampler = (gradient, imageWidth, imageHeight) => {
+const buildGradientColorSampler = (gradient, imageWidth, imageHeight, hexColors = false) => {
   const angleRad = ((gradient.angle ?? 90) * Math.PI) / 180;
   const dirX = Math.sin(angleRad);
   const dirY = -Math.cos(angleRad);
@@ -659,8 +664,8 @@ const buildGradientColorSampler = (gradient, imageWidth, imageHeight) => {
     if (p > maxProj) maxProj = p;
   });
   const range = Math.max(1e-6, maxProj - minProj);
-  const fromColor = new THREE.Color(gradient.from);
-  const toColor = new THREE.Color(gradient.to);
+  const fromColor = sceneColor(gradient.from, hexColors);
+  const toColor = sceneColor(gradient.to, hexColors);
   const fromAlpha = gradient.fromAlpha ?? 1;
   const toAlpha = gradient.toAlpha ?? 1;
   const hasAlpha = fromAlpha < 1 || toAlpha < 1;
@@ -702,6 +707,8 @@ export const buildGlobeDotLayer = ({
   globeSettings,
   morphProgress = 1,
   customShapeTexture = null,
+  // Read dotColor and dotGradient as hex colors (three/picked-color.js).
+  hexColors = false,
 }) => {
   const group = new THREE.Group();
   const points = buildGlobePoints(mapData, selectedDots);
@@ -718,7 +725,7 @@ export const buildGlobeDotLayer = ({
   const size = 0.004 + clampNumber(dotSize, 0.1, 25) * 0.0022;
   const dotLift = clampNumber(globeSettings?.dotLift ?? DEFAULT_GLOBE_SETTINGS.dotLift, 0, 100) / 100;
   const baseRadiusOffset = 0.006 + dotLift * 0.08;
-  const color = isBorderless && dotColor === "#ffffff" ? new THREE.Color("#f5fbff") : new THREE.Color(dotColor);
+  const color = isBorderless && dotColor === "#ffffff" ? new THREE.Color("#f5fbff") : sceneColor(dotColor, hexColors);
   const emissiveColor = isBorderless ? new THREE.Color("#7edfff").lerp(color, 0.48) : color;
   const accentColor = new THREE.Color(CLICK_HIGHLIGHT);
   const emissiveBoost = isBorderless ? 0.7 + intensity * 0.7 : effect === "none" ? 0.22 : 0.5 + intensity * 0.85;
@@ -744,7 +751,7 @@ export const buildGlobeDotLayer = ({
   // so the material color is forced to white to avoid double-multiplying.
   const gradientActive = dotGradient && dotGradient.from && dotGradient.to;
   const gradientSampler = gradientActive
-    ? buildGradientColorSampler(dotGradient, mapData.image.width, mapData.image.height)
+    ? buildGradientColorSampler(dotGradient, mapData.image.width, mapData.image.height, hexColors)
     : null;
   const flatColor = gradientActive
     ? new THREE.Color(1, 1, 1)

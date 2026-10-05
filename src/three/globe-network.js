@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sceneColor } from "./picked-color.js";
 import { GLOBE_RADIUS } from "../config/globe-settings.js";
 import { latLngToVector3 } from "./coordinates.js";
 
@@ -297,10 +298,10 @@ const setTrailVertices = (trail, points, headIndex, length) => {
 // The old `mono` arg + networkMono setting are gone — instead of a
 // polychrome-vs-mono toggle, users now pick exactly the two tints
 // they want directly.
-export const setNetworkColors = (root, arcColor = null, pulseColor = null) => {
+export const setNetworkColors = (root, arcColor = null, pulseColor = null, hexColors = false) => {
   if (!root) return;
-  const arc = arcColor ? new THREE.Color(arcColor) : null;
-  const pulse = pulseColor ? new THREE.Color(pulseColor) : null;
+  const arc = arcColor ? sceneColor(arcColor, hexColors) : null;
+  const pulse = pulseColor ? sceneColor(pulseColor, hexColors) : null;
   const colorForRole = (role) => {
     if (role === "line" || role === "trail" || role === "head") return arc;
     if (role === "core" || role === "ring") return pulse;

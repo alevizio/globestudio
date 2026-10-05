@@ -290,3 +290,20 @@ describe("createWorldTexture flat framing of a US state", () => {
     });
   });
 });
+
+describe("createWorldTexture colors", () => {
+  const styles = (options) => {
+    createWorldTexture(land, { ocean: "transparent", fill: "#373737", stroke: "#ff3700", strokeWidth: 1, ...options });
+    return recorded.ops.map((op) => op.style);
+  };
+
+  it("draws old colors as they are", () => {
+    expect(styles({})).toEqual(expect.arrayContaining(["#373737", "#ff3700"]));
+  });
+
+  it("draws hex colors as the old colors the texture's sRGB decode reads back as them", () => {
+    const drawn = styles({ hexColors: true });
+    expect(drawn).toEqual(expect.arrayContaining(["#808080", "#ff8000"]));
+    expect(drawn).not.toContain("#373737");
+  });
+});

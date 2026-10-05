@@ -32,6 +32,7 @@ import { createWorldTexture } from "../three/world-texture.js";
 import { createPostComposer, scalePixelUniforms, updatePostEffects } from "../three/post-effects.js";
 import { DEFAULT_FLOW_SETTINGS } from "../config/backgrounds.js";
 import { createFlowBackgroundMesh } from "../three/flow-background-mesh.js";
+import { sceneColor, setSceneColor } from "../three/picked-color.js";
 import { loadWorldCountries } from "../data/world-countries-topology.js";
 import { getCachedWorldRivers, loadWorldRivers } from "../data/world-rivers-topology.js";
 import { getCachedWorldCities, loadWorldCities } from "../data/world-cities-topology.js";
@@ -157,6 +158,10 @@ export const GlobeBackground = ({
   // sustained low frame rate; only the main app passes it.
   lowPower = false,
   onLowPower = null,
+  // Whether the design's colors are hex colors, which render as their hex,
+  // or old colors, which render as they always have
+  // (three/picked-color.js). Only the studio and the embed pass it.
+  hexColors = false,
 }) => {
   const mountRef = useRef(null);
   const spaceSettingsRef = useRef(spaceSettings);
@@ -170,6 +175,7 @@ export const GlobeBackground = ({
   const sizeVaryRef = useRef(sizeVary);
   const lowPowerRef = useRef(lowPower);
   const onLowPowerRef = useRef(onLowPower);
+  const hexColorsRef = useRef(hexColors);
   // Dev-only perf metrics — written from the animate loop, polled by
   // <PerfMonitor>. Lives outside React state so per-frame updates don't
   // trigger re-renders. Vite's dead-code elimination removes the HUD entirely
@@ -185,6 +191,7 @@ export const GlobeBackground = ({
   sizeVaryRef.current = sizeVary;
   lowPowerRef.current = lowPower;
   onLowPowerRef.current = onLowPower;
+  hexColorsRef.current = hexColors;
   const stateRef = useRef({
     active: false,
     baseOffsetX: 0,
@@ -761,6 +768,8 @@ export const GlobeBackground = ({
       renderer,
       scene,
       setSelectedDots,
+      // Read by syncGraticule for the grid's colors.
+      hexColors: hexColorsRef.current,
     };
     applyGlobeShellProgress(threeRef.current, morphRef.current.progress, globeSettingsRef.current);
 
@@ -1224,9 +1233,11 @@ export const GlobeBackground = ({
           u.uGrain.value = (settings.grain ?? DEFAULT_FLOW_SETTINGS.grain) / 100;
           u.uScale.value = (settings.scale ?? DEFAULT_FLOW_SETTINGS.scale) / 100;
           u.uBrightness.value = (settings.brightness ?? DEFAULT_FLOW_SETTINGS.brightness) / 100;
-          u.colorA.value.set(settings.colorA || DEFAULT_FLOW_SETTINGS.colorA);
-          u.colorB.value.set(settings.colorB || DEFAULT_FLOW_SETTINGS.colorB);
-          u.colorC.value.set(settings.colorC || DEFAULT_FLOW_SETTINGS.colorC);
+          // The defaults are old colors; a stored color follows the design.
+          const stored = flowSettingsRef.current || {};
+          for (const key of ["colorA", "colorB", "colorC"]) {
+            setSceneColor(u[key].value, settings[key] || DEFAULT_FLOW_SETTINGS[key], hexColorsRef.current && Boolean(stored[key]));
+          }
         }
 
         // Render the bg scene (space/flow mesh, or empty for solid bg)
@@ -1664,6 +1675,7 @@ export const GlobeBackground = ({
         globeSettings,
         morphProgress: morphRef.current.progress,
         customShapeTexture,
+        hexColors,
       });
 
       if (refs.dotLayer) {
@@ -1686,7 +1698,7 @@ export const GlobeBackground = ({
     return () => {
       cancelled = true;
     };
-  }, [asciiSymbol, customShape, dotColor, dotColorAlpha, dotGradient, dotRotation, dotSize, dotsVisible, globeSettings, mapData, renderMode, selectedDots, shaderSettings, shape]);
+  }, [asciiSymbol, customShape, dotColor, dotColorAlpha, dotGradient, dotRotation, dotSize, dotsVisible, globeSettings, hexColors, mapData, renderMode, selectedDots, shaderSettings, shape]);
 
   // Additive data-markers layer — rebuilt whenever the pasted data points
   // change. Mirrors the dot-layer swap (remove → dispose → add) and is fully
@@ -1709,12 +1721,14 @@ export const GlobeBackground = ({
         color: globeSettings?.dataMarkerColor || "#7edfff",
         arcs: !!globeSettings?.dataArcs,
         image: mapData?.image,
+        // The default cyan is an old color.
+        hexColors: hexColors && Boolean(globeSettings?.dataMarkerColor),
       });
       refs.dataMarkers = layer;
       refs.globeGroup.add(layer);
     }
     return undefined;
-  }, [globeSettings?.data, globeSettings?.dataPoints, globeSettings?.dataMarkerColor, globeSettings?.dataArcs, mapData]);
+  }, [globeSettings?.data, globeSettings?.dataPoints, globeSettings?.dataMarkerColor, globeSettings?.dataArcs, hexColors, mapData]);
 
   useEffect(() => {
     const refs = threeRef.current;
@@ -1850,6 +1864,7 @@ export const GlobeBackground = ({
         customColor: customTopologyColor,
         // A picked region clips rivers, cities and custom data to its land.
         clipOverlays: Boolean(selectionCollection?.features?.length || selectionCountryCodes?.length),
+        hexColors,
       };
       const sphereTexture = createWorldTexture(featureCollection, textureOptions);
       const flatTexture = region && aspect
@@ -1876,7 +1891,7 @@ export const GlobeBackground = ({
     // which are stable when the selection doesn't change. The selection
     // deps cover the only mutations that actually matter here, and
     // leaving mapData out avoids a texture rebuild every density slide.
-  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection, flatProjection, riversVisible, riversColor, riversWidth, citiesVisible, citiesColor, citiesMinPop, customTopology, customTopologyVisible, customTopologyColor]);
+  }, [renderMode, worldFill, worldFillAlpha, worldFillGradient, worldFillVisible, worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible, worldStrokeWidth, selectionCountryCodes, selectionCollection, flatProjection, riversVisible, riversColor, riversWidth, citiesVisible, citiesColor, citiesMinPop, customTopology, customTopologyVisible, customTopologyColor, hexColors]);
 
   useEffect(() => {
     const target = morphMode === "globe" ? 1 : 0;
@@ -1906,12 +1921,14 @@ export const GlobeBackground = ({
   useEffect(() => {
     const network = threeRef.current?.globeNetwork;
     if (!network) return;
-    setNetworkColors(network, globeSettings?.arcColor ?? null, globeSettings?.pulseColor ?? null);
-  }, [globeSettings?.arcColor, globeSettings?.pulseColor]);
+    setNetworkColors(network, globeSettings?.arcColor ?? null, globeSettings?.pulseColor ?? null, hexColors);
+  }, [globeSettings?.arcColor, globeSettings?.pulseColor, hexColors]);
 
   useEffect(() => {
     const refs = threeRef.current;
     if (!refs) return;
+    // The grid reads it when applyGlobeShellProgress below syncs it.
+    refs.hexColors = hexColors;
 
     const look = globeSettings?.look ?? DEFAULT_GLOBE_SETTINGS.look;
     const isBorderless = look === "borderless";
@@ -1939,7 +1956,9 @@ export const GlobeBackground = ({
       ? new THREE.Color(userGlowColor)
       : isBorderless
         ? new THREE.Color(borderlessGlowFrom).lerp(new THREE.Color(borderlessGlowTo), 0.28)
-        : new THREE.Color(dotColor === "#ffffff" ? defaultGlow : dotColor);
+        : dotColor === "#ffffff"
+          ? new THREE.Color(defaultGlow)
+          : sceneColor(dotColor, hexColors);
     const intensity = clampNumber(shaderSettings.intensity ?? 45, 0, 100) / 100;
 
     const solidActive = refs.solidActive;
@@ -2026,7 +2045,7 @@ export const GlobeBackground = ({
     // user wants the historical cyan tint for borderless mode, the
     // borderlessPreset seeds gridColor to "#7bdcff".
     applyGlobeShellProgress(refs, morphRef.current.progress, globeSettingsRef.current);
-  }, [background, dotColor, globeSettings, renderMode, shaderSettings.intensity, transparent, uiTheme]);
+  }, [background, dotColor, globeSettings, hexColors, renderMode, shaderSettings.intensity, transparent, uiTheme]);
 
   return (
     <div

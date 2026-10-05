@@ -5,6 +5,7 @@ import { geoAlbersUsa, geoEqualEarth, geoEquirectangular, geoMercator, geoNatura
 import { geoRobinson, geoWinkel3 } from "d3-geo-projection";
 import { MAP_WIDTH, STATE_MAP_PADDING } from "../config/constants.js";
 import { hexToRgb, rgbToHex } from "../utils/color.js";
+import { toSrgbHex } from "../utils/color-space.js";
 
 // Alternative flat-plane projections beyond Mercator. Sphere texture stays
 // equirectangular always — that's the natural UV unwrap for a sphere geometry,
@@ -176,6 +177,9 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
     // With a region picked, the caller passes only its land, and the
     // overlays above stop where that land stops, the same as the fill.
     clipOverlays = false,
+    // Read fill, stroke and their gradients as hex colors
+    // (three/picked-color.js).
+    hexColors = false,
   } = options;
 
   // Resolve canvas dimensions. When the caller supplies an aspect (from the
@@ -192,6 +196,15 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
   canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
+
+  // The GPU decodes this sRGB texture to linear when it samples it, and the
+  // canvas shows that value with no encode, which is the old reading of a
+  // color. So a hex color is drawn as the old color that reads back as it
+  // (toSrgbHex): on the unlit flat map a picked #4080c0 renders as #4080c0.
+  // The rivers, cities and custom-overlay colors are constants tuned through
+  // the decode, so they are drawn as they are.
+  const drawn = (color) => (hexColors ? toSrgbHex(color) : color);
+  const drawnGradient = (gradient) => (hexColors ? { ...gradient, from: toSrgbHex(gradient.from), to: toSrgbHex(gradient.to) } : gradient);
 
   // Skip the ocean fill entirely when no color was supplied (or the
    // caller passed transparent) so the texture's water area stays
@@ -262,8 +275,8 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
 
   if (fillVisible) {
     ctx.fillStyle = fillGradient && fillGradient.from && fillGradient.to
-      ? buildCanvasGradient(ctx, width, height, fillGradient)
-      : applyAlphaToHex(fill, fillAlpha);
+      ? buildCanvasGradient(ctx, width, height, drawnGradient(fillGradient))
+      : applyAlphaToHex(drawn(fill), fillAlpha);
     countriesFeatureCollection.features.forEach((feature) => {
       ctx.beginPath();
       path(feature);
@@ -295,8 +308,8 @@ export const createWorldTexture = (countriesFeatureCollection, options = {}) => 
 
   if (strokeVisible && strokeWidth > 0) {
     ctx.strokeStyle = strokeGradient && strokeGradient.from && strokeGradient.to
-      ? buildCanvasGradient(ctx, width, height, strokeGradient)
-      : applyAlphaToHex(stroke, strokeAlpha);
+      ? buildCanvasGradient(ctx, width, height, drawnGradient(strokeGradient))
+      : applyAlphaToHex(drawn(stroke), strokeAlpha);
     ctx.lineWidth = strokeWidth;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";

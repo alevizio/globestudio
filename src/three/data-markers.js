@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sceneColor } from "./picked-color.js";
 import { latLngToVector3, pointToFlatVector3 } from "./coordinates.js";
 import { GLOBE_RADIUS } from "../config/globe-settings.js";
 import { valueToRadius } from "../utils/data-points.js";
@@ -27,12 +28,13 @@ const buildArcPoints = (start, end, lift) => {
 // the per-frame loop can morph it flat↔globe in lock-step with the dots (the
 // flat position uses the same Mercator projection as the dot field). Arc lines
 // are tagged isArc so the loop can show them in globe view only.
-export const createDataMarkers = (points = [], { color = "#7edfff", arcs = false, image = null } = {}) => {
+// hexColors: read color as a hex color (three/picked-color.js).
+export const createDataMarkers = (points = [], { color = "#7edfff", arcs = false, image = null, hexColors = false } = {}) => {
   const group = new THREE.Group();
   group.name = "data-markers";
   if (!points.length) return group;
 
-  const tintColor = new THREE.Color(color);
+  const tintColor = sceneColor(color, hexColors);
   if (arcs && points.length >= 2) {
     for (let i = 0; i < points.length - 1; i += 1) {
       const a = latLngToVector3(points[i].lat, points[i].lng, GLOBE_RADIUS);
