@@ -1528,6 +1528,12 @@ const App = () => {
     (isSpaceBackground && !shadeBackground
       ? true
       : ["none", "bloom", "aurora"].includes(effectiveShaderSettings.effect || "none"));
+  const canvasHaloWanted = globeSettings.glow && !skipCanvasHalo && !canvasIsOpaque;
+  // Low power mode drops that halo and previews at one device pixel. With
+  // no halo to drop on a 1x screen it changes nothing, so the notice that
+  // says effects were reduced stays away.
+  const lowPowerChangesPreview =
+    canvasHaloWanted || (typeof window !== "undefined" && window.devicePixelRatio > 1);
   // In light UI theme, a solid-background look renders see-through so the
   // light page shows behind it — Halftone reads as ink on paper, not a stark
   // white box (the old theme-invert) or a low-contrast dark fill. The canvas
@@ -1659,7 +1665,7 @@ const App = () => {
         // soft cyan halo.
         "--globe-glow-spread": `${30 + (clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 80}%`,
         "--globe-glow-blur": `${(clampNumber(globeSettings.glowSpread, 0, 100) / 100) * 56}px`,
-        "--globe-canvas-halo": globeSettings.glow && !skipCanvasHalo && !canvasIsOpaque && !lowPowerActive
+        "--globe-canvas-halo": canvasHaloWanted && !lowPowerActive
           ? (() => {
               const t = clampNumber(globeSettings.glowSpread, 0, 100) / 100;
               // SIX Gaussian halo layers in geometric ~1.8× radius
@@ -2137,7 +2143,7 @@ const App = () => {
       )}
       <FollowTooltip />
       {!isFigmaPlugin && <OnboardingHint />}
-      {webglSupported && lowPowerActive && !lowPowerNoticeDismissed && (
+      {webglSupported && lowPowerActive && lowPowerChangesPreview && !lowPowerNoticeDismissed && (
         // Either button removes the notice, so focus moves to the globe it
         // was about instead of falling back to the top of the page.
         <LowPowerNotice

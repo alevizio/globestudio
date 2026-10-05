@@ -6,6 +6,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 
 const globe = vi.hoisted(() => ({ props: null, report: null }));
 
@@ -100,6 +101,34 @@ describe("Low power mode", () => {
     expect(halo()).toBe("none");
     expect(screen.getByText(NOTICE)).toBeTruthy();
     expect(globe.props.lowPower).toBe(true);
+  }, 20000);
+
+  it.each([
+    ["the glow is off", { globeSettings: { ...DEFAULT_GLOBE_SETTINGS, glow: false } }],
+    ["an opaque Space background hides the halo", { backgroundStyle: "space", shadeBackground: false }],
+  ])("says nothing on a 1x screen when %s, as it changes nothing there", async (_, saved) => {
+    window.localStorage.setItem("globestudio:lowPower", JSON.stringify("on"));
+    for (const [key, value] of Object.entries(saved)) {
+      window.localStorage.setItem(`globestudio:${key}`, JSON.stringify(value));
+    }
+    await renderApp();
+    await act(async () => {});
+    expect(globe.props.lowPower).toBe(true);
+    expect(halo()).toBe("none");
+    expect(screen.queryByText(NOTICE)).toBeNull();
+  }, 20000);
+
+  it("still says so with the glow off on a dense screen, where it previews at one device pixel", async () => {
+    const devicePixelRatio = Object.getOwnPropertyDescriptor(window, "devicePixelRatio");
+    Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: 2 });
+    try {
+      window.localStorage.setItem("globestudio:lowPower", JSON.stringify("on"));
+      window.localStorage.setItem("globestudio:globeSettings", JSON.stringify({ ...DEFAULT_GLOBE_SETTINGS, glow: false }));
+      await renderApp();
+      expect(screen.getByText(NOTICE)).toBeTruthy();
+    } finally {
+      Object.defineProperty(window, "devicePixelRatio", devicePixelRatio);
+    }
   }, 20000);
 
   it("turns the effects back on for good from the notice", async () => {
