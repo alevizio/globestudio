@@ -526,13 +526,22 @@ export const GlobeBackground = ({
       bgScene.add(flowBackground);
     }
 
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      // Only the export-capable instances (main app download, Figma Insert)
-      // need the buffer preserved for read-back; plain embeds page-flip.
-      preserveDrawingBuffer: exportable,
-    });
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+        // Only the export-capable instances (main app download, Figma Insert)
+        // need the buffer preserved for read-back; plain embeds page-flip.
+        preserveDrawingBuffer: exportable,
+      });
+    } catch (error) {
+      // No WebGL 2 context after all, or one missing the methods three.js
+      // starts with (privacy extensions and locked down browsers stub
+      // WebGL). The parents show their no WebGL fallback for noWebGL.
+      error.noWebGL = true;
+      throw error;
+    }
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
     // EffectComposer calls renderer.render multiple times per frame (one per

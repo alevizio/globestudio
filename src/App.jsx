@@ -266,8 +266,9 @@ const App = () => {
   // Probe once on first mount whether WebGL is available. If not, the
   // <GlobeBackground> render path below is replaced by <NoWebGLFallback>
   // and Three.js never loads. The probe is synchronous + cheap (creates
-  // and discards a 1x1 canvas) so doing it during render is fine.
-  const webglSupported = useMemo(() => hasWebGL(), []);
+  // and discards a 1x1 canvas) so doing it during render is fine. The globe
+  // turns it off too when three.js can't start on the context it gets.
+  const [webglSupported, setWebglSupported] = useState(hasWebGL);
   // Toggle a body class so the fallback's stylesheet can hide
   // canvas-dependent chrome (control panel, looks bar, zoom, perf hud).
   useEffect(() => {
@@ -1814,7 +1815,16 @@ const App = () => {
         <NoWebGLFallback />
       ) : (
       <ErrorBoundary
-        onError={(error) => trackClientError("globe", error)}
+        onError={(error) => {
+          if (!error?.noWebGL) {
+            trackClientError("globe", error);
+            return;
+          }
+          // A context three.js couldn't start on (see GlobeBackground) is no
+          // WebGL: the still fallback, not a Reload that fails the same way.
+          setWebglSupported(false);
+          trackClientError("webgl", `no WebGL: ${error.message}`);
+        }}
         fallback={({ reset, error }) => (
           <div className="map-background-error" role="alert">
             <p>Couldn’t load the globe view.</p>

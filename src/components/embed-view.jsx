@@ -19,6 +19,7 @@ import { parseShareConfig } from "../utils/share-config.js";
 import { legacyColorsToLinear, toLinearHex } from "../utils/color-space.js";
 import { clampNumber } from "../utils/math.js";
 import { restoreFigmaPicks, saveFigmaPicks } from "../utils/figma-picks.js";
+import { ErrorBoundary } from "./error-boundary.jsx";
 
 // Lazy-load the heavy WebGL component so the initial embed payload is small.
 const GlobeBackground = lazy(() =>
@@ -485,6 +486,16 @@ export const EmbedView = () => {
           : undefined
       }
     >
+      {/* A context three.js couldn't start on (see GlobeBackground) gets the
+          no WebGL message above, as when the probe finds none. Any other
+          error is thrown on from the fallback to the root boundary. */}
+      <ErrorBoundary
+        onError={(error) => error?.noWebGL && setHasWebGL(false)}
+        fallback={({ error }) => {
+          if (!error?.noWebGL) throw error;
+          return null;
+        }}
+      >
       <Suspense fallback={<div className="embed-view-placeholder" aria-hidden="true" />}>
         <GlobeBackground
           mapData={mapData}
@@ -550,6 +561,7 @@ export const EmbedView = () => {
           label="Globestudio dotted globe (embed)"
         />
       </Suspense>
+      </ErrorBoundary>
       {params.plugin === "figma" && (
         <div className="embed-plugin-bar" data-plugin="figma">
           <Suspense fallback={null}>

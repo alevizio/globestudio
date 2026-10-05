@@ -1,20 +1,29 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { EmbedView } from "./embed-view.jsx";
+import { RootErrorBoundary } from "./root-error-boundary.jsx";
 import { links as legacyLinks } from "../utils/fixtures/legacy-share-links.json";
 import { lookPresets } from "../data/look-presets.js";
 import { backgroundKind, previewBackground } from "../utils/canvas-background.js";
 import { toLinearHex } from "../utils/color-space.js";
 
 // The WebGL globe is replaced by a stand-in that shows the view it was
-// asked to draw, and keeps the rest of what it was given.
-const drawn = vi.hoisted(() => ({ props: null }));
-vi.mock("./globe-background.jsx", () => ({
-  GlobeBackground: (props) => {
-    drawn.props = props;
-    return <div data-testid="globe" data-view={props.morphMode} />;
-  },
-}));
+// asked to draw, and keeps the rest of what it was given. Given an error,
+// it throws it from its effect, as the real one does when its renderer
+// can't start.
+const drawn = vi.hoisted(() => ({ props: null, error: null }));
+vi.mock("./globe-background.jsx", async () => {
+  const { useEffect } = await import("react");
+  return {
+    GlobeBackground: (props) => {
+      drawn.props = props;
+      useEffect(() => {
+        if (drawn.error) throw drawn.error;
+      }, []);
+      return <div data-testid="globe" data-view={props.morphMode} />;
+    },
+  };
+});
 
 // What the React and web component packages send: the share config alone.
 const embed = (design, extra = "") => {
@@ -30,6 +39,7 @@ describe("EmbedView", () => {
     // jsdom has no WebGL, and the embed shows a fallback without it.
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ getExtension: () => null });
     drawn.props = null;
+    drawn.error = null;
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -373,6 +383,31 @@ describe("EmbedView", () => {
       const { container } = embed(null, "look=halftone&background=204060");
       await view();
       expect(page(container).style.backgroundColor).toBe("rgb(32, 64, 96)");
+    });
+  });
+
+  describe("a globe that fails", () => {
+    beforeEach(() => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
+    });
+
+    it("gives way to the no WebGL message when three.js can't start on the context", async () => {
+      drawn.error = Object.assign(new Error("Error creating WebGL context."), { noWebGL: true });
+      embed(null, "look=default");
+      expect(await screen.findByText(/doesn't support WebGL 2/)).toBeTruthy();
+      expect(screen.queryByText("Something went wrong.")).toBeNull();
+    });
+
+    it("leaves any other error to the root boundary's card", async () => {
+      drawn.error = new Error("Something in the globe broke");
+      window.history.replaceState(null, "", "/embed?look=default");
+      render(
+        <RootErrorBoundary where="embed">
+          <EmbedView />
+        </RootErrorBoundary>,
+      );
+      expect(await screen.findByText("Something went wrong.")).toBeTruthy();
+      expect(screen.queryByText(/doesn't support WebGL 2/)).toBeNull();
     });
   });
 });
