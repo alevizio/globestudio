@@ -30,6 +30,7 @@ const ENTRIES = [
       "Browsers that block WebGL show a still preview instead of a broken globe, and a PNG export that times out on a slow device saves at Draft size",
       "Share links from the MCP server no longer end in app=1, and embeds accept a whole share link as the config",
       "The Figma plugin no longer loads analytics, as the privacy page says",
+      "Data markers and arcs on the back of the globe no longer show through it",
       "Build tools and MCP server dependencies updated to patched releases, closing the open security alerts",
     ],
   },

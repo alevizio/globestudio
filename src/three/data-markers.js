@@ -32,6 +32,10 @@ const buildArcPoints = (start, end, lift) => {
 export const createDataMarkers = (points = [], { color = "#7edfff", arcs = false, image = null, hexColors = false } = {}) => {
   const group = new THREE.Group();
   group.name = "data-markers";
+  // Draw the markers and arcs after the sphere, so the depth it writes hides
+  // the ones on the far side, as it hides the far side's dots. Sorted only by
+  // distance, a far-side marker drew before the sphere and showed through it.
+  group.renderOrder = 1;
   if (!points.length) return group;
 
   const tintColor = sceneColor(color, hexColors);

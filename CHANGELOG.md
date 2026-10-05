@@ -6,7 +6,11 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Data markers and arcs on the far side of the globe no longer show
+  through it. They draw after the globe's sphere now, so its depth hides
+  them the way it hides the far side's dots.
 
 ## [1.2.0] - 2026-10-05
 
