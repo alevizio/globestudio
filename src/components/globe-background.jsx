@@ -632,8 +632,8 @@ export const GlobeBackground = ({
     //
     // A context that is still lost 10s on isn't coming back by itself, so
     // the parent's error card, with its Reload button, takes the blank
-    // canvas's place. A restore before then reloads as below; a GPU process
-    // restart on a slow machine can take several seconds to restore.
+    // canvas's place. A restore still reloads as below, before the card or
+    // after it (a GPU process restart on a slow machine can take a while).
     let lostTimer = 0;
     const handleContextLost = (event) => {
       event.preventDefault();
@@ -1631,7 +1631,9 @@ export const GlobeBackground = ({
       if (releaseTimer) window.clearTimeout(releaseTimer);
       document.removeEventListener("visibilitychange", handleVisibility);
       renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
-      renderer.domElement.removeEventListener("webglcontextrestored", handleContextRestored);
+      // The restore listener stays: a context the browser restores after the
+      // lost context card took over still reloads the page. Only a lost
+      // context is ever restored, so an ordinary unmount never fires it.
       observer.disconnect();
       screenObserver.disconnect();
       if (canvasHandleRef) {

@@ -35,3 +35,20 @@ test("a lost context that comes back reloads the page before any error card", as
   await expect(page.locator(".globe-background canvas")).toBeVisible({ timeout: CANVAS_TIMEOUT });
   await expect(page.getByText(ERROR_CARD)).toHaveCount(0);
 });
+
+test("a lost context the browser restores after the error card still reloads the page", async ({ page }) => {
+  await page.goto("/");
+  const canvas = page.locator(".globe-background canvas");
+  await expect(canvas).toBeVisible({ timeout: CANVAS_TIMEOUT });
+  await canvas.evaluate((node) => {
+    // Kept on window: the card takes the canvas out of the page.
+    window.__loseContext = node.getContext("webgl2").getExtension("WEBGL_lose_context");
+    window.__loseContext.loseContext();
+  });
+  await expect(page.getByRole("alert").filter({ hasText: ERROR_CARD })).toBeVisible({ timeout: CARD_TIMEOUT });
+  const reloaded = page.waitForEvent("framenavigated");
+  await page.evaluate(() => window.__loseContext.restoreContext());
+  await reloaded;
+  await expect(page.locator(".globe-background canvas")).toBeVisible({ timeout: CANVAS_TIMEOUT });
+  await expect(page.getByText(ERROR_CARD)).toHaveCount(0);
+});
