@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { DEFAULT_FLOW_SETTINGS } from "../config/backgrounds.js";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
+import { toLinearHex } from "../utils/color-space.js";
 
 if (!window.matchMedia) {
   window.matchMedia = vi.fn().mockImplementation((query) => ({
@@ -132,5 +133,43 @@ describe("the design's color space", () => {
     await renderApp(`/?c=${hex}`);
     expect(stored("hexColors")).toBe(true);
     expect(stored("dotColor")).toBe("#ff8000");
+  }, 20000);
+
+  // The picker builds the gradient it sends from the one it shows. In a
+  // design with old colors the stops it leaves alone are still old colors,
+  // so they keep rendering as they did: only a stop picked anew renders as
+  // its hex.
+  const OLD_GRADIENT = { from: "#ff0044", to: "#00ff88", angle: 45 };
+  const openDotPicker = () => {
+    fireEvent.click(screen.getByRole("button", { name: "Surface" }));
+    fireEvent.click(screen.getByRole("button", { name: "Select dot color" }));
+  };
+
+  it("a new angle on an old gradient moves none of its colors", async () => {
+    save("dotGradient", OLD_GRADIENT);
+    await renderApp();
+    openDotPicker();
+    fireEvent.change(screen.getByRole("slider", { name: "Gradient angle" }), { target: { value: "120" } });
+    expect(stored("hexColors")).toBe(true);
+    expect(stored("dotGradient")).toEqual({ from: toLinearHex("#ff0044"), to: toLinearHex("#00ff88"), angle: 120 });
+  }, 20000);
+
+  it("a stop picked on an old gradient renders as its hex, and the other as it did", async () => {
+    save("dotGradient", OLD_GRADIENT);
+    await renderApp();
+    openDotPicker();
+    fireEvent.click(screen.getByRole("tab", { name: /To/ }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Hex value" }), { target: { value: "#0000ff" } });
+    expect(stored("dotGradient")).toEqual({ from: toLinearHex("#ff0044"), to: "#0000ff", angle: 45 });
+  }, 20000);
+
+  it("the grid gradient keeps the stops it leaves as they render", async () => {
+    save("globeSettings", { ...DEFAULT_GLOBE_SETTINGS, grid: true, gridGradient: { from: "#808080", to: "#ff8000", angle: 90 } });
+    await renderApp();
+    fireEvent.click(screen.getByRole("button", { name: "Grid" }));
+    fireEvent.click(screen.getByRole("button", { name: "Select grid color" }));
+    fireEvent.change(screen.getByRole("slider", { name: "Gradient angle" }), { target: { value: "30" } });
+    expect(stored("hexColors")).toBe(true);
+    expect(stored("globeSettings").gridGradient).toEqual({ from: "#373737", to: "#ff3700", angle: 30 });
   }, 20000);
 });

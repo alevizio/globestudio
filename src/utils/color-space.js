@@ -133,3 +133,18 @@ export const legacyColorsToLinear = (config) => convertColors(config, toLinearHe
 
 // A config with its hex colors rewritten as old colors that render the same.
 export const hexColorsToLegacy = (config) => convertColors(config, toSrgbHex);
+
+// A gradient a color picker sends from a design with old colors, as hex
+// colors. The picker builds it from what it shows: the old gradient `shown`,
+// or with none yet the old solid color it starts from. A stop it left as it
+// was is turned into the hex color that renders the same, and a stop picked
+// anew stays as picked, so a new angle, midpoint or alpha moves no color.
+export const pickedGradientToLinear = (gradient, shown, solid) => {
+  if (!isRecord(gradient)) return gradient;
+  const same = (a, b) => {
+    const digits = hexDigits(a);
+    return digits !== null && digits.toLowerCase() === hexDigits(b)?.toLowerCase();
+  };
+  const stop = (key) => (same(gradient[key], isRecord(shown) ? shown[key] : solid) ? toLinearHex(gradient[key]) : gradient[key]);
+  return { ...gradient, from: stop("from"), to: stop("to") };
+};

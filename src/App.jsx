@@ -25,7 +25,7 @@ import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts.js";
 import { usePrefetchHeavyChunks } from "./hooks/use-prefetch-heavy-chunks.js";
 import { clampNumber } from "./utils/math.js";
 import { hexToRgb, invertHex } from "./utils/color.js";
-import { hexColorsToLegacy, legacyColorsToLinear } from "./utils/color-space.js";
+import { hexColorsToLegacy, legacyColorsToLinear, pickedGradientToLinear } from "./utils/color-space.js";
 import { buildShareUrl, hasHexColors, normalizeConfig } from "./utils/share-config.js";
 import {
   createCountryMapData,
@@ -448,18 +448,28 @@ const App = () => {
   }, [setHexColors, setDotColor, setDotGradient, setWorldFill, setWorldFillGradient, setWorldStroke, setWorldStrokeGradient, setGlobeSettings, setFlowSettings]);
   // A color picked in the panel (or a Figma file color) renders as its hex.
   const pickColor = useCallback(() => toColorSpace(true), [toColorSpace]);
+  // The colors the panel shows, which a gradient edit is built from.
+  const shownColorsRef = useRef(null);
+  shownColorsRef.current = { dotColor, dotGradient, worldFill, worldFillGradient, worldStroke, worldStrokeGradient };
   const pickedSetters = useMemo(() => {
     const picked = (setter) => (value) => {
       pickColor();
       setter(value);
     };
+    // In a design with old colors, the stops a gradient edit leaves alone
+    // keep rendering as they did (pickedGradientToLinear).
+    const pickedGradient = (setter, gradientKey, colorKey) => (value) => {
+      const shown = hexColorsRef.current ? null : shownColorsRef.current;
+      pickColor();
+      setter(shown ? pickedGradientToLinear(value, shown[gradientKey], shown[colorKey]) : value);
+    };
     return {
       setDotColor: picked(setDotColor),
-      setDotGradient: picked(setDotGradient),
+      setDotGradient: pickedGradient(setDotGradient, "dotGradient", "dotColor"),
       setWorldFill: picked(setWorldFill),
-      setWorldFillGradient: picked(setWorldFillGradient),
+      setWorldFillGradient: pickedGradient(setWorldFillGradient, "worldFillGradient", "worldFill"),
       setWorldStroke: picked(setWorldStroke),
-      setWorldStrokeGradient: picked(setWorldStrokeGradient),
+      setWorldStrokeGradient: pickedGradient(setWorldStrokeGradient, "worldStrokeGradient", "worldStroke"),
     };
   }, [pickColor, setDotColor, setDotGradient, setWorldFill, setWorldFillGradient, setWorldStroke, setWorldStrokeGradient]);
   // UI theme: "dark" (default) or "light". Only swaps the panel/picker tokens —

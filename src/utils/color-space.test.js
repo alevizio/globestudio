@@ -4,6 +4,7 @@ import {
   hexColorsToLegacy,
   legacyColorsToLinear,
   linearToSrgb,
+  pickedGradientToLinear,
   srgbToLinear,
   storedChannel,
   storedRgb,
@@ -147,5 +148,29 @@ describe("color-space", () => {
     expect(legacyColorsToLinear({ globeSettings: { dotLift: 4 } })).toEqual({ globeSettings: { dotLift: 4 } });
     expect(legacyColorsToLinear(null)).toBe(null);
     expect(hexColorsToLegacy(undefined)).toBe(undefined);
+  });
+});
+
+describe("pickedGradientToLinear", () => {
+  const shown = { from: "#808080", to: "#ff8000", angle: 90 };
+
+  it("turns the stops a picker left alone into hex colors that render the same", () => {
+    expect(pickedGradientToLinear({ ...shown, angle: 30 }, shown, "#ffffff")).toEqual({ from: "#373737", to: "#ff3700", angle: 30 });
+    expect(pickedGradientToLinear({ ...shown, fromAlpha: 0.5 }, shown, "#ffffff")).toEqual({ from: "#373737", to: "#ff3700", angle: 90, fromAlpha: 0.5 });
+  });
+
+  it("keeps a stop picked anew as picked", () => {
+    expect(pickedGradientToLinear({ ...shown, to: "#4080c0" }, shown, "#ffffff")).toEqual({ from: "#373737", to: "#4080c0", angle: 90 });
+  });
+
+  it("reads a new gradient's stops against the solid color it starts from", () => {
+    expect(pickedGradientToLinear({ from: "#808080", to: "#80ffff", angle: 90 }, null, "#808080")).toEqual({ from: "#373737", to: "#80ffff", angle: 90 });
+    expect(pickedGradientToLinear({ from: "#FF8000", to: "#0080ff" }, undefined, "#ff8000")).toEqual({ from: "#ff3700", to: "#0080ff" });
+    // The picker shows a 3 digit color as 6 digits.
+    expect(pickedGradientToLinear({ from: "#888888", to: "#0080ff" }, undefined, "#888")).toEqual({ from: "#3f3f3f", to: "#0080ff" });
+  });
+
+  it("leaves no gradient as it is", () => {
+    expect(pickedGradientToLinear(null, shown, "#ffffff")).toBe(null);
   });
 });

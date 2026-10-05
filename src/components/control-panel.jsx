@@ -23,7 +23,7 @@ import {
 import { areaOptions } from "../data/geography.js";
 import { formatSvgNumber } from "../utils/math.js";
 import { ColorSwatch } from "./ui/color-swatch.jsx";
-import { legacyColorsToLinear } from "../utils/color-space.js";
+import { legacyColorsToLinear, pickedGradientToLinear } from "../utils/color-space.js";
 import { extractPaletteFromImage, darkestColor } from "../utils/palette.js";
 import { parseDataPoints, serializeDataPoints } from "../utils/data-points.js";
 import { countryCentroidIndex } from "../data/geography.js";
@@ -203,10 +203,14 @@ export const ControlPanel = ({
   };
 
   // A color picked here renders as its hex: onColorPick switches the
-  // design to hex colors first (App.jsx).
+  // design to hex colors first (App.jsx). The stops an edit leaves on an
+  // old grid gradient keep rendering as they did (pickedGradientToLinear).
   const pickGlobeColor = (key, value) => {
+    const next = key === "gridGradient" && !hexColors
+      ? pickedGradientToLinear(value, globeSettings.gridGradient, globeSettings.gridColor ?? "#ffffff")
+      : value;
     onColorPick?.();
-    updateGlobeSetting(key, value);
+    updateGlobeSetting(key, next);
   };
 
   const updateGlobeLook = (value) => {
