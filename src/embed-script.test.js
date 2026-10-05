@@ -61,6 +61,16 @@ describe("embed.js data-config", () => {
     expect(configOf(json).customShape.svgSource).toBe(svgSource);
   });
 
+  it("keeps a JSON config written out after ?c= or c= whole, as it always did", () => {
+    // Not URL encoded, so the "#" of a color, an "&" and a "?" are part of it.
+    const json = JSON.stringify({ v: 2, dotColor: "#ff3366", shape: "ASCII", asciiSymbol: "&?" });
+    const expected = parseShareConfig(`?c=${encodeURIComponent(json)}`);
+    expect(expected).toMatchObject({ dotColor: "#ff3366", asciiSymbol: "&?" });
+    for (const value of [`?c=${json}`, `c=${json}`, `${SITE}/?c=${json}`]) {
+      expect(configOf(value), value).toEqual(expected);
+    }
+  });
+
   it("keeps the other attributes the loader sends", () => {
     const url = new URL(embedSrc({ look: "aurora", config: `${SITE}/?c=${TOKEN}&app=1` }));
     expect(url.origin + url.pathname).toBe(`${SITE}/embed`);

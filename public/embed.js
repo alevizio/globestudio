@@ -68,15 +68,22 @@
   // "c=…") gives its c param, as written: whatever follows the token
   // (app=1 on older links, other params, a #hash) is not part of it, and
   // left in, the config failed to parse. A token or a JSON config passes
-  // through as is.
+  // through as is. A JSON config written out after "c=", not URL encoded,
+  // can hold the "#" of a color, an "&" or a "?", so it runs to the end,
+  // as it always did.
   function configToken(value) {
     var text = String(value);
     if (/^\s*\{/.test(text)) return text;
     var q = text.indexOf("?");
-    var query = q >= 0 ? text.slice(q + 1) : text.indexOf("c=") === 0 ? text : "";
-    var parts = query.split("#")[0].split("&");
+    var query = text.indexOf("c=") === 0 ? text : q >= 0 ? text.slice(q + 1) : "";
+    var parts = query.split("&");
     for (var i = 0; i < parts.length; i++) {
-      if (parts[i].indexOf("c=") === 0) return parts[i].slice(2);
+      if (parts[i].indexOf("c=") === 0) {
+        var token = parts.slice(i).join("&").slice(2);
+        return /^\s*\{/.test(token) ? token : token.split(/[&#]/)[0];
+      }
+      // Past a "#" the rest is the link's hash, not its query.
+      if (parts[i].indexOf("#") >= 0) break;
     }
     return text;
   }
