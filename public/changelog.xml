@@ -6,7 +6,27 @@
     <atom:link href="https://globestudio.app/changelog.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 04 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 05 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Light pages, Figma links and fixes</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#light-pages%2C-figma-links-and-fixes</guid>
+      <pubDate>Mon, 05 Oct 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Embeds on a light page: add theme=&quot;light&quot; to &lt;Globe&gt; or &lt;globe-studio&gt;, or data-theme=&quot;light&quot; to embed.js, and Wireframe&apos;s white ink turns graphite instead of vanishing</li>
+  <li>The Figma plugin opens a pasted share, look or embed link, so a design you made on the site loads there, ready to insert</li>
+  <li>The SVG and Figma tabs say when vectors leave part of a design out, like the scanlines and glow of CRT, and point to PNG or Copy as image</li>
+  <li>Try an example in the Data section fills in eight cities, so markers show at once. It replaces Load sample</li>
+  <li>A React starter you can copy with degit or open in StackBlitz, linked from the docs and the integrations page</li>
+  <li>Colors you pick show as their exact hex on the canvas and in PNG and video exports, matching the SVG export. Looks, old links, embeds and saved designs look exactly as before</li>
+  <li>Flat view in the Solid style: a picked country, continent or US state fills the map the way its dots do, and data markers on a state sit on their places</li>
+  <li>Low power mode remembers a computer that ran too slow, so its next visit starts in low power mode, and its notice shows only when it turns something off</li>
+  <li>Browsers that block WebGL show a still preview instead of a broken globe, and a PNG export that times out on a slow device saves at Draft size</li>
+  <li>Share links from the MCP server no longer end in app=1, and embeds accept a whole share link as the config</li>
+  <li>The Figma plugin no longer loads analytics, as the privacy page says</li>
+  <li>Build tools and MCP server dependencies updated to patched releases, closing the open security alerts</li>
+</ul>]]></description>
+    </item>
     <item>
       <title>Agent skill</title>
       <link>https://globestudio.app/changelog</link>

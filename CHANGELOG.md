@@ -8,6 +8,128 @@ All notable changes to Globestudio are tracked here. Format follows
 
 Nothing yet.
 
+## [1.2.0] - 2026-10-05
+
+Embeds get a light theme for light pages, the Figma plugin opens a pasted
+Globestudio link, and colors you pick render as their exact hex. Fixes
+cover the flat Solid map, low power mode, browsers that block WebGL and
+share links from the MCP server, and dependency updates close the open
+security alerts.
+
+`@globestudio/react` 0.2.0, `@globestudio/element` 0.2.0 and
+`@globestudio/mcp` 0.2.3 need an npm publish. 0.2.2 was never published,
+so 0.2.3 is the first npm release with the MCP server changes listed
+under 1.1.0 as well. The hosted MCP server, `/embed`, embed.js and the
+studio inside the Figma plugin change on deploy, with no new plugin
+version. The agent skill and its Claude Code plugin are 1.1.0.
+
+### Added
+
+- A `theme` prop on `<Globe>` and `<globe-studio>`, and `data-theme` for
+  embed.js. On a light page, set `theme="light"` (or `data-theme="light"`)
+  and the glow and grid switch to a palette for light pages, and the white
+  ink of Halftone, Wireframe, Toon and Threshold turns graphite instead of
+  all but vanishing. Halftone, Toon and Threshold paint a dark page of
+  their own, where graphite is lost, so pair the theme with a see-through
+  background there. Only `light` is sent, so an embed without it keeps the
+  address it had. In `@globestudio/react` 0.2.0 and `@globestudio/element`
+  0.2.0.
+- The Figma plugin opens a pasted Globestudio link. Paste a share, look or
+  embed link into its Paste a share link field, or anywhere outside a text
+  field, and that design loads, ready to insert. A short line says it
+  loaded, or that the text was not a Globestudio link. The plugin reads
+  the paste itself, so it needs no clipboard permission. The export
+  dialog's Figma tab tells you to paste the share link there.
+- The SVG and Figma tabs say when the vectors will leave part of a design
+  out, like the scanlines and glow of CRT, solid land or a Space or Flow
+  background, and point to PNG or Copy as image. Vectors always draw the
+  flat map, and of the looks only Default comes through whole. With
+  nothing left out the tabs look as before.
+- A React starter in `examples/starter-react`: a Vite app with a globe on
+  the page. Copy it with
+  `npx degit alevizio/globestudio/examples/starter-react my-globe` or open
+  it in StackBlitz. The docs, the integrations page, the README and the
+  agent skill point new React projects at it.
+- The skill's page on skills.sh, with its installs and security audits,
+  is linked from the Skill tab, the docs, the integrations page, the
+  README and `llms.txt`.
+
+### Changed
+
+- Try an example in the Data section fills an empty box with eight cities
+  as `lat,lng,value` lines, so markers show at once. It replaces Load
+  sample, which loaded country codes and replaced what you had typed. The
+  button shows only while the box is empty, so it never overwrites your
+  text, and undo takes the example back out. On a phone a tap fills the
+  box without opening the keyboard.
+
+### Fixed
+
+- A color you pick in the studio renders as its exact hex on the canvas
+  and in PNG and video exports, so they match the SVG export. Every picked
+  dot, map, grid, arc, pulse and marker color used to render darker than
+  its hex (`#ff8000` showed as 255, 55, 0). Looks, Reset, old links, embeds
+  and designs saved in the browser keep the colors they had and look
+  exactly as before: a design switches to exact hex colors only when you
+  pick a color, and its other colors are turned into ones that render the
+  same. A design with a picked color is saved with `"version": 2` and its
+  links carry `"v": 3`; every other design is written as before. Embeds
+  draw the colors of a `"v": 3` config as their hex, and `?dotColor=` and
+  `?worldFill=` keep their old reading. The MCP server writes `"v": 3`
+  when an agent sets a color, and the agent skill, the config schema and
+  the llms files say what each version does.
+- In the Flat view with the Solid style, a picked country, continent or US
+  state fills the map the way its dots do. A country or continent used to
+  come out as a small shape in the middle of the map (Brazil covered about
+  a tenth of it), and a state as a speck near the left edge. Data markers
+  on a picked US state now sit on their places on the flat map, in Dots
+  and in Solid, where they used to float off the state.
+- Low power mode remembers a computer that ran below 12 fps, so its next
+  visit starts in low power mode instead of running slow until the frame
+  rate watch trips again. The preview stays at one device pixel when the
+  frame rate picks up again; it used to climb back above it with the mode
+  still on. On a phone held sideways the notice sits in the top right
+  corner under Export, where it used to cover most of the globe above the
+  open sheet. The notice shows only when the mode turns something off, the
+  glow halo or a pixel ratio above 1, and no longer flashes in when a look
+  or share link opens. PNG and SVG exports are the same in low power mode;
+  a WebM records the live preview, so one made on a 2x screen comes out at
+  half the width.
+- Browsers that block or stub WebGL, such as some privacy extensions and
+  in-app browsers, show the still preview and the note on turning WebGL on,
+  where the globe used to break with a Reload that failed the same way
+  every time. In an embed they show its no WebGL message.
+- A globe whose graphics context is lost and doesn't come back within 10
+  seconds shows an error card with Reload, where it used to stay blank. A
+  context that comes back later still reloads the page.
+- A PNG export that times out on a slow device saves at Draft size, where
+  it used to try the full size again on the main thread and often fail.
+- In windows 541 to 564 px wide, the export dialog's tabs fit inside the
+  dialog. The last tab used to run into its edge, and past it with the
+  fallback font. The tabs share the row there, as they do on a phone.
+- Share links from the MCP server, the npm package and the hosted one, no
+  longer end in `app=1`, the old pre-launch teaser bypass. Links that still
+  have it open as before, and `read_share_url` and `build_share_url` hand
+  back clean ones.
+- embed.js `data-config` and the `config` of `@globestudio/react` and
+  `@globestudio/element` accept a whole share link, or its `?c=` query,
+  pasted in as the config. A link pasted whole used to embed the Default
+  look. A JSON config and a bare token work as before.
+
+- The Figma plugin loads neither Vercel Analytics nor Speed Insights, as
+  the privacy page says. Since the plugin started loading the full studio,
+  it had been loading both.
+
+### Security
+
+- The site's build tools and the MCP server's dependencies are updated to
+  patched releases, which closes all 68 open Dependabot alerts. For the
+  site that is vite 8.0.16 and vitest 4.1.11, with postcss, nanoid, fflate
+  and undici, none of which ships in the studio's code. For the MCP server
+  it is hono, `@hono/node-server`, fast-uri, ip-address, qs and
+  body-parser in its lockfile; a fresh install of `@globestudio/mcp` from
+  npm already resolved those to fixed releases.
+
 ## [1.1.0] - 2026-10-04
 
 Coding agents get the Globestudio skill and a Claude Code plugin, the
@@ -476,3 +598,8 @@ inferred, since earlier work didn't carry version tags.
 
 Releases are tagged on GitHub starting with `v1.0.0`. New work goes under
 Unreleased until the next tag.
+
+[Unreleased]: https://github.com/alevizio/globestudio/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/alevizio/globestudio/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/alevizio/globestudio/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/alevizio/globestudio/releases/tag/v1.0.0

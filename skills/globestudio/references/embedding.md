@@ -75,7 +75,7 @@ export const Hero = () => (
 With no build step, load a pinned version, so the page runs code you chose:
 
 ```html
-<script type="module" src="https://esm.sh/@globestudio/element@0.1.1"></script>
+<script type="module" src="https://esm.sh/@globestudio/element@0.2.0"></script>
 <globe-studio look="crt" config='{"v":3,"selection":"continent:Europe","dotColor":"#7dd3fc"}' height="480" title="Dotted globe of Europe"></globe-studio>
 ```
 

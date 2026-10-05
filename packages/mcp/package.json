@@ -1,6 +1,6 @@
 {
   "name": "@globestudio/mcp",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "mcpName": "io.github.alevizio/globestudio",
   "description": "MCP server for Globestudio. It lets an AI assistant (Claude, Cursor, Codex and others) make dotted globes, build share links and get embed code.",
   "license": "MIT",

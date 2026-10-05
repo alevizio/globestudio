@@ -16,6 +16,24 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 
 const ENTRIES = [
   {
+    label: "Light pages, Figma links and fixes",
+    date: "5 October 2026",
+    items: [
+      "Embeds on a light page: add theme=\"light\" to <Globe> or <globe-studio>, or data-theme=\"light\" to embed.js, and Wireframe's white ink turns graphite instead of vanishing",
+      "The Figma plugin opens a pasted share, look or embed link, so a design you made on the site loads there, ready to insert",
+      "The SVG and Figma tabs say when vectors leave part of a design out, like the scanlines and glow of CRT, and point to PNG or Copy as image",
+      "Try an example in the Data section fills in eight cities, so markers show at once. It replaces Load sample",
+      "A React starter you can copy with degit or open in StackBlitz, linked from the docs and the integrations page",
+      "Colors you pick show as their exact hex on the canvas and in PNG and video exports, matching the SVG export. Looks, old links, embeds and saved designs look exactly as before",
+      "Flat view in the Solid style: a picked country, continent or US state fills the map the way its dots do, and data markers on a state sit on their places",
+      "Low power mode remembers a computer that ran too slow, so its next visit starts in low power mode, and its notice shows only when it turns something off",
+      "Browsers that block WebGL show a still preview instead of a broken globe, and a PNG export that times out on a slow device saves at Draft size",
+      "Share links from the MCP server no longer end in app=1, and embeds accept a whole share link as the config",
+      "The Figma plugin no longer loads analytics, as the privacy page says",
+      "Build tools and MCP server dependencies updated to patched releases, closing the open security alerts",
+    ],
+  },
+  {
     label: "Agent skill",
     date: "4 October 2026",
     items: [

@@ -10,7 +10,7 @@
       "name": "globestudio",
       "source": "./skills/globestudio",
       "description": "Make, edit and embed dotted world maps and 3D globes. Bundles the globestudio skill with the hosted Globestudio MCP server.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "Alejandro Vizio",
         "url": "https://alevizio.com"

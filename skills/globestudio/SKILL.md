@@ -4,7 +4,7 @@ description: "Creates, edits and embeds dotted world maps and animated 3D globes
 license: MIT
 metadata:
   author: alevizio
-  version: "1.0.0"
+  version: "1.1.0"
   mcp-server: globestudio
 ---
 
@@ -137,7 +137,7 @@ To connect the hosted server, which needs no account or key: `claude mcp add --t
    - React, Next.js, Remix, or Astro with React: `npm install @globestudio/react` and `<Globe>`. It renders a plain iframe, so it works in a server component; pass `onLoad` or a ref only from a client component.
    - No project yet, and the user wants React: `npx degit alevizio/globestudio/examples/starter-react my-globe` copies a Vite app that already renders a `<Globe>`. Then `npm install` and `npm run dev`.
    - Vue, Svelte, Solid, Angular, Astro or HTML with a bundler: `npm install @globestudio/element`, `import "@globestudio/element"` in client code, then `<globe-studio>`. The element only draws in the browser, so under server rendering load it on the client.
-   - No build step: `<script type="module" src="https://esm.sh/@globestudio/element@0.1.1"></script>`, pinned so the page runs the version you chose.
+   - No build step: `<script type="module" src="https://esm.sh/@globestudio/element@0.2.0"></script>`, pinned so the page runs the version you chose.
    - Both packages need 0.1.1 or later: 0.1.0 drops `look` whenever `config` is set, so the globe shows Default. When a `<Globe>` or `<globe-studio>` ignores its look, check the version in `package.json` first.
    - Webflow, Framer, WordPress, Notion or another CMS: an iframe of the `/embed` address, or embed.js where scripts are allowed.
 3. Keep the design in a named constant or a JSON file, not a long inline string, and pass `JSON.stringify` of it as `config`. With a `look`, the config only holds the changes.
@@ -175,7 +175,7 @@ export const Hero = () => (
 - A region or color didn't change: the key was dropped. Check it against [references/config.md](references/config.md) (uppercase alpha-3 codes, a look whose Dot color is kept), or read `ignored` in the MCP result.
 - `<Globe>` or `<globe-studio>` shows Default instead of its look: the package is 0.1.0. Update it to 0.1.1 or later.
 - The Globestudio MCP tools aren't listed: the server isn't connected. Build the link yourself, and give the user the connect command from With the MCP server if they'll keep making designs.
-- White dots vanish on a light page: the look paints its own white ink (Halftone, Wireframe, Toon, Threshold). Set `theme="light"` on the package or `theme=light` on the address, give it a solid dark `background`, or pick a look that keeps `dotColor`. A package that ignores `theme` predates it, so update it.
+- White dots vanish on a light page: the look paints its own white ink (Halftone, Wireframe, Toon, Threshold). Set `theme="light"` on the package or `theme=light` on the address, give it a solid dark `background`, or pick a look that keeps `dotColor`. A package that ignores `theme` predates it, so update it to 0.2.0 or later.
 - Dots vanish on a dark page with `theme="light"`: Halftone, Toon and Threshold paint a dark page of their own, and graphite ink doesn't show on it. Make the design transparent, give it a light `background`, or drop the theme.
 
 ## Exports
