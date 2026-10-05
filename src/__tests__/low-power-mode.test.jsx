@@ -118,6 +118,28 @@ describe("Low power mode", () => {
     expect(screen.queryByText(NOTICE)).toBeNull();
   }, 20000);
 
+  // A look route and a share link apply their design in an effect after the
+  // first render, which still shows the default design with its glow on.
+  it.each([
+    ["a look route", "/looks/newsprint"],
+    ["a share link", `/?c=${encodeURIComponent(JSON.stringify({ v: 2, globeSettings: { glow: false } }))}`],
+  ])("never flashes the notice on a 1x screen when %s opens with the glow off", async (_, url) => {
+    window.history.pushState({}, "", url);
+    window.localStorage.setItem("globestudio:lowPower", JSON.stringify("on"));
+    const records = [];
+    const observer = new MutationObserver((batch) => records.push(...batch));
+    observer.observe(document.body, { childList: true, subtree: true });
+    await renderApp();
+    await act(async () => {});
+    records.push(...observer.takeRecords());
+    observer.disconnect();
+    expect(globe.props.globeSettings.glow).toBe(false);
+    const notices = records
+      .flatMap((record) => [...record.addedNodes, ...record.removedNodes])
+      .filter((node) => node.nodeType === 1 && (node.matches(".low-power-notice") || node.querySelector(".low-power-notice")));
+    expect(notices).toHaveLength(0);
+  }, 20000);
+
   it("still says so with the glow off on a dense screen, where it previews at one device pixel", async () => {
     const devicePixelRatio = Object.getOwnPropertyDescriptor(window, "devicePixelRatio");
     Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: 2 });

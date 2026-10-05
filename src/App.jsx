@@ -434,6 +434,12 @@ const App = () => {
   const [lowPowerPref, setLowPowerPref] = usePersistedState("lowPower", "auto");
   const [lowPowerDetected, setLowPowerDetected] = useState(false);
   const [lowPowerNoticeDismissed, setLowPowerNoticeDismissed] = useState(false);
+  // A /looks/ route or a ?c= share link applies its design in an effect
+  // after the first render, which still shows the saved or default design.
+  // The notice waits for those effects (their updates land in the same
+  // render as this one), so a design with no halo to drop never flashes it.
+  const [lowPowerNoticeReady, setLowPowerNoticeReady] = useState(false);
+  useEffect(() => setLowPowerNoticeReady(true), []);
   const lowPowerActive = lowPowerPref === "on" || (lowPowerPref === "auto" && lowPowerDetected);
   // A slow frame rate is a stall in the GPU process that lasts the visit, so
   // it is saved and the next visit starts in low power before its first
@@ -2146,7 +2152,7 @@ const App = () => {
       )}
       <FollowTooltip />
       {!isFigmaPlugin && <OnboardingHint />}
-      {webglSupported && lowPowerActive && lowPowerChangesPreview && !lowPowerNoticeDismissed && (
+      {webglSupported && lowPowerNoticeReady && lowPowerActive && lowPowerChangesPreview && !lowPowerNoticeDismissed && (
         // Either button removes the notice, so focus moves to the globe it
         // was about instead of falling back to the top of the page.
         <LowPowerNotice
