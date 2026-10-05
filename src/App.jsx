@@ -1467,6 +1467,9 @@ const App = () => {
       const target = exportTargetDims(options);
       const needsBackground = Boolean(pngBackground);
 
+      // Divides the fallback's size below. 1 unless the capture timed out.
+      let shrink = 1;
+
       // Prefer the true high-res re-render path when available — the WebGL scene
       // is rendered fresh at N× resolution so dots and stars stay crisp.
       if (typeof activeGlobeCanvas.captureAtScale === "function") {
@@ -1495,6 +1498,10 @@ const App = () => {
         } catch (error) {
           console.warn("High-res capture failed, falling back to upscale", error);
           trackClientError("export-png", error);
+          // Too slow for this device at N×, and so is an N× upscale, which
+          // encodes on the main thread: the fallback saves at Draft size (1×),
+          // the lower quality the error line would ask for, and finishes.
+          if (/timed out/.test(error?.message)) shrink = Math.max(1, scale);
         }
       }
 
@@ -1507,14 +1514,14 @@ const App = () => {
           activeGlobeCanvas,
           activeGlobeCanvas.width,
           activeGlobeCanvas.height,
-          target?.width ?? Math.round(activeGlobeCanvas.width * scale),
-          target?.height ?? Math.round(activeGlobeCanvas.height * scale),
+          Math.round((target?.width ?? activeGlobeCanvas.width * scale) / shrink),
+          Math.round((target?.height ?? activeGlobeCanvas.height * scale) / shrink),
         );
         if (!pngBlob) throw new Error("No 2D canvas for the PNG fallback");
         if (deliver) return deliver(pngBlob);
-        if (isFigmaPlugin) await sendToFigma({ blob: pngBlob, density: scale });
+        if (isFigmaPlugin) await sendToFigma({ blob: pngBlob, density: scale / shrink });
         else downloadBlob(pngBlob, filename);
-        flashPngSaved(scale);
+        flashPngSaved(scale / shrink);
       } catch (error) {
         fail(error);
       } finally {
