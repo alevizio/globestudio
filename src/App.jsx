@@ -423,15 +423,23 @@ const App = () => {
   // is colored independently and reads best against the canvas's own background.
   const [uiTheme, setUiTheme] = usePersistedState("uiTheme", "dark");
   // Low power mode: "auto" lets the globe turn it on when it finds a
-  // software renderer or a sustained low frame rate, "on" forces it (tests)
-  // and "off" is the visitor turning the effects back on. It only drops the
-  // CSS halo and caps the preview's pixel ratio, never the saved design, so
-  // share links and exports are the same either way.
+  // software renderer or a sustained low frame rate, "on" forces it (tests,
+  // and a slow device remembered from an earlier visit) and "off" is the
+  // visitor turning the effects back on. It only drops the CSS halo and caps
+  // the preview's pixel ratio, never the saved design, so share links and
+  // exports are the same either way.
   const [lowPowerPref, setLowPowerPref] = usePersistedState("lowPower", "auto");
   const [lowPowerDetected, setLowPowerDetected] = useState(false);
   const [lowPowerNoticeDismissed, setLowPowerNoticeDismissed] = useState(false);
   const lowPowerActive = lowPowerPref === "on" || (lowPowerPref === "auto" && lowPowerDetected);
-  const reportLowPower = useCallback(() => setLowPowerDetected(true), []);
+  // A slow frame rate is a stall in the GPU process that lasts the visit, so
+  // it is saved and the next visit starts in low power before its first
+  // frame instead of running slow until the watch trips again. A software
+  // renderer is found again on every visit, so it saves nothing.
+  const reportLowPower = useCallback((reason) => {
+    setLowPowerDetected(true);
+    if (reason === "slow") setLowPowerPref("on");
+  }, [setLowPowerPref]);
   // Automated browsers (the e2e suite and Lighthouse, both in SwiftShader)
   // would always detect, so they keep today's rendering unless forced.
   const detectsLowPower = useMemo(

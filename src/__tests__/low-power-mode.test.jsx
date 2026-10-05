@@ -78,6 +78,22 @@ describe("Low power mode", () => {
     expect(globe.props.lowPower).toBe(true);
   }, 20000);
 
+  it("remembers a slow device so the next visit starts in low power mode", async () => {
+    globe.report = "slow";
+    await renderApp();
+    await screen.findByText(NOTICE);
+    await waitFor(() => expect(window.localStorage.getItem("globestudio:lowPower")).toBe(JSON.stringify("on")));
+  }, 20000);
+
+  it("does not remember a software renderer, which is found again on every visit", async () => {
+    globe.report = "software";
+    await renderApp();
+    await screen.findByText(NOTICE);
+    await act(async () => {});
+    expect(window.localStorage.getItem("globestudio:lowPower")).toBeNull();
+    expect(globe.props.lowPower).toBe(true);
+  }, 20000);
+
   it("starts in low power mode when it is forced on", async () => {
     window.localStorage.setItem("globestudio:lowPower", JSON.stringify("on"));
     await renderApp();
