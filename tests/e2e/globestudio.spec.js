@@ -1448,7 +1448,7 @@ test.describe("Figma tab", () => {
     await expect(dialog.getByRole("button", { name: /export png/i })).toBeVisible();
     // The Figma tab had the focus, and the dialog takes it from there.
     await expect(dialog).toBeFocused();
-    // One px wider the row is back in its desktop form, with the Figma tab.
+    // One px wider the Figma tab is back.
     // The Skill tab waits for the dialog's full width, from 688px.
     await page.setViewportSize({ width: 541, height: 720 });
     await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
@@ -1636,6 +1636,28 @@ test.describe("Skill tab", () => {
     await expect(tabRow(dialog)).toHaveText(SEVEN);
     await expect(tabRow(dialog).last()).toHaveAttribute("aria-selected", "true");
     await expect(dialog.getByRole("heading", { name: SKILL_HEADING })).toBeVisible();
+  });
+
+  test("fits the row at every width from the phone form up to the dialog's full width", async ({ page }) => {
+    // The widest labels, as in the test above.
+    await page.route(/GeistPixel/, (route) => route.abort());
+    const dialog = await openDialog(page);
+    const FIVE = ["Image", "Video", "SVG", "Share", "MCP"];
+    const SIX = ["Image", "Video", "SVG", "Figma", "Share", "MCP"];
+    // From 541px the Figma tab is back, and up to 564px six tabs at their
+    // desktop padding ran into the row's side padding or past the dialog.
+    const widths = [...Array.from({ length: 25 }, (_, i) => 540 + i), 600, 640, 687, 688];
+    for (const width of widths) {
+      await test.step(`${width}px`, async () => {
+        await page.setViewportSize({ width, height: 800 });
+        const labels = width <= 540 ? FIVE : width < 688 ? SIX : SEVEN;
+        await expect(tabRow(dialog)).toHaveText(labels);
+        expectRowFits(await measureRow(dialog), labels);
+      });
+    }
+    // From 565px the tabs keep their desktop padding.
+    await page.setViewportSize({ width: 565, height: 800 });
+    await expect(tabRow(dialog).first()).toHaveCSS("padding-left", "20px");
   });
 
   test("the dialog keeps the block's height while the Skill tab's chunk loads", async ({ page }) => {

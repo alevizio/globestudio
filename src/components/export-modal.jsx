@@ -33,7 +33,9 @@ const QUALITY_OPTIONS = [
   { id: "ultra", label: "Ultra", scale: 4 },
 ];
 
-// The styles.css query that puts the tab row in its phone form.
+// The tab row's phone form, which leaves the Figma tab out. In styles.css
+// the tabs share the row up to 564px, as six don't fit at their desktop
+// padding below 565px.
 const PHONE_TABS_QUERY = "(max-width: 540px)";
 // The Skill tab, the seventh, shows from 688px, where the dialog has its
 // full 640px. Below that, seven tabs end in the row's side padding or past
