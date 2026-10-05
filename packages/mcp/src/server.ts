@@ -24,12 +24,15 @@ import {
 import { z } from "zod";
 import {
   encodeShareConfig,
+  hasColors,
   isRecord,
+  legacyColorsToLinear,
   mergeConfig,
   NESTED_KEYS,
   normalizeConfig,
-  parseShareConfig,
+  parseShareLink,
   type ShareConfig,
+  toLinearHex,
 } from "./share-config.js";
 
 // --- Constants ---------------------------------------------------------------
@@ -305,6 +308,12 @@ type ParsedLink = {
   config: ShareConfig;
   /** Embed-only query params (theme, static, …), kept as they were. */
   embedOptions: Record<string, string>;
+  /**
+   * Whether the colors are hex colors, which render as their hex (a v3
+   * link), or old colors, which the app reads the old way, darker. Links
+   * built from this one keep it, so they render the same.
+   */
+  hexColors: boolean;
 };
 
 const describeUrl = (raw: string) => (raw.length > 80 ? `${raw.slice(0, 77)}...` : raw);
@@ -324,7 +333,9 @@ const toUrl = (raw: string): URL => {
 // parseParams + buildSettings), translated to their ?c= keys with the embed's
 // own parsing and clamping. Anything else except c, look and app is an
 // embed-only option (theme, static, source, …) and rides along untouched.
-const readEmbedParams = (params: URLSearchParams) => {
+// ?dotColor= and ?worldFill= hold old colors; under a ?c= with hex colors
+// the embed turns them into hex colors that render the same, and so does this.
+const readEmbedParams = (params: URLSearchParams, hexColors: boolean) => {
   const settings: ShareConfig = {};
   const options: Record<string, string> = {};
   const size = (value: string, min: number, max: number) => {
@@ -344,6 +355,8 @@ const readEmbedParams = (params: URLSearchParams) => {
         break;
       case "dotColor":
       case "worldFill":
+        if (value) settings[key] = hexColors ? toLinearHex(`#${value.replace(/^#/, "")}`) : `#${value.replace(/^#/, "")}`;
+        break;
       case "background":
         if (value) settings[key] = `#${value.replace(/^#/, "")}`;
         break;
@@ -382,10 +395,12 @@ const readEmbedParams = (params: URLSearchParams) => {
 const parseLink = (raw: string): ParsedLink => {
   const url = toUrl(raw);
   const path = url.pathname.replace(/\/+$/, "") || "/";
-  const shared = parseShareConfig(url.search) ?? {};
+  const link = parseShareLink(url.search);
+  const shared = link.config ?? {};
+  const { hexColors } = link;
 
   if (path === "/") {
-    return { kind: "studio", origin: url.origin, look: null, config: shared, embedOptions: {} };
+    return { kind: "studio", origin: url.origin, look: null, config: shared, embedOptions: {}, hexColors };
   }
 
   const lookMatch = /^\/looks\/([a-z0-9-]+)$/i.exec(path);
@@ -394,7 +409,7 @@ const parseLink = (raw: string): ParsedLink => {
     if (!isPresetId(lookMatch[1])) {
       throw new Error(`Unknown look "${lookMatch[1]}" in that link. Use list_presets to see options.`);
     }
-    return { kind: "look", origin: url.origin, look: lookMatch[1], config: shared, embedOptions: {} };
+    return { kind: "look", origin: url.origin, look: lookMatch[1], config: shared, embedOptions: {}, hexColors };
   }
 
   if (path === "/embed") {
@@ -402,8 +417,8 @@ const parseLink = (raw: string): ParsedLink => {
     // unknown look, and ?c= wins over the dedicated params.
     const requested = url.searchParams.get("look");
     const look = requested && isPresetId(requested) ? requested : "default";
-    const { settings, options } = readEmbedParams(url.searchParams);
-    return { kind: "embed", origin: url.origin, look, config: mergeConfig(settings, shared), embedOptions: options };
+    const { settings, options } = readEmbedParams(url.searchParams, hexColors);
+    return { kind: "embed", origin: url.origin, look, config: mergeConfig(settings, shared), embedOptions: options, hexColors };
   }
 
   throw new Error(
@@ -417,21 +432,23 @@ const parseLink = (raw: string): ParsedLink => {
 // (the app's share-config import wins over the route preset by design, see
 // src/hooks/use-share-config-import.js); a studio link without a look lands
 // on "/" and ?c= carries everything.
-const studioUrl = (look: string | null, config: ShareConfig) => {
+const studioUrl = (look: string | null, config: ShareConfig, hexColors: boolean) => {
   const path = look ? `/looks/${look}` : "/";
   return Object.keys(config).length > 0
-    ? `${SITE_URL}${path}?c=${encodeShareConfig(config)}`
+    ? `${SITE_URL}${path}?c=${encodeShareConfig(config, hexColors)}`
     : `${SITE_URL}${path}`;
 };
 
 // Embed: dedicated query params where they exist (embed-view.jsx parseParams,
 // hex colors WITHOUT the '#'), view=flat, which the embed reads ahead of
 // the config's own view, then ?c= for everything else. The embed caps its
-// density param at 90, so a higher density stays in ?c=.
-const embedUrl = (look: string | null, config: ShareConfig, options: Record<string, string>) => {
+// density param at 90, so a higher density stays in ?c=. With hex colors
+// dotColor rides in ?c= too: the embed reads its ?dotColor= param as an old
+// color.
+const embedUrl = (look: string | null, config: ShareConfig, options: Record<string, string>, hexColors: boolean) => {
   const params: string[] = look ? [`look=${look}`] : [];
   const rest: ShareConfig = { ...config };
-  for (const key of ["selection", "dotColor", "background", "density"]) {
+  for (const key of hexColors ? ["selection", "background", "density"] : ["selection", "dotColor", "background", "density"]) {
     const value = config[key];
     if (value === undefined) continue;
     if (key === "density" && (typeof value !== "number" || value > 90)) continue;
@@ -443,7 +460,7 @@ const embedUrl = (look: string | null, config: ShareConfig, options: Record<stri
   for (const [key, value] of Object.entries(options)) {
     params.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
   }
-  if (Object.keys(rest).length > 0) params.push(`c=${encodeShareConfig(rest)}`);
+  if (Object.keys(rest).length > 0) params.push(`c=${encodeShareConfig(rest, hexColors)}`);
   return params.length > 0 ? `${SITE_URL}/embed?${params.join("&")}` : `${SITE_URL}/embed`;
 };
 
@@ -493,12 +510,17 @@ const buildShareUrl = (input: z.infer<typeof BuildShareUrlSchema>) => {
   const changes = normalizeConfig(requested);
 
   const look = input.look ?? base?.look ?? null;
-  const config = mergeConfig(base?.config ?? {}, changes);
+  // A color set here is the hex to show, so the link gets hex colors, and
+  // the old colors of a link it changes are turned into hex colors that
+  // render the same. Without one, a link keeps the colors it has.
+  const hexColors = Boolean(base?.hexColors) || hasColors(changes);
+  const baseConfig = base && hexColors && !base.hexColors ? legacyColorsToLinear(base.config) : base?.config ?? {};
+  const config = mergeConfig(baseConfig, changes);
   const ignored = input.config ? ignoredKeys(input.config, changes) : [];
 
   return {
-    share_url: studioUrl(look, config),
-    embed_url: embedUrl(look, config, base?.embedOptions ?? {}),
+    share_url: studioUrl(look, config, hexColors),
+    embed_url: embedUrl(look, config, base?.embedOptions ?? {}, hexColors),
     look,
     config,
     ...(ignored.length > 0 ? { ignored, ignored_note: IGNORED_NOTE } : {}),
@@ -536,8 +558,8 @@ const readShareUrl = (input: z.infer<typeof ReadShareUrlSchema>) => {
     summary: summarize(link.look, link.config),
     config: link.config,
     ...(Object.keys(link.embedOptions).length > 0 ? { embed_options: link.embedOptions } : {}),
-    share_url: studioUrl(link.look, link.config),
-    embed_url: embedUrl(link.look, link.config, link.embedOptions),
+    share_url: studioUrl(link.look, link.config, link.hexColors),
+    embed_url: embedUrl(link.look, link.config, link.embedOptions, link.hexColors),
     note: link.kind === "studio"
       ? (empty
           ? "This link carries no settings, so it opens the studio as it is."

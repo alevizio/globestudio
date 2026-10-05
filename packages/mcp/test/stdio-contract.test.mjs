@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 const appModule = (path) => import(new URL(`../../../src/${path}`, import.meta.url).href);
 const { parseShareConfig, buildShareUrl: appBuildShareUrl } = await appModule("utils/share-config.js");
 const { sanitizeSvgSource: appSanitizeSvgSource } = await appModule("utils/custom-shape.js");
+const { legacyColorsToLinear } = await appModule("utils/color-space.js");
 const { lookPresets } = await appModule("data/look-presets.js");
 const { DEFAULT_SHADER_SETTINGS } = await appModule("config/shader-effects.js");
 const { DEFAULT_GLOBE_SETTINGS } = await appModule("config/globe-settings.js");
@@ -128,24 +129,27 @@ test("build_share_url emits URLs the app's own parser accepts", async () => {
   const shareUrl = new URL(json.share_url);
   assert.equal(shareUrl.pathname, "/looks/halftone");
   const shareConfig = parseShareConfig(shareUrl.search);
+  // A color the agent sets is the hex to show, so the link has hex colors.
   assert.deepEqual(shareConfig, {
     selection: "country:JPN",
     dotColor: "#3df4ff",
     background: "#101418",
     density: 40,
     shape: "Ring",
+    hexColors: true,
   });
   assert.ok(!("look" in shareConfig), "'look' is not a valid ?c= key");
 
-  // embed_url: dedicated params (hex without '#'), ?c= only for shape.
+  // embed_url: dedicated params (hex without '#'), ?c= for shape and the dot
+  // color. The embed reads a ?dotColor= param as an old color.
   const embedUrl = new URL(json.embed_url);
   assert.equal(embedUrl.pathname, "/embed");
   assert.equal(embedUrl.searchParams.get("look"), "halftone");
   assert.equal(embedUrl.searchParams.get("selection"), "country:JPN");
-  assert.equal(embedUrl.searchParams.get("dotColor"), "3df4ff");
+  assert.equal(embedUrl.searchParams.get("dotColor"), null);
   assert.equal(embedUrl.searchParams.get("background"), "101418");
   assert.equal(embedUrl.searchParams.get("density"), "40");
-  assert.deepEqual(parseShareConfig(embedUrl.search), { shape: "Ring" });
+  assert.deepEqual(parseShareConfig(embedUrl.search), { shape: "Ring", dotColor: "#3df4ff", hexColors: true });
 });
 
 test("build_share_url normalizes user-friendly selections", async () => {
@@ -370,12 +374,15 @@ test("build_share_url changes a pasted studio link and keeps every other setting
   assert.equal(json.look, null);
   assert.equal(new URL(json.share_url).pathname, "/");
   const after = appConfigOf(json.share_url);
+  // The new dot color is the hex to show, so the link's other colors become
+  // the hex colors that render as they did.
   assert.deepEqual(after, {
-    ...before,
+    ...legacyColorsToLinear(before),
     dotColor: "#ff0000",
     selection: "continent:Europe",
     viewMode: "flat",
-    globeSettings: { ...before.globeSettings, autoSpin: false },
+    globeSettings: { ...legacyColorsToLinear(before).globeSettings, autoSpin: false },
+    hexColors: true,
   });
 
   // The embed shows the same globe: dedicated params + view=flat + ?c=.
@@ -383,7 +390,8 @@ test("build_share_url changes a pasted studio link and keeps every other setting
   assert.equal(embed.pathname, "/embed");
   assert.equal(embed.searchParams.get("look"), null);
   assert.equal(embed.searchParams.get("view"), "flat");
-  assert.equal(embed.searchParams.get("dotColor"), "ff0000");
+  assert.equal(embed.searchParams.get("dotColor"), null);
+  assert.equal(appConfigOf(json.embed_url).dotColor, "#ff0000");
   assert.equal(embed.searchParams.get("selection"), "continent:Europe");
   assert.deepEqual(appConfigOf(json.embed_url).shaderSettings, before.shaderSettings);
 });
@@ -462,8 +470,9 @@ test("a % sign survives both ways: MCP links in the app, app links in the MCP", 
   const { json } = await callTool("build_share_url", { look: "default", dotColor: "#ff0000", config: carried });
   assert.equal(json.ignored, undefined);
   assert.deepEqual(json.config, { dotColor: "#ff0000", ...carried });
-  assert.deepEqual(appConfigOf(json.share_url), { dotColor: "#ff0000", ...carried });
-  assert.deepEqual(appConfigOf(json.embed_url), carried);
+  assert.deepEqual(appConfigOf(json.share_url), { dotColor: "#ff0000", ...carried, hexColors: true });
+  // The dot color rides in the embed's ?c= too (see embedUrl in server.ts).
+  assert.deepEqual(appConfigOf(json.embed_url), { dotColor: "#ff0000", ...carried, hexColors: true });
 
   // app -> MCP: read_share_url reads the app's own link the way the app does,
   // and the links it hands back open the same design.
@@ -530,7 +539,7 @@ test("the Transparent style and a hidden Data layer survive both ways, compared 
   const read = await callTool("read_share_url", { url: link });
   assert.deepEqual(read.json.config, carried);
   const edited = await callTool("build_share_url", { share_url: link, dotColor: "#ff0000" });
-  assert.deepEqual(parseShareConfig(new URL(edited.json.share_url).search, {}), { ...carried, dotColor: "#ff0000" });
+  assert.deepEqual(parseShareConfig(new URL(edited.json.share_url).search, {}), { ...carried, dotColor: "#ff0000", hexColors: true });
 });
 
 test("read_share_url reads every old v1 link the way the app does, and hands back an equivalent link", async () => {
@@ -544,4 +553,36 @@ test("read_share_url reads every old v1 link the way the app does, and hands bac
     assert.deepEqual(asAppApplies(json.config), app, name);
     if (app) assert.deepEqual(appConfigOf(json.share_url), app, `${name} share_url`);
   }
+});
+
+// Colors: the app reads a link's colors the old way, darker than their hex,
+// unless the link has hex colors (v3). A color the agent sets is the hex to
+// show; without one, a link keeps the colors it has (src/utils/color-space.js).
+test("build_share_url keeps a link's old colors unless it sets a color", async () => {
+  const { url } = APP_LINKS.studio.find((link) => link.from === "/looks/vapor");
+  const before = appConfigOf(url);
+  const { json } = await callTool("build_share_url", { share_url: url, density: 30 });
+  assert.equal(JSON.parse(new URL(json.share_url).searchParams.get("c")).v, 2);
+  assert.deepEqual(appConfigOf(json.share_url), { ...before, density: 30 });
+
+  const look = await callTool("build_share_url", { look: "toon", density: 30 });
+  assert.equal(JSON.parse(new URL(look.json.share_url).searchParams.get("c")).v, 2);
+  const picked = await callTool("build_share_url", { look: "toon", dotColor: "#ff0066" });
+  assert.equal(JSON.parse(new URL(picked.json.share_url).searchParams.get("c")).v, 3);
+});
+
+test("read_share_url reads ?dotColor= and ?worldFill= the way the embed does", async () => {
+  // Without a ?c= of hex colors they are old colors, kept as they are.
+  const old = await callTool("read_share_url", { url: "/embed?dotColor=808080&worldFill=ff8000" });
+  assert.deepEqual(old.json.config, { dotColor: "#808080", worldFill: "#ff8000" });
+  assert.equal(new URL(old.json.embed_url).searchParams.get("dotColor"), "808080");
+
+  // Under one, the embed turns them into the hex colors that render the same.
+  const c = encodeURIComponent(JSON.stringify({ v: 3, shape: "Ring" }));
+  const mixed = await callTool("read_share_url", { url: `/embed?dotColor=808080&worldFill=ff8000&background=808080&c=${c}` });
+  assert.deepEqual(mixed.json.config, { dotColor: "#373737", worldFill: "#ff3700", background: "#808080", shape: "Ring" });
+  const rebuilt = new URL(mixed.json.embed_url);
+  assert.equal(rebuilt.searchParams.get("dotColor"), null);
+  assert.equal(rebuilt.searchParams.get("background"), "808080");
+  assert.deepEqual(appConfigOf(mixed.json.embed_url), { dotColor: "#373737", worldFill: "#ff3700", shape: "Ring", hexColors: true });
 });

@@ -73,7 +73,7 @@ test("find_presets, build_share_url and read_share_url work over HTTP", async ()
   assert.ok(found.some((p) => p.id === "halftone"));
 
   const built = await call("build_share_url", { look: "vapor", selection: "Japan", dotColor: "#3df4ff" });
-  assert.deepEqual(parseShareConfig(new URL(built.share_url).search), { selection: "country:JPN", dotColor: "#3df4ff" });
+  assert.deepEqual(parseShareConfig(new URL(built.share_url).search), { selection: "country:JPN", dotColor: "#3df4ff", hexColors: true });
 
   const { url } = APP_LINKS.studio.find((link) => link.from === "/looks/vapor");
   const read = await call("read_share_url", { url });

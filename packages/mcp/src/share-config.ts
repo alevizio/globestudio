@@ -21,9 +21,12 @@
 export type ShareConfig = Record<string, unknown>;
 
 const PARAM_KEY = "c";
-// v2 payloads are decoded once, v1 (every link made before v2) twice, as in
-// the app. See "Versions" at the top of src/utils/share-config.js.
+// v2 and v3 payloads are decoded once, v1 (every link made before v2) twice,
+// as in the app. A v3 payload has hex colors, which render as their hex; any
+// other has old colors, which the app reads the old way, darker. See
+// "Versions" at the top of src/utils/share-config.js.
 const VERSION = 2;
+const HEX_COLORS_VERSION = 3;
 const HEX_RE = /^#?[0-9a-fA-F]{3,8}$/;
 const SELECTION_RE = /^(world|country:[A-Z]{3}|continent:[\w\s-]+|subregion:[\w\s-]+)$/;
 const ALLOWED_IMAGE_DATA_RE = /^data:image\/(?:png|jpe?g|webp);base64,/i;
@@ -337,12 +340,12 @@ const parseJson = (text: string): unknown => {
   }
 };
 
-// `raw` is the ?c= value after URLSearchParams' own decode. A v2 payload
-// reads as is; anything else takes the old double decode, and only when
-// that throws (a v1 link with a "%") does the single decode stand in.
+// `raw` is the ?c= value after URLSearchParams' own decode. A v2 or v3
+// payload reads as is; anything else takes the old double decode, and only
+// when that throws (a v1 link with a "%") does the single decode stand in.
 const decodePayload = (raw: string): unknown => {
   const once = parseJson(raw);
-  if (isRecord(once) && once.v === VERSION) return once;
+  if (isRecord(once) && (once.v === VERSION || once.v === HEX_COLORS_VERSION)) return once;
   try {
     return JSON.parse(decodeURIComponent(raw));
   } catch {
@@ -350,26 +353,94 @@ const decodePayload = (raw: string): unknown => {
   }
 };
 
-/** Decode `?c=` from a query string the way the app's parseShareConfig does. */
-export const parseShareConfig = (search: string): ShareConfig | null => {
-  if (!search) return null;
+/**
+ * Decode `?c=` from a query string the way the app's parseShareConfig does,
+ * and say whether its colors are hex colors: a v3 payload, or a design the
+ * studio wrote with version 2.
+ */
+export const parseShareLink = (search: string): { config: ShareConfig | null; hexColors: boolean } => {
+  const none = { config: null, hexColors: false };
+  if (!search) return none;
   const params = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
   const raw = params.get(PARAM_KEY);
-  if (!raw) return null;
+  if (!raw) return none;
   try {
     const parsed = decodePayload(raw);
-    if (!isRecord(parsed)) return null;
-    const { v: _version, ...config } = parsed;
+    if (!isRecord(parsed)) return none;
+    const { v, ...config } = parsed;
     const next = normalizeConfig(config);
-    return Object.keys(next).length > 0 ? next : null;
+    if (Object.keys(next).length === 0) return none;
+    return { config: next, hexColors: v === HEX_COLORS_VERSION || Number(config.version) >= 2 };
   } catch {
-    return null;
+    return none;
   }
 };
 
-/** The `?c=` value, same encoding as the app's buildShareUrl. */
-export const encodeShareConfig = (config: ShareConfig) =>
-  encodeURIComponent(JSON.stringify({ v: VERSION, ...config }));
+/** Decode `?c=` from a query string the way the app's parseShareConfig does. */
+export const parseShareConfig = (search: string): ShareConfig | null => parseShareLink(search).config;
+
+/** The `?c=` value, same encoding as the app's buildShareUrl: v3 for hex colors. */
+export const encodeShareConfig = (config: ShareConfig, hexColors = false) =>
+  encodeURIComponent(JSON.stringify({ v: hexColors ? HEX_COLORS_VERSION : VERSION, ...config }));
+
+// --- Colors -------------------------------------------------------------------
+// Mirrors src/utils/color-space.js. The app reads a color the old way, which
+// renders it darker than its hex (round(255 * SRGBToLinear(c)) per channel),
+// unless the design has hex colors. A color an agent sets is meant as the hex
+// to show, so a link that gets one is turned into hex colors.
+
+const COLOR_HEX_RE = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+const COLOR_FIELDS = ["dotColor", "worldFill", "worldStroke"];
+const GRADIENT_FIELDS = ["dotGradient", "worldFillGradient", "worldStrokeGradient"];
+const GLOBE_COLOR_FIELDS = ["gridColor", "arcColor", "pulseColor", "dataMarkerColor"];
+const GLOBE_GRADIENT_FIELDS = ["gridGradient"];
+const FLOW_COLOR_FIELDS = ["colorA", "colorB", "colorC"];
+
+// three.js's sRGB-to-linear curve (src/math/ColorManagement.js).
+const srgbToLinear = (c: number) =>
+  c < 0.04045 ? c * 0.0773993808 : Math.pow(c * 0.9478672986 + 0.0521327014, 2.4);
+
+/** The hex color that renders the way the old color `value` does. */
+export const toLinearHex = (value: unknown): unknown => {
+  if (typeof value !== "string") return value;
+  const match = COLOR_HEX_RE.exec(value);
+  if (!match) return value;
+  const digits = match[1].length === 3 ? match[1].split("").map((d) => d + d).join("") : match[1];
+  let out = "#";
+  for (let i = 0; i < 6; i += 2) {
+    const linear = srgbToLinear(parseInt(digits.slice(i, i + 2), 16) / 255);
+    out += Math.round(Math.min(1, Math.max(0, linear)) * 255).toString(16).padStart(2, "0");
+  }
+  // 0 and 255 map to themselves: keep such a color as written, like the app.
+  return out === `#${digits.toLowerCase()}` ? value : out;
+};
+
+const colorKeys = (config: ShareConfig) => [
+  ...[...COLOR_FIELDS, ...GRADIENT_FIELDS].filter((key) => key in config),
+  ...(isRecord(config.globeSettings) ? [...GLOBE_COLOR_FIELDS, ...GLOBE_GRADIENT_FIELDS].filter((key) => key in (config.globeSettings as ShareConfig)) : []),
+  ...(isRecord(config.flowSettings) ? FLOW_COLOR_FIELDS.filter((key) => key in (config.flowSettings as ShareConfig)) : []),
+];
+
+/** Whether a config sets any color the app reads by the design's color space. */
+export const hasColors = (config: ShareConfig) => colorKeys(config).length > 0;
+
+const convertFields = (source: Record<string, unknown>, colors: string[], gradients: string[]) => {
+  const next: ShareConfig = { ...source };
+  for (const key of colors) if (key in next) next[key] = toLinearHex(next[key]);
+  for (const key of gradients) {
+    const gradient = next[key];
+    if (isRecord(gradient)) next[key] = { ...gradient, from: toLinearHex(gradient.from), to: toLinearHex(gradient.to) };
+  }
+  return next;
+};
+
+/** A config with its old colors rewritten as hex colors that render the same. */
+export const legacyColorsToLinear = (config: ShareConfig): ShareConfig => {
+  const next = convertFields(config, COLOR_FIELDS, GRADIENT_FIELDS);
+  if (isRecord(config.globeSettings)) next.globeSettings = convertFields(config.globeSettings, GLOBE_COLOR_FIELDS, GLOBE_GRADIENT_FIELDS);
+  if (isRecord(config.flowSettings)) next.flowSettings = convertFields(config.flowSettings, FLOW_COLOR_FIELDS, []);
+  return next;
+};
 
 /**
  * Layer `changes` over `base`: top-level keys replace, the nested settings
