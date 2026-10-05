@@ -838,7 +838,7 @@ test.describe("on a phone, swiping the sheet", () => {
   });
 });
 
-for (const path of ["/", "/docs", "/brand", "/privacy"]) {
+for (const path of ["/", "/docs", "/integrations", "/brand", "/privacy"]) {
   test(`axe has no serious violations on ${path}`, async ({ page }) => {
     await page.goto(path);
     if (path === "/") await waitForCanvas(page);
