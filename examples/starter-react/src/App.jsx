@@ -3,7 +3,7 @@ import { Globe } from "@globestudio/react";
 // A config layered over a look holds only what changes. For a design you
 // made at globestudio.app, press D and copy the React code from the Share
 // tab: its config holds the whole design, so it needs no look.
-const EUROPE = { v: 2, selection: "continent:Europe", dotColor: "#7dd3fc" };
+const EUROPE = { v: 3, selection: "continent:Europe", dotColor: "#7dd3fc" };
 
 export const App = () => (
   <main>

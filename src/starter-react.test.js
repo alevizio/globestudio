@@ -83,7 +83,7 @@ describe("examples/starter-react", () => {
       const literal = app.match(new RegExp(`^const ${name} = (\\{.*\\});$`, "m"))[1];
       const json = literal.replace(/([{,]\s*)(\w+):/g, '$1"$2":');
       const { v, ...config } = JSON.parse(json);
-      expect(v).toBe(2);
+      expect(v).toBe(3);
       // {} keeps only the keys given, as the embed reads a config.
       expect(parseShareConfig(`?c=${encodeURIComponent(json)}`, {})).toMatchObject(config);
       if ("dotColor" in config) expect(lookDotColor(look), id).toBe("kept");
