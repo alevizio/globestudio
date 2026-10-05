@@ -173,13 +173,18 @@ export const DocsPage = () => {
             state on someone else's machine.
           </p>
           <p>
+            Your data travels in the link too. In the Data section, paste one{" "}
+            <code>lat,lng,value</code> line per point, like{" "}
+            <code>35.68,139.69,37</code>, or press Try an example.
+          </p>
+          <p>
             The Figma plugin opens these links too. Paste one into its Paste
             a share link field, or anywhere in the plugin outside a text
             field, and the design loads, ready to insert. Look links
             (<code>/looks/halftone</code>) and embed links work the same way.
           </p>
           <p>
-            The same tab has an Embed code section. It shows the design on
+            The Share tab also has an Embed code section. It shows the design on
             screen as an iframe, a <code>@globestudio/react</code> snippet or
             a <code>@globestudio/element</code> web component, each with a
             Copy button. Open in CodePen puts the design in a new pen, ready

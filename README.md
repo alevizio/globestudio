@@ -45,7 +45,8 @@ The studio runs in your browser, and the code is MIT licensed.
   picking one.
 - Gradients and alpha on the dot color, land fill, and country stroke.
 - Your own data: paste `lat,lng,value` or `country,value` lines to plot
-  markers sized by value, optionally joined by arcs.
+  markers sized by value, optionally joined by arcs. Try an example fills in
+  eight cities to start from.
 - Solid maps: filled land and stroked borders, river and city overlays,
   pasted GeoJSON lines and points, and 5 flat projections (Mercator, Equal
   Earth, Natural Earth, Winkel Tripel, Robinson). Dotted maps use Mercator.

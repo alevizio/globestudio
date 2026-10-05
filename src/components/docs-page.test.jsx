@@ -31,4 +31,13 @@ describe("DocsPage", () => {
       expect(img.getAttribute("height")).toBe("44");
     });
   });
+
+  it("shows a lat,lng,value line and the studio's example under Share URLs", () => {
+    const { container } = render(<DocsPage />);
+    const share = container.querySelector("#share").closest("section");
+    const codes = [...share.querySelectorAll("code")].map((node) => node.textContent);
+    expect(codes).toContain("lat,lng,value");
+    expect(codes).toContain("35.68,139.69,37");
+    expect(share.textContent).toContain("Try an example");
+  });
 });
