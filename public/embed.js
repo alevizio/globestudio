@@ -58,10 +58,28 @@
     // `data-config` carries a Globestudio share-config token — the same
     // URL-safe blob produced by the Share button in the app. Lets users
     // embed their *exact* custom look (every shader knob, gradient,
-    // selection, etc.), not just a preset + a few overrides. Strips the
-    // leading "?c=" if a caller pasted the whole query string.
+    // selection, etc.), not just a preset + a few overrides. A whole share
+    // link or query string pasted instead works too (configToken).
     config: "c",
   };
+
+  // The token out of a data-config value. A share link or its query
+  // pasted in its place ("https://globestudio.app/?c=…&app=1", "?c=…",
+  // "c=…") gives its c param, as written: whatever follows the token
+  // (app=1 on older links, other params, a #hash) is not part of it, and
+  // left in, the config failed to parse. A token or a JSON config passes
+  // through as is.
+  function configToken(value) {
+    var text = String(value);
+    if (/^\s*\{/.test(text)) return text;
+    var q = text.indexOf("?");
+    var query = q >= 0 ? text.slice(q + 1) : text.indexOf("c=") === 0 ? text : "";
+    var parts = query.split("#")[0].split("&");
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].indexOf("c=") === 0) return parts[i].slice(2);
+    }
+    return text;
+  }
 
   // Build the embed URL from the element's data-* attributes. Color
   // values get their leading "#" stripped (the embed expects raw hex)
@@ -83,14 +101,7 @@
       } else if (camel === "autoSpin" || camel === "static" || camel === "transparent") {
         value = value === "true" || value === "1" ? "1" : "0";
       } else if (camel === "c") {
-        // Strip a leading "?c=" or "c=" if the user pasted the whole
-        // query slice instead of just the token, then also strip an
-        // accidental URL prefix if they pasted the entire share URL.
-        var tok = String(value);
-        var idx = tok.indexOf("?c=");
-        if (idx >= 0) tok = tok.slice(idx + 3);
-        else if (tok.indexOf("c=") === 0) tok = tok.slice(2);
-        value = tok;
+        value = configToken(value);
       }
       params.set(camel, value);
     }

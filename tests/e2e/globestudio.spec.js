@@ -165,6 +165,26 @@ test("<globe-studio look config> embeds the config over that look", async ({ pag
   await expect(page.locator(".globe-background")).toHaveClass(/\beffect-wave\b/);
 });
 
+test("embed.js draws the design of a whole share link pasted into data-config", async ({ page }) => {
+  // A link the MCP server built, app=1 and all. The script points its iframe
+  // at globestudio.app; keep it off the network and open the same embed
+  // address on this server instead.
+  await page.route("https://globestudio.app/**", (route) => route.abort());
+  await page.setContent("<!doctype html><title>Loader</title><body></body>");
+  const config = JSON.stringify({ v: 2, shaderSettings: { effect: "wave" } });
+  await page.evaluate((link) => {
+    const div = document.createElement("div");
+    div.setAttribute("data-globestudio", "");
+    div.setAttribute("data-config", link);
+    document.body.append(div);
+  }, `https://globestudio.app/looks/halftone?c=${encodeURIComponent(config)}&app=1`);
+  await page.addScriptTag({ path: "public/embed.js" });
+  const embed = new URL(await page.locator("[data-globestudio] iframe").getAttribute("src"));
+  await page.goto(`${embed.pathname}${embed.search}`);
+  await waitForCanvas(page);
+  await expect(page.locator(".globe-background")).toHaveClass(/\beffect-wave\b/);
+});
+
 test.describe("an embed of a look alone", () => {
   test.use({ viewport: { width: 900, height: 600 }, contextOptions: { reducedMotion: "reduce" } });
 
