@@ -4616,6 +4616,10 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   color: var(--text);
   font-size: 13px;
   font-weight: 700;
+  /* One line: left: 50% leaves the pill half the viewport to fill, which
+     wrapped the Figma plugin's paste line ("That is not a Globestudio
+     link") on a 400px panel. */
+  white-space: nowrap;
   pointer-events: none;
   transform: translateX(-50%);
   animation: keyboard-hint-pop 1400ms var(--ease);
@@ -6239,6 +6243,43 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
      same column as the looks bar chips above and every OptionRow
      below. */
   padding: 4px 8px 8px;
+}
+
+/* "Paste a share link" in the Figma plugin, above the region picker and in
+   its column. The status line takes no room until a paste fills it. */
+.paste-link {
+  padding: 4px 8px 0;
+}
+
+.paste-link-input {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 14px;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.paste-link-input::placeholder {
+  color: var(--dim);
+}
+
+/* Inside the edge: the pixel corner clip-path cuts off an outer ring. */
+.paste-link-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
+
+.paste-link-status {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.paste-link-status:empty {
+  margin: 0;
 }
 
 .option-block-header {

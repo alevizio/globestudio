@@ -185,6 +185,10 @@ import { ViewModeSwitch } from "./components/ui/view-mode-switch.jsx";
 const GlobeBackground = lazy(() =>
   import("./components/globe-background.jsx").then((m) => ({ default: m.GlobeBackground })),
 );
+// Lazy: only the Figma plugin (?plugin=figma) renders the share link field.
+const FigmaPasteLink = lazy(() =>
+  import("./components/figma-paste-link.jsx").then((m) => ({ default: m.FigmaPasteLink })),
+);
 
 // Saved keys that don't change the design: UI theme, onboarding, export
 // scale, and what other pages (teaser, examples, the Figma embed) keep.
@@ -1360,6 +1364,18 @@ const App = () => {
   // first render.
   useShareConfigImport(importConfig, setStatusMessage);
 
+  // A share link pasted into the Figma plugin, applied the way opening it
+  // does: its look first (useRouteLook), then its config over that look
+  // (useShareConfigImport). A link with no look opens on none, like "/?c=".
+  // The paste field or the shortcut toast says what happened, so the status
+  // region stays quiet instead of announcing it twice.
+  const loadDesignLink = ({ look, config }) => {
+    if (look) applyLook(look);
+    else setCurrentPresetId(null);
+    if (config) importConfig(config);
+    setStatusMessage("");
+  };
+
   const copySvg = useCallback(async () => {
     try {
       await copyTextToClipboard(exportSvgData.svg);
@@ -2084,6 +2100,14 @@ const App = () => {
             </div>
           </div>
           {!isMobileSheet && looksBar}
+          {isFigmaPlugin && (
+            <Suspense fallback={null}>
+              <FigmaPasteLink
+                onLoad={loadDesignLink}
+                onPagePaste={(message) => flashKeyboardHint("⌘V", message)}
+              />
+            </Suspense>
+          )}
 
           <ControlPanel
               selection={selection}
