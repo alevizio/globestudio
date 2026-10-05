@@ -156,8 +156,8 @@ Every query param the `/embed` route reads, as parsed in
 | `selection` | `world` · `country:<ISO3>` · `continent:<Name>` · `subregion:<Name>` | `world` | What geography to draw |
 | `density` | number, 1 to 90 | the look's; `40` with no look | Dot grid density. Without it or the `c` config's, the look's own (invalid values fall back to the preset's) |
 | `dotSize` | number, 0.1 to 25 | the look's; `10` with no look | Dot size. Without it or the `c` config's, the look's own (invalid values fall back to the preset's) |
-| `dotColor` | hex, `#` optional | preset's | Dot color |
-| `worldFill` | hex, `#` optional | preset's | Land fill color |
+| `dotColor` | hex, `#` optional | preset's | Dot color. Renders darker than the hex, as it always has, so embeds made before keep their look. For the exact hex, put `dotColor` in a `c` config with `"v": 3` |
+| `worldFill` | hex, `#` optional | preset's | Land fill color, read like `dotColor` |
 | `renderMode` | `dots` · `solid` | preset's | Dot field or solid landmass |
 | `motion` | number, 0 to 100 | `35` | Parsed but has no effect yet; reserved |
 | `tiltX` | number, −45 to 45 | `0` | Camera tilt, degrees |

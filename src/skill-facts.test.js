@@ -185,7 +185,7 @@ describe("SKILL.md", () => {
     expect(examples.length).toBeGreaterThan(2);
     for (const example of examples) {
       const { v, ...config } = example;
-      expect(v).toBe(2);
+      expect(v).toBe(3);
       expect(config).not.toHaveProperty("version");
       // {} keeps only the keys given, as the embed reads a config.
       expect(parseShareConfig(`?c=${encodeURIComponent(JSON.stringify(example))}`, {})).toMatchObject(config);

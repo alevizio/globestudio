@@ -42,7 +42,7 @@ Japan in green on a transparent background goes on `/looks/default`:
 
 ```json
 {
-  "v": 2,
+  "v": 3,
   "selection": "country:JPN",
   "dotColor": "#16a34a",
   "backgroundStyle": "transparent"
@@ -53,7 +53,7 @@ Three cities joined by arcs, on `/looks/topographic`:
 
 ```json
 {
-  "v": 2,
+  "v": 3,
   "selection": "world",
   "globeSettings": {
     "dataPoints": [
@@ -67,7 +67,7 @@ Three cities joined by arcs, on `/looks/topographic`:
 }
 ```
 
-`"v": 2` tells the app the JSON was encoded once, so every value arrives as written. The app writes it, and links without it still open.
+`"v": 3` tells the app the JSON was encoded once and its colors are the hex to show, so every value arrives as written and every color renders as set. With 2, or in a link without it, the dot, map, grid, network, marker and flow colors render darker than their hex, as they always have. The app writes 3 for a design with a picked color and 2 for the rest, and links without it still open.
 
 ## Looks
 
@@ -148,7 +148,7 @@ To connect the hosted server, which needs no account or key: `claude mcp add --t
 ```jsx
 import { Globe } from "@globestudio/react";
 
-const HERO_GLOBE = { v: 2, selection: "continent:Europe", dotColor: "#7dd3fc" };
+const HERO_GLOBE = { v: 3, selection: "continent:Europe", dotColor: "#7dd3fc" };
 
 export const Hero = () => (
   <Globe look="crt" config={JSON.stringify(HERO_GLOBE)} height={520} title="Dotted globe of Europe" />

@@ -47,7 +47,7 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 ```jsx
 import { Globe } from "@globestudio/react";
 
-const HERO_GLOBE = { v: 2, selection: "continent:Europe", dotColor: "#7dd3fc" };
+const HERO_GLOBE = { v: 3, selection: "continent:Europe", dotColor: "#7dd3fc" };
 
 export const Hero = () => (
   <Globe look="crt" config={JSON.stringify(HERO_GLOBE)} height={520} title="Dotted globe of Europe" />
@@ -72,14 +72,14 @@ With no build step, load a pinned version, so the page runs code you chose:
 
 ```html
 <script type="module" src="https://esm.sh/@globestudio/element@0.1.1"></script>
-<globe-studio look="crt" config='{"v":2,"selection":"continent:Europe","dotColor":"#7dd3fc"}' height="480" title="Dotted globe of Europe"></globe-studio>
+<globe-studio look="crt" config='{"v":3,"selection":"continent:Europe","dotColor":"#7dd3fc"}' height="480" title="Dotted globe of Europe"></globe-studio>
 ```
 
 ## Plain iframe
 
 ```html
 <iframe
-  src="https://globestudio.app/embed?look=crt&c=%7B%22v%22%3A2%2C%22selection%22%3A%22continent%3AEurope%22%2C%22dotColor%22%3A%22%237dd3fc%22%7D"
+  src="https://globestudio.app/embed?look=crt&c=%7B%22v%22%3A3%2C%22selection%22%3A%22continent%3AEurope%22%2C%22dotColor%22%3A%22%237dd3fc%22%7D"
   width="100%"
   height="480"
   style="border: 0;"
@@ -129,8 +129,8 @@ For pages that allow a script tag but not an npm install. It turns every element
 | `background` | hex, `#` optional, or `transparent` |  | Page color behind the canvas. Without it the page takes the config's solid background, or else the look's. A color here keeps the page solid on a transparent look. |
 | `density` | 1 to 90 | the look's; `40` with no look | Dot density. Without it or the config's `density`, the look's. A value of 0 or less, or not a number, keeps the look's. |
 | `dotSize` | 0.1 to 25 | the look's; `10` with no look | Dot size. Without it or the config's `dotSize`, the look's. A value of 0 or less, or not a number, keeps the look's. |
-| `dotColor` | hex, `#` optional |  | Dot color. |
-| `worldFill` | hex, `#` optional |  | Land fill in solid maps. |
+| `dotColor` | hex, `#` optional |  | Dot color. It renders darker than its hex, as it always has, so embeds made before stay the same. For the exact hex, set `dotColor` in a `"v": 3` config. |
+| `worldFill` | hex, `#` optional |  | Land fill in solid maps, read like `dotColor`. |
 | `renderMode` | `dots` or `solid` |  | Dots or filled land. |
 | `selection` | a region, as in the config | `world` | What the map shows. |
 | `motion` | 0 to 100 | `35` | Read but has no effect yet. |
@@ -172,7 +172,7 @@ const browser = await chromium.launch({
   args: ["--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--use-angle=swiftshader"],
 });
 const page = await browser.newPage({ viewport: { width: 1200, height: 800 } });
-await page.goto("https://globestudio.app/embed?look=crt&c=%7B%22v%22%3A2%2C%22selection%22%3A%22continent%3AEurope%22%2C%22dotColor%22%3A%22%237dd3fc%22%7D&static=1");
+await page.goto("https://globestudio.app/embed?look=crt&c=%7B%22v%22%3A3%2C%22selection%22%3A%22continent%3AEurope%22%2C%22dotColor%22%3A%22%237dd3fc%22%7D&static=1");
 await page.locator("canvas").first().waitFor();
 await page.waitForTimeout(3000);
 await page.screenshot({ path: "globe.png" });

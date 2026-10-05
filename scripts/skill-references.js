@@ -289,7 +289,7 @@ Every key the app keeps from a config, with what it takes. The schema at ${SITE}
 
 ## Reading a config
 
-- A link carries the config as ${code("?c=")} plus ${code("encodeURIComponent(JSON.stringify(config))")}. ${code("\"v\": 2")} in the JSON marks that it was encoded once; the app writes it, and older links without it still open.
+- A link carries the config as ${code("?c=")} plus ${code("encodeURIComponent(JSON.stringify(config))")}. ${code("\"v\": 3")} in the JSON marks that it was encoded once and that its colors render as their hex. With ${code("\"v\": 2")}, or in older links without it, they render darker than their hex, as they always have. The app writes 3 for a design with a picked color and 2 for the rest.
 - On ${code("/looks/<id>")} and ${code("/embed?look=<id>")} the look comes first and the config changes only the keys it names. In ${code("shaderSettings")}, ${code("globeSettings")}, ${code("spaceSettings")} and ${code("flowSettings")} the keys a config leaves out keep the look's values.
 - In the studio a look sets only its styling: the region, the data points and any other key the look doesn't set keep what the person last used there, and the view opens as a globe. On ${code("/")} with no look every top-level key a config leaves out does, and the four nested objects fill their gaps with the app defaults below.
 - An embed draws the look as the studio does, its density, dot size, background and transparency included, and the address's parameters and the config change what they name. ${PAINTED_PAGE} ${NO_LOOK}
@@ -463,8 +463,8 @@ const EMBED_PARAMS = {
   selection: { takes: "a region, as in the config", notes: "What the map shows." },
   density: { notes: "Dot density. Without it or the config's `density`, the look's. A value of 0 or less, or not a number, keeps the look's." },
   dotSize: { notes: "Dot size. Without it or the config's `dotSize`, the look's. A value of 0 or less, or not a number, keeps the look's." },
-  dotColor: { takes: "hex, `#` optional", notes: "Dot color." },
-  worldFill: { takes: "hex, `#` optional", notes: "Land fill in solid maps." },
+  dotColor: { takes: "hex, `#` optional", notes: `Dot color. It renders darker than its hex, as it always has, so embeds made before stay the same. For the exact hex, set ${code("dotColor")} in a ${code("\"v\": 3")} config.` },
+  worldFill: { takes: "hex, `#` optional", notes: `Land fill in solid maps, read like ${code("dotColor")}.` },
   renderMode: { takes: "`dots` or `solid`", notes: "Dots or filled land." },
   motion: { notes: "Read but has no effect yet." },
   tiltX: { notes: "Camera tilt in degrees." },
@@ -504,7 +504,7 @@ const EXAMPLE_LOOK = "crt";
 export const ELEMENT_VERSION = JSON.parse(read("packages/web-component/package.json")).version;
 // 0.1.0 of both packages dropped look whenever config was set.
 export const PACKAGES_FLOOR = "0.1.1";
-const EXAMPLE_DESIGN = { v: 2, selection: "continent:Europe", dotColor: "#7dd3fc" };
+const EXAMPLE_DESIGN = { v: 3, selection: "continent:Europe", dotColor: "#7dd3fc" };
 // The design as a JavaScript object literal.
 const literal = (object) => `{ ${Object.entries(object).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join(", ")} }`;
 

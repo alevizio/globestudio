@@ -18,7 +18,7 @@ Every key the app keeps from a config, with what it takes. The schema at https:/
 
 ## Reading a config
 
-- A link carries the config as `?c=` plus `encodeURIComponent(JSON.stringify(config))`. `"v": 2` in the JSON marks that it was encoded once; the app writes it, and older links without it still open.
+- A link carries the config as `?c=` plus `encodeURIComponent(JSON.stringify(config))`. `"v": 3` in the JSON marks that it was encoded once and that its colors render as their hex. With `"v": 2`, or in older links without it, they render darker than their hex, as they always have. The app writes 3 for a design with a picked color and 2 for the rest.
 - On `/looks/<id>` and `/embed?look=<id>` the look comes first and the config changes only the keys it names. In `shaderSettings`, `globeSettings`, `spaceSettings` and `flowSettings` the keys a config leaves out keep the look's values.
 - In the studio a look sets only its styling: the region, the data points and any other key the look doesn't set keep what the person last used there, and the view opens as a globe. On `/` with no look every top-level key a config leaves out does, and the four nested objects fill their gaps with the app defaults below.
 - An embed draws the look as the studio does, its density, dot size, background and transparency included, and the address's parameters and the config change what they name. A `background` color in the address or the config keeps the page solid on a transparent look (Wireframe). With no look, an embed draws Default: density 40, dot size 10, on a near black page unless the address or the config sets a background.
