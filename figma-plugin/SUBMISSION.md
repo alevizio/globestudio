@@ -88,10 +88,10 @@ Open source, MIT: github.com/alevizio/globestudio
 
 If Figma asks why the plugin needs network access:
 
-> The plugin UI is hosted at globestudio.app. Designers interact
-> with the live Globestudio canvas inside the plugin panel and capture
-> the resulting frame as a PNG to insert. No data is uploaded back to
-> globestudio.app from the user's design.
+> The plugin UI is the Globestudio studio, hosted at globestudio.app.
+> Designers design a globe or a map in the plugin panel, or paste a share
+> link from the site, and insert the result as a PNG or as vectors. No data
+> is uploaded back to globestudio.app from the user's design.
 
 ## After submission
 

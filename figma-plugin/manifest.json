@@ -11,6 +11,6 @@
       "https://globestudio.app",
       "https://*.globestudio.app"
     ],
-    "reasoning": "Loads the Globestudio embed at globestudio.app/embed in the plugin UI iframe so users can pick a preset and insert a dotted globe."
+    "reasoning": "Loads the Globestudio studio from globestudio.app in the plugin UI iframe, so users can design a dotted globe or map, or paste a share link, and insert it."
   }
 }

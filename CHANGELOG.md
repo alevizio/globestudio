@@ -6,6 +6,12 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ## [Unreleased]
 
+### Changed
+
+- A new Figma plugin version: the address it loads drops the old teaser
+  parameter, and its network access note says it loads the full studio,
+  not the old embed picker. Nothing changes in how it works.
+
 ### Fixed
 
 - Data markers and arcs on the far side of the globe no longer show
