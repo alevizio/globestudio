@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { lookPresets } from "../data/look-presets.js";
 import { lookFromPath } from "../hooks/use-route-look.js";
 import { readDesignLink } from "./design-link.js";
-import { buildShareUrl, parseShareConfig } from "./share-config.js";
+import { buildShareUrl, normalizeConfig, parseShareConfig } from "./share-config.js";
 
 const SITE = "https://globestudio.app";
 const halftone = lookPresets.find((preset) => preset.id === "halftone");
@@ -50,6 +50,34 @@ describe("readDesignLink", () => {
     expect(link.config).toMatchObject(design);
     expect(readDesignLink(`${SITE}/embed?look=aurora`)).toEqual({ look: aurora, config: null });
     expect(readDesignLink(`${SITE}/embed?c=${encodeURIComponent(token)}`)?.config).toMatchObject(design);
+  });
+
+  it("reads the design an embed link keeps in its own params, under ?c=", () => {
+    // The embed example in the docs (public/llms.txt).
+    expect(readDesignLink(`${SITE}/embed?look=halftone&density=50&selection=continent:Europe&autoSpin=1`)).toEqual({
+      look: halftone,
+      config: normalizeConfig({ selection: "continent:Europe", density: 50, globeSettings: { autoSpin: true } }, halftone.settings),
+    });
+    // An embed link the MCP server writes: params for the region, colors and
+    // view, and ?c= for the rest.
+    const mcp = readDesignLink(
+      `${SITE}/embed?look=aurora&selection=country%3AJPN&dotColor=ff0044&background=101010&view=flat&c=${encodeURIComponent(JSON.stringify({ v: 2, shape: "Ring" }))}`,
+    );
+    expect(mcp.look).toBe(aurora);
+    expect(mcp.config).toMatchObject({ selection: "country:JPN", dotColor: "#ff0044", background: "#101010", transparent: false, viewMode: "flat", shape: "Ring" });
+    // ?c= wins over a param, and the view param over ?c=, as in the embed.
+    const both = readDesignLink(
+      `${SITE}/embed?selection=country:FRA&view=globe&c=${encodeURIComponent(JSON.stringify({ selection: "country:JPN", viewMode: "flat" }))}`,
+    );
+    expect(both.config).toMatchObject({ selection: "country:JPN", viewMode: "globe" });
+  });
+
+  it("keeps embed params to the embed's ranges and leaves its display options out", () => {
+    expect(readDesignLink(`${SITE}/embed?look=halftone&density=500&dotSize=-3&tiltX=90&tiltY=x&background=transparent`).config).toEqual(
+      normalizeConfig({ density: 90, tiltX: 45, transparent: true }, halftone.settings),
+    );
+    expect(readDesignLink(`${SITE}/embed?look=halftone&theme=light&static=1&source=react&motion=10`)).toEqual({ look: halftone, config: null });
+    expect(readDesignLink(`${SITE}/embed?selection=nowhere&renderMode=lasers&dotColor=zz`)).toEqual({ look: undefined, config: null });
   });
 
   it("accepts the www, vercel.app and preview hosts", () => {

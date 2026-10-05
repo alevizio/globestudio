@@ -141,10 +141,11 @@ test.describe("pasting a share link into the Figma plugin", () => {
     await expect(region(page)).toContainText("Japan");
     await expectNoSeriousAxeViolations(page);
 
-    await field.fill("https://www.globestudio.app/embed?look=aurora&theme=light");
+    await field.fill("https://www.globestudio.app/embed?look=aurora&selection=continent:Europe&theme=light");
     await field.press("Enter");
     await expect(status).toHaveText("Loaded the design from your link");
     await expect(page.locator(".looks-chip", { hasText: "Aurora" })).toHaveClass(/is-current/);
+    await expect(region(page)).toContainText("Europe");
 
     await field.fill("https://globestudio.app/");
     await field.press("Enter");

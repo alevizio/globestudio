@@ -89,9 +89,10 @@ const BUDGETS = [
   { prefix: "compare-page-",     ext: ".css", raw:   3_500,  gzip:   1_500, lazy: true },
   // Look, region, density and view pickers, fetched only by /embed?plugin=figma.
   { prefix: "figma-plugin-pickers-", ext: ".js", raw: 2_000, gzip: 1_000, lazy: true },
-  // The Paste a share link field and its link reader, fetched only by the
-  // studio in the Figma plugin (/?plugin=figma).
-  { prefix: "figma-paste-link-", ext: ".js", raw: 2_400, gzip: 1_300, lazy: true },
+  // The Paste a share link field and its link reader, which reads an embed
+  // link's own params too, fetched only by the studio in the Figma plugin
+  // (/?plugin=figma).
+  { prefix: "figma-paste-link-", ext: ".js", raw: 3_600, gzip: 1_850, lazy: true },
   // data/look-presets.js. Rolldown splits it out of index-*.js once the
   // paste link chunk reads it too (index-*.js got 1.4 kB gzip smaller).
   // The app shell still preloads it on first paint, so it counts as
