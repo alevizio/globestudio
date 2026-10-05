@@ -23,6 +23,7 @@ import {
 import { areaOptions } from "../data/geography.js";
 import { formatSvgNumber } from "../utils/math.js";
 import { ColorSwatch } from "./ui/color-swatch.jsx";
+import { legacyColorsToLinear } from "../utils/color-space.js";
 import { extractPaletteFromImage, darkestColor } from "../utils/palette.js";
 import { parseDataPoints, serializeDataPoints } from "../utils/data-points.js";
 import { countryCentroidIndex } from "../data/geography.js";
@@ -156,6 +157,9 @@ export const ControlPanel = ({
   setShaderSettings,
   globeSettings,
   setGlobeSettings,
+  // The design's color space and the switch to hex colors (App.jsx).
+  hexColors = false,
+  onColorPick,
   animationsEnabled = true,
   setAnimationsEnabled,
   viewMode,
@@ -198,10 +202,18 @@ export const ControlPanel = ({
     }));
   };
 
+  // A color picked here renders as its hex: onColorPick switches the
+  // design to hex colors first (App.jsx).
+  const pickGlobeColor = (key, value) => {
+    onColorPick?.();
+    updateGlobeSetting(key, value);
+  };
+
   const updateGlobeLook = (value) => {
     setGlobeSettings((settings) => {
       if (value !== "borderless") return { ...settings, look: value };
-      return { ...settings, ...borderlessPreset };
+      // The preset's grid cyan is an old color, like a look's.
+      return { ...settings, ...(hexColors ? legacyColorsToLinear({ globeSettings: borderlessPreset }).globeSettings : borderlessPreset) };
     });
   };
 
@@ -858,10 +870,10 @@ export const ControlPanel = ({
                 <OptionRow label="Color">
                   <ColorSwatch
                     value={globeSettings.gridColor ?? "#ffffff"}
-                    onChange={(value) => updateGlobeSetting("gridColor", value)}
+                    onChange={(value) => pickGlobeColor("gridColor", value)}
                     label="Select grid color"
                     gradient={globeSettings.gridGradient}
-                    onGradientChange={(value) => updateGlobeSetting("gridGradient", value)}
+                    onGradientChange={(value) => pickGlobeColor("gridGradient", value)}
                   />
                 </OptionRow>
                 <OptionRow label="Opacity" value={gridOpacity === 0 ? "Off" : gridOpacity}>
@@ -939,7 +951,7 @@ export const ControlPanel = ({
           <OptionRow label="Arc color">
             <ColorSwatch
               value={globeSettings.arcColor ?? "#8fdcff"}
-              onChange={(value) => updateGlobeSetting("arcColor", value)}
+              onChange={(value) => pickGlobeColor("arcColor", value)}
               label="Select arc color"
             />
           </OptionRow>
@@ -955,7 +967,7 @@ export const ControlPanel = ({
           <OptionRow label="Pulse color">
             <ColorSwatch
               value={globeSettings.pulseColor ?? "#ffffff"}
-              onChange={(value) => updateGlobeSetting("pulseColor", value)}
+              onChange={(value) => pickGlobeColor("pulseColor", value)}
               label="Select pulse color"
             />
           </OptionRow>
@@ -1008,9 +1020,7 @@ export const ControlPanel = ({
           <div className="data-points-meta">
             <ColorSwatch
               value={globeSettings?.dataMarkerColor || "#7edfff"}
-              onChange={(hex) =>
-                setGlobeSettings((settings) => ({ ...settings, dataMarkerColor: hex }))
-              }
+              onChange={(hex) => pickGlobeColor("dataMarkerColor", hex)}
               label="Data marker color"
             />
             <p className="data-points-hint">

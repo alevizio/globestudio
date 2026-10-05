@@ -24,12 +24,12 @@
     "$schema": { "type": "string", "description": "Exported files point here, so editors can check them." },
     "version": {
       "type": ["integer", "string"],
-      "description": "Written as 1 by the app in every exported file and share link, where it marks a whole design: in shaderSettings, globeSettings, spaceSettings and flowSettings, keys the config leaves out get the app defaults, even on a look. Leave it out of a config that changes only some settings of a look.",
-      "examples": [1]
+      "description": "Written by the app in every exported file and share link, where it marks a whole design: in shaderSettings, globeSettings, spaceSettings and flowSettings, keys the config leaves out get the app defaults, even on a look. Leave it out of a config that changes only some settings of a look. 2 also says the dot, map, grid, network, marker and flow colors render as their hex: the app writes 2 once a color is picked, and 1 for a design whose colors render darker than their hex, as every color did before.",
+      "examples": [1, 2]
     },
     "v": {
-      "enum": [1, 2],
-      "description": "Link format, only inside a ?c= payload. The app writes 2. A payload without it, or with 1, is read the way links made before 2 were."
+      "enum": [1, 2, 3],
+      "description": "Link format, only inside a ?c= payload. A payload without it, or with 1, is read the way links made before 2 were. With 3 the dot, map, grid, network, marker and flow colors render as their hex; with anything else they render darker than their hex, as they always have, unless the config carries version 2. The app writes 3 for a design with a picked color and 2 for the rest. Write 3 so the colors you set show as their hex."
     },
 
     "selection": {

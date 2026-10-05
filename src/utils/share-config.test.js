@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { DEFAULT_FLOW_SETTINGS } from "../config/backgrounds.js";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS, shaderEffectOptions } from "../config/shader-effects.js";
 import { dotShapeOptions, FLAT_PROJECTION_OPTIONS } from "../config/constants.js";
@@ -9,6 +10,7 @@ import { lookPresets } from "../data/look-presets.js";
 import { US_STATE_FIPS } from "../data/us-state-codes.js";
 import { lookFromPath } from "../hooks/use-route-look.js";
 import { FLAT_PROJECTION_KEYS } from "../three/world-texture.js";
+import { legacyColorsToLinear } from "./color-space.js";
 import {
   BACKGROUND_STYLES,
   buildShareUrl,
@@ -431,8 +433,9 @@ describe("share-config", () => {
     });
 
     it("documents the link format the app writes", () => {
-      expect(schema.properties.v.enum).toEqual([1, 2]);
+      expect(schema.properties.v.enum).toEqual([1, 2, 3]);
       expect(JSON.parse(new URL(buildShareUrl({}, "https://globestudio.app")).searchParams.get("c")).v).toBe(2);
+      expect(JSON.parse(new URL(buildShareUrl({ version: 2 }, "https://globestudio.app")).searchParams.get("c")).v).toBe(3);
       expect(schema.properties.version.type).toEqual(["integer", "string"]);
       for (const version of [1, "1", 2]) {
         expect(normalizeConfig({ version, shaderSettings: { intensity: 80 } }, {}), String(version))
@@ -477,6 +480,57 @@ describe("share-config", () => {
     for (const unknown of ["ca", "ZZ", "99", "6", "California", "50% off", "", 6, null]) {
       expect(state(unknown), String(unknown)).toBeUndefined();
     }
+  });
+
+  describe("colors", () => {
+    // A v3 payload, or a design the studio wrote with version 2, has hex
+    // colors, which render as their hex. Anything else has old colors,
+    // which render darker, as every link always has (utils/color-space.js).
+    const link = (config) => `?c=${encodeURIComponent(JSON.stringify(config))}`;
+    const picked = {
+      dotColor: "#808080",
+      dotGradient: { from: "#ff8000", to: "#4080c0", angle: 90 },
+      worldFill: "#4080c0",
+      globeSettings: { gridColor: "#808080", glowColor: "#4080c0", arcColor: "#ff8000" },
+      flowSettings: { colorA: "#635bff" },
+    };
+    const url = (config) => new URL(buildShareUrl(config, "https://globestudio.app"));
+
+    it("writes a design with old colors as before, and one with hex colors as v3", () => {
+      expect(JSON.parse(url({ version: 1, ...picked }).searchParams.get("c")).v).toBe(2);
+      expect(JSON.parse(url(picked).searchParams.get("c")).v).toBe(2);
+      expect(JSON.parse(url({ version: 2, ...picked }).searchParams.get("c")).v).toBe(3);
+    });
+
+    it("reads every color of a link as sent, and marks the ones with hex colors", () => {
+      for (const v of [undefined, 1, 2]) {
+        const parsed = parseShareConfig(link(v === undefined ? picked : { v, ...picked }));
+        expect(parsed, `v${v}`).toMatchObject(picked);
+        expect(parsed, `v${v}`).not.toHaveProperty("hexColors");
+      }
+      for (const config of [{ v: 3, ...picked }, { v: 2, version: 2, ...picked }, { version: "2", ...picked }]) {
+        const parsed = parseShareConfig(link(config));
+        expect(parsed, JSON.stringify(config).slice(0, 20)).toMatchObject({ ...picked, hexColors: true });
+      }
+      expect(parseShareConfig(url({ version: 2, ...picked }).search)).toMatchObject({ ...picked, hexColors: true });
+      expect(parseShareConfig(link({ v: 3 }))).toBe(null);
+    });
+
+    it("fills the gaps of a link with hex colors from the look or the defaults, turned to render the same", () => {
+      const toon = lookPresets.find((look) => look.id === "toon").settings;
+      const partial = { globeSettings: { gridStrength: 20 }, flowSettings: { motion: 10 } };
+      // Over a look, as /looks/toon reads it.
+      expect(parseShareConfig(link({ v: 3, ...partial }), toon)).toMatchObject({
+        globeSettings: { ...legacyColorsToLinear(toon).globeSettings, gridStrength: 20 },
+        flowSettings: { ...legacyColorsToLinear(toon).flowSettings, motion: 10 },
+      });
+      // A whole design, over the app defaults.
+      expect(parseShareConfig(link({ v: 3, version: 2, ...partial }), toon).flowSettings)
+        .toEqual({ ...legacyColorsToLinear({ flowSettings: DEFAULT_FLOW_SETTINGS }).flowSettings, motion: 10 });
+      // Old colors stay old.
+      expect(parseShareConfig(link({ v: 2, ...partial }), toon).flowSettings).toEqual({ ...toon.flowSettings, motion: 10 });
+      expect(parseShareConfig(link({ v: 2, ...partial }), toon).globeSettings.gridColor).toBe(toon.globeSettings.gridColor);
+    });
   });
 
   describe("values with a % sign", () => {

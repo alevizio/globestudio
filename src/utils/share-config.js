@@ -38,18 +38,29 @@
 // links used to open with nothing, and now open with the sender's config.
 // Old readers (the MCP server before v2, an old tab) still open v2 links
 // that carry no "%", since a second decode of those changes nothing.
+//
+// v3 changes no encoding, only how the colors are read. In a v3 payload the
+// WebGL colors are hex colors, which render as their hex. Anything before
+// reads them the old way, which renders them darker, and still does, so
+// every old link opens exactly as before (utils/color-space.js). The studio
+// writes v3, and version 2, only for a design whose colors were picked;
+// every other design it writes as v2 with version 1, as before. v2 and v3
+// are decoded the same way.
 
 import { CUSTOM_SHAPE_MAX_BYTES, dotShapeOptions } from "../config/constants.js";
 import { DEFAULT_FLOW_SETTINGS, DEFAULT_SPACE_SETTINGS } from "../config/backgrounds.js";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS, shaderEffectOptions } from "../config/shader-effects.js";
 import { US_STATE_FIPS } from "../data/us-state-codes.js";
+import { legacyColorsToLinear } from "./color-space.js";
 import { sanitizeSvgSource } from "./custom-shape.js";
 import { clampNumber } from "./math.js";
 
 const PARAM_KEY = "c";
-// See "Versions" above: v2 payloads are decoded once, v1 twice.
+// See "Versions" above: v2 and v3 payloads are decoded once, v1 twice, and
+// only v3 has hex colors.
 const VERSION = 2;
+const HEX_COLORS_VERSION = 3;
 const HEX_RE = /^#?[0-9a-fA-F]{3,8}$/;
 const ALLOWED_IMAGE_DATA_RE = /^data:image\/(?:png|jpe?g|webp);base64,/i;
 const ALLOWED_ENCODED_SVG_RE = /^data:image\/svg\+xml(?:;charset=[^;,]+)?,/i;
@@ -211,9 +222,14 @@ const APP_DEFAULTS = {
 // app defaults, as every reader did before looks could fill a config. One
 // made on the Default look carries no shader effect, which would otherwise
 // come from the look an embed pairs it with.
-export const normalizeConfig = (config, base = APP_DEFAULTS) => {
+//
+// hexColors: the config's colors are hex colors (see "Versions"). The looks
+// and the app defaults hold old colors, so the gaps are filled with them
+// turned into hex colors that render the same.
+export const normalizeConfig = (config, base = APP_DEFAULTS, hexColors = false) => {
   if (!config || typeof config !== "object" || Array.isArray(config)) return null;
-  const fill = config.version !== undefined ? APP_DEFAULTS : base;
+  const oldFill = config.version !== undefined ? APP_DEFAULTS : base;
+  const fill = hexColors ? legacyColorsToLinear(oldFill) : oldFill;
   const next = {};
 
   apply(next, "selection", typeof config.selection === "string" && /^(world|country:[A-Z]{3}|continent:[\w\s-]+|subregion:[\w\s-]+)$/.test(config.selection) ? config.selection : undefined);
@@ -328,8 +344,10 @@ export const normalizeConfig = (config, base = APP_DEFAULTS) => {
 // is omitted, we land at "/" so the embed doesn't accidentally inherit
 // a /looks/:id route (which would import the preset's defaults on top
 // of the user's customizations and clobber them).
+// A config whose colors are hex colors says so with version 2 (App.jsx
+// buildCurrentConfig), and its link with v3.
 export const buildShareUrl = (config, origin, pathname = "/") => {
-  const payload = { v: VERSION, ...config };
+  const payload = { v: hasHexColors(config) ? HEX_COLORS_VERSION : VERSION, ...config };
   const json = JSON.stringify(payload);
   const encoded = encodeURIComponent(json);
   const base = (origin || "").replace(/\/+$/, "");
@@ -358,13 +376,18 @@ const parseJson = (text) => {
 // "Versions" at the top for why each branch exists.
 const decodePayload = (raw) => {
   const once = parseJson(raw);
-  if (once?.v === VERSION) return once;
+  if (once?.v === VERSION || once?.v === HEX_COLORS_VERSION) return once;
   try {
     return JSON.parse(decodeURIComponent(raw));
   } catch (_err) {
     return once;
   }
 };
+
+// Whether a config's colors are hex colors: a design the studio wrote with
+// version 2 or later, or what parseShareConfig marked so.
+export const hasHexColors = (config) =>
+  Boolean(config) && (config.hexColors === true || Number(config.version) >= 2);
 
 // Decode the share config from a window.location.search string. Returns
 // null if no config is present or the payload is malformed (importConfig
@@ -379,9 +402,12 @@ export const parseShareConfig = (search, base) => {
     const parsed = decodePayload(raw);
     if (!parsed || typeof parsed !== "object") return null;
     // Strip the version marker before handing off to importConfig — it
-    // doesn't know about `v` and would warn on the unknown key.
-    const { v: _v, ...config } = parsed;
-    return normalizeConfig(config, base);
+    // doesn't know about `v` and would warn on the unknown key. A payload
+    // with hex colors is marked, so the reader draws them that way.
+    const { v, ...config } = parsed;
+    const hexColors = v === HEX_COLORS_VERSION || hasHexColors(config);
+    const next = normalizeConfig(config, base, hexColors);
+    return next && hexColors ? { ...next, hexColors: true } : next;
   } catch (_err) {
     return null;
   }

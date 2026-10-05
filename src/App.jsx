@@ -25,7 +25,8 @@ import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts.js";
 import { usePrefetchHeavyChunks } from "./hooks/use-prefetch-heavy-chunks.js";
 import { clampNumber } from "./utils/math.js";
 import { hexToRgb, invertHex } from "./utils/color.js";
-import { buildShareUrl, normalizeConfig } from "./utils/share-config.js";
+import { hexColorsToLegacy, legacyColorsToLinear } from "./utils/color-space.js";
+import { buildShareUrl, hasHexColors, normalizeConfig } from "./utils/share-config.js";
 import {
   createCountryMapData,
   createStateMapData,
@@ -418,6 +419,49 @@ const App = () => {
     }
   }, [isMobileSheet, panelCollapsed]);
   const [animationsEnabled, setAnimationsEnabled] = usePersistedState("animationsEnabled", true);
+  // Whether the design's WebGL colors are hex colors, which render as their
+  // hex, or old colors, which render darker, as every color did before
+  // (utils/color-space.js). A design starts with old colors, so the looks,
+  // the defaults, old links and saved designs look as they always have.
+  // Picking a color switches it to hex colors; a look, Reset or an import
+  // switches it to their own.
+  const [hexColors, setHexColors] = usePersistedState("hexColors", false);
+  const hexColorsRef = useRef(hexColors);
+  hexColorsRef.current = hexColors;
+  // Switch the design's color space, turning the colors it has into ones
+  // that render the same in the new one. Functional updates, so whatever is
+  // set after it in the same event lands on top.
+  const toColorSpace = useCallback((nextHexColors) => {
+    if (hexColorsRef.current === nextHexColors) return;
+    hexColorsRef.current = nextHexColors;
+    setHexColors(nextHexColors);
+    const convert = nextHexColors ? legacyColorsToLinear : hexColorsToLegacy;
+    const each = (key) => (value) => convert({ [key]: value })[key];
+    setDotColor(each("dotColor"));
+    setDotGradient(each("dotGradient"));
+    setWorldFill(each("worldFill"));
+    setWorldFillGradient(each("worldFillGradient"));
+    setWorldStroke(each("worldStroke"));
+    setWorldStrokeGradient(each("worldStrokeGradient"));
+    setGlobeSettings(each("globeSettings"));
+    setFlowSettings(each("flowSettings"));
+  }, [setHexColors, setDotColor, setDotGradient, setWorldFill, setWorldFillGradient, setWorldStroke, setWorldStrokeGradient, setGlobeSettings, setFlowSettings]);
+  // A color picked in the panel (or a Figma file color) renders as its hex.
+  const pickColor = useCallback(() => toColorSpace(true), [toColorSpace]);
+  const pickedSetters = useMemo(() => {
+    const picked = (setter) => (value) => {
+      pickColor();
+      setter(value);
+    };
+    return {
+      setDotColor: picked(setDotColor),
+      setDotGradient: picked(setDotGradient),
+      setWorldFill: picked(setWorldFill),
+      setWorldFillGradient: picked(setWorldFillGradient),
+      setWorldStroke: picked(setWorldStroke),
+      setWorldStrokeGradient: picked(setWorldStrokeGradient),
+    };
+  }, [pickColor, setDotColor, setDotGradient, setWorldFill, setWorldFillGradient, setWorldStroke, setWorldStrokeGradient]);
   // UI theme: "dark" (default) or "light". Only swaps the panel/picker tokens —
   // the canvas/globe rendering stays on its dark base because the artwork
   // is colored independently and reads best against the canvas's own background.
@@ -728,6 +772,9 @@ const App = () => {
 
   const reset = () => {
     clearPersistedState();
+    // The defaults below are old colors.
+    hexColorsRef.current = false;
+    setHexColors(false);
     setSelection("world");
     setStateSelection("all");
     setCanvasScale("1x");
@@ -788,6 +835,10 @@ const App = () => {
     // panel chrome only; the globe is a theme-independent artifact.
     // The region (selection / stateSelection) stays the user's: a look is
     // styling only, and every preset carries the base's "world" / "all".
+    // A look's colors are old colors, so it renders exactly as it always
+    // has; the colors the look leaves (gradients, the data marker color) are
+    // turned into old colors that render the same.
+    toColorSpace(false);
     if (s.background !== undefined) setBackground(s.background);
     if (s.transparent !== undefined) setTransparent(s.transparent);
     if (s.backgroundStyle !== undefined) setBackgroundStyle(s.backgroundStyle);
@@ -853,7 +904,7 @@ const App = () => {
     track("preset_applied", { preset: preset.id });
     // Stable identity: applyLook reads nothing from render scope but the
     // preset arg + stable setters, so it never needs to be re-created.
-  }, []);
+  }, [toColorSpace]);
 
   // Declared here (not at the top of the component body) so the
   // `applyLook` const above is already initialized — calling
@@ -1032,11 +1083,11 @@ const App = () => {
     const onMessage = (event) => {
       const data = event.data;
       if (!data || data.type !== "globestudio-set-dot-color") return;
-      if (typeof data.hex === "string" && /^#[0-9a-f]{6}$/i.test(data.hex)) setDotColor(data.hex);
+      if (typeof data.hex === "string" && /^#[0-9a-f]{6}$/i.test(data.hex)) pickedSetters.setDotColor(data.hex);
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [isFigmaPlugin, setDotColor]);
+  }, [isFigmaPlugin, pickedSetters]);
 
   const exportSvg = () => {
     if (isFigmaPlugin) {
@@ -1128,7 +1179,9 @@ const App = () => {
   // ?c=… link). One source of truth so the two paths can't drift.
   const buildCurrentConfig = useCallback(
     () => ({
-      version: 1,
+      // 2 once its colors are hex colors (utils/color-space.js); 1, as
+      // always, for a design with old colors.
+      version: hexColors ? 2 : 1,
       selection,
       stateSelection,
       background,
@@ -1178,7 +1231,7 @@ const App = () => {
       worldStroke, worldStrokeAlpha, worldStrokeGradient, worldStrokeVisible,
       worldStrokeWidth, mapDepth, tiltX, tiltY, viewMode, flatProjection,
       riversVisible, citiesVisible, citiesMinPop, shaderSettings, globeSettings,
-      spaceSettings, flowSettings, animationsEnabled,
+      spaceSettings, flowSettings, animationsEnabled, hexColors,
     ],
   );
 
@@ -1226,11 +1279,16 @@ const App = () => {
   // Returns whether anything was applied, so the export dialog can say
   // when a file wasn't a usable configuration.
   const importConfig = (config) => {
-    const safeConfig = normalizeConfig(config);
+    // A v3 link or a version 2 file carries hex colors, anything else old
+    // ones. The design takes the config's color space, and the colors the
+    // config leaves out are turned into ones that render the same in it.
+    const configHexColors = hasHexColors(config);
+    const safeConfig = normalizeConfig(config, undefined, configHexColors);
     if (!safeConfig) {
       setStatusMessage("Configuration could not be imported");
       return false;
     }
+    toColorSpace(configHexColors);
     lookBaselineRef.current = null;
     setStartsOnDefault(false);
     const set = (key, setter) => {
@@ -1773,6 +1831,7 @@ const App = () => {
           <GlobeBackground
             mapData={mapData}
             selectedDots={selectedDots}
+            hexColors={hexColors}
             dotColor={dotColor}
             dotSize={dotSize}
             dotsVisible={dotsVisible}
@@ -2033,11 +2092,11 @@ const App = () => {
               dotSize={dotSize}
               setDotSize={setDotSize}
               dotColor={dotColor}
-              setDotColor={setDotColor}
+              setDotColor={pickedSetters.setDotColor}
               dotColorAlpha={dotColorAlpha}
               setDotColorAlpha={setDotColorAlpha}
               dotGradient={dotGradient}
-              setDotGradient={setDotGradient}
+              setDotGradient={pickedSetters.setDotGradient}
               dotsVisible={dotsVisible}
               setDotsVisible={setDotsVisible}
               shape={shape}
@@ -2055,19 +2114,19 @@ const App = () => {
               renderMode={renderMode}
               setRenderMode={handleRenderModeChange}
               worldFill={worldFill}
-              setWorldFill={setWorldFill}
+              setWorldFill={pickedSetters.setWorldFill}
               worldFillAlpha={worldFillAlpha}
               setWorldFillAlpha={setWorldFillAlpha}
               worldFillGradient={worldFillGradient}
-              setWorldFillGradient={setWorldFillGradient}
+              setWorldFillGradient={pickedSetters.setWorldFillGradient}
               worldFillVisible={worldFillVisible}
               setWorldFillVisible={setWorldFillVisible}
               worldStroke={worldStroke}
-              setWorldStroke={setWorldStroke}
+              setWorldStroke={pickedSetters.setWorldStroke}
               worldStrokeAlpha={worldStrokeAlpha}
               setWorldStrokeAlpha={setWorldStrokeAlpha}
               worldStrokeGradient={worldStrokeGradient}
-              setWorldStrokeGradient={setWorldStrokeGradient}
+              setWorldStrokeGradient={pickedSetters.setWorldStrokeGradient}
               worldStrokeVisible={worldStrokeVisible}
               setWorldStrokeVisible={setWorldStrokeVisible}
               worldStrokeWidth={worldStrokeWidth}
@@ -2089,6 +2148,8 @@ const App = () => {
               setShaderSettings={setShaderSettings}
               globeSettings={globeSettings}
               setGlobeSettings={setGlobeSettings}
+              hexColors={hexColors}
+              onColorPick={pickColor}
               animationsEnabled={animationsEnabled}
               setAnimationsEnabled={setAnimationsEnabled}
               viewMode={viewMode}
