@@ -28,6 +28,7 @@ Each example is in one of these states:
 | 🎯 | [`svg-country-pack`](./svg-country-pack) | Vector country shapes for Illustrator / Figma | 🟢 Ready (workflow docs) |
 | 🅵 | [`framer-component`](./framer-component) | Framer code component — designer-panel props, iframe-bridged | 🟢 Ready (paste-into-Framer) |
 | ⚛️ | [`react-component`](./react-component) | Zero-install React wrapper; prefer the `@globestudio/react` package | 🟢 Ready (copy-paste) |
+| ⚛️ | [`starter-react`](./starter-react) | Vite and React app with a globe, via `@globestudio/react`. Copy it with degit or open it in StackBlitz | 🟢 Ready (npm install) |
 
 ## Run an example locally
 
@@ -47,6 +48,9 @@ All examples embed via `https://globestudio.app/embed?look=:id&…` URLs
 required. `globestudio.app/looks/:id` is the **marketing** route that
 loads the full app with chrome; `/embed?look=:id` is the **canvas-only**
 route designed for iframing. Always use `/embed?…` for iframes.
+
+[`starter-react`](./starter-react) is the one example with a build step.
+It is a Vite project: run `npm install` and `npm run dev` in its folder.
 
 ## Adapt an example for your project
 

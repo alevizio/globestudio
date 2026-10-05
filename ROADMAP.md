@@ -55,6 +55,8 @@ The version on `main` already does all of this.
 - `/embed` route with URL params or a full `?c=` config, and the
   `embed.js` one-line script tag
 - `@globestudio/react`: a drop-in `<Globe />` component
+- A React starter in `examples/starter-react`, to copy with degit or open
+  in StackBlitz
 - `@globestudio/element`: a framework-free `<globe-studio>` web component
 - Figma plugin in the Figma Community
 - WordPress block and `[globestudio]` shortcode (manual install), and

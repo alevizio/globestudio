@@ -141,7 +141,8 @@ npm install @globestudio/element   # <globe-studio look="aurora"></globe-studio>
 
 Both wrap the same `/embed` route in an iframe, so every look works in both.
 Setup and props: [`packages/react`](packages/react/) and
-[`packages/web-component`](packages/web-component/).
+[`packages/web-component`](packages/web-component/). For a new React project,
+start from the [React starter](examples/starter-react/).
 
 On a light page, set `theme="light"` on either one. It sends the `theme`
 param below: the glow and grid switch to a palette for light pages, and
@@ -277,9 +278,14 @@ when they fall behind.
 
 ### Runnable examples
 
-The [`examples/`](./examples) directory has 9 reference projects: runnable
-HTML, drop-in components, and adaptation guides. A few to start with:
+The [`examples/`](./examples) directory has 10 reference projects: runnable
+HTML, a React starter, drop-in components, and adaptation guides. A few to
+start with:
 
+- [`starter-react`](./examples/starter-react): a Vite and React app with a
+  globe on the page. Copy it with
+  `npx degit alevizio/globestudio/examples/starter-react my-globe`, or
+  [open it in StackBlitz](https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react).
 - [`embed-snippet`](./examples/embed-snippet): the smallest iframe setup.
   Copy it into Webflow, Framer, plain HTML, or anywhere else.
 - [`hero-globe`](./examples/hero-globe): a full-bleed animated globe behind
