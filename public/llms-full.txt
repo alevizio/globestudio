@@ -68,7 +68,10 @@ the pen in a new tab.
 - `density`: dot density, 1–90 (invalid values fall back to the preset's).
 - `autoSpin`: `1` to auto-rotate the globe, `0` to hold still.
 - `theme`: `light` flips the globe chrome (glow, grid, surface) to a
-  graphite-on-cream palette for light host pages; anything else stays dark.
+  graphite-on-cream palette for light host pages and turns the white ink of
+  Halftone, Wireframe, Toon and Threshold graphite; anything else stays dark.
+  The packages take it as `theme="light"` (`<Globe>`, `<globe-studio>`), and
+  embed.js as `data-theme="light"`.
 - `motion`: accepted (0–100) but currently inert: parsed, no effect yet.
 - `c`: the share-config payload, a full URL-encoded config JSON, the same
   object the in-app Share dialog produces. It overrides the preset and the

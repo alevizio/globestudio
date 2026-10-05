@@ -8,7 +8,7 @@ An embed draws the look as the studio does, with the density, dot size and backg
 
 These ids differ from the effect they run: `wireframe` (Wireframe) runs `edge`, `vapor` (Vapor) runs `chromatic`, `topographic` (Sonar) runs `wave`. Put the look id in the address and the effect id in `shaderSettings.effect`.
 
-Dot color says what the look's shader does with `dotColor` and `dotGradient`. Only a look that keeps them can show a brand color. Halftone, Wireframe, Toon and Threshold paint white ink whatever the config sets, or graphite with `theme=light` on an `/embed` address and in the studio's light theme. Halftone also fills the whole globe with its dots, so a selected country stands out only in the flat view.
+Dot color says what the look's shader does with `dotColor` and `dotGradient`. Only a look that keeps them can show a brand color. Halftone, Wireframe, Toon and Threshold paint white ink whatever the config sets, or graphite with `theme=light` on an `/embed` address, `theme="light"` on a package, and in the studio's light theme. Halftone also fills the whole globe with its dots, so a selected country stands out only in the flat view.
 
 ## Contents
 

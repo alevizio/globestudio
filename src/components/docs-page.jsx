@@ -114,6 +114,13 @@ export const DocsPage = () => {
             <code>risograph</code>…) or pass a full config via{" "}
             <code>?c=&lt;URL-encoded JSON&gt;</code> for a customized embed.
           </p>
+          <p>
+            On a light page, add <code>theme=light</code>. The glow and grid
+            switch to a palette for light pages, and Wireframe's white ink
+            turns graphite. The React and web component packages take it as{" "}
+            <code>theme="light"</code>, the script-tag loader as{" "}
+            <code>data-theme="light"</code>.
+          </p>
 
           <SectionHeading
             id="react-component"

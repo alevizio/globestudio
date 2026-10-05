@@ -172,7 +172,7 @@ These ids differ from the effect they run: ${differing
     .map((look) => `${code(look.id)} (${look.name}) runs ${code(look.settings.shaderSettings.effect)}`)
     .join(", ")}. Put the look id in the address and the effect id in ${code("shaderSettings.effect")}.
 
-Dot color says what the look's shader does with ${code("dotColor")} and ${code("dotGradient")}. Only a look that keeps them can show a brand color. ${names(inkLooks())} paint white ink whatever the config sets, or graphite with ${code("theme=light")} on an ${code("/embed")} address and in the studio's light theme. Halftone also fills the whole globe with its dots, so a selected country stands out only in the flat view.
+Dot color says what the look's shader does with ${code("dotColor")} and ${code("dotGradient")}. Only a look that keeps them can show a brand color. ${names(inkLooks())} paint white ink whatever the config sets, or graphite with ${code("theme=light")} on an ${code("/embed")} address, ${code('theme="light"')} on a package, and in the studio's light theme. Halftone also fills the whole globe with its dots, so a selected country stands out only in the flat view.
 
 ## Contents
 
@@ -614,9 +614,10 @@ ${table(["Parameter", "Takes", "Default", "Notes"], [
 
 ## Light pages, transparency and size
 
-- The packages send only the look, the config and ${code("source")}, never ${code("theme")}. Make the design suit the page in its config: a light ${code("background")} with a dark ${code("dotColor")} on a look that keeps it (see Dot color in looks.md), or ${code("\"backgroundStyle\": \"transparent\"")} with dots that show on the page.
-- ${names(inkLooks())} paint white ink whatever ${code("dotColor")} says, so on a light page a transparent one all but disappears. With the packages, give them a solid dark ${code("background")}; in a plain iframe, ${code("theme=light")} turns their ink graphite.
-- In a plain iframe, ${code("theme=light")} also switches the glow and grid to a palette for light pages, and ${code("transparent=1")} or ${code("background=transparent")} lets the page show through.
+- On a light page, set ${code('theme="light"')} on ${code("<Globe>")} or ${code("<globe-studio>")}, ${code('data-theme="light"')} for embed.js, or ${code("theme=light")} in a plain iframe. It switches the glow and grid to a palette for light pages. Only ${code("light")} is sent; any other value leaves the address as it was.
+- Make the design suit the page in its config too: a light ${code("background")} with a dark ${code("dotColor")} on a look that keeps it (see Dot color in looks.md), or ${code("\"backgroundStyle\": \"transparent\"")} with dots that show on the page.
+- ${names(inkLooks())} paint white ink whatever ${code("dotColor")} says, so on a light page a transparent one all but disappears. The light theme turns their ink graphite; without it, give them a solid dark ${code("background")}.
+- In a plain iframe, ${code("transparent=1")} or ${code("background=transparent")} lets the page show through.
 - Give the iframe or its container an explicit height; the packages default to 480 px. The embed posts ${code("{ type: \"globestudio-resize\", height, source }")} to the parent page, which embed.js uses to size elements that have no height of their own.
 - Set ${code("title")} to say what the globe shows, for screen readers, and keep ${code("loading=\"lazy\"")} for globes below the fold.
 

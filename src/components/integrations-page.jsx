@@ -279,7 +279,7 @@ const INTEGRATIONS = [
     bg: "#E34F26",
     fg: "#ffffff",
     blurb:
-      "Drop a div + the one-line script-tag loader. Reads data-look / data-config from the div, no install.",
+      `Drop a div + the one-line script-tag loader. Reads data-look / data-config from the div, no install. On a light page, add data-theme="light".`,
     snippet: `<div data-globestudio data-look="bayer" style="height:480px"></div>
 <script src="https://globestudio.app/embed.js" async></script>`,
   },
@@ -290,7 +290,7 @@ const INTEGRATIONS = [
     bg: "#20232A",
     fg: "#61DAFB",
     blurb:
-      "One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box. Works in React, Next.js, Remix, Astro. For your own design, the export dialog's Share tab has the snippet under Embed code, next to an iframe and a web component version.",
+      `One-line install. TypeScript autocomplete on every preset. SSR-friendly out of the box. Works in React, Next.js, Remix, Astro. On a light page, add theme="light". For your own design, the export dialog's Share tab has the snippet under Embed code, next to an iframe and a web component version.`,
     snippet: `npm install @globestudio/react
 
 // Then:
