@@ -231,6 +231,32 @@ test.describe('<globe-studio theme="light">', () => {
     await expect.poll(async () => (await inkShares(page)).white, { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(0.05);
     expect((await inkShares(page)).graphite).toBeLessThan(0.001);
   });
+
+  test("draws Halftone's ink in graphite where the page shows through, with the config the docs pair it with", async ({ page }) => {
+    // Halftone paints a dark page of its own, where graphite ink is lost, so
+    // the docs make it see-through in the config as well.
+    await page.route("https://globestudio.app/**", (route) => route.abort());
+    await page.setContent("<!doctype html><title>Element</title><body></body>");
+    await page.addScriptTag({ path: "packages/web-component/index.js", type: "module" });
+    await page.waitForFunction(() => Boolean(customElements.get("globe-studio")));
+    const src = await page.evaluate(() => {
+      const element = document.createElement("globe-studio");
+      element.setAttribute("look", "halftone");
+      element.setAttribute("theme", "light");
+      element.setAttribute("config", '{"backgroundStyle":"transparent"}');
+      document.body.append(element);
+      return element.querySelector("iframe").src;
+    });
+    const embed = new URL(src);
+    await page.goto(`${embed.pathname}${embed.search}`);
+    await waitForCanvas(page);
+    await expect.poll(async () => (await inkShares(page)).graphite, { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(0.05);
+    // Most of the page shows through: Halftone's own dark page would count
+    // as graphite nearly everywhere.
+    const { graphite, white } = await inkShares(page);
+    expect(graphite).toBeLessThan(0.5);
+    expect(white).toBeLessThan(0.001);
+  });
 });
 
 test("embed.js draws the design of a whole share link pasted into data-config", async ({ page }) => {
