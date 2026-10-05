@@ -8,6 +8,9 @@ import { CodeBlock } from "./ui/code-block.jsx";
 //
 // The same commands, labels and telemetry note as the docs' Agent skill
 // section. The Claude Code plugin adds the hosted MCP server too.
+// The skill's page on skills.sh: the rendered SKILL.md, installs and audits.
+export const SKILL_PAGE_URL = "https://skills.sh/alevizio/globestudio/globestudio";
+
 const OPTIONS = [
   { id: "npx", label: "npx skills", language: "npx skills", code: "npx skills add alevizio/globestudio" },
   {
@@ -88,7 +91,10 @@ export const AgentSkill = () => {
         </CodeBlock>
       </div>
       <p className="export-modal-caption">
-        npx skills sends anonymous install data to skills.sh unless you set DISABLE_TELEMETRY=1.
+        npx skills sends anonymous install data to skills.sh unless you set DISABLE_TELEMETRY=1.{" "}
+        <a href={SKILL_PAGE_URL} target="_blank" rel="noopener">
+          See the skill on skills.sh
+        </a>
       </p>
     </section>
   );

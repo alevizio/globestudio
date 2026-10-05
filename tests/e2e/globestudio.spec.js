@@ -1822,8 +1822,12 @@ test.describe("Skill tab", () => {
     await expect(dialog.getByRole("heading", { name: SKILL_HEADING })).toHaveClass("export-modal-label");
     await expect(pane.locator("p.export-modal-caption")).toHaveText([
       "The skill shows Claude Code, Codex, Cursor and other coding agents how to add and edit Globestudio globes and maps in your project.",
-      "npx skills sends anonymous install data to skills.sh unless you set DISABLE_TELEMETRY=1.",
+      "npx skills sends anonymous install data to skills.sh unless you set DISABLE_TELEMETRY=1. See the skill on skills.sh",
     ]);
+    await expect(pane.getByRole("link", { name: "See the skill on skills.sh" })).toHaveAttribute(
+      "href",
+      "https://skills.sh/alevizio/globestudio/globestudio",
+    );
     const options = dialog.getByRole("tablist", { name: SKILL_HEADING });
     await expect(options.getByRole("tab")).toHaveText(["npx skills", "Claude Code", "GitHub"]);
     await expect(options.getByRole("tab", { name: "npx skills" })).toHaveAttribute("aria-selected", "true");

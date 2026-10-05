@@ -204,7 +204,7 @@ const INTEGRATIONS = [
         code: `claude plugin marketplace add alevizio/globestudio && claude plugin install globestudio@globestudio`,
       },
     ],
-    cta: { href: "https://github.com/alevizio/globestudio/tree/main/skills/globestudio", label: "View the skill on GitHub" },
+    cta: { href: "https://skills.sh/alevizio/globestudio/globestudio", label: "View on skills.sh" },
   },
   {
     id: "webflow",

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { AgentSkill } from "./agent-skill.jsx";
+import { AgentSkill, SKILL_PAGE_URL } from "./agent-skill.jsx";
 import { track } from "./analytics.jsx";
 
 vi.mock("./analytics.jsx", () => ({ track: vi.fn() }));
@@ -33,9 +33,17 @@ describe("AgentSkill", () => {
       ["tab", "Claude Code"],
       ["tab", "GitHub"],
       ["pre", NPX],
-      ["p", "npx skills sends anonymous install data to skills.sh unless you set DISABLE_TELEMETRY=1."],
+      ["p", "npx skills sends anonymous install data to skills.sh unless you set DISABLE_TELEMETRY=1. See the skill on skills.sh"],
     ]);
     expect(container.querySelector("h3").className).toBe("export-modal-label");
+  });
+
+  it("links the skill's page on skills.sh, in a new tab", () => {
+    render(<AgentSkill />);
+    const link = screen.getByRole("link", { name: "See the skill on skills.sh" });
+    expect(link.getAttribute("href")).toBe(SKILL_PAGE_URL);
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toContain("noopener");
   });
 
   it("uses the dialog's segmented toggle, named by the heading", () => {

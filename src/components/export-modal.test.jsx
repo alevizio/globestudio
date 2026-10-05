@@ -770,7 +770,7 @@ describe("ExportModal", () => {
         "npx skills add alevizio/globestudio",
       );
       expect(pane.lastElementChild.lastElementChild.textContent).toBe(
-        "npx skills sends anonymous install data to skills.sh unless you set DISABLE_TELEMETRY=1.",
+        "npx skills sends anonymous install data to skills.sh unless you set DISABLE_TELEMETRY=1. See the skill on skills.sh",
       );
       // Like Share and MCP, the tab has no footer: its actions sit in the body.
       expect(document.querySelector(".export-modal-footer")).toBeNull();

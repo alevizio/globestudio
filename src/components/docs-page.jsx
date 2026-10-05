@@ -234,6 +234,13 @@ export const DocsPage = () => {
             Skills. <code>npx skills</code> sends anonymous install data to
             skills.sh unless you set <code>DISABLE_TELEMETRY=1</code>.
           </p>
+          <p>
+            The skill has a page on{" "}
+            <a href="https://skills.sh/alevizio/globestudio/globestudio">skills.sh</a>{" "}
+            with its installs and security audits, and its source is in{" "}
+            <a href="https://github.com/alevizio/globestudio/tree/main/skills/globestudio">skills/globestudio</a>{" "}
+            on GitHub.
+          </p>
         </section>
 
         <section className="docs-section">

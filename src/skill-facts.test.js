@@ -16,7 +16,7 @@ import {
   lookDotColor,
 } from "../scripts/skill-references.js";
 import { AgentShare } from "./components/agent-share.jsx";
-import { AgentSkill } from "./components/agent-skill.jsx";
+import { AgentSkill, SKILL_PAGE_URL } from "./components/agent-skill.jsx";
 import { dotShapeOptions } from "./config/constants.js";
 import { shaderEffectOptions } from "./config/shader-effects.js";
 import { continentOptions, subregionOptions } from "./data/geography.js";
@@ -381,4 +381,17 @@ describe("the install commands", () => {
     expect(container.textContent).toContain("DISABLE_TELEMETRY=1");
     cleanup();
   });
+});
+
+describe("the skill's skills.sh page", () => {
+  it("is this repo's skill", () => {
+    expect(SKILL_PAGE_URL).toBe(`https://skills.sh/alevizio/globestudio/${fields.name}`);
+  });
+
+  it.each(["README.md", "src/components/docs-page.jsx", "src/components/integrations-page.jsx", "public/llms.txt"])(
+    "%s links it",
+    (path) => {
+      expect(read(path)).toContain(SKILL_PAGE_URL);
+    },
+  );
 });

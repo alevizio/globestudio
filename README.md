@@ -13,7 +13,7 @@ Pick a country or the whole world, choose a look, change the dots and colors, an
 [![CI status](https://github.com/alevizio/globestudio/actions/workflows/ci.yml/badge.svg)](https://github.com/alevizio/globestudio/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-f6f2ea.svg)](LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-9adfff.svg)](CONTRIBUTING.md)
-[![skills.sh installs](https://skills.sh/b/alevizio/globestudio)](https://skills.sh/alevizio/globestudio)
+[![skills.sh installs](https://skills.sh/b/alevizio/globestudio)](https://skills.sh/alevizio/globestudio/globestudio)
 
 </div>
 
@@ -259,8 +259,9 @@ adds the skill and the MCP server. In the Claude app, download
 [`globestudio-skill.zip`](https://github.com/alevizio/globestudio/releases/latest/download/globestudio-skill.zip)
 from the latest release and upload it in Settings, Capabilities, Skills.
 
-`npx skills` sends anonymous install data to skills.sh unless you set
-`DISABLE_TELEMETRY=1`. The skill is plain markdown in
+The skill has a page on [skills.sh](https://skills.sh/alevizio/globestudio/globestudio) with its
+installs and security audits. `npx skills` sends anonymous install data to
+skills.sh unless you set `DISABLE_TELEMETRY=1`. The skill is plain markdown in
 [`skills/globestudio`](skills/globestudio/). Its reference files are built
 from the app's own code with `npm run skill:references`, and a test fails
 when they fall behind.

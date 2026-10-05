@@ -5273,6 +5273,15 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   line-height: 1.5;
 }
 
+/* A link inside a caption, like the Skill tab's skills.sh page: the
+   caption's size, in the body color and underlined so it reads as a link
+   in either theme. */
+.export-modal-caption a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .export-modal-cta {
   width: 100%;
   min-height: 44px;
