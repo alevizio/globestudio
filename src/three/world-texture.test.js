@@ -170,3 +170,73 @@ describe("createWorldTexture overlays", () => {
     expect(offLand.length).toBeGreaterThan(0);
   });
 });
+
+describe("createWorldTexture flat framing", () => {
+  // Boxes dotted-map gives these picks, from small to the whole world, on both
+  // sides of the equator and across the antimeridian.
+  const boxes = {
+    "the world": { lat: { min: -56, max: 71 }, lng: { min: -168, max: 168 } },
+    Luxembourg: { lat: { min: 49.442667, max: 50.128052 }, lng: { min: 5.674052, max: 6.242751 } },
+    Brazil: { lat: { min: -33.768378, max: 5.244486 }, lng: { min: -73.987235, max: -34.729993 } },
+    "New Zealand": { lat: { min: -46.641235, max: -34.450662 }, lng: { min: 166.509144, max: 178.517094 } },
+    "the United States with Alaska": { lat: { min: 18.91619, max: 71.357764 }, lng: { min: -171.791111, max: -66.96466 } },
+    Russia: { lat: { min: 41.151416, max: 81.2504 }, lng: { min: -180, max: 180 } },
+    Fiji: { lat: { min: -18.28799, max: -16.020882 }, lng: { min: -180, max: 180 } },
+  };
+  // The sheet's aspect, as dotted-map sizes it: the box's Mercator width over its height.
+  const mercatorY = (lat) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
+  const mercatorAspect = (box) => (((box.lng.max - box.lng.min) * Math.PI) / 180) / (mercatorY(box.lat.max) - mercatorY(box.lat.min));
+  // Points along the box's edges, about a degree apart.
+  const edges = (box) => {
+    const along = (min, max) => {
+      const steps = Math.max(1, Math.ceil(max - min));
+      return Array.from({ length: steps + 1 }, (_, i) => min + ((max - min) * i) / steps);
+    };
+    return [
+      ...along(box.lng.min, box.lng.max).flatMap((lng) => [[lng, box.lat.min], [lng, box.lat.max]]),
+      ...along(box.lat.min, box.lat.max).flatMap((lat) => [[box.lng.min, lat], [box.lng.max, lat]]),
+    ];
+  };
+  // Where the box's edges land on the flat sheet, drawn as custom dots.
+  const frame = (box, projection) => {
+    createWorldTexture(collection([]), {
+      ocean: "transparent",
+      strokeVisible: false,
+      region: box,
+      aspect: mercatorAspect(box),
+      projection,
+      custom: collection(edges(box).map((coordinates) => point(coordinates))),
+      customVisible: true,
+      customColor: OVERLAYS.customColor,
+    });
+    const { ctx, ops } = recorded;
+    const points = ops.filter((op) => op.style === OVERLAYS.customColor).map((op) => op.path[0][0]);
+    const xs = points.map(([x]) => x);
+    const ys = points.map(([, y]) => y);
+    return {
+      width: ctx.canvas.width,
+      height: ctx.canvas.height,
+      minX: Math.min(...xs),
+      maxX: Math.max(...xs),
+      minY: Math.min(...ys),
+      maxY: Math.max(...ys),
+    };
+  };
+  const expectFramed = ({ width, height, minX, maxX, minY, maxY }) => {
+    // The box stays on the sheet and spans it along at least one side, as
+    // fitExtent leaves any slack on the other side.
+    expect(minX).toBeGreaterThan(-1);
+    expect(minY).toBeGreaterThan(-1);
+    expect(maxX).toBeLessThan(width + 1);
+    expect(maxY).toBeLessThan(height + 1);
+    expect(Math.max((maxX - minX) / width, (maxY - minY) / height)).toBeGreaterThan(0.99);
+  };
+
+  it.each(Object.entries(boxes))("fits the flat map to %s's box, as dotted-map frames its dots", (_, box) => {
+    expectFramed(frame(box, "mercator"));
+  });
+
+  it.each(["equalEarth", "naturalEarth1", "winkel3", "robinson"])("fits the flat map to a picked country's box in %s too", (projection) => {
+    expectFramed(frame(boxes.Brazil, projection));
+  });
+});

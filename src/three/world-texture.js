@@ -108,22 +108,21 @@ const applyAlphaToHex = (hex, alpha) => {
 // to dotted-map's framing (e.g. world: lat [-56, 71], lng [-168, 168]) instead
 // of defaulting to the geojson's full extent (which would include Antarctica
 // and chop the Arctic differently than dotted-map does).
-const regionExtentFeature = (region) => ({
-  type: "Feature",
-  properties: {},
-  geometry: {
-    type: "Polygon",
-    coordinates: [
-      [
-        [region.lng.min, region.lat.min],
-        [region.lng.max, region.lat.min],
-        [region.lng.max, region.lat.max],
-        [region.lng.min, region.lat.max],
-        [region.lng.min, region.lat.min],
-      ],
-    ],
-  },
-});
+// Points along the box's edges, in the 100 steps dotted-map samples, not a
+// polygon: d3 reads a ring's winding to pick its inside, and this box's ring
+// read as the whole world minus the box, so a picked country came out small.
+// A ring's edges also run along great circles instead of the parallels, which
+// left even the world a few percent small.
+const regionExtentFeature = (region) => {
+  const coordinates = [];
+  for (let i = 0; i <= 100; i += 1) {
+    const t = i / 100;
+    const lat = region.lat.min + t * (region.lat.max - region.lat.min);
+    const lng = region.lng.min + t * (region.lng.max - region.lng.min);
+    coordinates.push([lng, region.lat.min], [lng, region.lat.max], [region.lng.min, lat], [region.lng.max, lat]);
+  }
+  return { type: "Feature", properties: {}, geometry: { type: "MultiPoint", coordinates } };
+};
 
 export const createWorldTexture = (countriesFeatureCollection, options = {}) => {
   const {
