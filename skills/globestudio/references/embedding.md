@@ -118,6 +118,7 @@ For pages that allow a script tag but not an npm install. It turns every element
 | `data-static` | `static` |  |
 | `data-background` | `background` |  |
 | `data-transparent` | `transparent` |  |
+| `data-theme` | `theme` |  |
 | `data-config` | `c` |  |
 | `data-source` | `source` | `script-embed` |
 | `data-title` | the iframe title | `Globestudio dotted globe` |

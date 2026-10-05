@@ -55,6 +55,9 @@
     static: "static",
     background: "background",
     transparent: "transparent",
+    // `data-theme="light"` suits a light page. Only "light" is sent, so
+    // any other value leaves the address as it was.
+    theme: "theme",
     // `data-config` carries a Globestudio share-config token — the same
     // URL-safe blob produced by the Share button in the app. Lets users
     // embed their *exact* custom look (every shader knob, gradient,
@@ -107,6 +110,8 @@
         value = String(value).replace(/^#/, "");
       } else if (camel === "autoSpin" || camel === "static" || camel === "transparent") {
         value = value === "true" || value === "1" ? "1" : "0";
+      } else if (camel === "theme" && value !== "light") {
+        continue;
       } else if (camel === "c") {
         value = configToken(value);
       }
