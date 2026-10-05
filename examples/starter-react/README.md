@@ -8,7 +8,8 @@ look.
 
 ## Start
 
-There are three ways in. Each needs Node 20.19 or later, except StackBlitz.
+There are three ways in. degit and cloning need Node 20.19+ or 22.12+, the
+versions Vite runs on. StackBlitz needs nothing installed.
 
 ### degit
 
@@ -58,7 +59,9 @@ Then open http://localhost:5173.
   holds only what changes. The keys are in the
   [config schema](https://globestudio.app/schema/config.json).
 - Set the size. The globe fills its container's width and is 480 px tall
-  unless you pass `height`. Numbers are pixels; strings take any CSS unit.
+  unless you pass `height`. A number is pixels, and a string can be a
+  percentage such as `"100%"`. The iframe reads any other unit as pixels,
+  so set `vh` or `rem` in `style` instead.
 - Give every globe a `title` that says what it shows, for screen readers.
 - Keep the default `loading="lazy"` for a globe below the fold. The hero
   uses `"eager"` so it starts at once.
