@@ -10,7 +10,7 @@ Step-by-step walkthrough + ready-to-paste copy for the submission form.
 
 ## Generate the assets you'll need
 
-### Plugin icon — 128 × 128 PNG
+### Plugin icon: 128 × 128 PNG
 Reuse the existing `/favicon.svg` from the main repo, rasterized:
 
 ```bash
@@ -20,14 +20,14 @@ npx @resvg/resvg-js-cli public/favicon.svg --width 128 --height 128 > figma-plug
 
 (or open `public/favicon.svg` in Figma and export at 128 × 128)
 
-### Cover image — 1920 × 960 PNG
+### Cover image: 1920 × 960 PNG
 The hero image shown on the plugin's Community page. Highest-impact spot. Two paths:
 
 **Quick option:** reuse `/public/og/default.png` (1200 × 630). Resize to 1920 × 960 in Figma, add a "Insert dotted globes into Figma" line in big type.
 
 **Proper option:** design a fresh cover in Figma. Show the plugin panel UI + a Figma frame with an inserted globe + a "Drop the world in your design files" tagline.
 
-### Screenshots — 4-6, each 1280 × 800 PNG
+### Screenshots: 4-6, each 1280 × 800 PNG
 Show:
 1. Plugin panel open in Figma design with the live globe rendered
 2. The Insert button highlighted
@@ -44,7 +44,7 @@ Capture from the desktop app at 1× or 2× display, then resize to 1280 × 800.
    (right-click the plugin name in the dev menu)
 2. Form opens in your browser. Fill in:
 
-### Form fields — copy/paste
+### Form fields: copy/paste
 
 | Field | Value |
 |---|---|
@@ -63,8 +63,8 @@ Capture from the desktop app at 1× or 2× display, then resize to 1280 × 800.
 
 ```
 The full Globestudio studio inside Figma. Design a dotted globe or a flat
-map with every control from the web app, then insert it into your file as
-an image or as editable vectors.
+map with every control from the web app, or paste a share link from it,
+then insert it into your file as an image or as editable vectors.
 
 What you get:
 • 21 looks (Halftone, Risograph, Aurora, CRT, Metal, Bloom, Vapor and more)
@@ -74,7 +74,7 @@ What you get:
 • Globe or flat map, with a smooth morph between them
 • Insert an image at the crop and quality you pick (1:1, 4:5, 16:9, 9:16,
   up to 4x), or the flat map as editable vector dots
-• Click one of your file's color variables to use it for the dots
+• Use your file's color variables for the dots
 • Works in Figma design files and FigJam
 
 How it works:
@@ -88,7 +88,7 @@ Open source, MIT: github.com/alevizio/globestudio
 
 If Figma asks why the plugin needs network access:
 
-> The plugin UI is hosted at globestudio.app/embed — designers interact
+> The plugin UI is hosted at globestudio.app. Designers interact
 > with the live Globestudio canvas inside the plugin panel and capture
 > the resulting frame as a PNG to insert. No data is uploaded back to
 > globestudio.app from the user's design.
@@ -122,5 +122,5 @@ For subsequent releases:
 ## Plugin ID
 
 The `id` field in `manifest.json` (currently `globestudio-figma`) is your
-private dev identifier. Figma assigns a separate public ID when published —
+private dev identifier. Figma assigns a separate public ID when published;
 you'll see it in the Community URL above.
