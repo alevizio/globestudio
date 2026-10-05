@@ -41,6 +41,19 @@ export const parseDataPoints = (text, countryIndex = null) => {
   return points;
 };
 
+// The Data section's "Try an example": eight world cities as lat,lng,value,
+// the value a rough metro population in millions.
+export const DATA_POINTS_EXAMPLE = [
+  "40.71,-74.01,19", // New York
+  "19.43,-99.13,22", // Mexico City
+  "-23.55,-46.63,22", // São Paulo
+  "51.51,-0.13,9", // London
+  "6.52,3.38,14", // Lagos
+  "19.08,72.88,20", // Mumbai
+  "35.68,139.69,37", // Tokyo
+  "-33.87,151.21,5", // Sydney
+].join("\n");
+
 // The paste box text for a set of points: one "lat,lng,value" line each,
 // which parseDataPoints reads back as the same points.
 export const serializeDataPoints = (points) =>

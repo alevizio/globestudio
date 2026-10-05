@@ -661,6 +661,59 @@ test.describe("the Data section", () => {
       .toEqual([points[0], { ...points[1], value: 25 }, points[2]]);
   });
 
+  test("Try an example plots eight cities, and undo or clearing the box brings it back", async ({ page }) => {
+    // Three pixel polls on swiftshader: up to 50 s locally beside the other
+    // Data tests, close to the default limit, so give it the eye test's headroom.
+    test.slow();
+    // Flat view with red markers and glow off, as in the eye test below, so
+    // every marker faces the camera and the pixel count stays quick.
+    const config = { v: 1, viewMode: "flat", globeSettings: { glow: false, dataPoints: [], dataMarkerColor: "#ff0000" } };
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify(config))}`);
+    await waitForCanvas(page);
+    expect(await redPixels(page)).toBe(0);
+    const savedPoints = () =>
+      page.evaluate(() => JSON.parse(localStorage.getItem("globestudio:globeSettings"))?.dataPoints?.length);
+
+    const disclosure = page.getByRole("button", { name: "Data", exact: true });
+    await disclosure.click();
+    const box = page.getByRole("textbox", { name: /Data points/ });
+    const example = page.getByRole("button", { name: "Try an example" });
+    await expect(box).toHaveValue("");
+    await expect(example).toBeVisible();
+    await expectNoSeriousAxeViolations(page);
+
+    await example.click();
+    await expect(box).toHaveValue(/^40\.71,-74\.01,19\n19\.43,-99\.13,22\n/);
+    expect((await box.inputValue()).split("\n")).toHaveLength(8);
+    await expect(page.getByText(/^8 points plotted\./)).toBeVisible();
+    await expect.poll(savedPoints).toBe(8);
+    // The button goes away and leaves focus in the box, not on the page.
+    await expect(example).toBeHidden();
+    await expect(box).toBeFocused();
+
+    // Undo in the box takes the example back out, and the button returns.
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(box).toHaveValue("");
+    await expect(example).toBeVisible();
+    await expect.poll(savedPoints).toBe(0);
+
+    // The markers draw. Close the section to count them: its marker color
+    // swatch is the same red and would pass for markers while it shows.
+    await example.click();
+    await disclosure.click();
+    await expect.poll(() => redPixels(page), { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(20);
+
+    // Clearing the box by hand brings the button back and the markers go.
+    await disclosure.click();
+    await box.press("ControlOrMeta+a");
+    await box.press("Backspace");
+    await expect(box).toHaveValue("");
+    await expect(example).toBeVisible();
+    await expect.poll(savedPoints).toBe(0);
+    await disclosure.click();
+    await expect.poll(() => redPixels(page), { timeout: CANVAS_TIMEOUT }).toBe(0);
+  });
+
   test("its eye hides the markers and keeps the pasted points", async ({ page }) => {
     // Two cold canvas boots (the reload) plus pixel polls: over a minute on
     // swiftshader locally, so give CI's slower runners the headroom.

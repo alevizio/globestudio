@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import axe from "axe-core";
 import { DEFAULT_GLOBE_SETTINGS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
+import { DATA_POINTS_EXAMPLE, parseDataPoints } from "../utils/data-points.js";
 import { ControlPanel } from "./control-panel.jsx";
 
 const noop = () => {};
@@ -128,24 +129,66 @@ describe("ControlPanel Data section", () => {
     const latest = {};
     render(<Harness latest={latest} />);
     fireEvent.click(screen.getByRole("button", { name: "Data" }));
-    fireEvent.click(screen.getByRole("button", { name: "Load sample" }));
+    fireEvent.click(screen.getByRole("button", { name: "Try an example" }));
     const textarea = screen.getByRole("textbox", { name: /Data points/ });
     const pasted = textarea.value;
-    expect(latest.globeSettings.dataPoints).toHaveLength(7);
+    expect(latest.globeSettings.dataPoints).toHaveLength(8);
 
     const eye = screen.getByRole("button", { name: "Show data markers" });
     fireEvent.click(eye);
     expect(eye.getAttribute("aria-pressed")).toBe("false");
     expect(eye.title).toBe("Show data markers + arcs");
     expect(latest.globeSettings.data).toBe(false);
-    expect(latest.globeSettings.dataPoints).toHaveLength(7);
+    expect(latest.globeSettings.dataPoints).toHaveLength(8);
     expect(textarea.value).toBe(pasted);
-    expect(screen.getByText("7 points, hidden.")).toBeTruthy();
+    expect(screen.getByText("8 points, hidden.")).toBeTruthy();
 
     fireEvent.click(eye);
     expect(latest.globeSettings.data).toBe(true);
-    expect(latest.globeSettings.dataPoints).toHaveLength(7);
-    expect(screen.getByText(/^7 points plotted\./)).toBeTruthy();
+    expect(latest.globeSettings.dataPoints).toHaveLength(8);
+    expect(screen.getByText(/^8 points plotted\./)).toBeTruthy();
+  });
+
+  it("offers Try an example only while the paste box is empty", () => {
+    const latest = {};
+    render(<Harness latest={latest} />);
+    fireEvent.click(screen.getByRole("button", { name: "Data" }));
+    const textarea = screen.getByRole("textbox", { name: /Data points/ });
+    const example = () => screen.queryByRole("button", { name: "Try an example" });
+    expect(example()).not.toBeNull();
+
+    fireEvent.click(example());
+    expect(textarea.value).toBe(DATA_POINTS_EXAMPLE);
+    expect(latest.globeSettings.dataPoints).toEqual(parseDataPoints(DATA_POINTS_EXAMPLE));
+    expect(screen.getByText(/^8 points plotted\./)).toBeTruthy();
+    // The button goes away, so focus is left in the box with the example.
+    expect(example()).toBeNull();
+    expect(document.activeElement).toBe(textarea);
+
+    // Clearing the box brings it back, with no points left behind.
+    fireEvent.change(textarea, { target: { value: "" } });
+    expect(latest.globeSettings.dataPoints).toEqual([]);
+    expect(example()).not.toBeNull();
+
+    // Any typed text, even a lone comment or half a line, hides it, so the
+    // example can never replace what someone wrote. Blank lines alone are
+    // still an empty box.
+    for (const typed of ["# visits", "US,1200", "40.7,-7"]) {
+      fireEvent.change(textarea, { target: { value: typed } });
+      expect(example(), typed).toBeNull();
+    }
+    fireEvent.change(textarea, { target: { value: "\n" } });
+    expect(example()).not.toBeNull();
+  });
+
+  it("hides Try an example when points arrive from a share link", () => {
+    render(
+      <Harness
+        initialGlobeSettings={{ ...DEFAULT_GLOBE_SETTINGS, dataPoints: [{ lat: 40.7, lng: -74, value: 10 }] }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Data" }));
+    expect(screen.queryByRole("button", { name: "Try an example" })).toBeNull();
   });
 
   it("says a single hidden point in the singular, and keeps the paste prompt with no points", () => {

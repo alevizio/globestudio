@@ -25,7 +25,7 @@ import { formatSvgNumber } from "../utils/math.js";
 import { ColorSwatch } from "./ui/color-swatch.jsx";
 import { legacyColorsToLinear, pickedGradientToLinear } from "../utils/color-space.js";
 import { extractPaletteFromImage, darkestColor } from "../utils/palette.js";
-import { parseDataPoints, serializeDataPoints } from "../utils/data-points.js";
+import { DATA_POINTS_EXAMPLE, parseDataPoints, serializeDataPoints } from "../utils/data-points.js";
 import { countryCentroidIndex } from "../data/geography.js";
 import { DepthControl } from "./ui/depth-control.jsx";
 import { OptionRow } from "./ui/option-row.jsx";
@@ -288,6 +288,19 @@ export const ControlPanel = ({
     setDataText(text);
     setDataTextPoints(points);
     setGlobeSettings((settings) => ({ ...settings, dataPoints: points }));
+  };
+  // Try an example is only offered while the box is empty, so it never
+  // replaces anything typed. It types the example in through the browser,
+  // so undo in the box takes it back out; where that isn't supported the
+  // text is set directly. Focus lands in the box, as the button goes away.
+  const dataInputRef = useRef(null);
+  const tryDataExample = () => {
+    const box = dataInputRef.current;
+    box?.focus();
+    box?.select();
+    if (document.execCommand?.("insertText", false, DATA_POINTS_EXAMPLE) !== true) {
+      handleDataText(DATA_POINTS_EXAMPLE);
+    }
   };
 
   return (
@@ -1004,6 +1017,7 @@ export const ControlPanel = ({
       >
         <div className="data-points-control">
           <textarea
+            ref={dataInputRef}
             className="data-points-input"
             rows={4}
             value={dataText}
@@ -1012,15 +1026,11 @@ export const ControlPanel = ({
             aria-label="Data points: lat,lng,value or country,value per line"
             spellCheck={false}
           />
-          <button
-            type="button"
-            className="data-points-sample"
-            onClick={() =>
-              handleDataText("US,1200\nGB,820\nJP,950\nDE,700\nBR,540\nAU,410\nIN,880")
-            }
-          >
-            Load sample
-          </button>
+          {!dataText.trim() && (
+            <button type="button" className="data-points-sample" onClick={tryDataExample}>
+              Try an example
+            </button>
+          )}
           <div className="data-points-meta">
             <ColorSwatch
               value={globeSettings?.dataMarkerColor || "#7edfff"}

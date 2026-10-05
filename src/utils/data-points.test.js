@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { parseDataPoints, serializeDataPoints, valueToRadius, visibleDataPoints } from "./data-points.js";
+import {
+  DATA_POINTS_EXAMPLE,
+  parseDataPoints,
+  serializeDataPoints,
+  valueToRadius,
+  visibleDataPoints,
+} from "./data-points.js";
 
 describe("parseDataPoints", () => {
   it("parses lat,lng[,value]; skips header, blanks, comments, out-of-range", () => {
@@ -35,6 +41,25 @@ describe("parseDataPoints", () => {
       { lat: 40.7, lng: -74, value: 10 },
       { lat: 38, lng: -97, value: 1200 },
     ]);
+  });
+});
+
+describe("DATA_POINTS_EXAMPLE", () => {
+  it("parses to eight city markers with a value each, no country lookup needed", () => {
+    const points = parseDataPoints(DATA_POINTS_EXAMPLE);
+    expect(DATA_POINTS_EXAMPLE.split("\n")).toHaveLength(8);
+    expect(points).toHaveLength(8);
+    for (const { lat, lng, value } of points) {
+      expect(Math.abs(lat)).toBeLessThanOrEqual(90);
+      expect(Math.abs(lng)).toBeLessThanOrEqual(180);
+      expect(value).toBeGreaterThan(1);
+    }
+    // Values differ, so the markers come out in different sizes.
+    expect(new Set(points.map((p) => p.value)).size).toBeGreaterThan(4);
+  });
+
+  it("reads back the same after a share link, so the box shows it unchanged", () => {
+    expect(serializeDataPoints(parseDataPoints(DATA_POINTS_EXAMPLE))).toBe(DATA_POINTS_EXAMPLE);
   });
 });
 
