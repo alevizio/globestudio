@@ -3,7 +3,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { inject, track as vercelTrack } from "@vercel/analytics";
 import { isReloadingForStaleChunk } from "../utils/preload-recovery.js";
-import { trackClientError } from "./analytics.jsx";
+import { render } from "@testing-library/react";
+import { Analytics, track, trackClientError } from "./analytics.jsx";
 
 // inject() stands up the window.va queue like the real one does.
 vi.mock("@vercel/analytics", () => ({
@@ -67,6 +68,18 @@ describe("trackClientError", () => {
     await settle();
     expect(inject).not.toHaveBeenCalled();
     expect(vercelTrack).not.toHaveBeenCalled();
+  });
+
+  it("sends nothing and injects nothing in the Figma plugin, as /privacy promises", async () => {
+    window.history.replaceState(null, "", "/?plugin=figma&app=1");
+    trackClientError("globe", new Error("boom"));
+    track("preset_applied", { look: "halftone" });
+    await settle();
+    expect(inject).not.toHaveBeenCalled();
+    expect(vercelTrack).not.toHaveBeenCalled();
+    const { container } = render(<Analytics />);
+    await settle();
+    expect(container.innerHTML).toBe("");
   });
 
   it("sends nothing when the visitor opted out", async () => {

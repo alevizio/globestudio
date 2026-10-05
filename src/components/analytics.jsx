@@ -16,11 +16,20 @@ import { isReloadingForStaleChunk } from "../utils/preload-recovery.js";
 // derived from the daily-rotating salt + user-agent. No PII, no
 // fingerprinting, no third-party trackers.
 //
-// <Analytics /> is mounted once, in main.jsx, for every path except /embed.
+// <Analytics /> is mounted once, in main.jsx, for every path except /embed,
+// and stays off in the Figma plugin (see isOptedOut).
 const OPT_OUT_KEY = "gs_optout";
+
+// The Figma plugin loads the studio at /?plugin=figma. /privacy promises a
+// globe in the plugin loads neither Vercel Analytics nor Speed Insights, so
+// plugin mode counts as opted out. Read once at startup too, in case the
+// studio later rewrites the address without the parameter.
+const pluginParam = () => new URLSearchParams(window.location.search).get("plugin") === "figma";
+const STARTED_IN_FIGMA_PLUGIN = typeof window !== "undefined" && pluginParam();
 
 const isOptedOut = () => {
   if (typeof window === "undefined") return true;
+  if (STARTED_IN_FIGMA_PLUGIN || pluginParam()) return true;
   if (["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)) return true;
   if (window.navigator.doNotTrack === "1") return true;
   // GPC is the W3C-standard signal modern privacy-conscious browsers use.
