@@ -850,6 +850,10 @@ export const GlobeBackground = ({
     // also raises it again when the mode turns off.
     threeRef.current.applyDprCeiling = () => {
       const next = computeDprCeiling();
+      // The adaptive recovery in animate climbs back to initialDpr, so it
+      // follows the ceiling even when the ratio already sits there (stepped
+      // down to 1 before low power mode turned on).
+      initialDpr = next;
       if (renderer.getPixelRatio() === next) return;
       renderer.setPixelRatio(next);
       postHandle.composer.setPixelRatio(next);

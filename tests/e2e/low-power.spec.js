@@ -38,3 +38,70 @@ test.describe("in low power mode on a 1.5x screen", () => {
     expect(await page.evaluate(() => localStorage.getItem("globestudio:lowPower"))).toBe(JSON.stringify("off"));
   });
 });
+
+// A real but slow GPU: the frame rate watch turns low power mode on in the
+// middle of a visit. The automated browser hides both ways in (it sets
+// navigator.webdriver and names its SwiftShader renderer), so this undoes
+// that and drives the clock the render loop reads: each real frame moves it
+// on by window.__frameStep ms, which sets the frame rate the globe measures.
+test.describe("when a slow GPU turns low power mode on mid-visit", () => {
+  test.use({ viewport: { width: 480, height: 360 }, deviceScaleFactor: 1.25 });
+
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(Navigator.prototype, "webdriver", { configurable: true, get: () => false });
+      for (const Context of [window.WebGLRenderingContext, window.WebGL2RenderingContext]) {
+        const getExtension = Context?.prototype.getExtension;
+        if (!getExtension) continue;
+        Context.prototype.getExtension = function (name) {
+          return name === "WEBGL_debug_renderer_info" ? null : getExtension.call(this, name);
+        };
+      }
+      const requestFrame = window.requestAnimationFrame.bind(window);
+      let lastFrame = null;
+      let now = performance.now();
+      window.__frameStep = 70;
+      window.__frames = 0;
+      window.requestAnimationFrame = (callback) =>
+        requestFrame((frameTime) => {
+          if (frameTime !== lastFrame) {
+            lastFrame = frameTime;
+            now += window.__frameStep;
+            window.__frames += 1;
+          }
+          callback(now);
+        });
+      performance.now = () => now;
+    });
+  });
+
+  test("the preview stays at one device pixel when the adaptive ratio had already stepped down", async ({ page }) => {
+    test.setTimeout(240_000);
+    // Glow off keeps the costly halo out of the software renderer.
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 2, globeSettings: { glow: false } }))}`);
+    const canvas = page.locator(".globe-background canvas");
+    await expect(canvas).toBeVisible({ timeout: CANVAS_TIMEOUT });
+    const pixelRatio = () => canvas.evaluate((node) => node.width / node.clientWidth);
+    const setFrameStep = (ms) => page.evaluate((step) => (window.__frameStep = step), ms);
+    const frames = () => page.evaluate(() => window.__frames);
+    expect(await pixelRatio()).toBe(1.25);
+
+    // Held down, the globe renders every frame. At about 14 fps the adaptive
+    // ratio steps down to 1, and the watch, which trips under 12 fps, waits.
+    await canvas.hover({ position: { x: 240, y: 220 } });
+    await page.mouse.down();
+    await expect.poll(pixelRatio, { timeout: 120_000 }).toBe(1);
+
+    // At 4 fps the watch trips and low power mode turns on.
+    await setFrameStep(250);
+    await expect(page.getByRole("status").filter({ hasText: NOTICE })).toBeVisible({ timeout: 120_000 });
+
+    // At 100 fps the adaptive ratio would recover, but only up to the low
+    // power ceiling of 1. Two of its 60 frame windows is enough to see it.
+    await setFrameStep(10);
+    const start = await frames();
+    await expect.poll(frames, { timeout: 120_000 }).toBeGreaterThan(start + 150);
+    expect(await pixelRatio()).toBe(1);
+    await page.mouse.up();
+  });
+});
