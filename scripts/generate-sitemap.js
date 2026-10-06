@@ -67,6 +67,11 @@ export const sitemapEntries = () => [
     changefreq: "yearly",
     priority: "0.3",
   },
+  {
+    loc: `${SITE_URL}/terms`,
+    changefreq: "yearly",
+    priority: "0.3",
+  },
   ...lookPresets.map((preset) => ({
     loc: `${SITE_URL}/looks/${preset.id}`,
     changefreq: "monthly",

@@ -29,6 +29,7 @@ describe("AboutOverlay", () => {
       ["→Changelog", "/changelog"],
       ["→Press kit", "/brand"],
       ["→Privacy", "/privacy"],
+      ["→Terms", "/terms"],
     ]);
     for (const link of internal) {
       // Same tab, like every other internal link, and to a page that exists.

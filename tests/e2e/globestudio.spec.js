@@ -943,15 +943,46 @@ test.describe("on a phone, swiping the sheet", () => {
   });
 });
 
-for (const path of ["/", "/docs", "/integrations", "/brand", "/privacy"]) {
+for (const path of ["/", "/docs", "/integrations", "/brand", "/privacy", "/terms"]) {
   test(`axe has no serious violations on ${path}`, async ({ page }) => {
     await page.goto(path);
     if (path === "/") await waitForCanvas(page);
-    // /privacy is a lazy route: audit the policy, not the Suspense fallback.
+    // /privacy and /terms are lazy routes: audit the page, not the Suspense
+    // fallback.
     if (path === "/privacy") {
       await expect(page.getByRole("heading", { level: 1, name: "Privacy" })).toBeVisible();
     }
+    if (path === "/terms") {
+      await expect(page.getByRole("heading", { level: 1, name: "Terms of use" })).toBeVisible();
+    }
     await expectNoSeriousAxeViolations(page);
+  });
+}
+
+test("/terms shows the terms of use, links the privacy page and gives GitHub issues as the only contact", async ({ page }) => {
+  await page.goto("/terms");
+  await expect(page.getByRole("heading", { level: 1, name: "Terms of use" })).toBeVisible();
+  await expect(page).toHaveTitle("Terms of use · Globestudio");
+  for (const name of ["Using Globestudio", "What you make", "Map data", "Source code", "The service", "Liability", "Privacy", "Changes", "Contact"]) {
+    await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+  }
+  const main = page.getByRole("main");
+  await expect(main.getByRole("link", { name: "privacy page" })).toHaveAttribute("href", "/privacy");
+  await expect(main.getByRole("link", { name: "github.com/alevizio/globestudio/issues" })).toHaveAttribute(
+    "href",
+    "https://github.com/alevizio/globestudio/issues",
+  );
+  // Ale's call: no email address anywhere on the policy pages.
+  expect(await main.innerText()).not.toMatch(/\S+@\S+\.\w+/);
+  await expect(main.locator('a[href^="mailto:"]')).toHaveCount(0);
+});
+
+for (const path of ["/docs", "/privacy", "/terms"]) {
+  test(`the footer on ${path} links Privacy and Terms`, async ({ page }) => {
+    await page.goto(path);
+    const footer = page.getByRole("navigation", { name: "Site links" });
+    await expect(footer.getByRole("link", { name: "Privacy", exact: true })).toHaveAttribute("href", "/privacy");
+    await expect(footer.getByRole("link", { name: "Terms", exact: true })).toHaveAttribute("href", "/terms");
   });
 }
 

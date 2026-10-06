@@ -7,7 +7,7 @@ describe("TakeoverFooter", () => {
   it("links every site page and every compare page", () => {
     render(<TakeoverFooter />);
     const hrefs = screen.getAllByRole("link").map((link) => link.getAttribute("href"));
-    for (const page of ["/gallery", "/docs", "/integrations", "/examples", "/changelog", "/brand", "/privacy"]) {
+    for (const page of ["/gallery", "/docs", "/integrations", "/examples", "/changelog", "/brand", "/privacy", "/terms"]) {
       expect(hrefs).toContain(page);
     }
     expect(hrefs.filter((href) => href.startsWith("/compare/")).sort()).toEqual(

@@ -5,7 +5,7 @@
 // components import CSS) and writes the result into each file.
 //
 // Where a page is a self-contained component (compare, docs, integrations,
-// examples, brand, changelog, privacy, 404), this renders that component,
+// examples, brand, changelog, privacy, terms, 404), this renders that component,
 // so the static text is exactly what React shows after load. Home, looks
 // and the gallery are built from the same data the app renders: the canvas
 // app itself can't render outside a browser.
@@ -26,6 +26,7 @@ import { IntegrationsPage } from "../src/components/integrations-page.jsx";
 import { NotFoundPage } from "../src/components/not-found-page.jsx";
 import { PresetDetail } from "../src/components/preset-detail.jsx";
 import { PrivacyPage } from "../src/components/privacy-page.jsx";
+import { TermsPage } from "../src/components/terms-page.jsx";
 import { TakeoverFooter } from "../src/components/takeover-footer.jsx";
 
 const LookLinks = () => (
@@ -95,6 +96,7 @@ const PAGES = {
   brand: BrandPage,
   changelog: ChangelogPage,
   privacy: PrivacyPage,
+  terms: TermsPage,
 };
 
 const pageFor = (route, { facts = [] } = {}) => {

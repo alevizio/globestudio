@@ -350,7 +350,7 @@ No accounts. The studio renders everything in your browser. The only server
 code is the hosted MCP endpoint and the closed waitlist endpoint, which now
 answers 410. Vercel Analytics and Speed Insights
 don't load when your browser sends Do Not Track or Global Privacy Control, or
-when you opt out at `/privacy`.
+when you opt out at `/privacy`. The terms of use are at `/terms`.
 
 ## Contributing
 

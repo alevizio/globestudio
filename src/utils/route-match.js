@@ -15,7 +15,7 @@ export const APP_UNLOCK_PATH = "/studio-d74dea52";
 
 // Pages at /<name>. Exported so the route parity test can check that each
 // one has a prerendered file.
-export const PAGES = new Set(["brand", "docs", "changelog", "integrations", "examples", "gallery", "privacy"]);
+export const PAGES = new Set(["brand", "docs", "changelog", "integrations", "examples", "gallery", "privacy", "terms"]);
 
 // The slugs in data/comparisons.js, listed here so the comparison copy stays
 // in the lazy compare chunk. site-routes.test.js fails if they drift.

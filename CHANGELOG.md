@@ -6,6 +6,13 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ## [Unreleased]
 
+### Added
+
+- A terms of use page at `/terms`, styled like `/privacy`. It covers the
+  site, embeds, the MCP server, the npm packages, the agent skill and the
+  plugins. The footer, the About dialog, the sitemap and the READMEs link
+  it, and questions go to GitHub issues.
+
 ### Changed
 
 - Each MCP server tool has a short title, such as Find looks by style, and

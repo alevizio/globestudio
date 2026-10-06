@@ -84,6 +84,10 @@ const BUDGETS = [
   // Privacy policy — lazy /privacy route. Its CSS stays in index-*.css with
   // the other takeover pages, so there is no co-located stylesheet.
   { prefix: "privacy-page-",     ext: ".js",  raw:   9_000,  gzip:   3_000, lazy: true },
+  // Terms of use, lazy /terms route (4,565 / 1,491 bytes when added, Oct
+  // 2026). Like /privacy it uses the takeover styles in index-*.css, so it
+  // has no stylesheet of its own.
+  { prefix: "terms-page-",       ext: ".js",  raw:   5_300,  gzip:   1_750, lazy: true },
   // Comparison pages — lazy /compare/:slug route + co-located CSS.
   { prefix: "compare-page-",     ext: ".js",  raw:  10_000,  gzip:   3_500, lazy: true },
   { prefix: "compare-page-",     ext: ".css", raw:   3_500,  gzip:   1_500, lazy: true },

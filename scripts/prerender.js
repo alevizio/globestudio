@@ -5,7 +5,7 @@
 // identical title/description/og:image everywhere). This clones the built
 // dist/index.html into a per-route file with route-specific <head> meta
 // injected, so /looks/:id, /compare/:slug, /gallery, and the static pages
-// (/docs, /integrations, /examples, /brand, /changelog, /privacy) get unique,
+// (/docs, /integrations, /examples, /brand, /changelog, /privacy, /terms) get unique,
 // rich cards — and, critically, self-referencing canonicals. Each file's
 // <div id="root"> also gets the page's content as static HTML
 // (scripts/static-bodies.jsx), hidden for visitors with JS and replaced by
@@ -215,6 +215,13 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
       title: "Privacy · Globestudio",
       description:
         "What Globestudio does and doesn't collect. Cookieless analytics, no fingerprinting, no third-party advertisers.",
+    },
+    {
+      route: "terms",
+      crumb: "Terms of use",
+      title: "Terms of use · Globestudio",
+      description:
+        "The terms for using Globestudio: the site, its embeds, the MCP server, the npm packages, the agent skill and the plugins.",
     },
   ];
 

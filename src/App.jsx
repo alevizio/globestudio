@@ -175,6 +175,10 @@ const isTeaserActive = () => {
 const PrivacyPage = lazy(() =>
   import("./components/privacy-page.jsx").then((m) => ({ default: m.PrivacyPage })),
 );
+// Lazy for the same reason: only /terms reads it.
+const TermsPage = lazy(() =>
+  import("./components/terms-page.jsx").then((m) => ({ default: m.TermsPage })),
+);
 import { NotFoundPage } from "./components/not-found-page.jsx";
 import { Bug, DottedGlobe, Download, Github, Info, Keyboard, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "./components/icons.jsx";
 import { FollowTooltip } from "./components/ui/follow-tooltip.jsx";
@@ -256,6 +260,12 @@ const App = () => {
       return (
         <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
           <PrivacyPage />
+        </Suspense>
+      );
+    if (page === "terms")
+      return (
+        <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
+          <TermsPage />
         </Suspense>
       );
     if (page === "not-found") return <NotFoundPage />;

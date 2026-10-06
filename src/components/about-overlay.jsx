@@ -89,6 +89,10 @@ export const AboutOverlay = ({ open, onClose }) => {
                 <span aria-hidden="true">→</span>
                 <span>Privacy</span>
               </a>
+              <a className="about-link" href="/terms">
+                <span aria-hidden="true">→</span>
+                <span>Terms</span>
+              </a>
               <a
                 className="about-link"
                 href="https://github.com/alevizio/globestudio"

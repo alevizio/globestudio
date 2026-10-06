@@ -101,7 +101,7 @@ Each tool has a short title, such as Find looks by style, and is marked read-onl
 
 ## Privacy
 
-The hosted server reads only the arguments of each tool call, such as a look id, a style word, a color, a region or a Globestudio link. It answers from those and its built-in list of looks, and keeps nothing: no storage, no accounts, no cookies and no calls to any other service. It never sees the rest of your conversation. Vercel, which hosts it, sees each request's IP address, as any web host does, and keeps a request log for up to 30 days with the time, IP address, path, status, user agent and region of each request, not the tool arguments. Run locally with `npx -y @globestudio/mcp`, the server sends nothing anywhere. The full policy is at [globestudio.app/privacy](https://globestudio.app/privacy).
+The hosted server reads only the arguments of each tool call, such as a look id, a style word, a color, a region or a Globestudio link. It answers from those and its built-in list of looks, and keeps nothing: no storage, no accounts, no cookies and no calls to any other service. It never sees the rest of your conversation. Vercel, which hosts it, sees each request's IP address, as any web host does, and keeps a request log for up to 30 days with the time, IP address, path, status, user agent and region of each request, not the tool arguments. Run locally with `npx -y @globestudio/mcp`, the server sends nothing anywhere. The full policy is at [globestudio.app/privacy](https://globestudio.app/privacy), and the terms of use at [globestudio.app/terms](https://globestudio.app/terms).
 
 ## Troubleshooting
 
