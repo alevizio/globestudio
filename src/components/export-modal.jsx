@@ -45,6 +45,19 @@ const PHONE_TABS_QUERY = "(max-width: 540px)";
 const SKILL_TABS_QUERY = "(max-width: 687px)";
 const FIGMA_PLUGIN_URL = "https://www.figma.com/community/plugin/1641603648370488902/globestudio";
 
+// GLB is a 3D model of the design, so it sits with PNG: the stills.
+const IMAGE_FORMAT_OPTIONS = [
+  { id: "png", label: "PNG" },
+  { id: "glb", label: "GLB" },
+];
+
+// Merged opens in every viewer. Instanced is the smaller file, for the
+// engines that read EXT_mesh_gpu_instancing (three/glb-export.js).
+const GLB_DOTS_OPTIONS = [
+  { id: "merged", label: "Merged" },
+  { id: "instanced", label: "Instanced" },
+];
+
 const FPS_OPTIONS = [24, 30, 60];
 const DURATION_OPTIONS = [3, 5, 8, 12];
 
@@ -247,6 +260,8 @@ export const ExportModal = ({
   exportPng,
   copyPng,
   pngStatus,
+  exportGlb,
+  glbStatus,
   exportSvg,
   svgStatus,
   copySvg,
@@ -289,6 +304,10 @@ export const ExportModal = ({
     if (open && figmaPlugin) setAspect(initialAspect);
   }, [open, figmaPlugin, initialAspect]);
   const [quality, setQuality] = useState("standard");
+  // The Figma plugin inserts images on the canvas, so it has no GLB.
+  const [imageFormat, setImageFormat] = useState("png");
+  const glb = !figmaPlugin && imageFormat === "glb";
+  const [glbDots, setGlbDots] = useState("merged");
   const [fps, setFps] = useState(60);
   const [videoFormat, setVideoFormat] = useState("webm");
   const [videoSeconds, setVideoSeconds] = useState(Math.round((videoDurationMs ?? 5000) / 1000));
@@ -485,7 +504,11 @@ export const ExportModal = ({
 
         <div className="export-modal-body">
         <div key={tab} className="export-modal-pane">
-          {tab === "image" && (
+          {tab === "image" && !figmaPlugin && (
+            <PillRow label="Format" options={IMAGE_FORMAT_OPTIONS} value={imageFormat} onChange={setImageFormat} />
+          )}
+
+          {tab === "image" && !glb && (
             <>
               <PillRow label="Aspect" options={ASPECT_OPTIONS} value={aspect} onChange={setAspect} />
               <PillRow label="Quality" options={QUALITY_OPTIONS} value={quality} onChange={setQuality} />
@@ -502,6 +525,19 @@ export const ExportModal = ({
                 }}
               />
               <p className="export-modal-caption">Uses the current globe frame at export time.</p>
+            </>
+          )}
+
+          {/* No Aspect, Quality or size controls: a GLB has no frame. */}
+          {tab === "image" && glb && (
+            <>
+              <p className="export-modal-caption">Shader looks, effects and animation can't go into a GLB, only shapes and colors.</p>
+              <PillRow label="Dots" options={GLB_DOTS_OPTIONS} value={glbDots} onChange={setGlbDots} />
+              <p className="export-modal-caption">
+                {glbDots === "merged"
+                  ? "Every dot in one mesh. Opens in any glTF viewer, Apple Preview included."
+                  : "A smaller file for three.js, Babylon.js and Blender, with each dot an instance. Apple Preview shows only one dot."}
+              </p>
             </>
           )}
 
@@ -757,7 +793,7 @@ export const ExportModal = ({
 
         {/* The Image and Video CTAs sit below the scrolling body, so they
             stay on screen when the options overflow a short phone screen. */}
-        {tab === "image" && (
+        {tab === "image" && !glb && (
           <footer className="export-modal-footer">
             {pngStatus === "error" && (
               <p className="export-modal-error" role="alert">
@@ -799,6 +835,23 @@ export const ExportModal = ({
                 </p>
               </>
             )}
+          </footer>
+        )}
+        {tab === "image" && glb && (
+          <footer className="export-modal-footer">
+            {glbStatus === "error" && (
+              <p className="export-modal-error" role="alert">
+                Export failed. Try again.
+              </p>
+            )}
+            <button
+              type="button"
+              className={`export-modal-cta ${glbStatus === "saved" ? "is-success" : ""}`}
+              onClick={() => exportGlb?.({ instanced: glbDots === "instanced" })}
+            >
+              {glbStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
+              <span>{glbStatus === "saved" ? "GLB saved" : "Export GLB"}</span>
+            </button>
           </footer>
         )}
         {tab === "video" && videoSupported && (

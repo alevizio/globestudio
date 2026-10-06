@@ -588,6 +588,7 @@ const App = () => {
   const [shuffleFlash, setShuffleFlash] = useState(false);
   const [pngStatus, setPngStatus] = useState("idle");
   const [svgStatus, setSvgStatus] = useState("idle");
+  const [glbStatus, setGlbStatus] = useState("idle");
   const [appliedLookId, setAppliedLookId] = useState(null);
   // Persistent record of which preset is currently shown (vs appliedLookId
   // which clears 700ms after click for the ripple animation). Drives
@@ -1606,6 +1607,24 @@ const App = () => {
     image.src = url;
   };
 
+  // The design as a 3D model, built from the scene by the globe canvas
+  // (three/glb-export.js). A failure shows in the Image tab like a PNG's.
+  const exportGlb = async (options) => {
+    setGlbStatus((status) => (status === "error" ? "idle" : status));
+    try {
+      const bytes = await globeCanvasRef.current.exportGlb(options);
+      downloadBlob(new Blob([bytes], { type: "model/gltf-binary" }), buildExportFilename(selected.label, "glb", viewMode));
+      setGlbStatus("saved");
+      setStatusMessage("GLB saved");
+      window.setTimeout(() => setGlbStatus((status) => (status === "saved" ? "idle" : status)), 1800);
+      track("export_completed", { format: "glb", look: currentPresetId ?? "custom" });
+    } catch (error) {
+      console.error("GLB export failed", error);
+      setGlbStatus("error");
+      trackClientError("export-glb", error);
+    }
+  };
+
   // Copy image: the PNG that Export PNG would save, put on the clipboard
   // instead of in a file. Resolves once it is there and rejects if the
   // render or the clipboard fails.
@@ -2245,12 +2264,15 @@ const App = () => {
           setExportModalOpen(false);
           setVideoStatus((status) => (status === "error" ? "idle" : status));
           setPngStatus((status) => (status === "error" ? "idle" : status));
+          setGlbStatus((status) => (status === "error" ? "idle" : status));
         }}
         canvasWidth={globeCanvasRef.current?.clientWidth || globeCanvasRef.current?.width || 1920}
         canvasHeight={globeCanvasRef.current?.clientHeight || globeCanvasRef.current?.height || 1080}
         exportPng={exportPng}
         copyPng={copyPng}
         pngStatus={pngStatus}
+        exportGlb={exportGlb}
+        glbStatus={glbStatus}
         exportSvg={exportSvg}
         svgStatus={svgStatus}
         copySvg={copySvg}

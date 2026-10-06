@@ -295,6 +295,53 @@ describe("ExportModal", () => {
     });
   });
 
+  describe("GLB", () => {
+    it("sits next to PNG and swaps the frame controls for its own, with what a GLB leaves out", () => {
+      const exportGlb = vi.fn();
+      renderModal({ exportGlb });
+      fireEvent.click(screen.getByRole("button", { name: "GLB" }));
+      expect(screen.queryByText("Aspect")).toBeNull();
+      expect(screen.queryByLabelText("Export width")).toBeNull();
+      expect(screen.getByText("Shader looks, effects and animation can't go into a GLB, only shapes and colors.")).toBeTruthy();
+      const footer = document.querySelector(".export-modal-footer");
+      expect(within(footer).getAllByRole("button").map((button) => button.textContent)).toEqual(["Export GLB"]);
+
+      fireEvent.click(screen.getByRole("button", { name: "Export GLB" }));
+      expect(exportGlb).toHaveBeenLastCalledWith({ instanced: false });
+      fireEvent.click(screen.getByRole("button", { name: "Instanced" }));
+      expect(screen.getByText(/Apple Preview shows only one dot/)).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Export GLB" }));
+      expect(exportGlb).toHaveBeenLastCalledWith({ instanced: true });
+
+      fireEvent.click(screen.getByRole("button", { name: "PNG" }));
+      expect(screen.getByRole("button", { name: "Export PNG" })).toBeTruthy();
+    });
+
+    it("confirms a saved file and says so when an export fails", () => {
+      const { rerender } = renderModal({ exportGlb: vi.fn(), glbStatus: "saved" });
+      fireEvent.click(screen.getByRole("button", { name: "GLB" }));
+      expect(screen.getByRole("button", { name: "GLB saved" }).className).toContain("is-success");
+      rerender(
+        <ExportModal
+          open
+          onClose={vi.fn()}
+          canvasWidth={1200}
+          canvasHeight={800}
+          exportPng={vi.fn()}
+          exportGlb={vi.fn()}
+          glbStatus="error"
+        />,
+      );
+      expect(screen.getByRole("alert").textContent).toBe("Export failed. Try again.");
+    });
+
+    it("is left out inside the Figma plugin, which inserts images", () => {
+      renderModal({ exportGlb: vi.fn(), figmaPlugin: true });
+      expect(screen.queryByRole("button", { name: "GLB" })).toBeNull();
+      expect(screen.getByRole("button", { name: "Insert into Figma" })).toBeTruthy();
+    });
+  });
+
   describe("the Share tab's embed code", () => {
     const CONFIG = '{"v":2,"density":60}';
     const SHARE_URL = `https://globestudio.app/?c=${encodeURIComponent(CONFIG)}`;
