@@ -8,6 +8,10 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ### Changed
 
+- Each MCP server tool has a short title, such as Find looks by style, and
+  says it only reads: it changes nothing, deletes nothing and reaches
+  nothing outside the server. Anthropic's and OpenAI's directories ask for
+  both, and ChatGPT runs a read-only tool without asking first.
 - A new Figma plugin version: the address it loads drops the old teaser
   parameter, and its network access note says it loads the full studio,
   not the old embed picker. Nothing changes in how it works.

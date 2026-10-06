@@ -642,14 +642,29 @@ const previewUrl = (look: string) => {
 
 // --- Tool catalog (advertised to the client) ---------------------------------
 
+// Every tool only builds or reads links, embed code and preset data from its
+// arguments and the built-in catalog: it writes nothing, calls nothing outside
+// the server and gives the same answer to the same arguments. Clients read
+// these hints: ChatGPT asks the user to confirm any tool without readOnlyHint,
+// Anthropic's connector directory wants a title and readOnlyHint on every
+// tool, and OpenAI's plugin directory wants readOnlyHint, destructiveHint and
+// openWorldHint. The title is repeated in annotations for clients on the
+// 2025-03-26 protocol, which read it only there.
+const readOnlyTool = (title: string) => ({
+  title,
+  annotations: { title, readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+});
+
 const TOOL_DEFS = [
   {
     name: "list_presets",
+    ...readOnlyTool("List looks"),
     description: "List every Globestudio look preset with its id, name, blurb, vibe tags, thumbnail URL and embed URL. Call this first when the user asks about available looks.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
     name: "find_presets",
+    ...readOnlyTool("Find looks by style"),
     description: "Fuzzy-find presets by vibe / aesthetic / use-case keyword. Examples: 'synthwave' → Vapor; 'print' → Halftone, Risograph, Newsprint; 'retro' → CRT, BadTV, Pixel; 'glow' → Aurora, Bloom. Returns ranked matches.",
     inputSchema: {
       type: "object",
@@ -662,6 +677,7 @@ const TOOL_DEFS = [
   },
   {
     name: "build_share_url",
+    ...readOnlyTool("Build a share link"),
     description: "Build Globestudio URLs for a customized globe. Start from a preset (look) or change an existing link (share_url, e.g. one the user pasted): pass only the settings to change and everything else in the link is kept. Returns share_url (opens the studio with those settings) and embed_url (the bare canvas, for iframes).",
     inputSchema: {
       type: "object",
@@ -684,6 +700,7 @@ const TOOL_DEFS = [
   },
   {
     name: "read_share_url",
+    ...readOnlyTool("Read a share link"),
     description: "Decode a Globestudio link (a studio share link, a /looks/<id> link or an /embed URL) into the look and settings it carries. Use it when the user pastes a link, then pass the link as share_url to build_share_url with the changes they ask for.",
     inputSchema: {
       type: "object",
@@ -696,6 +713,7 @@ const TOOL_DEFS = [
   },
   {
     name: "embed_snippet",
+    ...readOnlyTool("Get embed code"),
     description: "Generate paste-ready embed code for any preset. Choose 'iframe' (HTML for Webflow / Notion / WordPress), 'react' (drop-in component), or 'script-tag' (vanilla JS loader).",
     inputSchema: {
       type: "object",
@@ -711,6 +729,7 @@ const TOOL_DEFS = [
   },
   {
     name: "preview_url",
+    ...readOnlyTool("Get a look's preview links"),
     description: "Get the canonical live embed URL + thumbnail PNG URL for a single preset. Useful when you want to render an inline preview without building a full share URL.",
     inputSchema: {
       type: "object",

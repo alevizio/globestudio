@@ -68,6 +68,23 @@ test("tools/list shows all six tools", async () => {
   ]);
 });
 
+test("every tool has a title and says it is read-only, non-destructive and closed-world", async () => {
+  // Anthropic's connector directory wants a title and readOnlyHint on every
+  // tool, OpenAI's plugin directory rejects a tool without readOnlyHint,
+  // destructiveHint and openWorldHint, and ChatGPT asks the user to confirm
+  // every call to a tool without readOnlyHint.
+  const { tools } = await client.listTools();
+  for (const tool of tools) {
+    assert.ok(tool.title, tool.name);
+    assert.deepEqual(
+      tool.annotations,
+      { title: tool.title, readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      tool.name,
+    );
+  }
+  assert.equal(new Set(tools.map((tool) => tool.title)).size, tools.length);
+});
+
 test("find_presets, build_share_url and read_share_url work over HTTP", async () => {
   const found = await call("find_presets", { vibe: "print" });
   assert.ok(found.some((p) => p.id === "halftone"));
