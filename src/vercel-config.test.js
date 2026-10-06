@@ -92,6 +92,16 @@ describe("vercel.json", () => {
     expect(headersFor("/mcp")).toContainEqual({ key: "Cache-Control", value: "no-store" });
   });
 
+  it("serves the OpenAI domain verification token as uncached plain text", () => {
+    // The plugin portal reads public/.well-known/openai-apps-challenge and
+    // wants the bare token. The file has no extension, so without this the
+    // type would be guessed, and a cached old token would fail a new check.
+    expect(headersFor("/.well-known/openai-apps-challenge")).toEqual([
+      { key: "Content-Type", value: "text/plain; charset=utf-8" },
+      { key: "Cache-Control", value: "no-store" },
+    ]);
+  });
+
   it("caches content-hashed assets for a year", () => {
     expect(headersFor("/assets/index-deadbeef.js")).toContainEqual({
       key: "Cache-Control",
