@@ -52,8 +52,13 @@ Globestudio runs a hosted MCP server at **`https://globestudio.app/mcp`**
 Tools: `list_presets`, `find_presets`, `build_share_url`, `embed_snippet`,
 `preview_url`, and `read_share_url`, which decodes a share link the user pastes
 (`/?c=…`, `/looks/<id>?c=…` or an `/embed` URL) into its look and settings so
-you can change it and hand back a new link. The same tools run locally as
-**`@globestudio/mcp`** (`npx -y @globestudio/mcp`).
+you can change it and hand back a new link. `find_presets` takes a style word
+or a short phrase ("synthwave", "retro print"). Every tool has a title and is
+marked read-only: it only builds or reads links, stores nothing and calls no
+other service. The same tools run locally as **`@globestudio/mcp`**
+(`npx -y @globestudio/mcp`). What the hosted server receives and keeps:
+<https://globestudio.app/privacy#ai-tools>. Terms of use:
+<https://globestudio.app/terms>.
 
 A user without an MCP client can press **Copy for AI** in the export dialog's
 MCP tab. It copies a plain text prompt with the share link, the key

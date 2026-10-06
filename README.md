@@ -214,7 +214,10 @@ Globestudio runs a hosted [Model Context Protocol](https://modelcontextprotocol.
 server at **`https://globestudio.app/mcp`** (streamable HTTP, nothing to
 install, no account). From Claude, Codex, Cursor or any other MCP client, an
 agent can list and search looks, build share URLs, read a share link you paste
-(`read_share_url`), and get embed snippets without leaving the chat.
+(`read_share_url`), and get embed snippets without leaving the chat. Every
+tool only reads: it builds or reads links and stores nothing. The
+[privacy page](https://globestudio.app/privacy#ai-tools) says what the hosted
+server receives and keeps.
 
 | Client | Connect |
 |---|---|
