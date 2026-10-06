@@ -213,6 +213,18 @@ test("embed_snippet validates the look id", async () => {
   assert.ok(good.json.snippet.includes("https://globestudio.app/embed?look=halftone"));
 });
 
+test("find_presets matches a short phrase word by word, as its description promises", async () => {
+  const ids = async (vibe) => (await callTool("find_presets", { vibe })).json.map((p) => p.id);
+  assert.equal((await ids("synthwave"))[0], "vapor");
+  assert.equal((await ids("a synthwave vibe"))[0], "vapor");
+  assert.equal((await ids("neon 80s"))[0], "vapor");
+  const retroPrint = await ids("retro print");
+  for (const id of ["halftone", "risograph", "newsprint", "crt"]) assert.ok(retroPrint.includes(id), id);
+  assert.equal(retroPrint[0], "halftone");
+  assert.deepEqual(await ids("retro, print"), retroPrint);
+  assert.deepEqual(await ids("the look"), []);
+});
+
 test("list_presets matches the app's preset list, so link looks resolve", async () => {
   const { json } = await callTool("list_presets", {});
   assert.deepEqual(json.map((p) => p.id), lookPresets.map((p) => p.id));

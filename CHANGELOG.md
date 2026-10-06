@@ -18,6 +18,11 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ### Fixed
 
+- The MCP server's `find_presets` finds looks for a phrase of two or more
+  words, such as "retro print" or "a synthwave vibe". It returned nothing
+  for any phrase, though its description asks for a word or a short
+  phrase. It now also matches word by word, and a single word finds
+  exactly what it found before.
 - Data markers and arcs on the far side of the globe no longer show
   through it. They draw after the globe's sphere now, so its depth hides
   them the way it hides the far side's dots.

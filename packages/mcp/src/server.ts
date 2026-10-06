@@ -266,22 +266,31 @@ const listPresets = () => {
   }));
 };
 
+// Words in a phrase that say nothing about a look ("a synthwave look").
+const FILLER_WORDS = new Set(["the", "and", "for", "with", "look", "looks", "vibe", "vibes", "style", "globe", "map"]);
+
 const findPresets = (vibe: string) => {
   const q = vibe.toLowerCase().trim();
+  // A phrase such as "retro print" (or "retro, print") also matches word by
+  // word, so it finds what each word finds instead of nothing. The whole
+  // phrase still counts, and a single word scores exactly as it did before.
+  const words = q.split(/[^a-z0-9-]+/).filter((w) => w.length > 2 && w !== q && !FILLER_WORDS.has(w));
   const scored = PRESETS.map((p) => {
     const haystack = [p.id, p.name.toLowerCase(), p.blurb.toLowerCase(), ...p.tags].join(" ");
-    if (haystack.includes(q)) {
+    let matched = false;
+    let score = 0;
+    for (const term of [q, ...words]) {
+      if (!haystack.includes(term)) continue;
+      matched = true;
       // Score: exact tag match > name match > blurb match
-      let score = 0;
-      if (p.tags.includes(q)) score += 10;
-      if (p.name.toLowerCase() === q) score += 8;
-      if (p.id === q) score += 8;
-      if (p.tags.some((t) => t.includes(q))) score += 4;
-      if (p.name.toLowerCase().includes(q)) score += 3;
-      if (p.blurb.toLowerCase().includes(q)) score += 1;
-      return { p, score };
+      if (p.tags.includes(term)) score += 10;
+      if (p.name.toLowerCase() === term) score += 8;
+      if (p.id === term) score += 8;
+      if (p.tags.some((t) => t.includes(term))) score += 4;
+      if (p.name.toLowerCase().includes(term)) score += 3;
+      if (p.blurb.toLowerCase().includes(term)) score += 1;
     }
-    return null;
+    return matched ? { p, score } : null;
   }).filter((x): x is { p: typeof PRESETS[number]; score: number } => x !== null);
   scored.sort((a, b) => b.score - a.score);
   return scored.map(({ p }) => ({
