@@ -16,6 +16,14 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 
 const ENTRIES = [
   {
+    label: "Terms and AI tools",
+    date: "5 October 2026",
+    items: [
+      "Terms of use at /terms, and a privacy page that now covers hosting and AI tools and says the launch waitlist was deleted",
+      "AI tools connected to the MCP server find looks from a phrase like \"retro print\", where they used to find none",
+    ],
+  },
+  {
     label: "Light pages, Figma links and fixes",
     date: "5 October 2026",
     items: [

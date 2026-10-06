@@ -8,6 +8,16 @@
     <language>en-us</language>
     <lastBuildDate>Mon, 05 Oct 2026 12:00:00 GMT</lastBuildDate>
     <item>
+      <title>Terms and AI tools</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#terms-and-ai-tools</guid>
+      <pubDate>Mon, 05 Oct 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Terms of use at /terms, and a privacy page that now covers hosting and AI tools and says the launch waitlist was deleted</li>
+  <li>AI tools connected to the MCP server find looks from a phrase like &quot;retro print&quot;, where they used to find none</li>
+</ul>]]></description>
+    </item>
+    <item>
       <title>Light pages, Figma links and fixes</title>
       <link>https://globestudio.app/changelog</link>
       <guid isPermaLink="false">https://globestudio.app/changelog#light-pages%2C-figma-links-and-fixes</guid>
