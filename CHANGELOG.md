@@ -15,6 +15,8 @@ All notable changes to Globestudio are tracked here. Format follows
 - The MCP server's instructions no longer suggest adding the agent skill,
   so they only describe the server's own tools. The Claude and ChatGPT
   plugins bundle the skill with the server.
+- The MCP server's README says what the hosted server receives and keeps,
+  and how to fix common setup problems.
 - A new Figma plugin version: the address it loads drops the old teaser
   parameter, and its network access note says it loads the full studio,
   not the old embed picker. Nothing changes in how it works.
