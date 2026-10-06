@@ -254,6 +254,27 @@ describe("ExportModal", () => {
       }
     });
 
+    it("clears its status timer when the dialog closes, so nothing fires after", async () => {
+      const setTimeoutSpy = vi.spyOn(window, "setTimeout");
+      const clearTimeoutSpy = vi.spyOn(window, "clearTimeout");
+      try {
+        allowImageCopy();
+        const { unmount } = renderModal({ copyPng: vi.fn(() => Promise.resolve()) });
+        await act(async () => {
+          fireEvent.click(screen.getByRole("button", { name: "Copy image" }));
+        });
+        // The "Image copied" status goes back to idle after 1.8 s.
+        const index = setTimeoutSpy.mock.calls.findIndex(([, ms]) => ms === 1800);
+        expect(index).toBeGreaterThan(-1);
+        const timer = setTimeoutSpy.mock.results[index].value;
+        unmount();
+        expect(clearTimeoutSpy).toHaveBeenCalledWith(timer);
+      } finally {
+        setTimeoutSpy.mockRestore();
+        clearTimeoutSpy.mockRestore();
+      }
+    });
+
     it("says so when the copy fails, and can be tried again", async () => {
       allowImageCopy();
       const copyPng = vi.fn(() => Promise.reject(new Error("denied")));

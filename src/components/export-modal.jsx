@@ -293,6 +293,23 @@ export const ExportModal = ({
   const [videoFormat, setVideoFormat] = useState("webm");
   const [videoSeconds, setVideoSeconds] = useState(Math.round((videoDurationMs ?? 5000) / 1000));
   const [linkStatus, setLinkStatus] = useState("idle");
+  // "Copied" and "Copy failed" fall back to idle after a moment. The timers
+  // are cleared when the dialog unmounts, so none fires after it's gone.
+  const statusTimers = useRef(new Set());
+  useEffect(() => {
+    const timers = statusTimers.current;
+    return () => {
+      for (const timer of timers) window.clearTimeout(timer);
+      timers.clear();
+    };
+  }, []);
+  const resetLater = (setStatus, ms) => {
+    const timer = window.setTimeout(() => {
+      statusTimers.current.delete(timer);
+      setStatus("idle");
+    }, ms);
+    statusTimers.current.add(timer);
+  };
   const handleCopyLink = async () => {
     // Prefer the full-config share URL when the parent provides one
     // — it encodes the user's customizations in a `?c=…` param so the
@@ -310,10 +327,10 @@ export const ExportModal = ({
       // fallback isn't a share yet. `method` says which button, never
       // where the link goes (matches what /privacy documents).
       track("share_clicked", { method: "link" });
-      window.setTimeout(() => setLinkStatus("idle"), 1800);
+      resetLater(setLinkStatus, 1800);
     } catch {
       setLinkStatus("manual");
-      window.setTimeout(() => setLinkStatus("idle"), 3000);
+      resetLater(setLinkStatus, 3000);
     }
   };
   const [imageCopyStatus, setImageCopyStatus] = useState("idle");
@@ -385,10 +402,10 @@ export const ExportModal = ({
     try {
       await copyPng?.({ scale, width, height, aspect });
       setImageCopyStatus("copied");
-      window.setTimeout(() => setImageCopyStatus("idle"), 1800);
+      resetLater(setImageCopyStatus, 1800);
     } catch {
       setImageCopyStatus("failed");
-      window.setTimeout(() => setImageCopyStatus("idle"), 3000);
+      resetLater(setImageCopyStatus, 3000);
     }
   };
 
