@@ -880,6 +880,8 @@ test.describe("on a short phone screen", () => {
     await waitForCanvas(page);
     await page.getByRole("button", { name: "Open export dialog" }).click();
     await expect(page.getByRole("dialog", { name: /export/i })).toBeVisible();
+    // A phone opens on the list.
+    await page.getByRole("tab", { name: "Image" }).tap();
     const cta = page.getByRole("button", { name: /export png/i });
     await expect(cta).toBeVisible();
     const reachable = await cta.evaluate((el) => {
@@ -1107,7 +1109,7 @@ test("axe passes with export modal open and focus returns on close", async ({ pa
 test.describe("export dialog on a 320px wide phone", () => {
   test.use({ viewport: { width: 320, height: 568 }, isMobile: true, hasTouch: true });
 
-  test("every tab fits the dialog with its label whole, and the last one opens with a tap", async ({ page }) => {
+  test("opens on the list, every type whole, and a tap opens a panel with a way back", async ({ page }) => {
     await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
     await waitForCanvas(page);
     await page.getByRole("button", { name: "Open export dialog" }).click();
@@ -1115,44 +1117,41 @@ test.describe("export dialog on a 320px wide phone", () => {
     await expect(dialog).toBeVisible();
     await expect.poll(() => dialog.evaluate((el) => el.getAnimations().length)).toBe(0);
 
-    const tablist = dialog.getByRole("tablist", { name: "Export type" });
-    const row = await tablist.evaluate((list) => {
-      const edge = list.getBoundingClientRect();
+    const list = dialog.getByRole("tablist", { name: "Export type" });
+    await expect(list.locator(".export-modal-nav-name")).toHaveText(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"]);
+    await expect(dialog.getByRole("tabpanel")).toHaveCount(0);
+    const rows = await list.evaluate((nav) => {
+      const edge = nav.getBoundingClientRect();
       return {
         left: edge.left,
         right: edge.right,
-        overflows: list.scrollWidth > list.clientWidth,
-        tabs: [...list.querySelectorAll('[role="tab"]')].map((tab) => {
+        overflows: nav.scrollWidth > nav.clientWidth,
+        tabs: [...nav.querySelectorAll('[role="tab"]')].map((tab) => {
           const rect = tab.getBoundingClientRect();
-          const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
           return {
-            label: tab.textContent,
+            label: tab.querySelector(".export-modal-nav-name").textContent,
             left: rect.left,
             right: rect.right,
-            width: rect.width,
             height: rect.height,
-            clipped: tab.scrollWidth > tab.clientWidth,
-            reachable: hit === tab,
+            clipped: [...tab.children].some((line) => line.scrollWidth > line.clientWidth),
           };
         }),
       };
     });
-    // Six tabs don't fit this row, so the Figma tab is left out on a phone.
-    expect(row.tabs.map((tab) => tab.label)).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
-    expect(row.overflows).toBe(false);
-    for (const tab of row.tabs) {
-      expect(tab.left, tab.label).toBeGreaterThanOrEqual(row.left);
-      expect(tab.right, tab.label).toBeLessThanOrEqual(row.right + 0.5);
+    expect(rows.overflows).toBe(false);
+    for (const tab of rows.tabs) {
+      expect(tab.left, tab.label).toBeGreaterThanOrEqual(rows.left);
+      expect(tab.right, tab.label).toBeLessThanOrEqual(rows.right + 0.5);
       expect(tab.clipped, tab.label).toBe(false);
-      expect(tab.reachable, tab.label).toBe(true);
-      // The row keeps its height. WCAG 2.5.8 asks for 24px each way.
-      expect(tab.width, tab.label).toBeGreaterThanOrEqual(24);
-      expect(tab.height, tab.label).toBeGreaterThanOrEqual(38);
+      // WCAG 2.5.8 asks for 24px each way.
+      expect(tab.height, tab.label).toBeGreaterThanOrEqual(44);
     }
+    await expectNoSeriousAxeViolations(page);
 
-    const last = tablist.getByRole("tab").last();
-    await last.tap();
-    await expect(last).toHaveAttribute("aria-selected", "true");
+    await list.getByRole("tab", { name: "MCP" }).tap();
+    const panel = dialog.getByRole("tabpanel", { name: "MCP" });
+    await expect(panel).toBeFocused();
+    await expect(list).toBeHidden();
     await expect(dialog.getByRole("heading", { name: "Connect your agent" })).toBeVisible();
     // Nothing in the tab pushes the dialog wider than the screen.
     const body = await dialog.locator(".export-modal-body").evaluate((el) => ({
@@ -1177,6 +1176,12 @@ test.describe("export dialog on a 320px wide phone", () => {
     await expect(dialog.getByRole("group", { name: "mcp.json" })).toHaveAttribute("tabindex", "0");
     await settled();
     await expectNoSeriousAxeViolations(page);
+
+    // Back returns to the list, with focus on the type it came from.
+    await dialog.getByRole("button", { name: "Back to Export" }).tap();
+    await expect(list).toBeVisible();
+    await expect(dialog.getByRole("tabpanel")).toHaveCount(0);
+    await expect(list.getByRole("tab", { name: "MCP" })).toBeFocused();
   });
 });
 
@@ -1293,7 +1298,8 @@ test.describe("MCP tab", () => {
 
   test("each Connect tab shows its command for the hosted server", async ({ page }) => {
     const dialog = await openMcpTab(page);
-    const panel = dialog.getByRole("tabpanel");
+    // The clients' own panel, inside the dialog's MCP panel.
+    const panel = dialog.locator(".export-modal-pane").getByRole("tabpanel");
 
     // Connecting comes first, the one-off prompt after it.
     const headings = await dialog.getByRole("heading", { level: 3 }).allTextContents();
@@ -1314,7 +1320,7 @@ test.describe("MCP tab", () => {
       /^cursor:\/\/anysphere\.cursor-deeplink\/mcp\/install\?name=globestudio&config=/,
     );
 
-    // Arrow keys move between clients, like the dialog's own tabs.
+    // Arrow keys move between clients, as the up and down arrows do in the dialog's list.
     await dialog.getByRole("tab", { name: "Cursor" }).press("ArrowRight");
     await expect(dialog.getByRole("tab", { name: "Claude" })).toBeFocused();
     await expect(panel).toContainText("claude mcp add");
@@ -1328,37 +1334,31 @@ test.describe("MCP tab", () => {
     await expectNoSeriousAxeViolations(page);
   });
 
-  test("the dialog's arrow keys, Home and End reach all seven tabs", async ({ page }) => {
+  test("the list's up and down arrows, Home and End reach all eight types", async ({ page }) => {
     const dialog = await openMcpTab(page);
-    const selected = dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab", { selected: true });
-    await expect(dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab")).toHaveText([
-      "Image",
-      "Video",
-      "SVG",
-      "Figma",
-      "Share",
-      "MCP",
-      "Skill",
-    ]);
+    const list = dialog.getByRole("tablist", { name: "Export type" });
+    const selected = list.getByRole("tab", { selected: true });
+    await expect(list).toHaveAttribute("aria-orientation", "vertical");
+    await expect(list.locator(".export-modal-nav-name")).toHaveText(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"]);
 
     // Focus moves with the selection, as it does between the clients.
-    await dialog.getByRole("tab", { name: "MCP" }).press("ArrowRight");
-    await expect(selected).toHaveText("Skill");
+    await dialog.getByRole("tab", { name: "MCP" }).press("ArrowDown");
+    await expect(selected).toHaveAccessibleName("Skill");
     await expect(selected).toBeFocused();
-    for (const name of ["Image", "Video", "SVG", "Figma", "Share", "MCP"]) {
-      await page.keyboard.press("ArrowRight");
-      await expect(selected).toHaveText(name);
+    for (const name of ["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP"]) {
+      await page.keyboard.press("ArrowDown");
+      await expect(selected).toHaveAccessibleName(name);
       await expect(selected).toBeFocused();
     }
     await page.keyboard.press("Home");
-    await expect(selected).toHaveText("Image");
+    await expect(selected).toHaveAccessibleName("Image");
     await expect(selected).toBeFocused();
     await page.keyboard.press("End");
-    await expect(selected).toHaveText("Skill");
+    await expect(selected).toHaveAccessibleName("Skill");
     await expect(selected).toBeFocused();
     await expect(dialog.getByRole("heading", { name: "Teach your coding agent Globestudio" })).toBeVisible();
-    await page.keyboard.press("ArrowLeft");
-    await expect(selected).toHaveText("MCP");
+    await page.keyboard.press("ArrowUp");
+    await expect(selected).toHaveAccessibleName("MCP");
     await expect(dialog.getByRole("heading", { name: "Connect your agent" })).toBeVisible();
     // Tab then goes into the tab that is shown, not to another tab.
     await page.keyboard.press("Tab");
@@ -1645,7 +1645,7 @@ test.describe("embed code on a 320px wide phone", () => {
 test.describe("Figma tab", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 
-  const tabRow = (dialog) => dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab");
+  const names = (dialog) => dialog.getByRole("tablist", { name: "Export type" }).locator(".export-modal-nav-name");
   const openDialog = async (page) => {
     // Glow off, as in the PNG saved test.
     await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
@@ -1658,13 +1658,7 @@ test.describe("Figma tab", () => {
 
   test("copies the design as vectors or as an image, and links to the plugin", async ({ page }) => {
     const dialog = await openDialog(page);
-    await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Figma", "Share", "MCP", "Skill"]);
-    // The row still ends inside the dialog with seven tabs in it.
-    const edges = await dialog.evaluate((el) => {
-      const last = [...el.querySelectorAll('[role="tablist"][aria-label="Export type"] [role="tab"]')].pop();
-      return { tab: last.getBoundingClientRect().right, dialog: el.getBoundingClientRect().right };
-    });
-    expect(edges.tab).toBeLessThanOrEqual(edges.dialog);
+    await expect(names(dialog)).toHaveText(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"]);
 
     await dialog.getByRole("tab", { name: "Figma" }).click();
     await expect(dialog.getByRole("heading", { level: 3 })).toHaveText(["Paste into Figma", "Or design inside Figma"]);
@@ -1738,22 +1732,23 @@ test.describe("Figma tab", () => {
     await expect(dialog.getByRole("button", { name: "Copy as image" })).toBeFocused();
   });
 
-  test("gives way to Image when the window gets as narrow as a phone", async ({ page }) => {
+  test("goes back to the list, Figma still picked, when the window gets as narrow as a phone", async ({ page }) => {
     const dialog = await openDialog(page);
     await dialog.getByRole("tab", { name: "Figma" }).click();
     await expect(dialog.getByRole("heading", { name: "Paste into Figma" })).toBeVisible();
 
-    await page.setViewportSize({ width: 540, height: 720 });
-    await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Share", "MCP"]);
-    await expect(dialog.getByRole("tab", { name: "Image" })).toHaveAttribute("aria-selected", "true");
+    await page.setViewportSize({ width: 620, height: 720 });
+    await expect(names(dialog)).toHaveText(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"]);
+    await expect(dialog.getByRole("tab", { name: "Figma" })).toHaveAttribute("aria-selected", "true");
+    await expect(dialog.getByRole("tab", { name: "Figma" })).toBeFocused();
     await expect(dialog.getByRole("heading", { name: "Paste into Figma" })).toHaveCount(0);
-    await expect(dialog.getByRole("button", { name: /export png/i })).toBeVisible();
-    // The Figma tab had the focus, and the dialog takes it from there.
-    await expect(dialog).toBeFocused();
-    // One px wider the Figma tab is back.
-    // The Skill tab waits for the dialog's full width, from 688px.
-    await page.setViewportSize({ width: 541, height: 720 });
-    await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
+
+    await dialog.getByRole("tab", { name: "Figma" }).click();
+    await expect(dialog.getByRole("heading", { name: "Paste into Figma" })).toBeVisible();
+    // One px wider the list and the panel sit side by side again.
+    await page.setViewportSize({ width: 621, height: 720 });
+    await expect(dialog.getByRole("tablist", { name: "Export type" })).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Paste into Figma" })).toBeVisible();
   });
 });
 
@@ -1849,45 +1844,43 @@ test.describe("Skill tab", () => {
     await expect(dialog.getByRole("heading", { name: SKILL_HEADING })).toBeVisible();
     return dialog;
   };
-  // Where each tab of the dialog's row sits against the row's edges, as in
-  // the 320px phone test. The last tab has to end inside the row's side
-  // padding, which lines the tabs up with the header and the body.
-  const measureRow = (dialog) =>
+  // Where each type in the dialog's list sits against the list's edges, as
+  // in the 320px phone test: every name and line whole, inside the list.
+  const measureList = (dialog) =>
     dialog.getByRole("tablist", { name: "Export type" }).evaluate((list) => {
       const edge = list.getBoundingClientRect();
       return {
         left: edge.left,
         right: edge.right,
-        innerRight: edge.right - parseFloat(getComputedStyle(list).paddingRight),
         overflows: list.scrollWidth > list.clientWidth,
         tabs: [...list.querySelectorAll('[role="tab"]')].map((tab) => {
           const rect = tab.getBoundingClientRect();
           const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
           return {
-            label: tab.textContent,
+            label: tab.querySelector(".export-modal-nav-name").textContent,
             left: rect.left,
             right: rect.right,
-            clipped: tab.scrollWidth > tab.clientWidth,
-            reachable: hit === tab,
+            clipped: [...tab.children].some((line) => line.scrollWidth > line.clientWidth),
+            reachable: tab.contains(hit),
           };
         }),
       };
     });
-  const expectRowFits = (row, labels) => {
-    expect(row.tabs.map((tab) => tab.label)).toEqual(labels);
-    expect(row.overflows).toBe(false);
-    for (const tab of row.tabs) {
-      expect(tab.left, tab.label).toBeGreaterThanOrEqual(row.left);
-      expect(tab.right, tab.label).toBeLessThanOrEqual(row.innerRight + 0.5);
+  const expectListFits = (list, labels) => {
+    expect(list.tabs.map((tab) => tab.label)).toEqual(labels);
+    expect(list.overflows).toBe(false);
+    for (const tab of list.tabs) {
+      expect(tab.left, tab.label).toBeGreaterThanOrEqual(list.left);
+      expect(tab.right, tab.label).toBeLessThanOrEqual(list.right + 0.5);
       expect(tab.clipped, tab.label).toBe(false);
       expect(tab.reachable, tab.label).toBe(true);
     }
   };
-  const SEVEN = ["Image", "Video", "SVG", "Figma", "Share", "MCP", "Skill"];
+  const EIGHT = ["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"];
 
   test("comes last, and gives the heading, what the skill does, three ways to add it and the telemetry note", async ({ page }) => {
     const dialog = await openSkillTab(page);
-    expectRowFits(await measureRow(dialog), SEVEN);
+    expectListFits(await measureList(dialog), EIGHT);
     await expect(tabRow(dialog).last()).toHaveAttribute("aria-selected", "true");
 
     const pane = dialog.locator(".export-modal-pane");
@@ -1915,7 +1908,7 @@ test.describe("Skill tab", () => {
     await expect(dialog.locator(".export-modal-footer")).toHaveCount(0);
 
     // Each option's command, copied as it is shown.
-    const panel = dialog.getByRole("tabpanel");
+    const panel = pane.getByRole("tabpanel");
     for (const [name, label, command] of [
       ["npx skills", "npx skills", "npx skills add alevizio/globestudio"],
       [
@@ -1940,7 +1933,7 @@ test.describe("Skill tab", () => {
   test("its options move with the arrow keys, Home and End, and Tab reaches Copy with a ring", async ({ page }) => {
     const dialog = await openSkillTab(page);
     const options = dialog.getByRole("tablist", { name: SKILL_HEADING });
-    const panel = dialog.getByRole("tabpanel");
+    const panel = dialog.locator(".export-modal-pane").getByRole("tabpanel");
     // From the dialog's Skill tab, Tab goes into the tab that is shown.
     await dialog.getByRole("tab", { name: "Skill", exact: true }).focus();
     await page.keyboard.press("Tab");
@@ -1959,7 +1952,7 @@ test.describe("Skill tab", () => {
       await expect(option).toHaveAttribute("aria-selected", "true");
       await expect(panel).toContainText(command);
     }
-    // The dialog's own row stays on Skill.
+    // The dialog's own list stays on Skill.
     await expect(tabRow(dialog).last()).toHaveAttribute("aria-selected", "true");
     await expect(options.getByRole("tab", { name: "GitHub" })).toHaveCSS("outline-style", "solid");
 
@@ -1977,10 +1970,10 @@ test.describe("Skill tab", () => {
     { width: 1440, height: 900 },
     { width: 768, height: 1024 },
   ]) {
-    test(`fits seven tabs and passes axe at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    test(`fits the list and passes axe at ${viewport.width}x${viewport.height}`, async ({ page }) => {
       await page.setViewportSize(viewport);
       const dialog = await openSkillTab(page);
-      expectRowFits(await measureRow(dialog), SEVEN);
+      expectListFits(await measureList(dialog), EIGHT);
       await dialog.getByRole("tab", { name: "Claude Code" }).click();
       // Wait out the toggle's sliding pill and the pane's fade, so axe reads
       // the colors at rest.
@@ -1989,52 +1982,22 @@ test.describe("Skill tab", () => {
     });
   }
 
-  test("shows from the dialog's full width, where seven tabs fit, and gives way to Image below it", async ({ page }) => {
+  test("fits the list at every width, beside the panel down to 621px and on its own below", async ({ page }) => {
     // Without the web font the labels set in a wider fallback, the widest
-    // case the row has to hold.
+    // case the list has to hold.
     await page.route(/GeistPixel/, (route) => route.abort());
     const dialog = await openSkillTab(page);
-    await page.setViewportSize({ width: 688, height: 800 });
-    await expect(tabRow(dialog)).toHaveText(SEVEN);
-    expectRowFits(await measureRow(dialog), SEVEN);
-    await expect(tabRow(dialog).last()).toHaveAttribute("aria-selected", "true");
-
-    // One px narrower the Skill tab goes, and Image shows. The Figma tab stays.
-    await page.setViewportSize({ width: 687, height: 800 });
-    await expect(tabRow(dialog)).toHaveText(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
-    await expect(dialog.getByRole("tab", { name: "Image" })).toHaveAttribute("aria-selected", "true");
-    await expect(dialog.getByRole("heading", { name: SKILL_HEADING })).toHaveCount(0);
-    await expect(dialog.getByRole("button", { name: /export png/i })).toBeVisible();
-    // The Skill tab had the focus, and the dialog takes it from there.
-    await expect(dialog).toBeFocused();
-
-    // Wide enough again, the dialog goes back to Skill, as it does to Figma.
-    await page.setViewportSize({ width: 688, height: 800 });
-    await expect(tabRow(dialog)).toHaveText(SEVEN);
-    await expect(tabRow(dialog).last()).toHaveAttribute("aria-selected", "true");
-    await expect(dialog.getByRole("heading", { name: SKILL_HEADING })).toBeVisible();
-  });
-
-  test("fits the row at every width from the phone form up to the dialog's full width", async ({ page }) => {
-    // The widest labels, as in the test above.
-    await page.route(/GeistPixel/, (route) => route.abort());
-    const dialog = await openDialog(page);
-    const FIVE = ["Image", "Video", "SVG", "Share", "MCP"];
-    const SIX = ["Image", "Video", "SVG", "Figma", "Share", "MCP"];
-    // From 541px the Figma tab is back, and up to 564px six tabs at their
-    // desktop padding ran into the row's side padding or past the dialog.
-    const widths = [...Array.from({ length: 25 }, (_, i) => 540 + i), 600, 640, 687, 688];
-    for (const width of widths) {
+    for (const width of [1440, 1024, 768, 700, 621, 620, 375, 320]) {
       await test.step(`${width}px`, async () => {
         await page.setViewportSize({ width, height: 800 });
-        const labels = width <= 540 ? FIVE : width < 688 ? SIX : SEVEN;
-        await expect(tabRow(dialog)).toHaveText(labels);
-        expectRowFits(await measureRow(dialog), labels);
+        expectListFits(await measureList(dialog), EIGHT);
+        await expect(tabRow(dialog).last()).toHaveAttribute("aria-selected", "true");
+        // A phone shows the list on its own until a type is picked.
+        await expect(dialog.locator(".export-modal-panel")).toHaveCount(width > 620 ? 1 : 0);
+        const body = await dialog.evaluate((el) => [el.getBoundingClientRect().right, window.innerWidth]);
+        expect(body[0]).toBeLessThanOrEqual(body[1]);
       });
     }
-    // From 565px the tabs keep their desktop padding.
-    await page.setViewportSize({ width: 565, height: 800 });
-    await expect(tabRow(dialog).first()).toHaveCSS("padding-left", "20px");
   });
 
   test("the dialog keeps the block's height while the Skill tab's chunk loads", async ({ page }) => {
@@ -2062,41 +2025,33 @@ test.describe("Skill tab", () => {
   });
 });
 
-test.describe("Skill tab on a phone", () => {
-  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+test.describe("the export list on a phone", () => {
+  test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
-  test("is left out of the tab row, like the Figma tab", async ({ page }) => {
+  test("lists every type, and Back from a panel returns focus to it", async ({ page }) => {
     await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
     await waitForCanvas(page);
     await page.getByRole("button", { name: "Open export dialog" }).click();
     const dialog = page.getByRole("dialog", { name: /export/i });
-    await expect(dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab")).toHaveText([
-      "Image",
-      "Video",
-      "SVG",
-      "Share",
-      "MCP",
-    ]);
-    await expect(dialog.getByRole("tab", { name: "Skill", exact: true })).toHaveCount(0);
-  });
-});
+    const list = dialog.getByRole("tablist", { name: "Export type" });
+    await expect(list.locator(".export-modal-nav-name")).toHaveText(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"]);
+    await expect.poll(() => dialog.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+    await expectNoSeriousAxeViolations(page);
 
-test.describe("Figma tab on a phone", () => {
-  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    await list.getByRole("tab", { name: "3D" }).tap();
+    const panel = dialog.getByRole("tabpanel", { name: "3D" });
+    await expect(panel).toBeFocused();
+    await expect(dialog.getByRole("heading", { level: 2 })).toHaveText("3D");
+    await expect(panel.getByRole("button", { name: "Export GLB" })).toBeVisible();
+    await expect.poll(() => dialog.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+    await expectNoSeriousAxeViolations(page);
 
-  test("is left out of the tab row, which keeps its five tabs", async ({ page }) => {
-    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
-    await waitForCanvas(page);
-    await page.getByRole("button", { name: "Open export dialog" }).click();
-    const dialog = page.getByRole("dialog", { name: /export/i });
-    await expect(dialog.getByRole("tablist", { name: "Export type" }).getByRole("tab")).toHaveText([
-      "Image",
-      "Video",
-      "SVG",
-      "Share",
-      "MCP",
-    ]);
-    // Copy image is still there, so a phone can paste into Figma's app.
-    await expect(dialog.getByRole("button", { name: "Copy image" })).toBeVisible();
+    await dialog.getByRole("button", { name: "Back to Export" }).tap();
+    await expect(list.getByRole("tab", { name: "3D" })).toBeFocused();
+    await expect(dialog.getByRole("heading", { level: 2 })).toHaveText("Export");
+
+    // Figma's panel keeps Copy as image, so a phone can paste into Figma's app.
+    await list.getByRole("tab", { name: "Figma" }).tap();
+    await expect(dialog.getByRole("button", { name: "Copy as image" })).toBeVisible();
   });
 });

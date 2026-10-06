@@ -50,13 +50,11 @@ test.describe("studio inside the Figma plugin", () => {
 
     await page.getByRole("button", { name: "Insert into Figma" }).click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog.getByRole("tab", { name: "Image" })).toBeVisible();
-    await expect(dialog.getByRole("tab", { name: "SVG" })).toBeVisible();
-    await expect(dialog.getByRole("tab", { name: "Video" })).toHaveCount(0);
-    await expect(dialog.getByRole("tab", { name: "Share" })).toHaveCount(0);
-    await expect(dialog.getByRole("tab", { name: "MCP" })).toHaveCount(0);
-    await expect(dialog.getByRole("tab", { name: "Skill" })).toHaveCount(0);
+    // The plugin's 400px window opens on the list, as a phone does.
+    await expect(dialog.getByRole("tablist", { name: "Export type" }).locator(".export-modal-nav-name")).toHaveText(["Image", "SVG"]);
+    await expect(dialog.getByRole("tabpanel")).toHaveCount(0);
 
+    await dialog.getByRole("tab", { name: "Image" }).click();
     await dialog.getByRole("button", { name: "Insert into Figma" }).click();
     await expect.poll(() => page.evaluate(() => window.__inserts.length), { timeout: 60_000 }).toBe(1);
     const [png] = await page.evaluate(() => window.__inserts);
@@ -169,6 +167,7 @@ test.describe("pasting a share link into the Figma plugin", () => {
     await paste(page, shareLink({ selection: "country:BRA" }, "/looks/risograph"));
     await expect.poll(() => toasts(page)).toEqual(["⌘VLoaded the design from your link"]);
     await page.getByRole("button", { name: "Insert into Figma" }).click();
+    await page.getByRole("dialog").getByRole("tab", { name: "Image" }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Insert into Figma" }).click();
     await expect.poll(() => page.evaluate(() => window.__inserts), { timeout: 60_000 }).toEqual(["Globestudio · Risograph"]);
   });

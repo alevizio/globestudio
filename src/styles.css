@@ -4114,7 +4114,10 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
 }
 
 .export-modal {
-  width: min(640px, 100%);
+  /* The list's own width plus the panel's 640px (.export-modal-main), or
+     the screen's width when that is narrower. */
+  width: fit-content;
+  max-width: 100%;
   max-height: calc(100vh - 48px);
   /* svh: the height Safari's toolbars leave visible. */
   max-height: calc(100svh - 48px);
@@ -4180,55 +4183,104 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   border-color: var(--border-strong);
 }
 
-.export-modal-tabs {
+/* The list of export types beside the panel, like Spline's export panel:
+   each type's name over a muted line of what it makes. */
+.export-modal-main {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 640px);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.export-modal-nav {
   position: relative;
   display: flex;
+  flex-direction: column;
   gap: 4px;
-  /* Sides align with header + body (24px) so the dashed divider runs
-     across the modal's full content column without jogging in/out. */
-  padding: 12px 24px 0;
+  /* Left edge aligns with the header's title (24px). */
+  padding: 12px 12px 24px 24px;
+  overflow-y: auto;
 }
 
-/* Dashed divider line under the tab strip. */
-.export-modal-tabs::before {
+.export-modal-nav[hidden] {
+  display: none;
+}
+
+/* Dashed divider between the list and the panel. */
+.export-modal-nav::after {
   content: "";
   position: absolute;
-  bottom: 0;
-  left: 0;
+  top: 0;
   right: 0;
-  height: 1px;
-  background-image: linear-gradient(to right, var(--stroke-faint) 1px, transparent 1px);
-  background-size: 2px 1px;
-  background-repeat: repeat-x;
+  bottom: 0;
+  width: 1px;
+  background-image: linear-gradient(to bottom, var(--stroke-faint) 1px, transparent 1px);
+  background-size: 1px 2px;
+  background-repeat: repeat-y;
   pointer-events: none;
 }
 
-/* Single shared active-tab underline indicator. Position + width are
-   set as CSS variables from React after measuring the active tab; the
-   transform-based transition makes it slide smoothly when the user
-   switches tabs, rather than hard-cutting from one tab to the next. */
-.export-modal-tabs::after {
-  content: "";
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  height: 2px;
-  width: var(--tab-indicator-width, 0);
-  background: var(--accent);
-  border-radius: 1px;
-  opacity: var(--tab-indicator-opacity, 0);
-  transform: translateX(var(--tab-indicator-left, 0));
-  transition:
-    transform 280ms cubic-bezier(0.4, 0, 0.2, 1),
-    width 280ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 180ms ease;
-  pointer-events: none;
-  z-index: 1;
+.export-modal-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  outline: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .export-modal-tabs::after {
-    transition: opacity 180ms ease;
+.export-modal-panel > .export-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.export-modal-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.export-modal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  margin-left: -8px;
+  padding: 0 8px 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.export-modal-back svg {
+  transform: rotate(180deg);
+}
+
+.export-modal-back:hover {
+  color: var(--text);
+}
+
+/* Phones and the Figma plugin's window: the list fills the dialog, and a
+   picked type's panel takes its place (LIST_FIRST_QUERY in
+   export-modal.jsx). */
+@media (max-width: 620px) {
+  .export-modal {
+    width: 100%;
+  }
+
+  .export-modal-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .export-modal-nav {
+    padding: 0 24px 24px;
+  }
+
+  .export-modal-nav::after {
+    display: none;
   }
 }
 
@@ -5074,37 +5126,39 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   gap: 6px;
 }
 
-.export-modal-tab {
-  position: relative;
-  padding: 12px 20px 10px;
+.export-modal-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
   border: 0;
   background: transparent;
   color: var(--dim);
-  font-size: 14px;
-  font-weight: 700;
+  text-align: left;
   cursor: pointer;
-  transition: color 160ms var(--ease);
+  transition: background 160ms var(--ease), color 160ms var(--ease);
 }
 
-.export-modal-tab:hover {
+.export-modal-nav-item:hover {
+  background: var(--surface-hover);
   color: var(--muted);
 }
 
-.export-modal-tab.is-active {
+/* The pills' selected look (.export-modal-pill.is-active). */
+.export-modal-nav-item.is-active {
+  background: var(--accent-softer);
   color: var(--text);
 }
 
-/* Phones: at their desktop padding the studio's tabs run past the dialog's
-   edge, so they share the row instead. Each label stays whole and the room
-   left over is split between them. The Figma plugin's two tabs fit as they
-   are. From 541px the Figma tab joins the row, and six tabs only fit at
-   their desktop padding from 565px, so the row is shared up to 564px. */
-@media (max-width: 564px) {
-  .export-modal-tabs.is-crowded .export-modal-tab {
-    flex: 1 1 auto;
-    padding-left: 0;
-    padding-right: 0;
-  }
+.export-modal-nav-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.export-modal-nav-caption {
+  font-size: 12px;
+  color: var(--dim);
 }
 
 .export-modal-body {
@@ -8548,7 +8602,7 @@ input[type="range"]:active::-moz-range-thumb {
 .export-modal-cta,
 .export-modal-button,
 .export-modal-pill,
-.export-modal-tab,
+.export-modal-nav-item,
 .command-palette-row,
 .color-picker-stop,
 .color-picker-fill-tab,

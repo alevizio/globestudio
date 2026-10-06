@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useModalA11y } from "../hooks/use-modal-a11y.js";
-import { Check, Clipboard, Download, Share2, Upload, X } from "./icons.jsx";
+import { Check, ChevronRight, Clipboard, Download, Share2, Upload, X } from "./icons.jsx";
 import { track } from "./analytics.jsx";
 import { ErrorBoundary } from "./error-boundary.jsx";
 import { EmbedCode } from "./embed-code.jsx";
@@ -34,22 +34,11 @@ const QUALITY_OPTIONS = [
   { id: "ultra", label: "Ultra", scale: 4 },
 ];
 
-// The tab row's phone form, which leaves the Figma tab out. In styles.css
-// the tabs share the row up to 564px, as six don't fit at their desktop
-// padding below 565px.
-const PHONE_TABS_QUERY = "(max-width: 540px)";
-// The Skill tab, the seventh, shows from 688px, where the dialog has its
-// full 640px. Below that, seven tabs end in the row's side padding or past
-// the dialog's edge in some engines and fonts: up to 669px wide in WebKit
-// when the web font has not loaded.
-const SKILL_TABS_QUERY = "(max-width: 687px)";
+// Phones and the Figma plugin's 400px window show the list on its own
+// first, then one export type at a time with a way back, as iOS Settings
+// does. Keep in step with the @media block in styles.css.
+const LIST_FIRST_QUERY = "(max-width: 620px)";
 const FIGMA_PLUGIN_URL = "https://www.figma.com/community/plugin/1641603648370488902/globestudio";
-
-// GLB is a 3D model of the design, so it sits with PNG: the stills.
-const IMAGE_FORMAT_OPTIONS = [
-  { id: "png", label: "PNG" },
-  { id: "glb", label: "GLB" },
-];
 
 // Merged opens in every viewer. Instanced is the smaller file, for the
 // engines that read EXT_mesh_gpu_instancing (three/glb-export.js).
@@ -100,84 +89,50 @@ const computeDimensions = (baseW, baseH, aspectId, scale) => {
   return { width: Math.round(w * scale), height: Math.round(h * scale) };
 };
 
-const Tabs = ({ tab, setTab, hasVideo, hasFigma, hasSkill, figmaPlugin = false }) => {
-  // Inside the Figma plugin only what can land on the canvas: an image or
-  // editable vectors.
-  const tabs = [
-    { id: "image", label: "Image" },
-    hasVideo && !figmaPlugin && { id: "video", label: "Video" },
-    { id: "svg", label: "SVG" },
-    hasFigma && { id: "figma", label: "Figma" },
-    !figmaPlugin && { id: "share", label: "Share" },
-    !figmaPlugin && { id: "mcp", label: "MCP" },
-    hasSkill && { id: "skill", label: "Skill" },
+// The side list's export types: each one's name, then what it makes.
+// Inside the Figma plugin only what can land on the canvas: an image or
+// editable vectors.
+const exportTypes = ({ hasVideo, mp4Supported, figmaPlugin }) =>
+  [
+    { id: "image", label: "Image", caption: "PNG" },
+    hasVideo && !figmaPlugin && { id: "video", label: "Video", caption: mp4Supported ? "MP4, WebM, GIF" : "WebM, GIF" },
+    { id: "svg", label: "SVG", caption: "Vector" },
+    !figmaPlugin && { id: "3d", label: "3D", caption: "GLB" },
+    !figmaPlugin && { id: "figma", label: "Figma", caption: "Paste into a Figma file" },
+    !figmaPlugin && { id: "share", label: "Share", caption: "Link, embed" },
+    !figmaPlugin && { id: "mcp", label: "MCP", caption: "Connect your agent" },
+    !figmaPlugin && { id: "skill", label: "Skill", caption: "Teach your coding agent" },
   ].filter(Boolean);
 
-  // Refs to each tab button so we can measure the active one and slide
-  // a single underline indicator to its position. Keyed by tab id so the
-  // map survives re-renders without churn.
-  const listRef = useRef(null);
-  const tabRefs = useRef(new Map());
-  const [indicator, setIndicator] = useState({ left: 0, width: 0, visible: false });
-
-  useEffect(() => {
-    const list = listRef.current;
-    const node = tabRefs.current.get(tab);
-    if (!list || !node) return undefined;
-    const measure = () => {
-      const listRect = list.getBoundingClientRect();
-      const tabRect = node.getBoundingClientRect();
-      // The underline stops 12px short of the tab's sides. On a phone the
-      // tabs drop their side padding, and it runs the tab's full width.
-      const inset = Math.min(12, parseFloat(getComputedStyle(node).paddingLeft) || 0);
-      setIndicator({
-        left: tabRect.left - listRect.left + inset,
-        width: tabRect.width - inset * 2,
-        visible: true,
-      });
-    };
-    measure();
-    // Re-measure when fonts settle / the panel resizes — both can shift
-    // tab widths after the first paint.
-    const observer = new ResizeObserver(measure);
-    observer.observe(list);
-    return () => observer.disconnect();
-  }, [tab]);
-
-  // ARIA tablist convention: ArrowLeft/Right move selection, Home/End jump to
-  // ends. We wrap around so power users can hold the arrow key. Focus goes
-  // with the selection, so the ring and the next Tab start from the tab shown.
+const Tabs = ({ tabs, tab, onSelect, onOpen, tabRefs, idFor, panelId, hidden }) => {
+  // ARIA tablist convention for a vertical list: ArrowUp/Down move the
+  // selection, Home/End jump to the ends. We wrap around so power users can
+  // hold the arrow key. Focus goes with the selection, so the ring and the
+  // next Tab start from the type shown.
   const onKeyDown = (event) => {
     const currentIndex = tabs.findIndex((t) => t.id === tab);
     if (currentIndex < 0) return;
-    const select = (index) => {
-      event.preventDefault();
-      setTab(tabs[index].id);
-      tabRefs.current.get(tabs[index].id)?.focus();
-    };
-    if (event.key === "ArrowLeft") {
-      select((currentIndex - 1 + tabs.length) % tabs.length);
-    } else if (event.key === "ArrowRight") {
-      select((currentIndex + 1) % tabs.length);
-    } else if (event.key === "Home") {
-      select(0);
-    } else if (event.key === "End") {
-      select(tabs.length - 1);
-    }
+    const next = {
+      ArrowUp: (currentIndex - 1 + tabs.length) % tabs.length,
+      ArrowDown: (currentIndex + 1) % tabs.length,
+      Home: 0,
+      End: tabs.length - 1,
+    }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    onSelect(tabs[next].id);
+    tabRefs.current.get(tabs[next].id)?.focus();
   };
 
+  // The name alone names each type; the caption under it describes it.
   return (
-    <nav
-      ref={listRef}
-      className={`export-modal-tabs ${figmaPlugin ? "" : "is-crowded"}`}
+    <div
+      className="export-modal-nav"
       role="tablist"
       aria-label="Export type"
+      aria-orientation="vertical"
       onKeyDown={onKeyDown}
-      style={{
-        "--tab-indicator-left": `${indicator.left}px`,
-        "--tab-indicator-width": `${indicator.width}px`,
-        "--tab-indicator-opacity": indicator.visible ? 1 : 0,
-      }}
+      hidden={hidden}
     >
       {tabs.map((t) => (
         <button
@@ -188,15 +143,20 @@ const Tabs = ({ tab, setTab, hasVideo, hasFigma, hasSkill, figmaPlugin = false }
           }}
           type="button"
           role="tab"
+          id={idFor(t.id)}
           aria-selected={tab === t.id}
+          aria-controls={tab === t.id && panelId ? panelId : undefined}
+          aria-labelledby={`${idFor(t.id)}-name`}
+          aria-describedby={`${idFor(t.id)}-caption`}
           tabIndex={tab === t.id ? 0 : -1}
-          className={`export-modal-tab ${tab === t.id ? "is-active" : ""}`}
-          onClick={() => setTab(t.id)}
+          className={`export-modal-nav-item ${tab === t.id ? "is-active" : ""}`}
+          onClick={() => onOpen(t.id)}
         >
-          {t.label}
+          <span id={`${idFor(t.id)}-name`} className="export-modal-nav-name">{t.label}</span>
+          <span id={`${idFor(t.id)}-caption`} className="export-modal-nav-caption">{t.caption}</span>
         </button>
       ))}
-    </nav>
+    </div>
   );
 };
 
@@ -286,17 +246,19 @@ export const ExportModal = ({
   // utils/vector-note.js). Both say so when it isn't empty.
   vectorDrops,
 }) => {
-  const [selectedTab, setTab] = useState("image");
-  // Six tabs don't fit the tab row's phone form, so the Figma tab is left
-  // out of it there, and inside the Figma plugin. The Skill tab, the
-  // seventh, is left out of those and of a row too narrow for seven. If a
-  // tab goes while it is selected (a window made narrow, a phone turned
-  // upright), Image shows.
-  const phoneTabs = useMediaQuery(PHONE_TABS_QUERY);
-  const narrowTabs = useMediaQuery(SKILL_TABS_QUERY);
-  const hasFigma = !figmaPlugin && !phoneTabs;
-  const hasSkill = hasFigma && !narrowTabs;
-  const tab = (selectedTab === "figma" && !hasFigma) || (selectedTab === "skill" && !hasSkill) ? "image" : selectedTab;
+  const [tab, setTab] = useState("image");
+  const types = exportTypes({ hasVideo: videoSupported, mp4Supported, figmaPlugin });
+  // On a phone the dialog opens on the list, and picking a type opens its
+  // panel (drilled). Elsewhere the list and the panel sit side by side.
+  const listFirst = useMediaQuery(LIST_FIRST_QUERY);
+  const [drilled, setDrilled] = useState(false);
+  const showList = !listFirst || !drilled;
+  const showPanel = !listFirst || drilled;
+  const tabRefs = useRef(new Map());
+  const panelRef = useRef(null);
+  const navId = useId();
+  const idFor = (id) => `${navId}-${id}`;
+  const panelId = `${navId}-panel`;
   const [aspect, setAspect] = useState(initialAspect);
   // In the Figma plugin each opening starts from the crop that fits the
   // current view (square globe, wide flat map).
@@ -304,9 +266,6 @@ export const ExportModal = ({
     if (open && figmaPlugin) setAspect(initialAspect);
   }, [open, figmaPlugin, initialAspect]);
   const [quality, setQuality] = useState("standard");
-  // The Figma plugin inserts images on the canvas, so it has no GLB.
-  const [imageFormat, setImageFormat] = useState("png");
-  const glb = !figmaPlugin && imageFormat === "glb";
   const [glbDots, setGlbDots] = useState("merged");
   const [fps, setFps] = useState(60);
   const [videoFormat, setVideoFormat] = useState("webm");
@@ -357,9 +316,13 @@ export const ExportModal = ({
   const dialogRef = useRef(null);
   const vectorNoteId = useId();
   const [importFailed, setImportFailed] = useState(false);
-  // A failed import from an earlier visit shouldn't greet the next one.
+  // A failed import from an earlier visit shouldn't greet the next one, and
+  // a phone opens on the list again.
   useEffect(() => {
-    if (!open) setImportFailed(false);
+    if (!open) {
+      setImportFailed(false);
+      setDrilled(false);
+    }
   }, [open]);
 
   const baseDims = useMemo(() => {
@@ -401,6 +364,24 @@ export const ExportModal = ({
     containerRef: dialogRef,
     backdropSelector: ".export-modal-backdrop",
   });
+
+  // On a phone, opening a panel moves focus into it, and Back returns it to
+  // the type it came from, once the list or the panel has rendered.
+  const pendingFocus = useRef(null);
+  useEffect(() => {
+    pendingFocus.current?.();
+    pendingFocus.current = null;
+  });
+  const openPanel = (id) => {
+    setTab(id);
+    if (!listFirst) return;
+    setDrilled(true);
+    pendingFocus.current = () => panelRef.current?.focus();
+  };
+  const backToList = () => {
+    setDrilled(false);
+    pendingFocus.current = () => tabRefs.current.get(tab)?.focus();
+  };
 
   if (!open) return null;
 
@@ -482,7 +463,17 @@ export const ExportModal = ({
         onClick={(event) => event.stopPropagation()}
       >
         <header className="export-modal-header">
-          <h2 className="export-modal-title">Export</h2>
+          {listFirst && drilled ? (
+            <div className="export-modal-heading">
+              <button type="button" className="export-modal-back" onClick={backToList} aria-label="Back to Export">
+                <ChevronRight size={18} aria-hidden="true" />
+                <span>Export</span>
+              </button>
+              <h2 className="export-modal-title">{types.find((type) => type.id === tab)?.label}</h2>
+            </div>
+          ) : (
+            <h2 className="export-modal-title">Export</h2>
+          )}
           <button
             type="button"
             className="export-modal-close"
@@ -493,22 +484,32 @@ export const ExportModal = ({
           </button>
         </header>
 
+        {/* The list, then the shown type's panel: side by side, or one at
+            a time on a phone (see LIST_FIRST_QUERY). */}
+        <div className="export-modal-main">
         <Tabs
+          tabs={types}
           tab={tab}
-          setTab={setTab}
-          hasVideo={videoSupported}
-          hasFigma={hasFigma}
-          hasSkill={hasSkill}
-          figmaPlugin={figmaPlugin}
+          onSelect={setTab}
+          onOpen={openPanel}
+          tabRefs={tabRefs}
+          idFor={idFor}
+          panelId={showPanel ? panelId : null}
+          hidden={!showList}
         />
 
+        {showPanel && (
+        <div
+          ref={panelRef}
+          id={panelId}
+          className="export-modal-panel"
+          role="tabpanel"
+          aria-labelledby={`${idFor(tab)}-name`}
+          tabIndex={-1}
+        >
         <div className="export-modal-body">
         <div key={tab} className="export-modal-pane">
-          {tab === "image" && !figmaPlugin && (
-            <PillRow label="Format" options={IMAGE_FORMAT_OPTIONS} value={imageFormat} onChange={setImageFormat} />
-          )}
-
-          {tab === "image" && !glb && (
+          {tab === "image" && (
             <>
               <PillRow label="Aspect" options={ASPECT_OPTIONS} value={aspect} onChange={setAspect} />
               <PillRow label="Quality" options={QUALITY_OPTIONS} value={quality} onChange={setQuality} />
@@ -525,19 +526,6 @@ export const ExportModal = ({
                 }}
               />
               <p className="export-modal-caption">Uses the current globe frame at export time.</p>
-            </>
-          )}
-
-          {/* No Aspect, Quality or size controls: a GLB has no frame. */}
-          {tab === "image" && glb && (
-            <>
-              <p className="export-modal-caption">Shader looks, effects and animation can't go into a GLB, only shapes and colors.</p>
-              <PillRow label="Dots" options={GLB_DOTS_OPTIONS} value={glbDots} onChange={setGlbDots} />
-              <p className="export-modal-caption">
-                {glbDots === "merged"
-                  ? "Every dot in one mesh. Opens in any glTF viewer, Apple Preview included."
-                  : "A smaller file for three.js, Babylon.js and Blender, with each dot an instance. Apple Preview shows only one dot."}
-              </p>
             </>
           )}
 
@@ -631,6 +619,18 @@ export const ExportModal = ({
                       : "Copy SVG to clipboard"}
                 </span>
               </button>
+            </>
+          )}
+
+          {tab === "3d" && (
+            <>
+              <p className="export-modal-caption">Shader looks, effects and animation can't go into a GLB, only shapes and colors.</p>
+              <PillRow label="Dots" options={GLB_DOTS_OPTIONS} value={glbDots} onChange={setGlbDots} />
+              <p className="export-modal-caption">
+                {glbDots === "merged"
+                  ? "Every dot in one mesh. Opens in any glTF viewer, Apple Preview included."
+                  : "A smaller file for three.js, Babylon.js and Blender, with each dot an instance. Apple Preview shows only one dot."}
+              </p>
             </>
           )}
 
@@ -791,9 +791,9 @@ export const ExportModal = ({
         </div>
         </div>
 
-        {/* The Image and Video CTAs sit below the scrolling body, so they
+        {/* The Image, Video and 3D CTAs sit below the scrolling body, so they
             stay on screen when the options overflow a short phone screen. */}
-        {tab === "image" && !glb && (
+        {tab === "image" && (
           <footer className="export-modal-footer">
             {pngStatus === "error" && (
               <p className="export-modal-error" role="alert">
@@ -837,23 +837,6 @@ export const ExportModal = ({
             )}
           </footer>
         )}
-        {tab === "image" && glb && (
-          <footer className="export-modal-footer">
-            {glbStatus === "error" && (
-              <p className="export-modal-error" role="alert">
-                Export failed. Try again.
-              </p>
-            )}
-            <button
-              type="button"
-              className={`export-modal-cta ${glbStatus === "saved" ? "is-success" : ""}`}
-              onClick={() => exportGlb?.({ instanced: glbDots === "instanced" })}
-            >
-              {glbStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
-              <span>{glbStatus === "saved" ? "GLB saved" : "Export GLB"}</span>
-            </button>
-          </footer>
-        )}
         {tab === "video" && videoSupported && (
           <footer className="export-modal-footer">
             {isRecording && (
@@ -881,6 +864,26 @@ export const ExportModal = ({
             </button>
           </footer>
         )}
+        {tab === "3d" && (
+          <footer className="export-modal-footer">
+            {glbStatus === "error" && (
+              <p className="export-modal-error" role="alert">
+                Export failed. Try again.
+              </p>
+            )}
+            <button
+              type="button"
+              className={`export-modal-cta ${glbStatus === "saved" ? "is-success" : ""}`}
+              onClick={() => exportGlb?.({ instanced: glbDots === "instanced" })}
+            >
+              {glbStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
+              <span>{glbStatus === "saved" ? "GLB saved" : "Export GLB"}</span>
+            </button>
+          </footer>
+        )}
+        </div>
+        )}
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 const CANVAS_TIMEOUT = process.env.CI ? 40_000 : 20_000;
 const EXPORT_TIMEOUT = process.env.CI ? 45_000 : 20_000;
 
-test("exports the design as a GLB from the Image tab", async ({ page }) => {
+test("exports the design as a GLB from the 3D tab", async ({ page }) => {
   await page.goto("/");
   const canvas = page.locator(".globe-background canvas");
   await expect(canvas).toBeVisible({ timeout: CANVAS_TIMEOUT });
@@ -13,10 +13,9 @@ test("exports the design as a GLB from the Image tab", async ({ page }) => {
     .toBe(true);
   await page.keyboard.press("d");
   const dialog = page.getByRole("dialog", { name: /export/i });
-  await dialog.getByRole("button", { name: "GLB" }).click();
+  await dialog.getByRole("tab", { name: "3D" }).click();
+  await expect(dialog.getByRole("tab", { name: "3D" })).toHaveAccessibleDescription("GLB");
   await expect(dialog.getByText("Shader looks, effects and animation can't go into a GLB, only shapes and colors.")).toBeVisible();
-  // A GLB has no frame, so the PNG's size controls go.
-  await expect(dialog.getByRole("button", { name: "Draft" })).toHaveCount(0);
 
   // Merged first, then Instanced.
   const save = async () => {

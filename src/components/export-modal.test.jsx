@@ -53,6 +53,9 @@ const stubWindowWidth = (initial) => {
   };
 };
 
+// A type's name in the side list, without the caption under it.
+const tabName = (tab) => tab.querySelector(".export-modal-nav-name").textContent;
+
 const renderModal = (props = {}) =>
   render(
     <ExportModal
@@ -295,11 +298,100 @@ describe("ExportModal", () => {
     });
   });
 
-  describe("GLB", () => {
-    it("sits next to PNG and swaps the frame controls for its own, with what a GLB leaves out", () => {
+  describe("the side list", () => {
+    const list = () => screen.getByRole("tablist", { name: "Export type" });
+    afterEach(() => {
+      delete window.matchMedia;
+    });
+
+    it("names each type and says under it what it makes", () => {
+      renderModal({ mp4Supported: true });
+      expect(list().getAttribute("aria-orientation")).toBe("vertical");
+      const rows = within(list()).getAllByRole("tab").map((tab) => [tabName(tab), tab.querySelector(".export-modal-nav-caption").textContent]);
+      expect(rows).toEqual([
+        ["Image", "PNG"],
+        ["Video", "MP4, WebM, GIF"],
+        ["SVG", "Vector"],
+        ["3D", "GLB"],
+        ["Figma", "Paste into a Figma file"],
+        ["Share", "Link, embed"],
+        ["MCP", "Connect your agent"],
+        ["Skill", "Teach your coding agent"],
+      ]);
+      // The name names the tab; the caption describes it.
+      expect(screen.getByRole("tab", { name: "3D", description: "GLB" })).toBeTruthy();
+    });
+
+    it("leaves MP4 out of the Video line where the browser can't make one", () => {
+      renderModal();
+      expect(screen.getByRole("tab", { name: "Video", description: "WebM, GIF" })).toBeTruthy();
+    });
+
+    it("shows the picked type's panel beside it, labelled by its name", () => {
+      renderModal();
+      fireEvent.click(screen.getByRole("tab", { name: "SVG" }));
+      const panel = screen.getByRole("tabpanel", { name: "SVG" });
+      expect(screen.getByRole("tab", { name: "SVG" }).getAttribute("aria-controls")).toBe(panel.id);
+      expect(within(panel).getByRole("button", { name: "Download SVG" })).toBeTruthy();
+      expect(list().hidden).toBe(false);
+    });
+
+    describe("on a phone", () => {
+      it("opens on the list, then shows a type's panel with a way back that returns focus to it", () => {
+        stubWindowWidth(375);
+        renderModal({ exportGlb: vi.fn() });
+        expect(window.matchMedia).toHaveBeenCalledWith("(max-width: 620px)");
+        expect(screen.queryByRole("tabpanel")).toBeNull();
+        expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("Export");
+
+        fireEvent.click(screen.getByRole("tab", { name: "3D" }));
+        const panel = screen.getByRole("tabpanel", { name: "3D" });
+        expect(document.activeElement).toBe(panel);
+        expect(screen.queryByRole("tablist", { name: "Export type" })).toBeNull();
+        expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("3D");
+        expect(within(panel).getByRole("button", { name: "Export GLB" })).toBeTruthy();
+
+        fireEvent.click(screen.getByRole("button", { name: "Back to Export" }));
+        expect(screen.queryByRole("tabpanel")).toBeNull();
+        expect(document.activeElement).toBe(screen.getByRole("tab", { name: "3D" }));
+        expect(screen.getByRole("tab", { name: "3D" }).getAttribute("aria-selected")).toBe("true");
+      });
+
+      it("moves the selection with the arrows without leaving the list", () => {
+        stubWindowWidth(375);
+        renderModal();
+        fireEvent.keyDown(list(), { key: "ArrowDown" });
+        expect(screen.getByRole("tab", { name: "Video" }).getAttribute("aria-selected")).toBe("true");
+        expect(screen.queryByRole("tabpanel")).toBeNull();
+      });
+
+      it("opens on the list again the next time", () => {
+        stubWindowWidth(375);
+        const props = { onClose: vi.fn(), canvasWidth: 1200, canvasHeight: 800, exportPng: vi.fn() };
+        const { rerender } = render(<ExportModal open {...props} />);
+        fireEvent.click(screen.getByRole("tab", { name: "SVG" }));
+        expect(screen.getByRole("tabpanel", { name: "SVG" })).toBeTruthy();
+        rerender(<ExportModal open={false} {...props} />);
+        rerender(<ExportModal open {...props} />);
+        expect(screen.queryByRole("tabpanel")).toBeNull();
+        expect(screen.getByRole("tab", { name: "SVG" }).getAttribute("aria-selected")).toBe("true");
+      });
+
+      it("lists only Image and SVG inside the Figma plugin, list first too", () => {
+        stubWindowWidth(400);
+        renderModal({ figmaPlugin: true });
+        expect(within(list()).getAllByRole("tab").map(tabName)).toEqual(["Image", "SVG"]);
+        fireEvent.click(screen.getByRole("tab", { name: "Image" }));
+        expect(screen.getByRole("button", { name: "Insert into Figma" })).toBeTruthy();
+      });
+    });
+  });
+
+  describe("the 3D tab", () => {
+    it("exports a GLB, Merged or Instanced, and says what a GLB leaves out", () => {
       const exportGlb = vi.fn();
       renderModal({ exportGlb });
-      fireEvent.click(screen.getByRole("button", { name: "GLB" }));
+      fireEvent.click(screen.getByRole("tab", { name: "3D" }));
       expect(screen.queryByText("Aspect")).toBeNull();
       expect(screen.queryByLabelText("Export width")).toBeNull();
       expect(screen.getByText("Shader looks, effects and animation can't go into a GLB, only shapes and colors.")).toBeTruthy();
@@ -312,14 +404,11 @@ describe("ExportModal", () => {
       expect(screen.getByText(/Apple Preview shows only one dot/)).toBeTruthy();
       fireEvent.click(screen.getByRole("button", { name: "Export GLB" }));
       expect(exportGlb).toHaveBeenLastCalledWith({ instanced: true });
-
-      fireEvent.click(screen.getByRole("button", { name: "PNG" }));
-      expect(screen.getByRole("button", { name: "Export PNG" })).toBeTruthy();
     });
 
     it("confirms a saved file and says so when an export fails", () => {
       const { rerender } = renderModal({ exportGlb: vi.fn(), glbStatus: "saved" });
-      fireEvent.click(screen.getByRole("button", { name: "GLB" }));
+      fireEvent.click(screen.getByRole("tab", { name: "3D" }));
       expect(screen.getByRole("button", { name: "GLB saved" }).className).toContain("is-success");
       rerender(
         <ExportModal
@@ -337,15 +426,16 @@ describe("ExportModal", () => {
 
     it("is left out inside the Figma plugin, which inserts images", () => {
       renderModal({ exportGlb: vi.fn(), figmaPlugin: true });
-      expect(screen.queryByRole("button", { name: "GLB" })).toBeNull();
-      expect(screen.getByRole("button", { name: "Insert into Figma" })).toBeTruthy();
+      expect(screen.queryByRole("tab", { name: "3D" })).toBeNull();
     });
   });
 
   describe("the Share tab's embed code", () => {
     const CONFIG = '{"v":2,"density":60}';
     const SHARE_URL = `https://globestudio.app/?c=${encodeURIComponent(CONFIG)}`;
-    const shownCode = () => screen.getByRole("tabpanel").querySelector("code").textContent;
+    // The embed code's own panel, inside the dialog's Share panel.
+    const embedPanel = () => within(document.querySelector(".export-modal-pane")).getByRole("tabpanel");
+    const shownCode = () => embedPanel().querySelector("code").textContent;
 
     it("takes the place of the Copy as React button, between the link and the JSON export", () => {
       renderModal({ getShareUrl: () => SHARE_URL });
@@ -356,7 +446,7 @@ describe("ExportModal", () => {
       const heading = screen.getByRole("heading", { name: "Embed code" });
       const config = screen.getByRole("button", { name: /Export configuration/ });
       expect(follows(link, heading)).toBe(true);
-      expect(follows(screen.getByRole("tabpanel"), config)).toBe(true);
+      expect(follows(embedPanel(), config)).toBe(true);
     });
 
     it("is full width at the canvas's height on screen, whatever the export size", () => {
@@ -379,8 +469,8 @@ describe("ExportModal", () => {
 
   describe("the Figma tab", () => {
     const exportTabs = () => within(screen.getByRole("tablist", { name: "Export type" }));
-    const tabNames = () => exportTabs().getAllByRole("tab").map((tab) => tab.textContent);
-    const selectedTab = () => exportTabs().getByRole("tab", { selected: true }).textContent;
+    const tabNames = () => exportTabs().getAllByRole("tab").map(tabName);
+    const selectedTab = () => tabName(exportTabs().getByRole("tab", { selected: true }));
     const follows = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
     const openFigmaTab = (props) => {
       const view = renderModal(props);
@@ -399,9 +489,9 @@ describe("ExportModal", () => {
       delete window.matchMedia;
     });
 
-    it("sits after SVG, before Share, MCP and Skill", () => {
+    it("sits after SVG and 3D, before Share, MCP and Skill", () => {
       renderModal();
-      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP", "Skill"]);
+      expect(tabNames()).toEqual(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"]);
     });
 
     it("is left out inside the Figma plugin, which still shows only Image and SVG", () => {
@@ -409,37 +499,17 @@ describe("ExportModal", () => {
       expect(tabNames()).toEqual(["Image", "SVG"]);
     });
 
-    it("is left out when the tab row is in its phone form, where six tabs don't fit", () => {
-      stubWindowWidth(540);
+    it("stays in a phone's list, which has room for every type", () => {
+      stubWindowWidth(375);
       renderModal();
-      expect(window.matchMedia).toHaveBeenCalledWith("(max-width: 540px)");
-      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
-    });
-
-    it("falls back to Image when the tab disappears under a dialog left on Figma", () => {
-      const viewport = stubWindowWidth(1440);
-      openFigmaTab();
-      expect(selectedTab()).toBe("Figma");
-      expect(screen.getByRole("heading", { name: "Paste into Figma" })).toBeTruthy();
-
-      viewport.resize(600);
-      expect(selectedTab()).toBe("Figma");
-      viewport.resize(540);
-      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
-      expect(selectedTab()).toBe("Image");
-      expect(screen.queryByRole("heading", { name: "Paste into Figma" })).toBeNull();
-      expect(screen.getByLabelText("Export width")).toBeTruthy();
-      expect(screen.getByRole("button", { name: "Export PNG" })).toBeTruthy();
-      // The arrow keys start from the tab that is shown.
-      fireEvent.keyDown(screen.getByRole("tablist", { name: "Export type" }), { key: "ArrowRight" });
-      expect(selectedTab()).toBe("Video");
+      expect(tabNames()).toEqual(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"]);
     });
 
     it("stops listening for the window's width when the dialog goes away", () => {
       const viewport = stubWindowWidth(1440);
       const { unmount } = renderModal();
-      // One for the phone form, one for the Skill tab's room.
-      expect(viewport.listenerCount()).toBe(2);
+      // The list-first form's one query.
+      expect(viewport.listenerCount()).toBe(1);
       unmount();
       expect(viewport.listenerCount()).toBe(0);
     });
@@ -552,8 +622,8 @@ describe("ExportModal", () => {
     const SHARE_URL = "https://globestudio.app/?c=%7B%22v%22%3A1%2C%22density%22%3A60%7D";
     // The dialog's own row. The MCP tab holds a second tablist, for the clients.
     const exportTabs = () => within(screen.getByRole("tablist", { name: "Export type" }));
-    const tabNames = () => exportTabs().getAllByRole("tab").map((tab) => tab.textContent);
-    const selectedTab = () => exportTabs().getByRole("tab", { selected: true }).textContent;
+    const tabNames = () => exportTabs().getAllByRole("tab").map(tabName);
+    const selectedTab = () => tabName(exportTabs().getByRole("tab", { selected: true }));
 
     afterEach(() => {
       delete navigator.clipboard;
@@ -561,7 +631,7 @@ describe("ExportModal", () => {
 
     it("sits after Share, with only the Skill tab after it", () => {
       renderModal();
-      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP", "Skill"]);
+      expect(tabNames()).toEqual(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"]);
     });
 
     it("is left out inside the Figma plugin, like Share", () => {
@@ -629,19 +699,22 @@ describe("ExportModal", () => {
       expect(track).toHaveBeenCalledWith("share_clicked", { method: "ai" });
     });
 
-    it("is reached with the arrow keys, Home and End, across all seven tabs", () => {
+    it("is reached with the up and down arrows, Home and End, across all eight types", () => {
       renderModal();
       const tablist = screen.getByRole("tablist", { name: "Export type" });
       const visited = [selectedTab()];
-      for (let i = 0; i < 7; i += 1) {
-        fireEvent.keyDown(tablist, { key: "ArrowRight" });
+      for (let i = 0; i < 8; i += 1) {
+        fireEvent.keyDown(tablist, { key: "ArrowDown" });
         visited.push(selectedTab());
       }
       // Wraps from Skill back to Image.
-      expect(visited).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP", "Skill", "Image"]);
-      fireEvent.keyDown(tablist, { key: "ArrowLeft" });
+      expect(visited).toEqual(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill", "Image"]);
+      fireEvent.keyDown(tablist, { key: "ArrowUp" });
       expect(selectedTab()).toBe("Skill");
-      fireEvent.keyDown(tablist, { key: "ArrowLeft" });
+      fireEvent.keyDown(tablist, { key: "ArrowUp" });
+      expect(selectedTab()).toBe("MCP");
+      // The list runs top to bottom, so left and right do nothing.
+      fireEvent.keyDown(tablist, { key: "ArrowRight" });
       expect(selectedTab()).toBe("MCP");
       fireEvent.keyDown(tablist, { key: "Home" });
       expect(selectedTab()).toBe("Image");
@@ -652,15 +725,15 @@ describe("ExportModal", () => {
     it("moves focus with the selection, so the ring sits on the tab that is shown", () => {
       renderModal();
       const tablist = screen.getByRole("tablist", { name: "Export type" });
-      const focusedTab = () => document.activeElement.textContent;
+      const focusedTab = () => tabName(document.activeElement);
       exportTabs().getByRole("tab", { name: "Image" }).focus();
       for (const [key, name] of [
-        ["ArrowRight", "Video"],
+        ["ArrowDown", "Video"],
         ["End", "Skill"],
-        ["ArrowLeft", "MCP"],
-        ["ArrowRight", "Skill"],
-        ["ArrowRight", "Image"],
-        ["ArrowLeft", "Skill"],
+        ["ArrowUp", "MCP"],
+        ["ArrowDown", "Skill"],
+        ["ArrowDown", "Image"],
+        ["ArrowUp", "Skill"],
         ["Home", "Image"],
       ]) {
         fireEvent.keyDown(tablist, { key });
@@ -755,8 +828,8 @@ describe("ExportModal", () => {
 
   describe("the Skill tab", () => {
     const exportTabs = () => within(screen.getByRole("tablist", { name: "Export type" }));
-    const tabNames = () => exportTabs().getAllByRole("tab").map((tab) => tab.textContent);
-    const selectedTab = () => exportTabs().getByRole("tab", { selected: true }).textContent;
+    const tabNames = () => exportTabs().getAllByRole("tab").map(tabName);
+    const selectedTab = () => tabName(exportTabs().getByRole("tab", { selected: true }));
     const openSkillTab = async (props) => {
       const view = renderModal(props);
       fireEvent.click(screen.getByRole("tab", { name: "Skill" }));
@@ -769,9 +842,9 @@ describe("ExportModal", () => {
       delete navigator.clipboard;
     });
 
-    it("comes last in the row, after MCP", () => {
+    it("comes last in the list, after MCP", () => {
       renderModal();
-      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP", "Skill"]);
+      expect(tabNames()).toEqual(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"]);
     });
 
     it("is left out inside the Figma plugin", () => {
@@ -779,42 +852,10 @@ describe("ExportModal", () => {
       expect(tabNames()).toEqual(["Image", "SVG"]);
     });
 
-    it("is left out of the tab row's phone form, like the Figma tab", () => {
-      stubWindowWidth(390);
+    it("stays in a phone's list, like the Figma tab", () => {
+      stubWindowWidth(375);
       renderModal();
-      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Share", "MCP"]);
-    });
-
-    it("is left out until the dialog has its full width, and the Figma tab stays", () => {
-      stubWindowWidth(687);
-      renderModal();
-      expect(window.matchMedia).toHaveBeenCalledWith("(max-width: 687px)");
-      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
-    });
-
-    it("comes back when the window is wide enough again", () => {
-      const viewport = stubWindowWidth(687);
-      renderModal();
-      viewport.resize(688);
-      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP", "Skill"]);
-    });
-
-    it("falls back to Image when the tab disappears under a dialog left on Skill", async () => {
-      const viewport = stubWindowWidth(1440);
-      await openSkillTab();
-      expect(selectedTab()).toBe("Skill");
-
-      viewport.resize(688);
-      expect(selectedTab()).toBe("Skill");
-      viewport.resize(687);
-      expect(tabNames()).toEqual(["Image", "Video", "SVG", "Figma", "Share", "MCP"]);
-      expect(selectedTab()).toBe("Image");
-      expect(screen.queryByRole("heading", { name: "Teach your coding agent Globestudio" })).toBeNull();
-      expect(screen.getByLabelText("Export width")).toBeTruthy();
-      expect(screen.getByRole("button", { name: "Export PNG" })).toBeTruthy();
-      // The arrow keys start from the tab that is shown.
-      fireEvent.keyDown(screen.getByRole("tablist", { name: "Export type" }), { key: "ArrowLeft" });
-      expect(selectedTab()).toBe("MCP");
+      expect(tabNames()).toEqual(["Image", "Video", "SVG", "3D", "Figma", "Share", "MCP", "Skill"]);
     });
 
     it("loads the heading, what the skill does, the three ways to add it and the telemetry note", async () => {
@@ -860,7 +901,7 @@ describe("ExportModal", () => {
       expect(track).not.toHaveBeenCalled();
     });
 
-    it("leaves the dialog's arrow keys to the dialog's tabs and the options' to the options", async () => {
+    it("leaves the dialog's arrow keys to the dialog's list and the options' to the options", async () => {
       await openSkillTab();
       const npx = screen.getByRole("tab", { name: "npx skills" });
       npx.focus();

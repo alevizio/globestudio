@@ -1608,7 +1608,7 @@ const App = () => {
   };
 
   // The design as a 3D model, built from the scene by the globe canvas
-  // (three/glb-export.js). A failure shows in the Image tab like a PNG's.
+  // (three/glb-export.js). A failure shows in the 3D tab like a PNG's in Image.
   const exportGlb = async (options) => {
     setGlbStatus((status) => (status === "error" ? "idle" : status));
     try {
