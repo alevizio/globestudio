@@ -83,7 +83,10 @@ const BUDGETS = [
   { prefix: "gallery-page-",     ext: ".css", raw:   3_500,  gzip:   1_500, lazy: true },
   // Privacy policy — lazy /privacy route. Its CSS stays in index-*.css with
   // the other takeover pages, so there is no co-located stylesheet.
-  { prefix: "privacy-page-",     ext: ".js",  raw:   9_000,  gzip:   3_000, lazy: true },
+  // Raised from 9,000 / 3,000 in Oct 2026 for the Hosting, AI tools and
+  // Contact sections the Claude and ChatGPT directories ask a privacy
+  // policy to have (8,028 / 2,469 bytes before them, 10,080 / 3,063 after).
+  { prefix: "privacy-page-",     ext: ".js",  raw:  11_600,  gzip:   3_550, lazy: true },
   // Terms of use, lazy /terms route (4,565 / 1,491 bytes when added, Oct
   // 2026). Like /privacy it uses the takeover styles in index-*.css, so it
   // has no stylesheet of its own.

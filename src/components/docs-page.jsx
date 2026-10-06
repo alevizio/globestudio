@@ -241,6 +241,12 @@ export const DocsPage = () => {
             <a href="https://github.com/alevizio/globestudio/tree/main/skills/globestudio">skills/globestudio</a>{" "}
             on GitHub.
           </p>
+          <p>
+            The <a href="/privacy#ai-tools">privacy page</a> says what the
+            hosted MCP server receives and keeps, and the{" "}
+            <a href="/terms">terms of use</a> cover the server, the skill and
+            the plugins.
+          </p>
         </section>
 
         <section className="docs-section">

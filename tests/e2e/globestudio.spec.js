@@ -977,6 +977,29 @@ test("/terms shows the terms of use, links the privacy page and gives GitHub iss
   await expect(main.locator('a[href^="mailto:"]')).toHaveCount(0);
 });
 
+test("/privacy covers hosting and the MCP server, says the waitlist is gone and links the terms", async ({ page }) => {
+  await page.goto("/privacy");
+  for (const name of ["Hosting", "AI tools and the MCP server", "Contact"]) {
+    await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+  }
+  const main = page.getByRole("main");
+  await expect(main).toContainText("we deleted it on 5 October 2026");
+  await expect(main.getByRole("link", { name: "terms of use" })).toHaveAttribute("href", "/terms");
+  await expect(main.getByRole("link", { name: "github.com/alevizio/globestudio/issues" })).toHaveAttribute(
+    "href",
+    "https://github.com/alevizio/globestudio/issues",
+  );
+  expect(await main.innerText()).not.toMatch(/\S+@\S+\.\w+/);
+  await expect(main.locator('a[href^="mailto:"]')).toHaveCount(0);
+});
+
+test("/docs points to the privacy page's MCP section and the terms from the agent skill section", async ({ page }) => {
+  await page.goto("/docs");
+  const section = page.locator("section", { has: page.locator("#agent-skill") });
+  await expect(section.getByRole("link", { name: "privacy page" })).toHaveAttribute("href", "/privacy#ai-tools");
+  await expect(section.getByRole("link", { name: "terms of use" })).toHaveAttribute("href", "/terms");
+});
+
 for (const path of ["/docs", "/privacy", "/terms"]) {
   test(`the footer on ${path} links Privacy and Terms`, async ({ page }) => {
     await page.goto(path);

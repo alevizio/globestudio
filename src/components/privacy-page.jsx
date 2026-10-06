@@ -7,9 +7,11 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 
 // Privacy policy page. Single takeover page documenting the analytics
 // stack (Vercel Web Analytics + Speed Insights), what data is +
-// isn't collected, and how to opt out. Linked from the About overlay
-// and the takeover footer. The wording was drafted in the analytics
-// research report and intentionally avoids policy lawyer-speak.
+// isn't collected, hosting logs, the MCP server, and how to opt out.
+// Linked from the About overlay, the takeover footer and /terms. Contact
+// is GitHub issues only, with no email address. The wording was drafted
+// in the analytics research report and intentionally avoids policy
+// lawyer-speak.
 
 const OPT_OUT_KEY = "gs_optout";
 
@@ -111,11 +113,9 @@ export const PrivacyPage = () => {
         <p>
           Before launch this site was a waitlist. If you joined it, we
           stored your email address and signup time in private Vercel Blob
-          storage, and the launch email is sent from Alejandro's Gmail. We use it
-          for that one email only, never share or sell it, and delete the
-          list after launch week. To be removed sooner, reply to that email or
-          message @alevizio on X. The waitlist page also
-          counted <code>waitlist_signup</code> and{" "}
+          storage and sent one launch email from Alejandro's Gmail. We never
+          shared or sold the list, and we deleted it on 5 October 2026. The
+          waitlist page also counted <code>waitlist_signup</code> and{" "}
           <code>waitlist_duplicate</code> events, without the address.
         </p>
       </section>
@@ -130,7 +130,7 @@ export const PrivacyPage = () => {
         <ul className="privacy-list">
           <li><Plus size={12} aria-hidden="true" /><span>No cookies</span></li>
           <li><Plus size={12} aria-hidden="true" /><span>No fingerprinting</span></li>
-          <li><Plus size={12} aria-hidden="true" /><span>No personal data: your IP is hashed and discarded at Vercel's edge. The one exception is the launch waitlist, above.</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span>No personal data in analytics: a visit is counted by a hash of the request, which Vercel discards after 24 hours</span></li>
           <li><Plus size={12} aria-hidden="true" /><span>No third-party advertisers</span></li>
           <li><Plus size={12} aria-hidden="true" /><span>No session replay</span></li>
           <li><Plus size={12} aria-hidden="true" /><span>No cross-site tracking</span></li>
@@ -146,6 +146,44 @@ export const PrivacyPage = () => {
           dialog loads a GitHub avatar. Like any web request, those
           services see your IP address and browser. They never see what
           you make.
+        </p>
+      </section>
+
+      <section className="privacy-section" >
+        <SectionHeading id="hosting" className="privacy-section-title">
+          Hosting
+        </SectionHeading>
+        <p>
+          Vercel hosts globestudio.app. Like any web host, it sees the IP
+          address and browser of each request. It keeps a request log for up
+          to 30 days, with the time, IP address, browser, region and status
+          of each request and the link asked for, which for a share link
+          includes its design. The log is there so the site can run and we
+          can fix problems.
+        </p>
+      </section>
+
+      <section className="privacy-section" >
+        <SectionHeading id="ai-tools" className="privacy-section-title">
+          AI tools and the MCP server
+        </SectionHeading>
+        <p>
+          The MCP server at <code>globestudio.app/mcp</code> lets an AI tool
+          such as Claude, ChatGPT, Codex or Cursor make globes for you, and
+          the Globestudio plugins connect to it. A tool call sends the server
+          only what that tool needs: a look, a style word, colors, a region or
+          a Globestudio link you pasted. The server answers from that and its
+          built-in list of looks. It has no accounts, sets no cookies, stores
+          nothing, calls no other service and never sees the rest of your
+          conversation.
+        </p>
+        <p>
+          Its requests are in Vercel's request log, above, without the tool's
+          arguments. The IP address there is often your AI tool's server, not
+          your own device. The agent skill runs inside your AI tool and sends
+          nothing on its own. The links it writes open globestudio.app, where
+          the rest of this page applies. Your AI tool's own privacy policy
+          covers your chat.
         </p>
       </section>
 
@@ -197,6 +235,24 @@ export const PrivacyPage = () => {
               : "Your choice persists across visits via localStorage."}
           </p>
         </div>
+      </section>
+
+      <section className="privacy-section" >
+        <SectionHeading id="contact" className="privacy-section-title">
+          Contact
+        </SectionHeading>
+        <p>
+          Questions about this page or your data: open an issue at{" "}
+          <a
+            href="https://github.com/alevizio/globestudio/issues"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            github.com/alevizio/globestudio/issues
+          </a>
+          . Issues are public, so leave out anything private. The rules for
+          using Globestudio are in the <a href="/terms">terms of use</a>.
+        </p>
       </section>
 
       <section className="privacy-section" >

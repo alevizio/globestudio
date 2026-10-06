@@ -24,6 +24,12 @@ All notable changes to Globestudio are tracked here. Format follows
   plugins bundle the skill with the server.
 - The MCP server's README says what the hosted server receives and keeps,
   and how to fix common setup problems.
+- The privacy page says the launch waitlist was deleted on 5 October 2026.
+  New sections cover Vercel's request log (up to 30 days), what the MCP
+  server and the agent skill receive and keep, and a Contact section that
+  points to GitHub issues. Its analytics line now says a visit is counted
+  by a hash Vercel discards after 24 hours. The docs' Agent skill section
+  links the MCP part of the policy and the terms.
 - A new Figma plugin version: the address it loads drops the old teaser
   parameter, and its network access note says it loads the full studio,
   not the old embed picker. Nothing changes in how it works.
