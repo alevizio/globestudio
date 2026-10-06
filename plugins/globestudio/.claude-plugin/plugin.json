@@ -1,7 +1,7 @@
 {
   "name": "globestudio",
   "displayName": "Globestudio",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Make, edit and embed dotted world maps and 3D globes. Bundles the globestudio skill with the hosted Globestudio MCP server.",
   "author": {
     "name": "Alejandro Vizio",

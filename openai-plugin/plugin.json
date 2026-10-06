@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "globestudio",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Make, edit and embed dotted world maps and animated 3D globes with Globestudio. Bundles the globestudio skill and the hosted Globestudio MCP server, which finds looks, builds and reads share links, and writes embed code. No account or API key.",
   "author": {
     "name": "Alejandro Vizio",
