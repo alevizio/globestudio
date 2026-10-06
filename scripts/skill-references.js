@@ -30,9 +30,9 @@ import { continentOptions, subregionOptions } from "../src/data/geography.js";
 import { lookPresets } from "../src/data/look-presets.js";
 import { presetSeo } from "../src/data/preset-seo.js";
 import { presetTags } from "../src/data/preset-tags.js";
-import { STARTER_DEGIT } from "../src/data/starter-react.js";
+import { STARTER_DEGIT, STARTER_STACKBLITZ } from "../src/data/starter-react.js";
 import { US_STATE_FIPS } from "../src/data/us-state-codes.js";
-import { EMBED_URL_MAX } from "../src/utils/embed-snippets.js";
+import { ELEMENT_SCRIPT, EMBED_URL_MAX } from "../src/utils/embed-snippets.js";
 import { vectorDrops, vectorNote } from "../src/utils/vector-note.js";
 import { GlobeStudioElement, buildEmbedUrl } from "../packages/web-component/index.js";
 
@@ -506,9 +506,6 @@ const embedParams = () => {
 
 // A look that keeps dotColor (see DOT_COLOR), so the example looks as it reads.
 const EXAMPLE_LOOK = "crt";
-// The element's version in packages/web-component/package.json, pinned in the
-// script tag a page loads.
-export const ELEMENT_VERSION = JSON.parse(read("packages/web-component/package.json")).version;
 // 0.1.0 of both packages dropped look whenever config was set.
 export const PACKAGES_FLOOR = "0.1.1";
 const EXAMPLE_DESIGN = { v: 3, selection: "continent:Europe", dotColor: "#7dd3fc" };
@@ -542,7 +539,7 @@ ${table(
   [
     ["React, Next.js, Remix, or Astro with React", "@globestudio/react"],
     ["Vue, Svelte, Solid, Angular, Astro, or HTML with a bundler", "@globestudio/element"],
-    ["HTML with no build step", "the element from esm.sh"],
+    ["HTML with no build step", "the element from jsDelivr"],
     ["Webflow, Framer, WordPress, Notion, Squarespace", "a plain iframe, or embed.js where scripts are allowed"],
   ],
 )}
@@ -553,7 +550,7 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 
 ${code("npm install @globestudio/react")}, ${PACKAGES_FLOOR} or later: 0.1.0 dropped ${code("look")} whenever ${code("config")} was set, so a config of changes embedded over Default. ${code("<Globe>")} renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component pass only serializable props; ${code("onLoad")} or a ref needs a client component.
 
-With no project yet, ${code(STARTER_DEGIT)} copies a Vite and React app that already renders a ${code("<Globe>")}. Run ${code("npm install")} and ${code("npm run dev")} in it.
+With no project yet, offer the starter, a Vite and React app that already renders a ${code("<Globe>")}, and let the user choose how to get it. ${code(STARTER_DEGIT)} copies it, then ${code("npm install")} and ${code("npm run dev")} start it; run these only once the user agrees. ${STARTER_STACKBLITZ} opens it in StackBlitz with nothing to install.
 
 ${table(["Prop", "Type", "Default", "Notes"], reactProps())}
 
@@ -573,10 +570,10 @@ ${code("npm install @globestudio/element")}, ${PACKAGES_FLOOR} or later for the 
 
 ${table(["Attribute", "Default"], elementAttributes())}
 
-With no build step, load a pinned version, so the page runs code you chose:
+With no build step, load the element from jsDelivr with this tag. It pins a version, and its integrity hash lets the browser run only that version's file, so keep the tag whole:
 
 \`\`\`html
-<script type="module" src="https://esm.sh/@globestudio/element@${ELEMENT_VERSION}"></script>
+${ELEMENT_SCRIPT}
 <globe-studio look="${EXAMPLE_LOOK}" config='${JSON.stringify(EXAMPLE_DESIGN)}' height="480" title="Dotted globe of Europe"></globe-studio>
 \`\`\`
 
@@ -633,7 +630,7 @@ ${table(["Parameter", "Takes", "Default", "Notes"], [
 
 ## Check it renders
 
-Rendering needs WebGL 2. Run the project's dev server and look at the page. When the project already has Playwright, a screenshot of the embed address works too; don't install a browser for this, and if you can do neither, say the render wasn't checked. Headless Chromium has no GPU, so give it software GL, as Globestudio's own browser tests do:
+Rendering needs WebGL 2. Check by reading first: the code, and the ${code("/embed")} address it builds, which the user can open in a browser to see the globe. Running the project's dev server, or a screenshot of the embed address when the project already has Playwright, is an option for the user to choose, so ask before you run either. Don't install a browser for this, and if no one saw it render, say so. Headless Chromium has no GPU, so give it software GL, as Globestudio's own browser tests do:
 
 \`\`\`js
 import { chromium } from "playwright";

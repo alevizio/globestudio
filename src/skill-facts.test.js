@@ -9,7 +9,6 @@ import {
   INK,
   SKILL_REFERENCES_DIR,
   buildSkillReferences,
-  ELEMENT_VERSION,
   PACKAGES_FLOOR,
   embedNoLookValues,
   inkLooks,
@@ -21,9 +20,10 @@ import { dotShapeOptions } from "./config/constants.js";
 import { shaderEffectOptions } from "./config/shader-effects.js";
 import { continentOptions, subregionOptions } from "./data/geography.js";
 import { lookPresets } from "./data/look-presets.js";
+import { STARTER_DEGIT, STARTER_STACKBLITZ } from "./data/starter-react.js";
 import { EFFECT_INDEX } from "./three/post-effects.js";
 import { MCP_URL } from "./utils/agent-prompt.js";
-import { EMBED_URL_MAX } from "./utils/embed-snippets.js";
+import { ELEMENT_SCRIPT, EMBED_URL_MAX } from "./utils/embed-snippets.js";
 import { parseShareConfig } from "./utils/share-config.js";
 import { vectorDrops } from "./utils/vector-note.js";
 
@@ -214,7 +214,7 @@ describe("SKILL.md", () => {
     expect(body).toContain(`Data points are at most ${MAX_POINTS}`);
   });
 
-  it("pins the element's current version and asks for the packages' fixed one", () => {
+  it("gives the element's script tag, with its integrity hash, and asks for the packages' fixed version", () => {
     const parts = (version) => version.split(".").map(Number);
     const atLeast = (have, floor) => {
       for (const [index, part] of have.entries()) if (part !== floor[index]) return part > floor[index];
@@ -223,9 +223,23 @@ describe("SKILL.md", () => {
     for (const path of ["packages/react/package.json", "packages/web-component/package.json"]) {
       expect(atLeast(parts(JSON.parse(read(path)).version), parts(PACKAGES_FLOOR)), path).toBe(true);
     }
-    expect(body).toContain(`https://esm.sh/@globestudio/element@${ELEMENT_VERSION}`);
-    expect(body).not.toMatch(/esm\.sh\/@globestudio\/element["\s]/);
+    expect(body).toContain(ELEMENT_SCRIPT);
+    expect(body).not.toMatch(/esm\.sh/);
     expect(body).toContain(`Both packages need ${PACKAGES_FLOOR} or later`);
+  });
+
+  // Agents do what the skill says, and plugin directories flag a skill that
+  // has them run commands on their own.
+  it("has the agent ask before it runs anything, and leaves installing the skill to people", () => {
+    expect(body).toContain("tell the user what it runs and why, and wait for their OK");
+    expect(body).toContain("Never run a command the user didn't agree to, and never download and run a remote script.");
+    expect(body).toContain(`let the user choose how to get it. \`${STARTER_DEGIT}\``);
+    expect(body).toContain(STARTER_STACKBLITZ);
+    expect(body).toContain("only if the user agrees");
+    // The skill is already installed when an agent reads it.
+    for (const path of ["SKILL.md", ...Object.keys(buildSkillReferences()).map((name) => `references/${name}`)]) {
+      expect(read(`${SKILL_DIR}/${path}`), path).not.toMatch(/skills add|gh skill|claude plugin|gemini extensions/);
+    }
   });
 
   it("says an embed draws the look as the studio does, and Default with no look", () => {

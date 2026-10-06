@@ -53,6 +53,15 @@ on deploy.
 - A new Figma plugin version: the address it loads drops the old teaser
   parameter, and its network access note says it loads the full studio,
   not the old embed picker. Nothing changes in how it works.
+- The agent skill tells the user what a command runs and waits for their
+  OK before it installs a package, copies the starter, starts a dev server
+  or a browser, or runs anything else, and it never downloads and runs a
+  remote script. It offers the React starter as a choice, with degit
+  pinned to 3.10.0 there and in the docs, the READMEs and `llms.txt`. It
+  checks a render by reading the code and the embed address, and runs the
+  dev server or a screenshot only if the user agrees. For a page with no
+  build step, it gives the tag that loads `@globestudio/element` from
+  jsDelivr with an integrity hash.
 - The export dialog's Web component embed code, and the pen Open in
   CodePen makes, load `@globestudio/element` 0.2.0 from jsDelivr with an
   integrity hash, so the browser runs only that file. They used to load

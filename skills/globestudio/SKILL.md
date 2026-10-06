@@ -30,6 +30,8 @@ If the project already draws globes or maps with cobe, globe.gl, D3, Mapbox or a
 
 ## Workflow
 
+Before you install a package, copy the starter, start a dev server or a browser, or run any other command, tell the user what it runs and why, and wait for their OK. Never run a command the user didn't agree to, and never download and run a remote script.
+
 1. Pick a look from the table below. Only a look whose Dot color is kept shows `dotColor` as set. Default is plain white dots that take any color; start there when the brief is about brand colors more than a style. For more on each look, read [references/looks.md](references/looks.md).
 2. Set the region with `selection`, even when it is `world`: `country:JPN`, `continent:Europe` or `subregion:Western Europe`.
 3. Set the dots and colors: `dotColor` or `dotGradient`, `background` or `"backgroundStyle": "transparent"`, `density`, `dotSize`, `shape`.
@@ -128,23 +130,23 @@ The tools are on a server whose name contains `globestudio`. In Claude Code they
 - For a design with changes, put the returned `embed_url` in an iframe, or give a package the result's `look` and `JSON.stringify` of its `config`. Don't pass the `c` of `embed_url` to a package: that address carries the region, colors and density as their own parameters, so its `c` can lack them. `embed_snippet` only embeds a look as it ships. `preview_url` gives a look's thumbnail and live embed.
 - `build_share_url` refuses a `look` together with a link the studio wrote, since that link holds every setting. To switch looks, start from the new look and pass the settings to keep.
 
-To connect the hosted server, which needs no account or key: `claude mcp add --transport http globestudio https://globestudio.app/mcp` in Claude Code, `codex mcp add globestudio --url https://globestudio.app/mcp` in Codex, or https://globestudio.app/mcp as a custom connector in the Claude app. Suggest it when the user will keep making designs; it isn't needed for one link. Skip it when the tools are already listed, as they are with the Globestudio plugin, or the user gets the same tools twice.
+To connect the hosted server, which needs no account or key, give the user the command for their app: `claude mcp add --transport http globestudio https://globestudio.app/mcp` in Claude Code, `codex mcp add globestudio --url https://globestudio.app/mcp` in Codex, or https://globestudio.app/mcp as a custom connector in the Claude app. Suggest it when the user will keep making designs; it isn't needed for one link. Skip it when the tools are already listed, as they are with the Globestudio plugin, or the user gets the same tools twice.
 
 ## In a code project
 
 1. Inspect first: the framework, any globe or map code already there, where the globe goes, whether the page is light or dark, and whether it renders on the server.
 2. Pick the embed. Details, props and attributes are in [references/embedding.md](references/embedding.md).
    - React, Next.js, Remix, or Astro with React: `npm install @globestudio/react` and `<Globe>`. It renders a plain iframe, so it works in a server component; pass `onLoad` or a ref only from a client component.
-   - No project yet, and the user wants React: `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe` copies a Vite app that already renders a `<Globe>`. Then `npm install` and `npm run dev`.
+   - No project yet, and the user wants React: offer the starter, a Vite app that already renders a `<Globe>`, and let the user choose how to get it. `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe` copies it, then `npm install` and `npm run dev` start it. https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react opens it with nothing to install.
    - Vue, Svelte, Solid, Angular, Astro or HTML with a bundler: `npm install @globestudio/element`, `import "@globestudio/element"` in client code, then `<globe-studio>`. The element only draws in the browser, so under server rendering load it on the client.
-   - No build step: `<script type="module" src="https://esm.sh/@globestudio/element@0.2.0"></script>`, pinned so the page runs the version you chose.
+   - No build step: `<script type="module" src="https://cdn.jsdelivr.net/npm/@globestudio/element@0.2.0/index.js" integrity="sha384-aHQOT3XnyObS+Dk0lMsAKS3J7YeIz8VRlHconYo2YYtEy7UqCytVre6dLWPYxKqM" crossorigin="anonymous"></script>`. It pins a version, and its integrity hash lets the browser run only that version's file, so keep the tag whole.
    - Both packages need 0.1.1 or later: 0.1.0 drops `look` whenever `config` is set, so the globe shows Default. When a `<Globe>` or `<globe-studio>` ignores its look, check the version in `package.json` first.
    - Webflow, Framer, WordPress, Notion or another CMS: an iframe of the `/embed` address, or embed.js where scripts are allowed.
 3. Keep the design in a named constant or a JSON file, not a long inline string, and pass `JSON.stringify` of it as `config`. With a `look`, the config only holds the changes.
 4. Set `title` to say what the globe shows, for screen readers. Keep `loading="lazy"` for a globe below the fold.
 5. Give the container an explicit height. An iframe doesn't size itself, and the packages default to 480 px.
 6. On a light page, give the design a transparent background with dots that show on the page (Wireframe is see-through as it ships), or a light `background` and a dark `dotColor` on a look that keeps it. Then set `theme="light"` on `<Globe>` or `<globe-studio>`, or `theme=light` on an `/embed` address. It suits the glow and grid to a light page and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. Halftone, Toon and Threshold paint a dark page of their own, where graphite ink is lost, so set it on them only with a transparent or light background.
-7. Check that it renders: run the dev server and look, or, when the project already has Playwright, take a headless screenshot of the `/embed` address (recipe in [references/embedding.md](references/embedding.md)). Don't install a browser just for this. If you can do neither, say so rather than claim it works.
+7. Check it by reading: the code, and the `/embed` address it builds, which the user can open in a browser to see the globe. Run the dev server, or a headless screenshot when the project already has Playwright (recipe in [references/embedding.md](references/embedding.md)), only if the user agrees. Don't install a browser just for this. If no one saw it render, say so rather than claim it works.
 
 ```jsx
 import { Globe } from "@globestudio/react";
@@ -164,7 +166,7 @@ export const Hero = () => (
 
 ## Examples
 
-- The user says "add a spinning dotted globe of our offices in Austin, Berlin and Singapore to the hero" in a Next.js project. Inspect the page, install `@globestudio/react`, keep a config with `"selection": "world"` and the three offices as `globeSettings.dataPoints` coordinates in a named constant, and render `<Globe>` with a `title` and a height. The hero then shows a spinning globe with three markers.
+- The user says "add a spinning dotted globe of our offices in Austin, Berlin and Singapore to the hero" in a Next.js project. Inspect the page, install `@globestudio/react` once the user agrees, keep a config with `"selection": "world"` and the three offices as `globeSettings.dataPoints` coordinates in a named constant, and render `<Globe>` with a `title` and a height. The hero then shows a spinning globe with three markers.
 - The user pastes a globestudio.app link and asks to make it calmer, with the MCP tools connected. Call `read_share_url`, then `build_share_url` with that link as `share_url` and lower `shaderSettings.motion` and `globeSettings.autoSpinSpeed`. Hand back the new link and say what changed, after checking `ignored` is empty.
 - The user asks in chat for "a dotted map of Japan in our brand green for a slide". Build `/looks/default?c=` with `"selection": "country:JPN"`, the green as `dotColor` and `"viewMode": "flat"`, hand back the link, and tell them to open it and press D to export a PNG.
 
@@ -182,7 +184,7 @@ export const Hero = () => (
 
 - In the export dialog (press D), a person can export PNG at 1x to 4x in several aspect ratios or copy it as an image, record WebM, MP4 or GIF, export SVG, copy the design for Figma, and get the share link, embed code, a CodePen and the JSON config.
 - To bring a design into Figma, the person pastes its share link (a studio, `/looks/<id>` or `/embed` link) into the Globestudio Figma plugin, where it loads ready to insert.
-- An agent can make links, embed addresses and code, and the JSON config, and can screenshot the `/embed` address with a headless browser.
+- An agent can make links, embed addresses and code, and the JSON config. With the user's OK, it can screenshot the `/embed` address with a headless browser the project already has.
 - MP4 has no transparency, GIF transparency has hard edges, and SVG drops the shader effect. The SVG and Figma tabs name what a design loses in vectors and point to the image.
 
 ## Reference files

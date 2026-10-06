@@ -22,7 +22,7 @@ Every embed is an iframe of `https://globestudio.app/embed`: the packages and th
 |---|---|
 | React, Next.js, Remix, or Astro with React | @globestudio/react |
 | Vue, Svelte, Solid, Angular, Astro, or HTML with a bundler | @globestudio/element |
-| HTML with no build step | the element from esm.sh |
+| HTML with no build step | the element from jsDelivr |
 | Webflow, Framer, WordPress, Notion, Squarespace | a plain iframe, or embed.js where scripts are allowed |
 
 In the studio, the export dialog's Share tab writes the iframe, React and web component code for the design on screen.
@@ -31,7 +31,7 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 
 `npm install @globestudio/react`, 0.1.1 or later: 0.1.0 dropped `look` whenever `config` was set, so a config of changes embedded over Default. `<Globe>` renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component pass only serializable props; `onLoad` or a ref needs a client component.
 
-With no project yet, `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe` copies a Vite and React app that already renders a `<Globe>`. Run `npm install` and `npm run dev` in it.
+With no project yet, offer the starter, a Vite and React app that already renders a `<Globe>`, and let the user choose how to get it. `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe` copies it, then `npm install` and `npm run dev` start it; run these only once the user agrees. https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react opens it in StackBlitz with nothing to install.
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
@@ -72,10 +72,10 @@ export const Hero = () => (
 | `title` | `Globestudio dotted globe` |
 | `loading` | `lazy` |
 
-With no build step, load a pinned version, so the page runs code you chose:
+With no build step, load the element from jsDelivr with this tag. It pins a version, and its integrity hash lets the browser run only that version's file, so keep the tag whole:
 
 ```html
-<script type="module" src="https://esm.sh/@globestudio/element@0.2.0"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@globestudio/element@0.2.0/index.js" integrity="sha384-aHQOT3XnyObS+Dk0lMsAKS3J7YeIz8VRlHconYo2YYtEy7UqCytVre6dLWPYxKqM" crossorigin="anonymous"></script>
 <globe-studio look="crt" config='{"v":3,"selection":"continent:Europe","dotColor":"#7dd3fc"}' height="480" title="Dotted globe of Europe"></globe-studio>
 ```
 
@@ -170,7 +170,7 @@ For pages that allow a script tag but not an npm install. It turns every element
 
 ## Check it renders
 
-Rendering needs WebGL 2. Run the project's dev server and look at the page. When the project already has Playwright, a screenshot of the embed address works too; don't install a browser for this, and if you can do neither, say the render wasn't checked. Headless Chromium has no GPU, so give it software GL, as Globestudio's own browser tests do:
+Rendering needs WebGL 2. Check by reading first: the code, and the `/embed` address it builds, which the user can open in a browser to see the globe. Running the project's dev server, or a screenshot of the embed address when the project already has Playwright, is an option for the user to choose, so ask before you run either. Don't install a browser for this, and if no one saw it render, say so. Headless Chromium has no GPU, so give it software GL, as Globestudio's own browser tests do:
 
 ```js
 import { chromium } from "playwright";

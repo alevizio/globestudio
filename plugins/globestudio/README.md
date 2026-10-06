@@ -20,7 +20,7 @@ On claude.ai and in Cowork, connect Globestudio from the plugin's Connectors tab
 
 - Tool calls go to `https://globestudio.app/mcp`. Each one carries only its arguments, such as a look id, a style word, a color, a region or a Globestudio link. The server answers from those and its built-in list of looks, keeps nothing and calls no other service.
 - The skill sends nothing on its own. It writes links to globestudio.app, which open in your browser when you follow them.
-- In a code project, the skill can have Claude install `@globestudio/react` or `@globestudio/element` from npm, copy a starter app with `npx degit@3.10.0 alevizio/globestudio/examples/starter-react`, or load `@globestudio/element` from esm.sh in your page.
+- In a code project, the skill has Claude say what it will run and wait for your OK before it installs a package or runs any other command. With your OK, it can install `@globestudio/react` or `@globestudio/element` from npm, or copy a starter app with `npx degit@3.10.0 alevizio/globestudio/examples/starter-react`. For a page with no build step, it writes a script tag that loads `@globestudio/element` from jsDelivr, pinned to one version and checked by an integrity hash, so the browser runs only that file.
 
 Privacy policy: [globestudio.app/privacy](https://globestudio.app/privacy). Terms of use: [globestudio.app/terms](https://globestudio.app/terms).
 
