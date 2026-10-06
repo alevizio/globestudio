@@ -31,9 +31,23 @@ const FILES = [
   "skills/globestudio/references/embedding.md",
 ];
 
+// The hash of each version npm has published. A published file never
+// changes, so an edit to index.js needs a new version: the old version's
+// tag with the new hash would block the file jsDelivr serves. Add a line
+// here once a new version is on npm.
+const PUBLISHED = {
+  "0.2.0": "sha384-aHQOT3XnyObS+Dk0lMsAKS3J7YeIz8VRlHconYo2YYtEy7UqCytVre6dLWPYxKqM",
+};
+
 describe("the element's script tag", () => {
   it("is the one the export dialog writes", () => {
     expect(ELEMENT_SCRIPT).toBe(TAG);
+  });
+
+  it("changes the element's file only with a new version", () => {
+    if (Object.hasOwn(PUBLISHED, version)) {
+      expect(integrity, `index.js differs from the published ${version}: give it a new version`).toBe(PUBLISHED[version]);
+    }
   });
 
   it.each(FILES)("%s shows it with the element's version and the hash of its file", (path) => {
