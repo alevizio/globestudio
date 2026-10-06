@@ -1990,10 +1990,11 @@ test.describe("Skill tab", () => {
     for (const width of [1440, 1024, 768, 700, 621, 620, 375, 320]) {
       await test.step(`${width}px`, async () => {
         await page.setViewportSize({ width, height: 800 });
+        // A phone shows the list on its own until a type is picked. Waiting
+        // for that first lets the dialog take its layout for this width.
+        await expect(dialog.locator(".export-modal-panel")).toHaveCount(width > 620 ? 1 : 0);
         expectListFits(await measureList(dialog), EIGHT);
         await expect(tabRow(dialog).last()).toHaveAttribute("aria-selected", "true");
-        // A phone shows the list on its own until a type is picked.
-        await expect(dialog.locator(".export-modal-panel")).toHaveCount(width > 620 ? 1 : 0);
         const body = await dialog.evaluate((el) => [el.getBoundingClientRect().right, window.innerWidth]);
         expect(body[0]).toBeLessThanOrEqual(body[1]);
       });
