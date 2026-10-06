@@ -87,7 +87,7 @@ Six tools. None of them call an external API, because the preset catalog ships i
 | `embed_snippet({ look, framework })` | Paste-ready code: `iframe` HTML, `react` component, or `script-tag` loader. |
 | `preview_url({ look })` | The canonical live `/embed` URL and a PNG thumbnail URL for one preset. |
 
-Each tool has a short title, such as Find looks by style, and is marked read-only, not destructive and closed world, since it only builds or reads links. ChatGPT treats a tool without the read-only mark as a write action and asks before every call.
+Each tool has a short title, such as Find looks by style, and is marked read-only, not destructive and closed world, since it only builds or reads links. ChatGPT treats a tool without the read-only mark as a write action and asks the user to confirm it.
 
 ## Example prompts
 
