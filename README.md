@@ -264,7 +264,9 @@ installs and security audits. `npx skills` sends anonymous install data to
 skills.sh unless you set `DISABLE_TELEMETRY=1`. The skill is plain markdown in
 [`skills/globestudio`](skills/globestudio/). Its reference files are built
 from the app's own code with `npm run skill:references`, and a test fails
-when they fall behind.
+when they fall behind. The Claude Code plugin in
+[`plugins/globestudio`](plugins/globestudio/) carries a copy of the skill,
+which the same command refreshes (or `npm run plugin:sync` on its own).
 
 ## What you can build with it
 

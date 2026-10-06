@@ -1,0 +1,19 @@
+{
+  "name": "globestudio",
+  "displayName": "Globestudio",
+  "version": "1.1.1",
+  "description": "Make, edit and embed dotted world maps and 3D globes. Bundles the globestudio skill with the hosted Globestudio MCP server.",
+  "author": {
+    "name": "Alejandro Vizio",
+    "url": "https://alevizio.com"
+  },
+  "homepage": "https://globestudio.app",
+  "repository": "https://github.com/alevizio/globestudio",
+  "license": "MIT",
+  "keywords": ["globe", "dotted-map", "world-map", "embed", "mcp"],
+  "icon": "./icon.png",
+  "documentationUrl": "https://globestudio.app/docs#agent-skill",
+  "supportUrl": "https://github.com/alevizio/globestudio/issues",
+  "privacyPolicyUrl": "https://globestudio.app/privacy",
+  "termsOfServiceUrl": "https://globestudio.app/terms"
+}

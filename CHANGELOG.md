@@ -12,6 +12,14 @@ All notable changes to Globestudio are tracked here. Format follows
   site, embeds, the MCP server, the npm packages, the agent skill and the
   plugins. The footer, the About dialog, the sitemap and the READMEs link
   it, and questions go to GitHub issues.
+- The Claude Code plugin moves to `plugins/globestudio`, the layout
+  Anthropic's plugin directory reads: its own `plugin.json` with an icon
+  and links to the docs, support, privacy and terms, a `.mcp.json` for the
+  hosted MCP server, a README, a license and a copy of the skill. The
+  install commands stay the same. `npm run plugin:sync` copies
+  `skills/globestudio` into it, `npm run skill:references` runs it too,
+  and a test fails when the two differ. The plugin and the skill are
+  1.1.1.
 
 ### Changed
 

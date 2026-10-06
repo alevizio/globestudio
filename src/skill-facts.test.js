@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createElement } from "react";
@@ -294,35 +294,66 @@ describe("SKILL.md", () => {
 });
 
 describe("the Claude Code plugin", () => {
-  // /plugin marketplace add alevizio/globestudio reads this file.
+  // /plugin marketplace add alevizio/globestudio reads the marketplace, and
+  // Anthropic's plugin directory reads the plugin folder it points at.
+  const PLUGIN_DIR = "plugins/globestudio";
   const marketplace = JSON.parse(read(".claude-plugin/marketplace.json"));
-  const [plugin] = marketplace.plugins;
+  const [entry] = marketplace.plugins;
+  const manifest = JSON.parse(read(`${PLUGIN_DIR}/.claude-plugin/plugin.json`));
+  const { mcpServers } = JSON.parse(read(`${PLUGIN_DIR}/.mcp.json`));
+  const filesIn = (dir) =>
+    readdirSync(resolve(repoRoot, dir), { recursive: true })
+      .filter((file) => statSync(resolve(repoRoot, dir, file)).isFile())
+      .sort();
 
   it("offers one plugin, installed as globestudio@globestudio", () => {
     expect(marketplace.plugins).toHaveLength(1);
-    expect(plugin.name).toBe(fields.name);
+    expect(entry.name).toBe(fields.name);
+    expect(manifest.name).toBe(fields.name);
     expect(marketplace.name).toBe(fields.name);
   });
 
-  it("is the skill folder, with the skill's version", () => {
-    expect(resolve(repoRoot, plugin.source)).toBe(resolve(repoRoot, SKILL_DIR));
-    expect(plugin.skills).toEqual(["./"]);
-    expect(plugin.version).toBe(fields.metadata.version);
-    expect(plugin.license).toBe(fields.license);
+  it("is the plugin folder, with the skill's version and license", () => {
+    expect(resolve(repoRoot, entry.source)).toBe(resolve(repoRoot, PLUGIN_DIR));
+    expect(manifest.version).toBe(fields.metadata.version);
+    expect(manifest.license).toBe(fields.license);
+    expect(read(`${PLUGIN_DIR}/LICENSE`)).toBe(read("LICENSE"));
     // Claude Code copies the plugin folder into its cache and runs npm
-    // install there when it finds a package.json, and a plugin.json in a
-    // skill folder turns every copied skill into a plugin.
-    expect(existsSync(resolve(repoRoot, plugin.source, "package.json"))).toBe(false);
-    expect(existsSync(resolve(repoRoot, plugin.source, ".claude-plugin"))).toBe(false);
+    // install there when it finds a package.json, claude.ai and Cowork refuse
+    // a plugin with a top-level bin folder, and a plugin.json in a skill
+    // folder turns every copied skill into a plugin.
+    expect(existsSync(resolve(repoRoot, PLUGIN_DIR, "package.json"))).toBe(false);
+    expect(existsSync(resolve(repoRoot, PLUGIN_DIR, "bin"))).toBe(false);
+    expect(existsSync(resolve(repoRoot, SKILL_DIR, ".claude-plugin"))).toBe(false);
+  });
+
+  it("gives the directory its icon and listing links, with GitHub issues for support", () => {
+    expect(existsSync(resolve(repoRoot, PLUGIN_DIR, manifest.icon))).toBe(true);
+    expect(manifest).toMatchObject({
+      documentationUrl: "https://globestudio.app/docs#agent-skill",
+      supportUrl: "https://github.com/alevizio/globestudio/issues",
+      privacyPolicyUrl: "https://globestudio.app/privacy",
+      termsOfServiceUrl: "https://globestudio.app/terms",
+    });
+    // Contact is GitHub issues only: no email address in the listing.
+    for (const file of [".claude-plugin/plugin.json", "README.md"]) {
+      expect(read(`${PLUGIN_DIR}/${file}`), file).not.toMatch(/\S+@\S+\.\w+/);
+    }
+  });
+
+  it("carries the skill exactly as skills/globestudio has it (npm run plugin:sync)", () => {
+    const copy = `${PLUGIN_DIR}/skills/${fields.name}`;
+    expect(filesIn(copy)).toEqual(filesIn(SKILL_DIR));
+    for (const file of filesIn(SKILL_DIR)) expect(read(`${copy}/${file}`), file).toBe(read(`${SKILL_DIR}/${file}`));
   });
 
   it("bundles the hosted MCP server", () => {
-    expect(plugin.mcpServers).toEqual({ globestudio: { type: "http", url: MCP_URL } });
+    expect(mcpServers).toEqual({ globestudio: { type: "http", url: MCP_URL } });
   });
 
   it("has its tools named in SKILL.md as Claude Code names them, from the plugin and from claude mcp add", () => {
-    const [server] = Object.keys(plugin.mcpServers);
-    expect(body).toContain(`mcp__plugin_${plugin.name}_${server}__build_share_url`);
+    const [server] = Object.keys(mcpServers);
+    expect(body).toContain(`mcp__plugin_${manifest.name}_${server}__build_share_url`);
     expect(body).toContain(`mcp__${server}__build_share_url`);
   });
 });
