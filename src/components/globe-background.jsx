@@ -678,7 +678,7 @@ export const GlobeBackground = ({
       opacity: 0.28,
     });
     const globeMesh = new THREE.Mesh(new THREE.SphereGeometry(2, 96, 96), baseMaterial);
-    // The GLB export knows the body by its name (three/glb-export.js).
+    // Names the body in a GLB export (three/glb-export.js).
     globeMesh.name = "Globe";
     globeGroup.add(globeMesh);
 

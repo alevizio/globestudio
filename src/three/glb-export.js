@@ -35,15 +35,13 @@ const shownTexture = (texture) => {
 };
 
 // Unlit, like every material the scene draws these parts with
-// (KHR_materials_unlit). The globe body is opaque: on the canvas it hides
-// the far side at any opacity, and a see-through body in a viewer shows
-// the grid and arcs behind it.
-const flatMaterial = (source, opaque = false) => {
-  const opacity = opaque ? 1 : source.opacity;
-  return new THREE.MeshBasicMaterial({
+// (KHR_materials_unlit), at the part's own opacity: the globe body comes out
+// see-through at its Surface opacity (alphaMode BLEND), opaque at 100.
+const flatMaterial = (source) =>
+  new THREE.MeshBasicMaterial({
     color: shownColor(source.color),
-    opacity,
-    transparent: opacity < 1,
+    opacity: source.opacity,
+    transparent: source.opacity < 1,
     // ASCII glyphs and custom shapes are cut from a texture by its alpha,
     // and so is the land of the Solid style.
     map: source.map ? shownTexture(source.map) : null,
@@ -51,7 +49,6 @@ const flatMaterial = (source, opaque = false) => {
     side: source.side,
     vertexColors: source.vertexColors,
   });
-};
 
 const flatGeometry = (source, material) => {
   const geometry = new THREE.BufferGeometry();
@@ -150,7 +147,7 @@ export const buildGlbScene = (globeGroup, { instanced = false, sizeVary = false 
       part = dotsPart(object, { instanced, sizeVary });
       part.name = "Dots";
     } else {
-      const flat = flatMaterial(material, object.name === "Globe");
+      const flat = flatMaterial(material);
       part = new (object.isLine ? THREE.Line : THREE.Mesh)(flatGeometry(object.geometry, flat), flat);
       part.name = object.name;
     }

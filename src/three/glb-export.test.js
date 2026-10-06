@@ -16,7 +16,7 @@ const chile = createCountryMapData(["CHL"], 40);
 
 // The globe group the way components/globe-background.jsx assembles it,
 // at the end of a morph to the globe (1) or the flat map (0).
-const scene = ({ mapData = world, morph = 1, network = false, ...dots } = {}) => {
+const scene = ({ mapData = world, morph = 1, network = false, surfaceStrength = 30, ...dots } = {}) => {
   const globeGroup = new THREE.Group();
   const baseMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color("#18191d"), transparent: true });
   const globeMesh = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS, 96, 96), baseMaterial);
@@ -27,7 +27,7 @@ const scene = ({ mapData = world, morph = 1, network = false, ...dots } = {}) =>
   const globeNetwork = createGlobeNetwork();
   globeGroup.add(globeMesh, atmosphere, graticule, globeNetwork);
   const refs = { globeGroup, baseMaterial, globeMesh, atmosphereMaterial, atmosphere, graticule, globeNetwork, atmosphereIntensity: 0.42 };
-  const globeSettings = { ...DEFAULT_GLOBE_SETTINGS, network };
+  const globeSettings = { ...DEFAULT_GLOBE_SETTINGS, network, surfaceStrength };
   applyGlobeShellProgress(refs, morph, globeSettings);
   updateGlobeNetwork(globeNetwork, 3);
   globeGroup.add(buildGlobeDotLayer({
@@ -148,11 +148,21 @@ describe("exportGlb", () => {
     expect(Math.max(...varied) / Math.min(...varied)).toBeGreaterThan(1.3);
   });
 
-  it("keeps the globe body opaque and leaves out the glow, look halos and moving network parts", async () => {
+  it("draws the globe body see-through at its Surface opacity, and opaque at 100", async () => {
+    const material = (json, name) => json.materials[json.meshes[json.nodes.find((node) => node.name === name).mesh].primitives[0].material];
+    // The default Surface opacity is 30.
+    const body = material((await parts(scene())).json, "Globe");
+    expect(body.alphaMode).toBe("BLEND");
+    expect(body.pbrMetallicRoughness.baseColorFactor[3]).toBeCloseTo(0.3, 5);
+    // The dots stay opaque, so no viewer sorts them behind the body.
+    expect(material((await parts(scene())).json, "Dots").alphaMode).toBeUndefined();
+    const opaque = material((await parts(scene({ surfaceStrength: 100 }))).json, "Globe");
+    expect(opaque.alphaMode).toBeUndefined();
+  });
+
+  it("leaves out the glow, look halos and moving network parts", async () => {
     const globeGroup = scene({ network: true, shaderSettings: { ...DEFAULT_SHADER_SETTINGS, effect: "bloom" } });
     const { byName, gltf, json } = await parts(globeGroup);
-    const [body] = byName("Globe");
-    expect(body.material.transparent).toBe(false);
     // One dot mesh: Bloom's halo layer stays out.
     expect(byName("Dots")).toHaveLength(1);
     expect(json.materials.every((material) => material.extensions?.KHR_materials_unlit)).toBe(true);
