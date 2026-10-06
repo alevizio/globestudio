@@ -171,11 +171,11 @@ export const PrivacyPage = () => {
           The MCP server at <code>globestudio.app/mcp</code> lets an AI tool
           such as Claude, ChatGPT, Codex or Cursor make globes for you, and
           the Globestudio plugins connect to it. A tool call sends the server
-          only what that tool needs: a look, a style word, colors, a region or
-          a Globestudio link you pasted. The server answers from that and its
-          built-in list of looks. It has no accounts, sets no cookies, stores
-          nothing, calls no other service and never sees the rest of your
-          conversation.
+          only what that tool needs, such as a look, a style word, colors, a
+          region, data points or a Globestudio link you pasted. The server
+          answers from that and its built-in list of looks. It has no
+          accounts, sets no cookies, stores nothing, calls no other service
+          and never sees the rest of your conversation.
         </p>
         <p>
           Its requests are in Vercel's request log, above, without the tool's
