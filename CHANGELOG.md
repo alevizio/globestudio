@@ -61,6 +61,9 @@ on deploy.
   for any phrase, though its description asks for a word or a short
   phrase. It now also matches word by word, and a single word finds
   exactly what it found before.
+- A link to a section of a site page, such as `/docs#agent-skill` or
+  `/privacy#ai-tools`, opens at that section. It used to open at the top
+  of the page.
 - Data markers and arcs on the far side of the globe no longer show
   through it. They draw after the globe's sphere now, so its depth hides
   them the way it hides the far side's dots.

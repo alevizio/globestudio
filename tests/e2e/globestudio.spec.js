@@ -1000,6 +1000,15 @@ test("/docs points to the privacy page's MCP section and the terms from the agen
   await expect(section.getByRole("link", { name: "terms of use" })).toHaveAttribute("href", "/terms");
 });
 
+// The plugin listings link /docs#agent-skill, and /docs links
+// /privacy#ai-tools. Both sections sit far below the fold.
+for (const [path, id] of [["/docs", "agent-skill"], ["/privacy", "ai-tools"]]) {
+  test(`a link to ${path}#${id} opens at that section`, async ({ page }) => {
+    await page.goto(`${path}#${id}`);
+    await expect(page.locator(`#${id}`)).toBeInViewport();
+  });
+}
+
 for (const path of ["/docs", "/privacy", "/terms"]) {
   test(`the footer on ${path} links Privacy and Terms`, async ({ page }) => {
     await page.goto(path);
