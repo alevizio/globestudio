@@ -335,9 +335,11 @@ describe("the Claude Code plugin", () => {
       privacyPolicyUrl: "https://globestudio.app/privacy",
       termsOfServiceUrl: "https://globestudio.app/terms",
     });
-    // Contact is GitHub issues only: no email address in the listing.
+    // Contact is GitHub issues only: no email address in the listing. An
+    // address ends in a domain of letters, which a pinned package such as
+    // degit@3.10.0 does not.
     for (const file of [".claude-plugin/plugin.json", "README.md"]) {
-      expect(read(`${PLUGIN_DIR}/${file}`), file).not.toMatch(/\S+@\S+\.\w+/);
+      expect(read(`${PLUGIN_DIR}/${file}`), file).not.toMatch(/[\w.+-]+@[\w-]+(\.[\w-]+)*\.[a-z]{2,}\b/i);
     }
   });
 

@@ -163,7 +163,7 @@ URL.
 - JSON Schema: <https://globestudio.app/schema/config.json>
 - React component (`npm i @globestudio/react`): <https://www.npmjs.com/package/@globestudio/react>
 - React starter, a Vite app with a globe on the page
-  (`npx degit alevizio/globestudio/examples/starter-react my-globe`):
+  (`npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe`):
   <https://github.com/alevizio/globestudio/tree/main/examples/starter-react>,
   or open it in StackBlitz:
   <https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react>

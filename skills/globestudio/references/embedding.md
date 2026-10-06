@@ -31,7 +31,7 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 
 `npm install @globestudio/react`, 0.1.1 or later: 0.1.0 dropped `look` whenever `config` was set, so a config of changes embedded over Default. `<Globe>` renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component pass only serializable props; `onLoad` or a ref needs a client component.
 
-With no project yet, `npx degit alevizio/globestudio/examples/starter-react my-globe` copies a Vite and React app that already renders a `<Globe>`. Run `npm install` and `npm run dev` in it.
+With no project yet, `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe` copies a Vite and React app that already renders a `<Globe>`. Run `npm install` and `npm run dev` in it.
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|

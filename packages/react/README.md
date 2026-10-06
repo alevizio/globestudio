@@ -13,7 +13,7 @@ npm install @globestudio/react
 For a new project, copy the [starter](https://github.com/alevizio/globestudio/tree/main/examples/starter-react) instead. It is a Vite app with a globe on the page:
 
 ```bash
-npx degit alevizio/globestudio/examples/starter-react my-globe
+npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe
 ```
 
 Or [open it in StackBlitz](https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react) to try it with nothing to install.

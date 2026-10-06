@@ -290,7 +290,7 @@ start with:
 
 - [`starter-react`](./examples/starter-react): a Vite and React app with a
   globe on the page. Copy it with
-  `npx degit alevizio/globestudio/examples/starter-react my-globe`, or
+  `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe`, or
   [open it in StackBlitz](https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react).
 - [`embed-snippet`](./examples/embed-snippet): the smallest iframe setup.
   Copy it into Webflow, Framer, plain HTML, or anywhere else.

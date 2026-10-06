@@ -2,7 +2,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { IntegrationsPage } from "./integrations-page.jsx";
 
-const DEGIT = "npx degit alevizio/globestudio/examples/starter-react my-globe";
+const DEGIT = "npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe";
 const STACKBLITZ = "https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react";
 
 beforeAll(() => {

@@ -1032,7 +1032,7 @@ for (const path of ["/docs", "/privacy", "/terms"]) {
 test.describe("React starter on a 320px wide phone", () => {
   test.use({ viewport: { width: 320, height: 568 }, isMobile: true, hasTouch: true, permissions: ["clipboard-read", "clipboard-write"] });
 
-  const DEGIT = "npx degit alevizio/globestudio/examples/starter-react my-globe";
+  const DEGIT = "npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe";
   const STACKBLITZ = "https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react";
 
   for (const [path, label, link] of [

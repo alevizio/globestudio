@@ -58,7 +58,7 @@ A JSON Schema for configuration files is at
 ## Reference code components
 
 - [React component](https://www.npmjs.com/package/@globestudio/react): `npm i @globestudio/react`, a drop-in `<Globe>` for Next.js / Vite / Remix
-- [React starter](https://github.com/alevizio/globestudio/tree/main/examples/starter-react): `npx degit alevizio/globestudio/examples/starter-react my-globe`, a Vite app with a `<Globe>` on the page, also on [StackBlitz](https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react)
+- [React starter](https://github.com/alevizio/globestudio/tree/main/examples/starter-react): `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe`, a Vite app with a `<Globe>` on the page, also on [StackBlitz](https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react)
 - [Web component](https://www.npmjs.com/package/@globestudio/element): `<globe-studio>`, loadable with no build step from jsDelivr with this tag, whose integrity hash lets the browser run only that version's file: `<script type="module" src="https://cdn.jsdelivr.net/npm/@globestudio/element@0.2.0/index.js" integrity="sha384-aHQOT3XnyObS+Dk0lMsAKS3J7YeIz8VRlHconYo2YYtEy7UqCytVre6dLWPYxKqM" crossorigin="anonymous"></script>`
 - On a light page, both take `theme="light"`, the same as `theme=light` on an `/embed` URL. Use it on a see-through globe such as Wireframe: on a look's own dark page, its graphite ink is lost
 - In the app, the export dialog's Share tab has Embed code for the design on screen, as an iframe, a React snippet or a web component snippet

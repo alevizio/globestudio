@@ -44,7 +44,7 @@ describe("DocsPage", () => {
   it("points a new React project at the starter, by degit or StackBlitz", () => {
     render(<DocsPage />);
     const block = screen.getByText("degit", { selector: ".code-block-language" }).closest(".code-block");
-    expect(block.querySelector("pre").textContent).toBe("npx degit alevizio/globestudio/examples/starter-react my-globe");
+    expect(block.querySelector("pre").textContent).toBe("npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe");
     expect(within(block).getByRole("button", { name: "Copy code to clipboard" })).toBeTruthy();
     const link = screen.getByRole("link", { name: "open it in StackBlitz" });
     expect(link.getAttribute("href")).toBe("https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react");

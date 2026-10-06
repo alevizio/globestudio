@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { PACKAGES_FLOOR, lookDotColor } from "../scripts/skill-references.js";
 import { lookPresets } from "./data/look-presets.js";
-import { STARTER_DEGIT, STARTER_PATH, STARTER_STACKBLITZ } from "./data/starter-react.js";
+import { DEGIT_VERSION, STARTER_DEGIT, STARTER_PATH, STARTER_STACKBLITZ } from "./data/starter-react.js";
 import { parseShareConfig } from "./utils/share-config.js";
 
 // The React starter in examples/starter-react is copied out of the repo by
@@ -91,12 +91,29 @@ describe("examples/starter-react", () => {
   });
 
   it("gives the three ways in that /docs and /integrations offer", () => {
-    expect(STARTER_DEGIT).toBe("npx degit alevizio/globestudio/examples/starter-react my-globe");
+    expect(STARTER_DEGIT).toBe("npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe");
     expect(STARTER_STACKBLITZ).toBe("https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react");
     expect(readme).toContain(STARTER_DEGIT);
     expect(readme).toContain(`(${STARTER_STACKBLITZ})`);
     expect(readme).toContain("git clone --depth 1 https://github.com/alevizio/globestudio.git");
     expect(readme).toContain(`cd globestudio/${STARTER_PATH}`);
+  });
+
+  it.each([
+    "README.md",
+    "packages/react/README.md",
+    "plugins/globestudio/README.md",
+    "public/llms.txt",
+    "public/llms-full.txt",
+    "skills/globestudio/SKILL.md",
+    "skills/globestudio/references/embedding.md",
+    `${STARTER_PATH}/README.md`,
+  ])("%s gives degit only at its pinned version", (path) => {
+    expect(DEGIT_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
+    const text = readFileSync(resolve(repoRoot, path), "utf8");
+    const runs = [...text.matchAll(/npx (degit\S*)/g)].map(([, command]) => command);
+    expect(runs.length).toBeGreaterThan(0);
+    for (const command of runs) expect(command).toBe(`degit@${DEGIT_VERSION}`);
   });
 
   it("links only to full addresses, since degit copies the README out of the repo", () => {

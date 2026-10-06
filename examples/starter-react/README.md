@@ -14,7 +14,7 @@ versions Vite runs on. StackBlitz needs nothing installed.
 ### degit
 
 ```bash
-npx degit alevizio/globestudio/examples/starter-react my-globe
+npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe
 cd my-globe
 npm install
 npm run dev
