@@ -32,13 +32,13 @@ on deploy.
   upload ZIP, version 1.2.1. `vercel.json` serves
   `/.well-known/openai-apps-challenge` as uncached plain text, ready for
   OpenAI's domain check.
-- GLB export, for three.js and other 3D tools: the Image tab's new Format
-  row has PNG and GLB. The file holds what the scene draws as geometry:
-  the dots with their positions, sizes, shapes and colors, the globe body,
-  the grid, the network's arcs and hub cities and the data markers, in
-  flat unlit colors (`KHR_materials_unlit`), and on the flat map the dots
-  on a plane. Shader looks, post effects, the glow and animation stay out,
-  and the dialog says so. Dots come Merged, one mesh any glTF viewer opens,
+- GLB export, for three.js and other 3D tools, in the Export dialog's new
+  3D tab. The file holds what the scene draws as geometry: the dots with
+  their positions, sizes, shapes and colors, the globe body, see-through
+  at its Surface opacity, the grid, the network's arcs and hub cities and
+  the data markers, in flat unlit colors (`KHR_materials_unlit`), and on
+  the flat map the dots on a plane. Shader looks, post effects, the glow
+  and animation stay out, and the dialog says so. Dots come Merged, one mesh any glTF viewer opens,
   or Instanced (`EXT_mesh_gpu_instancing`, marked required), a smaller
   file that three.js, Babylon.js and Blender 4.0 or later read and Apple
   Preview shows as one dot. three.js's GLTFExporter loads only when a GLB
@@ -47,6 +47,15 @@ on deploy.
 
 ### Changed
 
+- The Export dialog lists its tabs down the left, like Spline's export
+  panel: each one's name, with what it makes under it (Image: PNG, Video:
+  MP4, WebM, GIF, SVG: Vector, 3D: GLB, Figma, Share, MCP and Skill with
+  a short line each). The panel beside the list is the one the tab row
+  showed. On a phone and in the Figma plugin the dialog opens on the list,
+  and a tab opens its panel with a Back button to the list, as iOS
+  Settings does. With room for every tab, the Figma and Skill tabs now
+  show on phones and narrow windows too. The list is a vertical tablist:
+  the up and down arrows, Home and End move through it.
 - Each MCP server tool has a short title, such as Find looks by style, and
   says it only reads: it changes nothing, deletes nothing and reaches
   nothing outside the server. Anthropic's and OpenAI's directories ask for
