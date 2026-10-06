@@ -1419,9 +1419,11 @@ test.describe("Embed code", () => {
       return right < 0 ? 0 : (right - left) / Math.max(bottom - top, 1);
     }, png.toString("base64"));
   };
+  // The embed code's own panel, inside the dialog's Share panel.
+  const embedPanel = (dialog) => dialog.locator(".export-modal-pane").getByRole("tabpanel");
   const copySnippet = async (page, dialog) => {
-    await dialog.getByRole("tabpanel").getByRole("button", { name: "Copy code to clipboard" }).click();
-    await expect(dialog.getByRole("tabpanel").getByRole("button", { name: "Copied" })).toBeVisible();
+    await embedPanel(dialog).getByRole("button", { name: "Copy code to clipboard" }).click();
+    await expect(embedPanel(dialog).getByRole("button", { name: "Copied" })).toBeVisible();
     return page.evaluate(() => navigator.clipboard.readText());
   };
 
@@ -1436,7 +1438,7 @@ test.describe("Embed code", () => {
     const kinds = dialog.getByRole("tablist", { name: "Embed code" });
     await expect(kinds.getByRole("tab")).toHaveText(["iframe", "React", "Web component"]);
     await expect(kinds.getByRole("tab", { name: "iframe" })).toHaveAttribute("aria-selected", "true");
-    const panel = dialog.getByRole("tabpanel");
+    const panel = embedPanel(dialog);
 
     // Full width, at the height the canvas has on screen.
     const iframe = await copySnippet(page, dialog);
@@ -1633,7 +1635,7 @@ test.describe("embed code on a 320px wide phone", () => {
       clientWidth: el.clientWidth,
     }));
     expect(body.scrollWidth).toBeLessThanOrEqual(body.clientWidth);
-    const pre = dialog.getByRole("tabpanel").locator("pre");
+    const pre = dialog.locator(".export-modal-pane").getByRole("tabpanel").locator("pre");
     expect(await pre.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
     await expect(pre).toHaveAttribute("tabindex", "0");
     // Wait out the toggle's sliding pill, so axe reads the colors at rest.
