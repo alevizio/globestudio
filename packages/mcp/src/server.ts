@@ -764,7 +764,7 @@ export function createServer(): Server {
   const server = new Server(
     {
       name: "globestudio",
-      version: "0.2.3",
+      version: "0.2.4",
     },
     {
       capabilities: {

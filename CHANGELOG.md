@@ -6,6 +6,11 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ## [Unreleased]
 
+`@globestudio/mcp` 0.2.4 needs an npm publish and an MCP registry update
+for the tool titles and read-only marks, the `find_presets` fix and the
+shorter instructions. The hosted server at globestudio.app/mcp gets them
+on deploy.
+
 ### Added
 
 - A terms of use page at `/terms`, styled like `/privacy`. It covers the
