@@ -1,5 +1,7 @@
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { execFileSync, spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
@@ -396,6 +398,43 @@ describe("the ChatGPT and Codex plugin", () => {
     });
     for (const file of ["plugin.json", "README.md"]) {
       expect(read(`openai-plugin/${file}`), file).not.toMatch(/\S+@\S+\.\w+/);
+    }
+  });
+
+  // OpenAI's review asks for a video walkthrough at
+  // extensions["com.openai"].review.demo_recording_url.
+  it("builds the ZIP with the demo video address from the second argument or DEMO_URL", () => {
+    const out = mkdtempSync(join(tmpdir(), "openai-plugin-"));
+    const build = (args, demoUrl = "") =>
+      spawnSync("sh", ["scripts/build-openai-plugin.sh", out, ...args], {
+        cwd: repoRoot,
+        env: { ...process.env, DEMO_URL: demoUrl },
+        encoding: "utf8",
+      });
+    const built = (args, demoUrl) => {
+      const { status, stdout, stderr } = build(args, demoUrl);
+      expect(status, stderr).toBe(0);
+      const zip = stdout.trim();
+      expect(zip).toBe(join(out, `globestudio-openai-plugin-${manifest.version}.zip`));
+      return JSON.parse(execFileSync("unzip", ["-p", zip, "plugin.json"], { encoding: "utf8" }));
+    };
+    // The source manifest with only the demo address added.
+    const openai = manifest.extensions["com.openai"];
+    const withDemo = (url) => ({
+      ...manifest,
+      extensions: { "com.openai": { ...openai, review: { ...openai.review, demo_recording_url: url } } },
+    });
+    try {
+      expect(built([])).toEqual(manifest);
+      expect(built([], "https://example.com/from-env")).toEqual(withDemo("https://example.com/from-env"));
+      expect(built(["https://example.com/from-arg"])).toEqual(withDemo("https://example.com/from-arg"));
+      // The argument wins over the environment.
+      expect(built(["https://example.com/from-arg"], "https://example.com/from-env")).toEqual(withDemo("https://example.com/from-arg"));
+      const refused = build(["youtu.be/demo"]);
+      expect(refused.status).not.toBe(0);
+      expect(refused.stderr).toContain("must start with https://");
+    } finally {
+      rmSync(out, { recursive: true, force: true });
     }
   });
 
