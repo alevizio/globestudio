@@ -64,7 +64,7 @@
               "description": "Write embed code for a website in the framework the user asks for.",
               "prompt": "Give me React embed code for the Halftone globe, full width and 480 px tall.",
               "tools_triggered": "embed_snippet",
-              "expected_behavior": "Calls embed_snippet with look halftone, framework react, width 100% and height 480. Returns a React component that renders an iframe of https://globestudio.app/embed?look=halftone with width 100% and height 480."
+              "expected_behavior": "Calls embed_snippet with look halftone, framework react, width 100% and height 480. Returns a React component that renders an iframe of https://globestudio.app/embed?look=halftone with width 100% and height 480. In a code project, such as Codex in a repo, the bundled skill may instead write the @globestudio/react component <Globe look=\"halftone\" width=\"100%\" height={480} /> without calling embed_snippet. That component renders the same iframe, so both answers are correct."
             },
             {
               "description": "List every look, then show the preview image and live embed of one.",
