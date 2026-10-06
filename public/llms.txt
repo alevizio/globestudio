@@ -9,7 +9,7 @@ Globestudio renders interactive dotted-style world maps and 3D globes
 in the browser. It is **not** a GIS tool: it's a designer-first
 visual generator that an AI assistant can drive programmatically to
 produce: hero-image embeds, country-highlighted brand artwork,
-animated launch teasers, exported PNG / SVG / WebM / MP4 / GIF, JSON configs, and
+animated launch teasers, exported PNG / SVG / GLB / WebM / MP4 / GIF, JSON configs, and
 data-driven globes (plot lat,lng,value or country-code data as
 proportional markers, optionally connected by arcs).
 

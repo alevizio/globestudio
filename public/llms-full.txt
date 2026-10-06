@@ -3,9 +3,9 @@
 > Open-source, designer-first generator of dotted-style world maps and 3D
 > globes that runs entirely in the browser. React + Three.js (WebGL2), 21
 > looks, 5 flat projections for solid maps (dotted maps use Mercator),
-> custom GeoJSON, PNG / SVG / WebM / MP4 / GIF / JSON export and embeds. MIT
-> licensed. Targets WCAG 2.2 AA. NOT a GIS tool: a visual generator that
-> an AI assistant can drive programmatically.
+> custom GeoJSON, PNG / SVG / GLB / WebM / MP4 / GIF / JSON export and
+> embeds. MIT licensed. Targets WCAG 2.2 AA. NOT a GIS tool: a visual
+> generator that an AI assistant can drive programmatically.
 
 This is the expanded reference. The short version is at
 <https://globestudio.app/llms.txt>.
@@ -146,6 +146,15 @@ effect, solid land and a Space or Flow background come through only in PNG
 or video, so of the looks only `default` exports to SVG whole; when the
 design has something the vectors leave out, both tabs name it and point to
 the image.
+The Image tab also saves a GLB: a 3D model of the dots with their shapes,
+sizes and colors, the globe body, the grid, the network arcs and hub cities
+and the data markers, in flat unlit colors (`KHR_materials_unlit`), in the
+globe's own frame (Y up; the flat map lies in a plane facing +Z). A look's
+shader effect, post effects, the glow and animation stay out. **Merged**,
+the default, puts every dot in one mesh that any glTF viewer opens;
+**Instanced** writes one dot shape placed once per dot
+(`EXT_mesh_gpu_instancing`, marked required), a smaller file for three.js,
+Babylon.js and Blender 4.0 or later.
 Rendering is client-side; there is no server-side image
 endpoint (yet). For a screenshot, point a headless browser at an `/embed?…`
 URL.
@@ -192,8 +201,8 @@ URL.
 
 Globestudio is a designer-first, open-source web tool for creating dotted maps
 and animated 3D globes. Pick any country, region, or US state, customize dot
-shapes, gradients, and WebGL shader effects, then export PNG, SVG, WebM, MP4 or
-GIF, a JSON config, or an embed. It runs in the browser with no account or
+shapes, gradients, and WebGL shader effects, then export PNG, SVG, GLB, WebM,
+MP4 or GIF, a JSON config, or an embed. It runs in the browser with no account or
 install.
 
 ### Is Globestudio free to use commercially?
@@ -201,7 +210,7 @@ install.
 Yes. Globestudio is MIT-licensed, so you can use it commercially without
 paying. MIT requires you to keep the LICENSE + NOTICE files when redistributing
 the source or built bundle (NOTICE credits Pixelarticons and the open atlases
-the tool relies on). The visuals you export (PNG, SVG, WebM, MP4, GIF, JSON)
+the tool relies on). The visuals you export (PNG, SVG, GLB, WebM, MP4, GIF, JSON)
 are yours; no attribution needed on the exports themselves. Rendering and
 exports run client-side in your browser; your designs are never uploaded.
 
@@ -211,7 +220,8 @@ Press D or click the Export button to open the export dialog. PNG exports
 re-render the canvas at up to 4x resolution, and Copy image puts that PNG on
 the clipboard to paste elsewhere; SVG exports produce vector output
 for print or further editing, and the SVG tab says when the look has an
-effect only the PNG keeps; WebM, MP4 and GIF exports record the live
+effect only the PNG keeps; GLB exports a 3D model of the dots and globe for
+three.js, Blender or any glTF viewer; WebM, MP4 and GIF exports record the live
 animation; JSON exports save the full config so others can reproduce your look.
 
 ### Does Globestudio work on mobile?
