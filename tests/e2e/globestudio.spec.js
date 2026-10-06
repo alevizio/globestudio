@@ -1,6 +1,16 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import axeSource from "axe-core";
+
+// The tag that loads <globe-studio> with no build step: the file jsDelivr
+// serves for the element's version, with the integrity hash of
+// packages/web-component/index.js, which npm published as that version.
+const ELEMENT_SCRIPT = (() => {
+  const { version } = JSON.parse(readFileSync("packages/web-component/package.json", "utf8"));
+  const hash = createHash("sha384").update(readFileSync("packages/web-component/index.js")).digest("base64");
+  return `<script type="module" src="https://cdn.jsdelivr.net/npm/@globestudio/element@${version}/index.js" integrity="sha384-${hash}" crossorigin="anonymous"></script>`;
+})();
 
 // First paint compiles the three.js graph through the dev server and warms up
 // the swiftshader renderer, which is slow on CI — allow extra headroom there.
@@ -1455,7 +1465,7 @@ test.describe("Embed code", () => {
     await expect(kinds.getByRole("tab", { name: "Web component" })).toBeFocused();
     const element = await copySnippet(page, dialog);
     const [script, tag] = element.split("\n");
-    expect(script).toBe('<script type="module" src="https://esm.sh/@globestudio/element"></script>');
+    expect(script).toBe(ELEMENT_SCRIPT);
     const parsed = await page.evaluate((html) => {
       const node = new DOMParser().parseFromString(html, "text/html").querySelector("globe-studio");
       return { config: node.getAttribute("config"), height: node.getAttribute("height") };
@@ -1579,7 +1589,7 @@ test.describe("Open in CodePen", () => {
     // A page with no margin, as tall as the pen, in the design's background.
     expect(data.css).toBe("html,\nbody {\n  height: 100%;\n  margin: 0;\n  background: #7a1f1f;\n}");
     const [script, tag] = data.html.split("\n");
-    expect(script).toBe('<script type="module" src="https://esm.sh/@globestudio/element"></script>');
+    expect(script).toBe(ELEMENT_SCRIPT);
     // Rendered as HTML, the tag gives the element the config unchanged.
     const parsed = await page.evaluate((html) => {
       const doc = new DOMParser().parseFromString(html, "text/html");

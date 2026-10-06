@@ -56,10 +56,18 @@ export const buildReactSnippet = ({ config, width, height }) =>
 const escapeAttribute = (value) =>
   value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-// <globe-studio> takes the same JSON, here inside an HTML attribute. The
-// element loads from esm.sh, so the snippet needs no build step.
+// The tag that loads <globe-studio> with no build step. jsDelivr serves the
+// file npm published for that version, and the integrity hash lets the
+// browser run only those bytes. element-script.test.js recomputes the hash
+// from packages/web-component/index.js and reads the version from its
+// package.json, so a change to the element fails until this tag, and the
+// copies it lists, are updated.
+export const ELEMENT_SCRIPT =
+  '<script type="module" src="https://cdn.jsdelivr.net/npm/@globestudio/element@0.2.0/index.js" integrity="sha384-aHQOT3XnyObS+Dk0lMsAKS3J7YeIz8VRlHconYo2YYtEy7UqCytVre6dLWPYxKqM" crossorigin="anonymous"></script>';
+
+// <globe-studio> takes the same JSON, here inside an HTML attribute.
 export const buildWebComponentSnippet = ({ config, height }) =>
-  `<script type="module" src="https://esm.sh/@globestudio/element"></script>
+  `${ELEMENT_SCRIPT}
 <globe-studio${config ? ` config="${escapeAttribute(config)}"` : ""} height="${height}"></globe-studio>`;
 
 // A pen for CodePen's prefill API (https://blog.codepen.io/documentation/prefill/):

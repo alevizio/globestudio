@@ -4,6 +4,7 @@ import {
   buildIframeSnippet,
   buildReactSnippet,
   buildWebComponentSnippet,
+  ELEMENT_SCRIPT,
   fitsEmbedUrl,
 } from "./embed-snippets.js";
 import { buildShareUrl, parseShareConfig } from "./share-config.js";
@@ -129,9 +130,14 @@ describe("buildWebComponentSnippet", () => {
   const snippet = buildWebComponentSnippet({ config: CONFIG, height: 800 });
   const doc = parse(snippet);
 
-  it("loads the element from esm.sh, with no build step", () => {
+  it("loads the element with no build step, pinned and checked by its integrity hash", () => {
     const [first] = snippet.split("\n");
-    expect(first).toBe('<script type="module" src="https://esm.sh/@globestudio/element"></script>');
+    expect(first).toBe(ELEMENT_SCRIPT);
+    const script = parse(first).querySelector("script");
+    expect(script.getAttribute("type")).toBe("module");
+    expect(script.getAttribute("src")).toMatch(/^https:\/\/cdn\.jsdelivr\.net\/npm\/@globestudio\/element@\d+\.\d+\.\d+\/index\.js$/);
+    expect(script.getAttribute("integrity")).toMatch(/^sha384-[A-Za-z0-9+/]{64}$/);
+    expect(script.getAttribute("crossorigin")).toBe("anonymous");
   });
 
   it("adds a globe-studio element with the config and the height", () => {
@@ -248,7 +254,7 @@ describe("buildCodePenData", () => {
     expect(data.js).toBe("");
   });
 
-  it("shows the design with the web component from esm.sh, as tall as the pen's page", () => {
+  it("shows the design with the web component, as tall as the pen's page", () => {
     expect(data.html).toBe(buildWebComponentSnippet({ config: CONFIG, height: "100%" }));
     expect(parse(data.html).querySelector("globe-studio").getAttribute("height")).toBe("100%");
   });

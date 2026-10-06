@@ -21,6 +21,7 @@ const ENTRIES = [
     items: [
       "Terms of use at /terms, and a privacy page that now covers hosting and AI tools and says the launch waitlist was deleted",
       "AI tools connected to the MCP server find looks from a phrase like \"retro print\", where they used to find none",
+      "The Share tab's web component code loads a pinned version of the element, and the browser checks its hash before running it",
     ],
   },
   {

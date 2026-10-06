@@ -33,9 +33,13 @@ import "@globestudio/element"; // auto-registers <globe-studio>
 Or via CDN, no build step:
 
 ```html
-<script type="module" src="https://esm.sh/@globestudio/element"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@globestudio/element@0.2.0/index.js" integrity="sha384-aHQOT3XnyObS+Dk0lMsAKS3J7YeIz8VRlHconYo2YYtEy7UqCytVre6dLWPYxKqM" crossorigin="anonymous"></script>
 <globe-studio look="halftone"></globe-studio>
 ```
+
+The tag pins a version, and its integrity hash lets the browser run only
+that version's file. To move to a newer version, copy its tag from this
+README or from the app's Share tab, since the hash changes with the file.
 
 ## Attributes
 

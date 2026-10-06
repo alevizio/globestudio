@@ -53,6 +53,11 @@ on deploy.
 - A new Figma plugin version: the address it loads drops the old teaser
   parameter, and its network access note says it loads the full studio,
   not the old embed picker. Nothing changes in how it works.
+- The export dialog's Web component embed code, and the pen Open in
+  CodePen makes, load `@globestudio/element` 0.2.0 from jsDelivr with an
+  integrity hash, so the browser runs only that file. They used to load
+  the latest version from esm.sh with no check. A test fails when the
+  element changes and the tag does not.
 
 ### Fixed
 

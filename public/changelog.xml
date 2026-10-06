@@ -15,6 +15,7 @@
       <description><![CDATA[<ul>
   <li>Terms of use at /terms, and a privacy page that now covers hosting and AI tools and says the launch waitlist was deleted</li>
   <li>AI tools connected to the MCP server find looks from a phrase like &quot;retro print&quot;, where they used to find none</li>
+  <li>The Share tab&apos;s web component code loads a pinned version of the element, and the browser checks its hash before running it</li>
 </ul>]]></description>
     </item>
     <item>
