@@ -12,6 +12,9 @@ All notable changes to Globestudio are tracked here. Format follows
   says it only reads: it changes nothing, deletes nothing and reaches
   nothing outside the server. Anthropic's and OpenAI's directories ask for
   both, and ChatGPT runs a read-only tool without asking first.
+- The MCP server's instructions no longer suggest adding the agent skill,
+  so they only describe the server's own tools. The Claude and ChatGPT
+  plugins bundle the skill with the server.
 - A new Figma plugin version: the address it loads drops the old teaser
   parameter, and its network access note says it loads the full studio,
   not the old embed picker. Nothing changes in how it works.

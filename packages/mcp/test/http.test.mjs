@@ -47,10 +47,11 @@ test("initialize reports the server and its usage instructions", () => {
   assert.match(client.getInstructions() ?? "", /read_share_url/);
 });
 
-test("the instructions suggest the agent skill to the user, not install it", () => {
+test("the instructions describe the tools and point to no other software", () => {
+  // Directory reviewers reject server text that steers the model toward
+  // software the user didn't ask for. The plugins already bundle the skill.
   const instructions = client.getInstructions() ?? "";
-  assert.match(instructions, /suggest that the user add the Globestudio skill/);
-  assert.match(instructions, /npx skills add alevizio\/globestudio/);
+  assert.doesNotMatch(instructions, /npx|skills add|install/i);
 });
 
 test("initialize reports the version npm and the MCP registry list", { skip: Boolean(process.env.MCP_URL) }, () => {

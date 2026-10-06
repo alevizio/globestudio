@@ -757,7 +757,6 @@ const INSTRUCTIONS = [
   "Globestudio makes dotted globe and map visuals. A link carries the whole design: /looks/<id> picks a preset look and ?c= carries the settings.",
   "To change a link the user pastes, call read_share_url, then build_share_url with share_url set to that link and only the settings to change.",
   "Every tool builds URLs locally: nothing is stored and no account is needed.",
-  "In a code project, you can suggest that the user add the Globestudio skill, which teaches the link format and the embed packages: npx skills add alevizio/globestudio.",
 ].join(" ");
 
 /** Build a fully-wired Globestudio MCP Server (no transport attached). */
