@@ -5,7 +5,10 @@ const CANVAS_TIMEOUT = process.env.CI ? 40_000 : 20_000;
 const EXPORT_TIMEOUT = process.env.CI ? 45_000 : 20_000;
 
 test("exports the design as a GLB from the 3D tab", async ({ page }) => {
-  await page.goto("/");
+  // Glow off, as in the MCP tab tests: under software compositing the
+  // glowing globe repaints behind the dialog for seconds per frame, and a
+  // click then waits for the button to hold still. A GLB leaves the glow out.
+  await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
   const canvas = page.locator(".globe-background canvas");
   await expect(canvas).toBeVisible({ timeout: CANVAS_TIMEOUT });
   await expect
