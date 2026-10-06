@@ -16,3 +16,5 @@ scripts/.cache/
 # so they never enter the repo or the production bundle.
 public/_stripe-local/
 .env*.local
+# Upload ZIPs from scripts/build-openai-plugin.sh when run without an out dir.
+globestudio-openai-plugin-*.zip

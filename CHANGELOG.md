@@ -20,6 +20,13 @@ All notable changes to Globestudio are tracked here. Format follows
   `skills/globestudio` into it, `npm run skill:references` runs it too,
   and a test fails when the two differ. The plugin and the skill are
   1.1.1.
+- The source of the Globestudio plugin for OpenAI's directory (ChatGPT
+  and Codex), in `openai-plugin/`: the manifest with its listing and
+  review test cases, and the MCP config. `scripts/build-openai-plugin.sh`
+  packs it with `skills/globestudio`, the license and the icons into the
+  upload ZIP, version 1.2.1. `vercel.json` serves
+  `/.well-known/openai-apps-challenge` as uncached plain text, ready for
+  OpenAI's domain check.
 
 ### Changed
 

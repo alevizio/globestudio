@@ -358,6 +358,39 @@ describe("the Claude Code plugin", () => {
   });
 });
 
+// scripts/build-openai-plugin.sh packs openai-plugin/ with skills/globestudio
+// into the ZIP for OpenAI's plugin directory (ChatGPT and Codex).
+describe("the ChatGPT and Codex plugin", () => {
+  const manifest = JSON.parse(read("openai-plugin/plugin.json"));
+  const { mcpServers } = JSON.parse(read("openai-plugin/mcp.json"));
+  const listing = manifest.extensions["com.openai"].interface;
+
+  it("is named after the skill and bundles the hosted MCP server", () => {
+    expect(manifest.name).toBe(fields.name);
+    expect(manifest.license).toBe(fields.license);
+    expect(mcpServers).toEqual({ globestudio: { type: "streamable-http", url: MCP_URL } });
+  });
+
+  it("lists the site's privacy and terms pages, and GitHub issues for support", () => {
+    expect(listing).toMatchObject({
+      websiteURL: "https://globestudio.app",
+      supportURL: "https://github.com/alevizio/globestudio/issues",
+      privacyPolicyURL: "https://globestudio.app/privacy",
+      termsOfServiceURL: "https://globestudio.app/terms",
+    });
+    for (const file of ["plugin.json", "README.md"]) {
+      expect(read(`openai-plugin/${file}`), file).not.toMatch(/\S+@\S+\.\w+/);
+    }
+  });
+
+  it("names only tools the MCP server has in its test cases", () => {
+    const tools = read("packages/mcp/src/server.ts").match(/name: "([a-z_]+)",/g).map((line) => line.slice(7, -2));
+    for (const { tools_triggered } of manifest.extensions["com.openai"].review.test_cases.positive) {
+      for (const tool of tools_triggered.split(", ")) expect(tools, tool).toContain(tool);
+    }
+  });
+});
+
 // Gemini CLI installs a repo as an extension from gemini-extension.json and
 // loads every skills/<name>/SKILL.md beside it on its own.
 describe("the Gemini CLI extension", () => {

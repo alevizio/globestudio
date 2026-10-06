@@ -1,0 +1,100 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "globestudio",
+  "version": "1.2.1",
+  "description": "Make, edit and embed dotted world maps and animated 3D globes with Globestudio. Bundles the globestudio skill and the hosted Globestudio MCP server, which finds looks, builds and reads share links, and writes embed code. No account or API key.",
+  "author": {
+    "name": "Alejandro Vizio",
+    "url": "https://alevizio.com"
+  },
+  "homepage": "https://globestudio.app",
+  "repository": "https://github.com/alevizio/globestudio",
+  "license": "MIT",
+  "keywords": ["globe", "dotted-map", "world-map", "3d-globe", "embed", "design"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Globestudio",
+        "shortDescription": "Dotted maps and 3D globes",
+        "longDescription": "Globestudio makes dotted world maps and animated 3D globes. Ask for a look, a region, colors or data points, and get a link that opens the design in the Globestudio studio at globestudio.app, plus embed code for a website.\n\nWhat you can do:\n- Find a look by style, such as print, retro, glow or synthwave. There are 21 looks.\n- Build a globe or flat map of the world, a continent, a subregion or one country, with your own dot color, background, density and dot shape.\n- Paste a Globestudio link and change only what you ask for. Every other setting stays.\n- Get embed code as an iframe, a React component or a script tag.\n- Get the preview image and live embed link for any look.\n\nIn a code project, the bundled skill also puts the globe on the page with the @globestudio/react or @globestudio/element packages.\n\nWho it is for: designers, developers and marketers who need a globe or world map for a site hero, a background, a slide or a social post.\n\nLimits: Globestudio builds links and embed code. It does not draw images inside the chat, store designs or need an account. Exports such as PNG, SVG, MP4, WebM and GIF are made in the studio from the link. It is not a tiled map, routing, geocoding or GIS tool.",
+        "developerName": "Alejandro Vizio",
+        "category": "Creativity",
+        "capabilities": [
+          "Find looks by style",
+          "Build globe and map links",
+          "Edit pasted Globestudio links",
+          "Write embed code"
+        ],
+        "websiteURL": "https://globestudio.app",
+        "supportURL": "https://github.com/alevizio/globestudio/issues",
+        "privacyPolicyURL": "https://globestudio.app/privacy",
+        "termsOfServiceURL": "https://globestudio.app/terms",
+        "defaultPrompt": [
+          "Make a dotted globe of Japan in green on a dark navy background.",
+          "Find a Globestudio look with a synthwave vibe.",
+          "Give me React embed code for the Halftone globe, full width and 480 px tall."
+        ],
+        "brandColor": "#18171A",
+        "brandColorDark": "#F6F2EA",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/logo.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Find a look by style. The user names a mood, and the plugin finds the matching Globestudio look.",
+              "prompt": "Find a Globestudio look with a synthwave vibe.",
+              "tools_triggered": "find_presets",
+              "expected_behavior": "Calls find_presets with vibe \"synthwave\". The result ranks the Vapor look first. The reply names Vapor and gives its link, such as https://globestudio.app/embed?look=vapor or https://globestudio.app/looks/vapor."
+            },
+            {
+              "description": "Build a globe of one country with set colors and return a link that opens it.",
+              "prompt": "Make a dotted globe of Japan on the Default look, with green dots (#16a34a) on a dark navy background (#0b1220), and give me the link.",
+              "tools_triggered": "build_share_url",
+              "expected_behavior": "Calls build_share_url with look default, selection Japan, dotColor #16a34a and background #0b1220. Returns a share_url that starts with https://globestudio.app/looks/default?c= and whose config holds selection country:JPN and both colors, plus an embed_url. Opening the share_url shows Japan in green dots on navy."
+            },
+            {
+              "description": "Change one setting in a link the user pastes and keep every other setting.",
+              "prompt": "Here is my Globestudio link: https://globestudio.app/looks/default?c=%7B%22v%22%3A3%2C%22selection%22%3A%22country%3AJPN%22%2C%22background%22%3A%22%230b1220%22%2C%22dotColor%22%3A%22%2316a34a%22%7D Make the dots orange (#f97316) and keep everything else.",
+              "tools_triggered": "read_share_url, build_share_url",
+              "expected_behavior": "Calls read_share_url on the pasted link (Default look, Japan, green dots, navy background), then build_share_url with share_url set to that link and dotColor #f97316. The new share_url keeps selection country:JPN and background #0b1220 and changes only the dot color to #f97316."
+            },
+            {
+              "description": "Write embed code for a website in the framework the user asks for.",
+              "prompt": "Give me React embed code for the Halftone globe, full width and 480 px tall.",
+              "tools_triggered": "embed_snippet",
+              "expected_behavior": "Calls embed_snippet with look halftone, framework react, width 100% and height 480. Returns a React component that renders an iframe of https://globestudio.app/embed?look=halftone with width 100% and height 480."
+            },
+            {
+              "description": "List every look, then show the preview image and live embed of one.",
+              "prompt": "What looks does Globestudio have? Show me a preview of Aurora.",
+              "tools_triggered": "list_presets, preview_url",
+              "expected_behavior": "Calls list_presets and lists the 21 looks: Default, Halftone, Risograph, Newsprint, Aurora, Pixel, Bayer, Atkinson, Wireframe, CRT, Glitch, Bad TV, Bloom, Metal, Iridescent, Pencil, Corrupt, Toon, Threshold, Vapor and Sonar. Then calls preview_url with look aurora and gives the thumbnail https://globestudio.app/looks/aurora.png and the live embed https://globestudio.app/embed?look=aurora. The list_presets result already holds these two Aurora links, so the model may give them from there without the second call."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Route planning is out of scope. Globestudio draws dotted maps and globes and has no roads, traffic or directions. Expected: no Globestudio tool call. The assistant answers without the plugin, or says Globestudio cannot plan routes.",
+              "prompt": "Plan a driving route from Lisbon to Madrid with turn-by-turn directions."
+            },
+            {
+              "description": "A chart that is not a map. Globestudio only makes maps and globes. Expected: no Globestudio tool call. The assistant makes the chart another way or says Globestudio is for maps.",
+              "prompt": "Make a bar chart of our quarterly revenue: Q1 120, Q2 150, Q3 90, Q4 200."
+            },
+            {
+              "description": "Deleting saved designs is not supported. Globestudio has no accounts and stores no designs, and none of its tools can delete anything. Expected: no Globestudio tool call. The assistant says there is nothing stored to delete, because a Globestudio design lives only in its link.",
+              "prompt": "Delete all the globes I saved in my Globestudio account."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "Globestudio does not sell anything or process payments."
+      },
+      "publication": {
+        "countries": [],
+        "release_notes": "First release in the ChatGPT and Codex plugin directory. Bundles the globestudio skill and the hosted Globestudio MCP server at https://globestudio.app/mcp, with six read-only tools: list_presets, find_presets, build_share_url, read_share_url, embed_snippet and preview_url."
+      }
+    }
+  }
+}
