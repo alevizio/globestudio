@@ -48,6 +48,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@vitejs/plugin-react": "^6.0.1",
     "axe-core": "^4.11.4",
+    "gltf-validator": "^2.0.0-dev.3.10",
     "jsdom": "^29.1.1",
     "playwright": "^1.60.0",
     "satori": "^0.26.0",

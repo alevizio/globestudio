@@ -78,6 +78,9 @@ const BUDGETS = [
   // gifenc / mp4-muxer — only fetched when a GIF / MP4 export is requested.
   { prefix: "gifenc-",           ext: ".js",  raw:  12_000,  gzip:   5_500, lazy: true },
   { prefix: "mp4-muxer-",        ext: ".js",  raw:  36_000,  gzip:  11_000, lazy: true },
+  // three.js's GLTFExporter and the scene-to-GLB builder, fetched only when
+  // a GLB is exported (38.3 / 11.4 kB when added, Oct 2026).
+  { prefix: "glb-export-",       ext: ".js",  raw:  44_000,  gzip:  13_000, lazy: true },
   // Looks gallery — lazy /gallery route + co-located CSS.
   { prefix: "gallery-page-",     ext: ".js",  raw:   3_000,  gzip:   1_500, lazy: true },
   { prefix: "gallery-page-",     ext: ".css", raw:   3_500,  gzip:   1_500, lazy: true },

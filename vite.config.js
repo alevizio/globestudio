@@ -153,6 +153,10 @@ export default defineConfig({
             id.includes("/topojson-client/")
           )
             return undefined;
+          // GLTFExporter rides the lazy GLB export chunk (three/glb-export.js),
+          // fetched only when a GLB is exported, not the three chunk every
+          // globe loads.
+          if (id.includes("/three/examples/jsm/exporters/")) return undefined;
           if (id.includes("/three/")) return "three";
           if (id.includes("/dotted-map/")) return "dotted-map";
           if (id.includes("/d3-geo/") || id.includes("/d3-array/")) return "geo";

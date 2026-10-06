@@ -678,6 +678,8 @@ export const GlobeBackground = ({
       opacity: 0.28,
     });
     const globeMesh = new THREE.Mesh(new THREE.SphereGeometry(2, 96, 96), baseMaterial);
+    // The GLB export knows the body by its name (three/glb-export.js).
+    globeMesh.name = "Globe";
     globeGroup.add(globeMesh);
 
     // Flat solid plane — in solid render mode this displays the same world
@@ -1623,6 +1625,12 @@ export const GlobeBackground = ({
         const { frameScale: scale, frameShiftX: shiftX } = threeRef.current ?? {};
         return shiftX ? { scale, shiftX } : {};
       };
+      // The design as GLB bytes, once a Flat/Globe morph has landed. The
+      // exporter loads on the first call, in a chunk of its own.
+      renderer.domElement.exportGlb = ({ instanced }) =>
+        morphSettled()
+          .then(() => import("../three/glb-export.js"))
+          .then(({ exportGlb }) => exportGlb(globeGroup, { instanced, sizeVary: sizeVaryRef.current }));
     }
 
     return () => {
