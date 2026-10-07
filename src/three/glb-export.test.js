@@ -8,26 +8,50 @@ import { DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { createCountryMapData } from "../utils/dot-generation.js";
 import { createGlobeDotGeometry } from "./geometry.js";
 import { createGlobeNetwork, updateGlobeNetwork } from "./globe-network.js";
-import { applyGlobeShellProgress, buildGlobeDotLayer, createAtmosphereMaterial, createGraticule } from "./globe.js";
+import {
+  applyGlobeShellProgress,
+  buildGlobeDotLayer,
+  createAtmosphereMaterial,
+  createBorderlessNetwork,
+  createGraticule,
+  createOuterHaloMaterial,
+} from "./globe.js";
 import { exportGlb } from "./glb-export.js";
 
 const world = createCountryMapData([], 30);
 const chile = createCountryMapData(["CHL"], 40);
 
 // The globe group the way components/globe-background.jsx assembles it,
-// at the end of a morph to the globe (1) or the flat map (0).
-const scene = ({ mapData = world, morph = 1, network = false, surfaceStrength = 30, ...dots } = {}) => {
+// at the end of a morph to the globe (1) or the flat map (0). glow: the
+// panel's Glow turned on, which picks the borderless look with its rings
+// and arcs.
+const scene = ({ mapData = world, morph = 1, network = false, surfaceStrength = 30, glow = false, ...dots } = {}) => {
   const globeGroup = new THREE.Group();
   const baseMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color("#18191d"), transparent: true });
   const globeMesh = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS, 96, 96), baseMaterial);
   globeMesh.name = "Globe";
   const atmosphereMaterial = createAtmosphereMaterial();
   const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(2.18, 16, 16), atmosphereMaterial);
+  const outerHaloMaterial = createOuterHaloMaterial();
+  const outerHalo = new THREE.Mesh(new THREE.SphereGeometry(2.55, 16, 16), outerHaloMaterial);
   const graticule = createGraticule();
+  const borderlessNetwork = createBorderlessNetwork();
   const globeNetwork = createGlobeNetwork();
-  globeGroup.add(globeMesh, atmosphere, graticule, globeNetwork);
-  const refs = { globeGroup, baseMaterial, globeMesh, atmosphereMaterial, atmosphere, graticule, globeNetwork, atmosphereIntensity: 0.42 };
-  const globeSettings = { ...DEFAULT_GLOBE_SETTINGS, network, surfaceStrength };
+  globeGroup.add(globeMesh, atmosphere, outerHalo, graticule, borderlessNetwork, globeNetwork);
+  const refs = {
+    globeGroup,
+    baseMaterial,
+    globeMesh,
+    atmosphereMaterial,
+    atmosphere,
+    outerHaloMaterial,
+    outerHalo,
+    graticule,
+    borderlessNetwork,
+    globeNetwork,
+    atmosphereIntensity: 0.42,
+  };
+  const globeSettings = { ...DEFAULT_GLOBE_SETTINGS, network, surfaceStrength, ...(glow && { glow, look: "borderless" }) };
   applyGlobeShellProgress(refs, morph, globeSettings);
   updateGlobeNetwork(globeNetwork, 3);
   globeGroup.add(buildGlobeDotLayer({
@@ -164,7 +188,10 @@ describe("exportGlb", () => {
   });
 
   it("leaves out the glow, look halos and moving network parts", async () => {
-    const globeGroup = scene({ network: true, shaderSettings: { ...DEFAULT_SHADER_SETTINGS, effect: "bloom" } });
+    const globeGroup = scene({ network: true, glow: true, shaderSettings: { ...DEFAULT_SHADER_SETTINGS, effect: "bloom" } });
+    // The glow's rings and arcs are on screen, and stay out of the file.
+    const glowParts = globeGroup.children.find((child) => child.userData.glow);
+    expect(glowParts.visible).toBe(true);
     const { byName, gltf, json } = await parts(globeGroup);
     // One dot mesh: Bloom's halo layer stays out.
     expect(byName("Dots")).toHaveLength(1);

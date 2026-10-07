@@ -172,6 +172,8 @@ const createBorderlessRoutePoints = ([fromLat, fromLng], [toLat, toLng], lift = 
 export const createBorderlessNetwork = () => {
   const group = new THREE.Group();
   group.visible = false;
+  // Part of the glow, which a GLB export leaves out (three/glb-export.js).
+  group.userData.glow = true;
 
   BORDERLESS_ROUTE_PATHS.forEach((route, index) => {
     const points = createBorderlessRoutePoints(route.from, route.to, route.lift);

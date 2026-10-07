@@ -131,6 +131,14 @@ const dotsPart = (mesh, { instanced, sizeVary }) => {
 // something in motion.
 const moves = (object) => object.userData.role === "ring" || object.userData.role === "head" || Boolean(object.userData.routePoints);
 
+// The glow's rings and decorative arcs (createBorderlessNetwork in
+// globe.js) draw additively, which a GLB can't. Its atmosphere and halo
+// are shaders, so they stay out already.
+const glows = (object) => {
+  for (let node = object; node; node = node.parent) if (node.userData.glow) return true;
+  return false;
+};
+
 // globeGroup: the scene's globe group (components/globe-background.jsx).
 // instanced: dots as GPU instances rather than one merged mesh.
 // sizeVary: the design's Vary size.
@@ -140,7 +148,7 @@ export const buildGlbScene = (globeGroup, { instanced = false, sizeVary = false 
   globeGroup.updateMatrixWorld(true);
   globeGroup.traverseVisible((object) => {
     const { material } = object;
-    if (!(object.isMesh || object.isLine) || material.isShaderMaterial || !material.colorWrite || moves(object)) return;
+    if (!(object.isMesh || object.isLine) || material.isShaderMaterial || !material.colorWrite || moves(object) || glows(object)) return;
     let part;
     if (object.isInstancedMesh) {
       // Only the dots themselves wear the twinkle hook. The other instanced
