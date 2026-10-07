@@ -68,7 +68,7 @@ export const buildAgentPrompt = ({ shareUrl, lookName, lookEdited, regionName, c
     "You can:",
     "1. Edit the design and give me a new link.",
     "2. Embed it in my site with @globestudio/react (pass the c value as config) or an iframe of globestudio.app/embed with the same c parameter.",
-    "3. Help me export it as PNG, SVG, video or JSON.",
+    "3. Help me export it as PNG, SVG, GLB, video or JSON.",
     "",
     `Connect the Globestudio MCP server for full control: ${MCP_URL}`,
   ].join("\n");
