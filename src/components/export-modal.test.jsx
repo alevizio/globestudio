@@ -493,7 +493,9 @@ describe("ExportModal", () => {
           />,
         );
       steps.forEach(rerenderWith);
-      expect(await screen.findByText("Large file. Instanced saves this design at about 0.5 MB.")).toBeTruthy();
+      await waitFor(() =>
+        expect(screen.getByRole("status").textContent).toBe("About 39 MBLarge file. Instanced saves this design at about 0.5 MB."),
+      );
       expect(steps.map((step) => step.mock.calls.length)).toEqual([0, 0, 1]);
 
       fireEvent.click(screen.getByRole("tab", { name: "Image" }));

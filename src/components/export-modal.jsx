@@ -928,7 +928,12 @@ export const ExportModal = ({
                 {glbNote && (
                   <>
                     <p className="export-modal-caption">{glbNote.size}</p>
-                    {glbNote.suggestion && <p className="export-modal-caption">{glbNote.suggestion}</p>}
+                    {glbNote.instancedSize && (
+                      <p className="export-modal-caption">
+                        Large file. Instanced saves this design at about{" "}
+                        <span className="export-modal-nowrap">{glbNote.instancedSize}</span>.
+                      </p>
+                    )}
                   </>
                 )}
               </div>

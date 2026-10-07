@@ -5189,6 +5189,11 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   min-height: 1lh;
 }
 
+/* A size inside a caption keeps its number and unit on one line. */
+.export-modal-nowrap {
+  white-space: nowrap;
+}
+
 /* Mount-fade on tab content + the real vertical layout for the
    section stack. Keyed re-render per tab swap (see export-modal.jsx
    <div key={tab}>) means the animation fires on each tab change.

@@ -30,23 +30,18 @@ describe("glbSizeNote", () => {
   const world = { merged: 786_176, instanced: 367_044 };
 
   it("gives the size of the Dots picked", () => {
-    expect(glbSizeNote(world, "merged")).toEqual({ size: "About 790 KB", suggestion: null });
-    expect(glbSizeNote(world, "instanced")).toEqual({ size: "About 370 KB", suggestion: null });
+    expect(glbSizeNote(world, "merged")).toEqual({ size: "About 790 KB", instancedSize: null });
+    expect(glbSizeNote(world, "instanced")).toEqual({ size: "About 370 KB", instancedSize: null });
   });
 
   it("suggests Instanced, at its size, when Merged makes a file over 20 MB", () => {
-    expect(glbSizeNote(aurora, "merged")).toEqual({
-      size: "About 39 MB",
-      suggestion: "Large file. Instanced saves this design at about 0.5 MB.",
-    });
-    expect(glbSizeNote(aurora, "instanced")).toEqual({ size: "About 500 KB", suggestion: null });
+    expect(glbSizeNote(aurora, "merged")).toEqual({ size: "About 39 MB", instancedSize: "0.5 MB" });
+    expect(glbSizeNote(aurora, "instanced")).toEqual({ size: "About 500 KB", instancedSize: null });
   });
 
   it("draws the line at 20 MB, as macOS counts it", () => {
     expect(GLB_LARGE_BYTES).toBe(20_000_000);
-    expect(glbSizeNote({ merged: 20_000_000, instanced: 400_000 }, "merged").suggestion).toBeNull();
-    expect(glbSizeNote({ merged: 20_000_001, instanced: 400_000 }, "merged").suggestion).toBe(
-      "Large file. Instanced saves this design at about 0.4 MB.",
-    );
+    expect(glbSizeNote({ merged: 20_000_000, instanced: 400_000 }, "merged").instancedSize).toBeNull();
+    expect(glbSizeNote({ merged: 20_000_001, instanced: 400_000 }, "merged").instancedSize).toBe("0.4 MB");
   });
 });

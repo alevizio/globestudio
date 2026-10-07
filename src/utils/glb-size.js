@@ -18,11 +18,14 @@ export const formatGlbSize = (bytes, { inMegabytes = false } = {}) => {
 };
 
 // estimate: { merged, instanced } in bytes. dots: "merged" or "instanced".
+// size is the line for the Dots picked. instancedSize is Instanced's size
+// for the line suggesting it, while Merged makes a large file, else null:
+// the dialog sets it in its sentence, on one line with its unit.
 export const glbSizeNote = (estimate, dots) => {
   const instanced = dots === "instanced";
   const large = !instanced && estimate.merged > GLB_LARGE_BYTES;
   return {
     size: `About ${formatGlbSize(instanced ? estimate.instanced : estimate.merged)}`,
-    suggestion: large ? `Large file. Instanced saves this design at about ${formatGlbSize(estimate.instanced, { inMegabytes: true })}.` : null,
+    instancedSize: large ? formatGlbSize(estimate.instanced, { inMegabytes: true }) : null,
   };
 };
