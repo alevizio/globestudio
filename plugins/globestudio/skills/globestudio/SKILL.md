@@ -1,10 +1,10 @@
 ---
 name: globestudio
-description: "Creates, edits and embeds dotted world maps and animated 3D globes with Globestudio (globestudio.app), a free open source studio with 21 looks. Use when the user wants a dotted map, a dotted or 3D globe, a spinning earth or a stylized world map for a website hero, background, slide, social post or video; when they paste a globestudio.app link or a ?c= config; or when code uses @globestudio/react, @globestudio/element, the globe-studio web component or globestudio.app/embed. Also use it to highlight a country, continent or region, plot points and arcs, match brand colors, or prepare PNG, SVG, MP4, WebM or GIF exports, even if the user never names Globestudio. Not for interactive tiled maps, routing, geocoding or GIS analysis (Mapbox, MapLibre, deck.gl), or for ordinary charts."
+description: "Creates, edits and embeds dotted world maps and animated 3D globes with Globestudio (globestudio.app), a free open source studio with 21 looks. Use when the user wants a dotted map, a dotted or 3D globe, a spinning earth or a stylized world map for a website hero, background, slide, social post or video; when they paste a globestudio.app link or a ?c= config; or when code uses @globestudio/react, @globestudio/element, the globe-studio web component or globestudio.app/embed. Also use it to highlight a country, continent or region, plot points and arcs, match brand colors, or prepare PNG, SVG, GLB, MP4, WebM or GIF exports, even if the user never names Globestudio. Not for interactive tiled maps, routing, geocoding or GIS analysis (Mapbox, MapLibre, deck.gl), or for ordinary charts."
 license: MIT
 metadata:
   author: alevizio
-  version: "1.1.2"
+  version: "1.1.3"
   mcp-server: globestudio
 ---
 
@@ -182,10 +182,11 @@ export const Hero = () => (
 
 ## Exports
 
-- In the export dialog (press D), a person can export PNG at 1x to 4x in several aspect ratios or copy it as an image, record WebM, MP4 or GIF, export SVG, copy the design for Figma, and get the share link, embed code, a CodePen and the JSON config.
+- In the export dialog (press D), a person can export PNG at 1x to 4x in several aspect ratios or copy it as an image, record WebM, MP4 or GIF, export SVG, save a GLB 3D model for three.js, Blender or another 3D tool, copy the design for Figma, and get the share link, embed code, a CodePen and the JSON config.
 - To bring a design into Figma, the person pastes its share link (a studio, `/looks/<id>` or `/embed` link) into the Globestudio Figma plugin, where it loads ready to insert.
 - An agent can make links, embed addresses and code, and the JSON config. With the user's OK, it can screenshot the `/embed` address with a headless browser the project already has.
 - MP4 has no transparency, GIF transparency has hard edges, and SVG drops the shader effect. The SVG and Figma tabs name what a design loses in vectors and point to the image.
+- A GLB keeps the dots, the globe body, the grid, the arcs and the markers in flat colors, and leaves out the shader effect, the glow and animation. Its Merged dots open in any glTF viewer; Instanced makes a smaller file for three.js, Babylon.js and Blender.
 
 ## Reference files
 

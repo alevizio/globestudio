@@ -83,8 +83,9 @@ on deploy.
   dev server or a screenshot only if the user agrees. For a page with no
   build step, it gives the tag that loads `@globestudio/element` from
   jsDelivr with an integrity hash. Its generated reference files no
-  longer name a maintainer command. The skill and the Claude Code plugin
-  are 1.1.2, and the OpenAI plugin is 1.2.2.
+  longer name a maintainer command. It names the GLB export and what a
+  GLB keeps and leaves out. The skill and the Claude Code plugin are
+  1.1.3, and the OpenAI plugin is 1.2.2.
 - The export dialog's Web component embed code, and the pen Open in
   CodePen makes, load `@globestudio/element` 0.2.0 from jsDelivr with an
   integrity hash, so the browser runs only that file. They used to load
