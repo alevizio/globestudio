@@ -108,6 +108,9 @@ describe("exportGlb", () => {
     expect(gltf.scene.children.filter((child) => child.isLine)).toEqual([]);
   });
 
+  // ASCII here is its default "*", a mesh of its own. Glyphs and custom
+  // shapes are cut from textures, which need a 2D canvas that jsdom lacks:
+  // tests/e2e/glb-export.spec.js exports those.
   it("keeps each dot shape's own geometry, so a circle stays a circle", async () => {
     for (const shape of dotShapeOptions.filter((name) => name !== "Custom")) {
       const { byName } = await parts(scene({ shape }), { instanced: true });

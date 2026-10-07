@@ -37,15 +37,17 @@ const shownTexture = (texture) => {
 // Unlit, like every material the scene draws these parts with
 // (KHR_materials_unlit), at the part's own opacity: the globe body comes out
 // see-through at its Surface opacity (alphaMode BLEND), opaque at 100.
+// ASCII glyphs and custom shapes are cut from their texture at the scene's
+// own cutoff (alphaMode MASK). The Solid style's land has no cutoff: it
+// blends at the texture's alpha, as on the canvas, so a land color under
+// 50% alpha stays (alphaMode BLEND).
 const flatMaterial = (source) =>
   new THREE.MeshBasicMaterial({
     color: shownColor(source.color),
     opacity: source.opacity,
-    transparent: source.opacity < 1,
-    // ASCII glyphs and custom shapes are cut from a texture by its alpha,
-    // and so is the land of the Solid style.
+    transparent: source.opacity < 1 || Boolean(source.map && !source.alphaTest),
     map: source.map ? shownTexture(source.map) : null,
-    alphaTest: source.map ? source.alphaTest || 0.5 : 0,
+    alphaTest: source.map ? source.alphaTest : 0,
     side: source.side,
     vertexColors: source.vertexColors,
   });
