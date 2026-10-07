@@ -117,6 +117,17 @@ test.describe("the GLB of a design", () => {
       Array.from({ length: size }, (__, k) => bytes.readFloatLE(start + i * stride + k * 4)));
   };
 
+  test("saves spinning dots at the design's own Rotation", async ({ page }) => {
+    // Flat, where each Square dot's turn is an angle about Z. Shape
+    // rotation at full speed turns a third of the dots each frame.
+    const canvas = await openDesign(page, { viewMode: "flat", shape: "Square", dotRotation: 20, shapeRotationSpeed: 100 });
+    const { json, bytes } = await exportGlb(canvas, { instanced: true });
+    const dots = json.nodes.find((node) => node.name === "Dots");
+    const rotations = readAccessor(bytes, json, dots.extensions.EXT_mesh_gpu_instancing.attributes.ROTATION);
+    const angles = new Set(rotations.map(([, , z, w]) => Math.round((2 * Math.atan2(z, w) * 180) / Math.PI)));
+    expect([...angles]).toEqual([20]);
+  });
+
   test("blends Solid land at its own alpha, so a land color under 50% alpha stays", async ({ page }) => {
     const canvas = await openDesign(page, { renderMode: "solid", worldFillAlpha: 0.4 });
     // The land arrives with the atlas.

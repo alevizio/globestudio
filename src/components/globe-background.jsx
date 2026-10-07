@@ -1630,7 +1630,20 @@ export const GlobeBackground = ({
       renderer.domElement.exportGlb = ({ instanced }) =>
         morphSettled()
           .then(() => import("../three/glb-export.js"))
-          .then(({ exportGlb }) => exportGlb(globeGroup, { instanced, sizeVary: sizeVaryRef.current }));
+          .then(({ exportGlb }) => {
+            // Shape rotation turns a third of the dots each frame, so the
+            // file would catch them at three angles. They go in at the
+            // design's own Rotation, read when the export starts, and then
+            // all turn back to the spin's angle.
+            const { dotLayer } = threeRef.current ?? {};
+            const { progress } = morphRef.current;
+            applyDotLayerSpin(dotLayer, dotRotationRef.current, progress, false);
+            const glb = exportGlb(globeGroup, { instanced, sizeVary: sizeVaryRef.current });
+            if (spinAngleRef.current !== 0) {
+              applyDotLayerSpin(dotLayer, (dotRotationRef.current + spinAngleRef.current) % 360, progress, false);
+            }
+            return glb;
+          });
     }
 
     return () => {
