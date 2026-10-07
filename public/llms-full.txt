@@ -143,10 +143,10 @@ same PNG on the clipboard instead of saving a file, where the browser can
 write images there.
 SVG and the Figma tab's **Copy as vectors** draw the flat map, even from
 the globe view, and keep the dots, their shapes and colors. A look's shader
-effect, solid land and a Space or Flow background come through only in PNG
-or video, so of the looks only `default` exports to SVG whole; when the
-design has something the vectors leave out, both tabs name it and point to
-the image.
+effect and a Space or Flow background come through only in PNG or video,
+and solid land only in those and the GLB, so of the looks only `default`
+exports to SVG whole; when the design has something the vectors leave out,
+both tabs name it and point to the image.
 The 3D tab saves a GLB: a 3D model of the dots with their shapes,
 sizes and colors, the globe body, the grid, the network arcs and hub cities
 and the data markers, in flat unlit colors (`KHR_materials_unlit`), with
