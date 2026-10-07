@@ -19,18 +19,21 @@ const shownColor = (color) => new THREE.Color().setRGB(color.r, color.g, color.b
 // The same for a texture: the GPU decodes its sRGB pixels and the canvas
 // shows the decoded values, so those become the pixels.
 const SHOWN_BYTES = Array.from({ length: 256 }, (_, byte) => Math.round(255 * shownColor({ r: byte / 255, g: 0, b: 0 }).r));
-const shownTexture = (texture) => {
+const shownCanvas = (image) => {
   const canvas = document.createElement("canvas");
-  canvas.width = texture.image.width;
-  canvas.height = texture.image.height;
+  canvas.width = image.width;
+  canvas.height = image.height;
   const context = canvas.getContext("2d");
-  context.drawImage(texture.image, 0, 0);
+  context.drawImage(image, 0, 0);
   const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
   for (let i = 0; i < pixels.data.length; i += 1) {
     if (i % 4 !== 3) pixels.data[i] = SHOWN_BYTES[pixels.data[i]];
   }
   context.putImageData(pixels, 0, 0);
-  const shown = new THREE.CanvasTexture(canvas);
+  return canvas;
+};
+const shownTexture = (texture) => {
+  const shown = new THREE.CanvasTexture(shownCanvas(texture.image));
   shown.colorSpace = THREE.SRGBColorSpace;
   return shown;
 };
@@ -222,10 +225,11 @@ const indexBytes = (index) => padded(index.count * index.array.BYTES_PER_ELEMENT
 // a dot layer's instancing extension.
 const JSON_BYTES = { file: 160, node: 110, primitive: 220, accessor: 230, texture: 110, instancing: 110 };
 
-// Each texture's PNG, kept per texture: the browser encodes it once, the
-// first time an estimate needs it. The file holds the shown colors' PNG
-// (shownTexture), which comes within a few percent of it. Where the
-// browser can't encode, a guess from the size.
+// Each texture's PNG as the file holds it, in the shown colors
+// (shownTexture), kept per texture: the browser converts and encodes it
+// once, the first time an estimate needs it. The source's own PNG ran up
+// to 30% over on a dark one, as the shown colors bunch dark values
+// together. Where the browser can't encode, a guess from the size.
 const pngSizes = new WeakMap();
 const pngBytes = (texture) => {
   const { image } = texture;
@@ -233,7 +237,7 @@ const pngBytes = (texture) => {
   if (pngSizes.get(texture)?.version !== texture.version) {
     const bytes = new Promise((resolve) => {
       try {
-        image.toBlob((blob) => resolve(blob?.size ?? guess), "image/png");
+        shownCanvas(image).toBlob((blob) => resolve(blob?.size ?? guess), "image/png");
       } catch {
         resolve(guess);
       }

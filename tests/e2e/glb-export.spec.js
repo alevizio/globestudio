@@ -256,6 +256,14 @@ test.describe("the GLB of a design", () => {
     { name: "ASCII AB", design: { shape: "ASCII", asciiSymbol: "AB" }, layers: 2, images: 2 },
     // The land is a texture on the body, and the dots are off.
     { name: "Solid land", design: { renderMode: "solid" }, layers: 0, images: 1 },
+    // A dark land in old colors: the file's shown colors bunch its values
+    // together, so its PNG is far smaller than the source's.
+    {
+      name: "dark Solid land on the flat map",
+      design: { renderMode: "solid", viewMode: "flat", worldFillGradient: { from: "#101018", to: "#283040", angle: 0 } },
+      layers: 0,
+      images: 1,
+    },
     // Square dots at Density 100 overlap, so a click on Brazil hits one.
     {
       name: "clicked dots",
