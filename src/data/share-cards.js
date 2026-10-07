@@ -7,7 +7,7 @@
 
 // X, LinkedIn and Facebook cache a card by URL, so bump this (and the ?v= in
 // index.html) whenever the og/*.png cards are regenerated.
-export const OG_VERSION = "?v=2";
+export const OG_VERSION = "?v=3";
 
 export const shareCardUrl = (id) => `https://globestudio.app/og/${id}.png${OG_VERSION}`;
 

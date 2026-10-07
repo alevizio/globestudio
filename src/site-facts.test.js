@@ -144,7 +144,7 @@ describe("share cards", () => {
   });
 
   it("points the home card at the cache-busted URL", () => {
-    const card = "https://globestudio.app/og/default.png?v=2";
+    const card = "https://globestudio.app/og/default.png?v=3";
     // prerender.js and the client meta rewrites build card URLs from the
     // same OG_VERSION, so index.html must match it.
     expect(shareCardUrl("default")).toBe(card);
@@ -160,7 +160,7 @@ describe("share cards", () => {
 
   it("swaps the alt text along with the image in teaser builds", () => {
     const teaser = swapInTeaserCard(html);
-    const card = "https://globestudio.app/og/teaser.png?v=2";
+    const card = "https://globestudio.app/og/teaser.png?v=3";
     expect(metaIn(teaser, "property", "og:image")).toBe(card);
     expect(metaIn(teaser, "name", "twitter:image")).toBe(card);
     expect(metaIn(teaser, "property", "og:image:alt")).toBe(TEASER_CARD_ALT);
