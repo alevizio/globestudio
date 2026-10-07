@@ -57,7 +57,7 @@ src/
   components/
     control-panel.jsx       # Right-hand settings panel
     globe-background.jsx    # Three.js scene + render loop
-    export-modal.jsx        # PNG/SVG/WebM export UI
+    export-modal.jsx        # PNG/SVG/GLB/video export UI
     looks-bar.jsx           # Preset chip bar
     look-preview.jsx        # Mini globe SVG inside each chip
     shortcuts-overlay.jsx   # ? overlay
@@ -90,6 +90,7 @@ src/
     globe-network.js        # Animated network arcs
     world-texture.js        # Solid mode Canvas2D world texture
     post-effects.js         # Post-processing composer
+    glb-export.js           # GLB export of the scene's geometry
     space-mesh.js           # Animated space background
   utils/
     color.js                # hex/rgb/hsb/hsl conversion

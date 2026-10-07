@@ -6,7 +6,7 @@
 
 <a href="https://globestudio.app"><img src="public/og/default.gif" alt="A dotted 3D globe rotating on the Globestudio share card" width="640" /></a>
 
-Pick a country or the whole world, choose a look, change the dots and colors, and export PNG, SVG, WebM, MP4, or GIF. Built with React and Three.js.
+Pick a country or the whole world, choose a look, change the dots and colors, and export PNG, SVG, GLB, WebM, MP4, or GIF. Built with React and Three.js.
 
 [**globestudio.app**](https://globestudio.app/) · [All 21 looks](https://globestudio.app/gallery) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/alevizio/globestudio/discussions)
 
@@ -56,7 +56,9 @@ The studio runs in your browser, and the code is MIT licensed.
   with clean vector dots (6 effects are approximated with SVG filters, and
   the full shader look needs PNG or video; when a design has something the
   vectors leave out, such as a look's effect, solid land or a Space
-  background, the SVG and Figma tabs name it); WebM, MP4 (where the browser
+  background, the SVG and Figma tabs name it); a GLB 3D model for three.js,
+  Blender and other 3D tools, with the dots, the globe and the arcs in flat
+  colors and no shader effect or animation; WebM, MP4 (where the browser
   can encode it), and GIF video; and a JSON config. Copy image puts the same
   PNG on the clipboard, ready to paste into Figma, Slides, Slack or Notion.
 - Keyboard shortcuts: `S` shuffle, `[`/`]` cycle looks, `D` export, `R`
@@ -323,7 +325,7 @@ These tools overlap with Globestudio in places:
 | **Shader looks** | ✅ 20, plus Default | ❌ | custom WebGL only | ❌ | ❌ |
 | **Multiple projections** | 5 flat (solid maps; dotted maps use Mercator) | sphere only | many | Web Mercator only | n/a |
 | **No-code GUI** | ✅ | ❌ library | ✅ | ✅ | ✅ |
-| **PNG / SVG / video export** | ✅ PNG, SVG, WebM, MP4, GIF | manual | print / PDF | ✅ | PNG / SVG |
+| **PNG / SVG / video export** | ✅ PNG, SVG, GLB, WebM, MP4, GIF | manual | print / PDF | ✅ | PNG / SVG |
 | **Embed iframe** | ✅ `/embed` | DIY | ✅ | ✅ | DIY |
 | **Framer / Webflow** | ✅ Framer code component (copy-paste), Webflow embed | ❌ | plugins | ❌ | ❌ |
 | **No signup / no API key** | ✅ | n/a | ❌ | ❌ | ✅ |

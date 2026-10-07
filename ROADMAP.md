@@ -48,6 +48,8 @@ The version on `main` already does all of this.
 - PNG at 1x to 4x, SVG with clean vector dots (6 effects
   approximated with SVG filters), WebM, MP4 (where the browser
   supports it) and GIF video, and a JSON config with `$schema`
+- GLB for three.js, Blender and other 3D tools: the dots, the globe and
+  the arcs in flat colors, with the dots merged into one mesh or instanced
 - Copy image, and a Figma tab that copies the design as vectors or as an
   image. The SVG and Figma tabs say what the vectors leave out
 - Share links that carry your settings, and embed code for an iframe,
