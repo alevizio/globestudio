@@ -1,7 +1,7 @@
 {
   "name": "Globestudio",
   "short_name": "Globestudio",
-  "description": "Dotted map and animated 3D globe generator. 21 looks; export PNG, SVG, WebM, MP4, GIF, JSON or an embed.",
+  "description": "Dotted map and animated 3D globe generator. 21 looks; export PNG, SVG, GLB, WebM, MP4, GIF, JSON or an embed.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

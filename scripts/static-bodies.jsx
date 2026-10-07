@@ -48,8 +48,8 @@ const HomeBody = ({ facts }) => (
       Open-source dotted maps and animated 3D globes for designers, animators, and creative
       developers. Pick any country or the whole world, choose from {lookPresets.length} looks,
       customize dot shapes and gradients, apply shader effects (bloom, chromatic, glitch, CRT,
-      halftone, more), and export PNG, SVG, WebM, MP4, GIF, a JSON config, or an embed. Built with
-      React and Three.js. MIT licensed.
+      halftone, more), and export PNG, SVG, GLB, WebM, MP4, GIF, a JSON config, or an embed. Built
+      with React and Three.js. MIT licensed.
     </p>
     {facts.length > 0 && (
       <>
@@ -81,8 +81,8 @@ const GalleryBody = () => (
   <main>
     <h1>Looks gallery</h1>
     <p>
-      Every built-in look. Open one to customize it in the editor and export PNG, SVG, WebM, MP4,
-      GIF, JSON or an embed.
+      Every built-in look. Open one to customize it in the editor and export PNG, SVG, GLB, WebM,
+      MP4, GIF, JSON or an embed.
     </p>
     <LookLinks />
     <TakeoverFooter />

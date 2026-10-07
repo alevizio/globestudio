@@ -26,7 +26,7 @@ const noscriptText = html.match(/<noscript>([\s\S]*?)<\/noscript>/)[1].replace(/
 const manifest = JSON.parse(read("public/manifest.webmanifest"));
 
 // The one set of product facts every public surface states.
-const FORMATS = ["PNG", "SVG", "WebM", "MP4", "GIF", "JSON", "embed"];
+const FORMATS = ["PNG", "SVG", "GLB", "WebM", "MP4", "GIF", "JSON", "embed"];
 const LOOKS = `${lookPresets.length} looks`;
 
 describe("index.html site facts", () => {
@@ -88,7 +88,7 @@ describe.each(["public/llms.txt", "public/llms-full.txt"])("%s", (path) => {
   });
 
   it("names every export format", () => {
-    for (const format of ["PNG", "SVG", "WebM", "MP4", "GIF", "JSON"]) expect(text).toContain(format);
+    for (const format of ["PNG", "SVG", "GLB", "WebM", "MP4", "GIF", "JSON"]) expect(text).toContain(format);
   });
 
   it("points React users at the npm package", () => {

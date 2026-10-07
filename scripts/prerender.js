@@ -115,7 +115,7 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
       // so crawlers and unfurlers that don't run JS get the same snippet.
       description:
         getPresetSeo(id)?.metaDescription ??
-        `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free and open source.`,
+        `Generate a dotted map or animated 3D globe in the ${name} look, then export PNG, SVG, GLB, WebM, MP4, GIF, JSON or an embed. Free and open source.`,
       url: `${SITE}/looks/${id}`,
       image,
       // og/default.png is the home product card, not a Default-look card, so
@@ -160,7 +160,7 @@ export const pageRoutes = ({ teaser = TEASER, cardExists = () => true } = {}) =>
   routes.push({
     route: "gallery",
     title: "Looks gallery: dotted map & 3D globe styles · Globestudio",
-    description: `Browse all ${lookPresets.length} Globestudio looks. Open one to make a dotted map or animated 3D globe, then export PNG, SVG, WebM, MP4, GIF, JSON or an embed. Free, open source.`,
+    description: `Browse all ${lookPresets.length} looks. Open one to make a dotted map or animated 3D globe, then export PNG, SVG, GLB, WebM, MP4, GIF, JSON or an embed. Free, open source.`,
     url: `${SITE}/gallery`,
     image: null,
     // The gallery lists every look, so it keeps the home ItemList of looks.
