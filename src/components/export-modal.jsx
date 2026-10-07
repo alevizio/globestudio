@@ -6,6 +6,7 @@ import { ErrorBoundary } from "./error-boundary.jsx";
 import { EmbedCode } from "./embed-code.jsx";
 import { canCopyImageToClipboard } from "../utils/export.js";
 import { vectorNote } from "../utils/vector-note.js";
+import { glbSizeNote } from "../utils/glb-size.js";
 
 // The MCP tab's content (client commands, prompt builder and its CSS) loads
 // only when that tab opens. Until it arrives an empty stand-in holds the
@@ -46,6 +47,10 @@ const GLB_DOTS_OPTIONS = [
   { id: "merged", label: "Merged" },
   { id: "instanced", label: "Instanced" },
 ];
+
+// The 3D tab asks for the GLB's size this long after the design last
+// changed, so a burst of changes (S held down) asks once.
+const GLB_ESTIMATE_DELAY_MS = 250;
 
 const FPS_OPTIONS = [24, 30, 60];
 const DURATION_OPTIONS = [3, 5, 8, 12];
@@ -223,6 +228,9 @@ export const ExportModal = ({
   exportGlb,
   // Fetches the GLB exporter's chunk ahead of the click (App.jsx).
   prefetchGlb,
+  // Resolves to the GLB's size saved each way, { merged, instanced } in
+  // bytes. A new function whenever the design changes (App.jsx).
+  estimateGlb,
   glbStatus,
   exportSvg,
   svgStatus,
@@ -269,6 +277,8 @@ export const ExportModal = ({
   }, [open, figmaPlugin, initialAspect]);
   const [quality, setQuality] = useState("standard");
   const [glbDots, setGlbDots] = useState("merged");
+  const [glbBytes, setGlbBytes] = useState(null);
+  const glbSizeId = useId();
   const [fps, setFps] = useState(60);
   const [videoFormat, setVideoFormat] = useState("webm");
   const [videoSeconds, setVideoSeconds] = useState(Math.round((videoDurationMs ?? 5000) / 1000));
@@ -391,9 +401,28 @@ export const ExportModal = ({
   useEffect(() => {
     if (glbPanelShown) prefetchGlb?.();
   }, [glbPanelShown, prefetchGlb]);
+  // Its size line follows the design while it shows. Hidden, it forgets the
+  // size, so it never shows a size of another design.
+  useEffect(() => {
+    if (!glbPanelShown || !estimateGlb) {
+      setGlbBytes(null);
+      return undefined;
+    }
+    let current = true;
+    const timer = window.setTimeout(() => {
+      estimateGlb().then((bytes) => {
+        if (current) setGlbBytes(bytes);
+      }, () => {});
+    }, GLB_ESTIMATE_DELAY_MS);
+    return () => {
+      current = false;
+      window.clearTimeout(timer);
+    };
+  }, [glbPanelShown, estimateGlb]);
 
   if (!open) return null;
 
+  const glbNote = glbBytes && glbSizeNote(glbBytes, glbDots);
   const scale = QUALITY_OPTIONS.find((q) => q.id === quality)?.scale ?? 1;
 
   const handlePng = () => {
@@ -880,10 +909,20 @@ export const ExportModal = ({
                 Export failed. Try again.
               </p>
             )}
+            {/* The file's size, beside the button that saves it. A screen
+                reader hears it with the button, and once more when it
+                changes: on a Dots pick, or a design change once settled. */}
+            {glbNote && (
+              <div id={glbSizeId} role="status" aria-atomic="true">
+                <p className="export-modal-caption">{glbNote.size}</p>
+                {glbNote.suggestion && <p className="export-modal-caption">{glbNote.suggestion}</p>}
+              </div>
+            )}
             <button
               type="button"
               className={`export-modal-cta ${glbStatus === "saved" ? "is-success" : ""}`}
               onClick={() => exportGlb?.({ instanced: glbDots === "instanced" })}
+              aria-describedby={glbNote ? glbSizeId : undefined}
             >
               {glbStatus === "saved" ? <Check size={17} /> : <Download size={17} />}
               <span>{glbStatus === "saved" ? "GLB saved" : "Export GLB"}</span>

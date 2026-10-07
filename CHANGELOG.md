@@ -41,9 +41,10 @@ on deploy.
   and animation stay out. Dots come Merged, one mesh any glTF viewer
   opens, or Instanced (`EXT_mesh_gpu_instancing`, marked required), a
   smaller file that three.js, Babylon.js and Blender 4.0 or later read
-  and Apple Preview shows as one dot. three.js's GLTFExporter loads in a
-  chunk of its own when the 3D tab opens. The privacy page lists GLB
-  among the formats `export_completed` sends.
+  and Apple Preview shows as one dot. The tab shows the file's estimated
+  size, and suggests Instanced when Merged would pass 20 MB. three.js's
+  GLTFExporter loads in a chunk of its own when the 3D tab opens. The
+  privacy page lists GLB among the formats `export_completed` sends.
 
 ### Changed
 

@@ -1627,6 +1627,14 @@ const App = () => {
 
   const prefetchGlb = () => globeCanvasRef.current?.prefetchGlb?.();
 
+  // The GLB's size saved each way, for the 3D tab. A new function whenever
+  // the design or its clicked dots change, so the tab asks again.
+  const estimateGlb = useCallback(
+    () => globeCanvasRef.current?.estimateGlb?.() ?? Promise.reject(new Error("No globe canvas")),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [buildCurrentConfig, selectedDots],
+  );
+
   // Copy image: the PNG that Export PNG would save, put on the clipboard
   // instead of in a file. Resolves once it is there and rejects if the
   // render or the clipboard fails.
@@ -2275,6 +2283,7 @@ const App = () => {
         pngStatus={pngStatus}
         exportGlb={exportGlb}
         prefetchGlb={prefetchGlb}
+        estimateGlb={estimateGlb}
         glbStatus={glbStatus}
         exportSvg={exportSvg}
         svgStatus={svgStatus}

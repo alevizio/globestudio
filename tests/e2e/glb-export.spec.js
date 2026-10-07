@@ -177,4 +177,110 @@ test.describe("the GLB of a design", () => {
     expect(material.alphaMode).toBe("MASK");
     expect(material.alphaCutoff).toBeCloseTo(0.18, 5);
   });
+  // The 3D tab of the Export dialog, opened with D.
+  const openGlbTab = async (page) => {
+    await page.keyboard.press("d");
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await dialog.getByRole("tab", { name: "3D" }).click();
+    return dialog;
+  };
+
+  test("shows the file's size, and suggests Instanced while Merged is over 20 MB", async ({ page }) => {
+    // Aurora's dots: Particle Grid at Density 70, about 39 MB merged.
+    await openDesign(page, { shape: "Particle Grid", density: 70 });
+    const dialog = await openGlbTab(page);
+    const size = dialog.getByRole("status");
+    const suggestion = dialog.getByText(/^Large file\. Instanced saves this design at about 0\.\d MB\.$/);
+    await expect(size).toContainText(/^About \d+ MB/, { timeout: CANVAS_TIMEOUT });
+    await expect(suggestion).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Export GLB" })).toHaveAccessibleDescription(
+      /^About \d+ MB Large file\. Instanced saves this design at about 0\.\d MB\.$/,
+    );
+
+    await dialog.getByRole("button", { name: "Instanced" }).click();
+    await expect(size).toHaveText(/^About \d+ KB$/);
+    await expect(suggestion).toHaveCount(0);
+    await dialog.getByRole("button", { name: "Merged" }).click();
+    await expect(suggestion).toBeVisible();
+  });
+
+  test("suggests nothing for the Default design, and follows a change made with the dialog open", async ({ page }) => {
+    await openDesign(page, {});
+    const dialog = await openGlbTab(page);
+    const size = dialog.getByRole("status");
+    // The world on the globe, with its body, grid and network.
+    await expect(size).toHaveText(/^About \d+ KB$/, { timeout: CANVAS_TIMEOUT });
+    const onGlobe = await size.textContent();
+    await expect(dialog.getByText(/Large file/)).toHaveCount(0);
+    // G turns the flat map, which drops the body, grid and network.
+    await page.keyboard.press("g");
+    await expect(size).not.toHaveText(onGlobe, { timeout: CANVAS_TIMEOUT });
+    await expect(size).toHaveText(/^About \d+ KB$/);
+  });
+
+  // Each design's estimate against the files it saves, Merged and Instanced.
+  // The geometry is worked out exactly and textures are encoded as the
+  // exporter encodes them, so the estimates land within 1%. The bar is 15%.
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 10 10"><path d="M5 0 10 10H0z" fill="#fff"/></svg>';
+  const designs = [
+    { name: "the Default world", design: {} },
+    { name: "Italy on the flat map", design: { selection: "country:ITA", viewMode: "flat" } },
+    { name: "Aurora", design: "/looks/aurora" },
+    { name: "Particle Grid at Density 100", design: { shape: "Particle Grid", density: 100 } },
+    // A layer and a texture for each character.
+    { name: "ASCII AB", design: { shape: "ASCII", asciiSymbol: "AB" }, layers: 2, images: 2 },
+    // The land is a texture on the body, and the dots are off.
+    { name: "Solid land", design: { renderMode: "solid" }, layers: 0, images: 1 },
+    // Square dots at Density 100 overlap, so a click on Brazil hits one.
+    {
+      name: "clicked dots",
+      design: { selection: "country:BRA", viewMode: "flat", shape: "Square", density: 100, dotSize: 25 },
+      click: true,
+      layers: 2,
+    },
+    {
+      name: "a custom shape",
+      design: { shape: "Custom", customShape: { name: "triangle.svg", type: "image/svg+xml", dataUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}` } },
+      layers: 1,
+      images: 1,
+    },
+  ];
+  for (const { name, design, click = false, layers, images = 0 } of designs) {
+    test(`estimates the GLB of ${name} within 15%`, async ({ page }) => {
+      let canvas;
+      if (typeof design === "string") {
+        await page.goto(design);
+        canvas = page.locator(".globe-background canvas");
+        await expect
+          .poll(() => canvas.evaluate((node) => typeof node.estimateGlb === "function"), { timeout: CANVAS_TIMEOUT })
+          .toBe(true);
+      } else {
+        canvas = await openDesign(page, design);
+      }
+      if (click) await canvas.click();
+      // Textures arrive once their atlas or image has loaded, and the
+      // clicked dot's layer after the click.
+      if (click || images) {
+        await expect
+          .poll(() => canvas.evaluate(async (node) => {
+            const buffer = await node.exportGlb({ instanced: false });
+            const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, 20, new DataView(buffer).getUint32(12, true))));
+            const dots = gltf.nodes.find((node) => node.name === "Dots");
+            return [dots ? gltf.meshes[dots.mesh].primitives.length : 0, gltf.images?.length ?? 0];
+          }), { timeout: TEXTURE_TIMEOUT })
+          .toEqual([layers, images]);
+      }
+      const result = await canvas.evaluate(async (node) => ({
+        estimate: await node.estimateGlb(),
+        files: {
+          merged: (await node.exportGlb({ instanced: false })).byteLength,
+          instanced: (await node.exportGlb({ instanced: true })).byteLength,
+        },
+      }));
+      for (const mode of ["merged", "instanced"]) {
+        const error = Math.abs(result.estimate[mode] - result.files[mode]) / result.files[mode];
+        expect(error, `${mode}: ${result.estimate[mode]} for ${result.files[mode]} bytes`).toBeLessThan(0.15);
+      }
+    });
+  }
 });

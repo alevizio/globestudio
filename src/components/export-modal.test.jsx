@@ -436,6 +436,80 @@ describe("ExportModal", () => {
       renderModal({ exportGlb: vi.fn(), figmaPlugin: true });
       expect(screen.queryByRole("tab", { name: "3D" })).toBeNull();
     });
+
+    const aurora = { merged: 38_967_816, instanced: 496_588 };
+    const world = { merged: 786_176, instanced: 367_044 };
+    const estimating = (bytes) => vi.fn(() => Promise.resolve(bytes));
+
+    it("shows the file's size for the Dots picked, and over 20 MB suggests Instanced", async () => {
+      const estimateGlb = estimating(aurora);
+      renderModal({ exportGlb: vi.fn(), estimateGlb });
+      fireEvent.click(screen.getByRole("tab", { name: "3D" }));
+      // Beside the button that saves the file, and read with it.
+      const footer = document.querySelector(".export-modal-footer");
+      const status = await within(footer).findByRole("status");
+      expect([...status.children].map((line) => line.textContent)).toEqual([
+        "About 39 MB",
+        "Large file. Instanced saves this design at about 0.5 MB.",
+      ]);
+      expect(status.getAttribute("aria-atomic")).toBe("true");
+      expect(screen.getByRole("button", { name: "Export GLB" }).getAttribute("aria-describedby")).toBe(status.id);
+
+      fireEvent.click(screen.getByRole("button", { name: "Instanced" }));
+      expect(status.textContent).toBe("About 500 KB");
+      fireEvent.click(screen.getByRole("button", { name: "Merged" }));
+      expect(status.textContent).toContain("Large file.");
+      // Both sizes came in one ask.
+      expect(estimateGlb).toHaveBeenCalledTimes(1);
+    });
+
+    it("suggests nothing when Merged stays under 20 MB", async () => {
+      renderModal({ exportGlb: vi.fn(), estimateGlb: estimating(world) });
+      fireEvent.click(screen.getByRole("tab", { name: "3D" }));
+      expect((await screen.findByRole("status")).textContent).toBe("About 790 KB");
+      expect(screen.queryByText(/Large file/)).toBeNull();
+    });
+
+    it("asks again once a burst of design changes settles, and forgets the size while hidden", async () => {
+      const props = { exportGlb: vi.fn(), estimateGlb: estimating(world) };
+      const { rerender } = renderModal(props);
+      fireEvent.click(screen.getByRole("tab", { name: "3D" }));
+      expect((await screen.findByRole("status")).textContent).toBe("About 790 KB");
+
+      // App.jsx hands over a new estimateGlb with each change to the design.
+      const steps = [estimating(world), estimating(world), estimating(aurora)];
+      const rerenderWith = (estimateGlb) =>
+        rerender(
+          <ExportModal
+            open
+            onClose={vi.fn()}
+            canvasWidth={1200}
+            canvasHeight={800}
+            exportPng={vi.fn()}
+            videoSupported
+            {...props}
+            estimateGlb={estimateGlb}
+          />,
+        );
+      steps.forEach(rerenderWith);
+      expect(await screen.findByText("Large file. Instanced saves this design at about 0.5 MB.")).toBeTruthy();
+      expect(steps.map((step) => step.mock.calls.length)).toEqual([0, 0, 1]);
+
+      fireEvent.click(screen.getByRole("tab", { name: "Image" }));
+      fireEvent.click(screen.getByRole("tab", { name: "3D" }));
+      expect(screen.queryByRole("status")).toBeNull();
+      expect((await screen.findByRole("status")).textContent).toContain("About 39 MB");
+    });
+
+    it("shows no size when the estimate fails", async () => {
+      const estimateGlb = vi.fn(() => Promise.reject(new Error("offline")));
+      renderModal({ exportGlb: vi.fn(), estimateGlb });
+      fireEvent.click(screen.getByRole("tab", { name: "3D" }));
+      await waitFor(() => expect(estimateGlb).toHaveBeenCalled());
+      await act(async () => {});
+      expect(screen.queryByRole("status")).toBeNull();
+      expect(screen.getByRole("button", { name: "Export GLB" }).hasAttribute("aria-describedby")).toBe(false);
+    });
   });
 
   describe("the Share tab's embed code", () => {

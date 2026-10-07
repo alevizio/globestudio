@@ -1632,6 +1632,11 @@ export const GlobeBackground = ({
       renderer.domElement.prefetchGlb = () => {
         loadGlbExport().catch(() => {});
       };
+      // What that GLB would weigh, saved each way, for the 3D panel.
+      renderer.domElement.estimateGlb = () =>
+        morphSettled()
+          .then(loadGlbExport)
+          .then(({ estimateGlbBytes }) => estimateGlbBytes(globeGroup));
       renderer.domElement.exportGlb = ({ instanced }) =>
         morphSettled()
           .then(loadGlbExport)
