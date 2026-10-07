@@ -138,6 +138,8 @@ test.describe("the GLB of a design", () => {
     const canvas = await openDesign(page, { shape: "ASCII", asciiSymbol: "AB" });
     const { json } = await exportGlb(canvas);
     expect(json.images).toHaveLength(2);
+    // Merged: one mesh, with a primitive for each character.
+    expect(json.nodes.filter((node) => node.name === "Dots")).toHaveLength(1);
     const materials = dotMaterials(json);
     expect(materials).toHaveLength(2);
     for (const material of materials) {

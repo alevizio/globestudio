@@ -109,6 +109,27 @@ describe("exportGlb", () => {
     expect(json.extensionsRequired).toBeUndefined();
   });
 
+  it("merges clicked dots into the same mesh, each layer with its own material", async () => {
+    const selectedDots = new Set(world.points.slice(0, 5).map((point) => point.id));
+    const dotGradient = { from: "#ff0000", to: "#0000ff", angle: 90 };
+    const { byName, json } = await parts(scene({ selectedDots, dotGradient }));
+    const nodes = json.nodes.filter((node) => node.name === "Dots");
+    expect(nodes).toHaveLength(1);
+    const { primitives } = json.meshes[nodes[0].mesh];
+    const circle = createGlobeDotGeometry("Circle").index.count;
+    expect(primitives.map((primitive) => json.accessors[primitive.indices].count)).toEqual([
+      (world.points.length - 5) * circle,
+      5 * circle,
+    ]);
+    expect(primitives[0].material).not.toBe(primitives[1].material);
+    // The clicked dots have no gradient colors of their own: theirs are
+    // white, which leaves their material's accent color as it is.
+    const [, clicked] = byName("Dots")[0].children;
+    const colors = clicked.geometry.getAttribute("color");
+    const vertex = clicked.geometry.index.getX(0);
+    expect([colors.getX(vertex), colors.getY(vertex), colors.getZ(vertex)]).toEqual([1, 1, 1]);
+  });
+
   it("puts the dots on the globe, in its own frame and not the view's", async () => {
     const { byName } = await parts(scene(), { instanced: true });
     const radii = dotPositions(byName("Dots")[0]).map((position) => position.length());

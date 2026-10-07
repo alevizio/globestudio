@@ -69,40 +69,53 @@ const flatGeometry = (source, material) => {
   return geometry;
 };
 
-// One mesh for every dot, each placed by its own copy of the shape.
-const mergeDots = (geometry, matrices, colors) => {
-  const position = geometry.getAttribute("position");
-  const uv = geometry.getAttribute("uv");
-  const index = geometry.index?.array ?? Array.from({ length: position.count }, (_, i) => i);
-  const vertexCount = position.count;
-  const total = matrices.length * vertexCount;
+// Every dot in one mesh, each placed by its own copy of its layer's shape.
+// A layer (the clicked dots, or one character of an ASCII symbol) keeps its
+// own material as a primitive of its own. A layer without per-dot colors
+// gets white ones, which leave its material's color as it is.
+const mergeDots = (layers) => {
+  const shapes = layers.map(({ geometry, matrices }) => ({
+    position: geometry.getAttribute("position"),
+    uv: geometry.getAttribute("uv"),
+    index: geometry.index?.array ?? Array.from({ length: geometry.getAttribute("position").count }, (_, i) => i),
+    dots: matrices.length,
+  }));
+  const total = shapes.reduce((sum, { position, dots }) => sum + dots * position.count, 0);
   const positions = new Float32Array(total * 3);
-  const indices = new (total > 65535 ? Uint32Array : Uint16Array)(matrices.length * index.length);
-  const uvs = uv ? new Float32Array(total * 2) : null;
-  const vertexColors = colors ? new Float32Array(total * 3) : null;
-  const vertex = new THREE.Vector3();
-  matrices.forEach((matrix, dot) => {
-    const first = dot * vertexCount;
-    for (let v = 0; v < vertexCount; v += 1) {
-      vertex.fromBufferAttribute(position, v).applyMatrix4(matrix).toArray(positions, (first + v) * 3);
-      if (uvs) uvs.set([uv.getX(v), uv.getY(v)], (first + v) * 2);
-      if (vertexColors) colors[dot].toArray(vertexColors, (first + v) * 3);
-    }
-    for (let k = 0; k < index.length; k += 1) indices[dot * index.length + k] = index[k] + first;
-  });
+  const indices = new (total > 65535 ? Uint32Array : Uint16Array)(shapes.reduce((sum, { index, dots }) => sum + dots * index.length, 0));
+  const uvs = shapes.some(({ uv }) => uv) ? new Float32Array(total * 2) : null;
+  const vertexColors = layers.some(({ colors }) => colors) ? new Float32Array(total * 3).fill(1) : null;
   const merged = new THREE.BufferGeometry();
+  const vertex = new THREE.Vector3();
+  let first = 0;
+  let start = 0;
+  layers.forEach(({ matrices, colors }, layer) => {
+    const { position, uv, index } = shapes[layer];
+    const groupStart = start;
+    matrices.forEach((matrix, dot) => {
+      for (let v = 0; v < position.count; v += 1) {
+        vertex.fromBufferAttribute(position, v).applyMatrix4(matrix).toArray(positions, (first + v) * 3);
+        if (uv) uvs.set([uv.getX(v), uv.getY(v)], (first + v) * 2);
+        if (colors) colors[dot].toArray(vertexColors, (first + v) * 3);
+      }
+      for (let k = 0; k < index.length; k += 1) indices[start + k] = index[k] + first;
+      first += position.count;
+      start += index.length;
+    });
+    merged.addGroup(groupStart, start - groupStart, layer);
+  });
   merged.setIndex(new THREE.BufferAttribute(indices, 1));
   merged.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   if (uvs) merged.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
   if (vertexColors) merged.setAttribute("color", new THREE.BufferAttribute(vertexColors, 3));
-  return merged;
+  const materials = layers.map(({ material }) => material);
+  for (const material of materials) material.vertexColors = Boolean(vertexColors);
+  return new THREE.Mesh(merged, materials.length > 1 ? materials : materials[0]);
 };
 
-// A dot mesh of three/globe.js as an instanced mesh or as one merged mesh
-// that opens anywhere. GLTFExporter marks EXT_mesh_gpu_instancing required,
-// as the extension asks, since a viewer without it would draw one dot. Apple
-// Preview does all the same.
-const dotsPart = (mesh, { instanced, sizeVary }) => {
+// A dot mesh of three/globe.js: its shape, material, and each dot's matrix
+// and color.
+const dotLayer = (mesh, sizeVary) => {
   const material = flatMaterial(mesh.material);
   const geometry = flatGeometry(mesh.geometry, material);
   const phases = mesh.geometry.getAttribute("aPhase");
@@ -117,10 +130,13 @@ const dotsPart = (mesh, { instanced, sizeVary }) => {
     matrices.push(matrix);
     colors?.push(shownColor(mesh.getColorAt(i, new THREE.Color())));
   }
-  if (!instanced) {
-    material.vertexColors = Boolean(colors);
-    return new THREE.Mesh(mergeDots(geometry, matrices, colors), material);
-  }
+  return { material, geometry, matrices, colors };
+};
+
+// A dot layer as GPU instances. GLTFExporter marks EXT_mesh_gpu_instancing
+// required, as the extension asks, since a viewer without it would draw
+// one dot. Apple Preview does all the same.
+const instancedDots = ({ material, geometry, matrices, colors }) => {
   const dots = new THREE.InstancedMesh(geometry, material, matrices.length);
   matrices.forEach((matrix, i) => dots.setMatrixAt(i, matrix));
   colors?.forEach((color, i) => dots.setColorAt(i, color));
@@ -145,28 +161,40 @@ const glows = (object) => {
 export const buildGlbScene = (globeGroup, { instanced = false, sizeVary = false } = {}) => {
   const scene = new THREE.Scene();
   scene.name = "Globestudio";
+  const dotLayers = [];
   globeGroup.updateMatrixWorld(true);
   globeGroup.traverseVisible((object) => {
     const { material } = object;
     if (!(object.isMesh || object.isLine) || material.isShaderMaterial || !material.colorWrite || moves(object) || glows(object)) return;
+    // Placed within the globe group, which holds the view's spin and tilt.
+    const matrix = object.matrix.clone();
+    for (let parent = object.parent; parent !== globeGroup; parent = parent.parent) matrix.premultiply(parent.matrix);
     let part;
     if (object.isInstancedMesh) {
       // Only the dots themselves wear the twinkle hook. The other instanced
       // layers are the Bloom, CRT and Chromatic looks' halos.
       if (!material.userData.twinkleWired) return;
-      part = dotsPart(object, { instanced, sizeVary });
+      const layer = dotLayer(object, sizeVary);
+      if (!instanced) {
+        for (const dot of layer.matrices) dot.premultiply(matrix);
+        dotLayers.push(layer);
+        return;
+      }
+      part = instancedDots(layer);
       part.name = "Dots";
     } else {
       const flat = flatMaterial(material);
       part = new (object.isLine ? THREE.Line : THREE.Mesh)(flatGeometry(object.geometry, flat), flat);
       part.name = object.name;
     }
-    // Placed within the globe group, which holds the view's spin and tilt.
-    const matrix = object.matrix.clone();
-    for (let parent = object.parent; parent !== globeGroup; parent = parent.parent) matrix.premultiply(parent.matrix);
     matrix.decompose(part.position, part.quaternion, part.scale);
     scene.add(part);
   });
+  if (dotLayers.length) {
+    const dots = mergeDots(dotLayers);
+    dots.name = "Dots";
+    scene.add(dots);
+  }
   return scene;
 };
 
