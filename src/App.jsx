@@ -1625,6 +1625,8 @@ const App = () => {
     }
   };
 
+  const prefetchGlb = () => globeCanvasRef.current?.prefetchGlb?.();
+
   // Copy image: the PNG that Export PNG would save, put on the clipboard
   // instead of in a file. Resolves once it is there and rejects if the
   // render or the clipboard fails.
@@ -2272,6 +2274,7 @@ const App = () => {
         copyPng={copyPng}
         pngStatus={pngStatus}
         exportGlb={exportGlb}
+        prefetchGlb={prefetchGlb}
         glbStatus={glbStatus}
         exportSvg={exportSvg}
         svgStatus={svgStatus}

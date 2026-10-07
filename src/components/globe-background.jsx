@@ -1626,10 +1626,15 @@ export const GlobeBackground = ({
         return shiftX ? { scale, shiftX } : {};
       };
       // The design as GLB bytes, once a Flat/Globe morph has landed. The
-      // exporter loads on the first call, in a chunk of its own.
+      // exporter loads in a chunk of its own, on the first call or when the
+      // Export dialog's 3D panel asks for it ahead (prefetchGlb).
+      const loadGlbExport = () => import("../three/glb-export.js");
+      renderer.domElement.prefetchGlb = () => {
+        loadGlbExport().catch(() => {});
+      };
       renderer.domElement.exportGlb = ({ instanced }) =>
         morphSettled()
-          .then(() => import("../three/glb-export.js"))
+          .then(loadGlbExport)
           .then(({ exportGlb }) => {
             // Shape rotation turns a third of the dots each frame, so the
             // file would catch them at three angles. They go in at the

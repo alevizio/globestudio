@@ -221,6 +221,8 @@ export const ExportModal = ({
   copyPng,
   pngStatus,
   exportGlb,
+  // Fetches the GLB exporter's chunk ahead of the click (App.jsx).
+  prefetchGlb,
   glbStatus,
   exportSvg,
   svgStatus,
@@ -382,6 +384,13 @@ export const ExportModal = ({
     setDrilled(false);
     pendingFocus.current = () => tabRefs.current.get(tab)?.focus();
   };
+
+  // The 3D panel fetches the exporter while it shows, so Export GLB still
+  // works if the network drops before the click.
+  const glbPanelShown = open && tab === "3d" && showPanel;
+  useEffect(() => {
+    if (glbPanelShown) prefetchGlb?.();
+  }, [glbPanelShown, prefetchGlb]);
 
   if (!open) return null;
 

@@ -406,6 +406,14 @@ describe("ExportModal", () => {
       expect(exportGlb).toHaveBeenLastCalledWith({ instanced: true });
     });
 
+    it("fetches the exporter while the 3D panel shows, ahead of the click", () => {
+      const prefetchGlb = vi.fn();
+      renderModal({ exportGlb: vi.fn(), prefetchGlb });
+      expect(prefetchGlb).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole("tab", { name: "3D" }));
+      expect(prefetchGlb).toHaveBeenCalled();
+    });
+
     it("confirms a saved file and says so when an export fails", () => {
       const { rerender } = renderModal({ exportGlb: vi.fn(), glbStatus: "saved" });
       fireEvent.click(screen.getByRole("tab", { name: "3D" }));
