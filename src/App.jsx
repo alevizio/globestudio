@@ -1628,11 +1628,15 @@ const App = () => {
   const prefetchGlb = () => globeCanvasRef.current?.prefetchGlb?.();
 
   // The GLB's size saved each way, for the 3D tab. A new function whenever
-  // the design or its clicked dots change, so the tab asks again.
+  // the design or its clicked dots change, or a layer lands after them (the
+  // Solid land after its atlas loads), so the tab asks again. Layers count
+  // only while the dialog is open: it asks as it opens.
+  const [layerLoads, setLayerLoads] = useState(0);
+  const countLayerLoad = useCallback(() => setLayerLoads((count) => count + 1), []);
   const estimateGlb = useCallback(
     () => globeCanvasRef.current?.estimateGlb?.() ?? Promise.reject(new Error("No globe canvas")),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [buildCurrentConfig, selectedDots],
+    [buildCurrentConfig, selectedDots, layerLoads],
   );
 
   // Copy image: the PNG that Export PNG would save, put on the clipboard
@@ -1980,6 +1984,7 @@ const App = () => {
             reducedMotion={motionFrozen}
             lowPower={lowPowerActive}
             onLowPower={detectsLowPower ? reportLowPower : null}
+            onLayerLoad={exportModalOpen ? countLayerLoad : null}
             canvasHandleRef={globeCanvasRef}
             panelCollapsed={panelCollapsed}
             sheetRef={railRef}

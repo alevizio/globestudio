@@ -218,6 +218,31 @@ test.describe("the GLB of a design", () => {
     await expect(size).toHaveText(/^About \d+ KB$/);
   });
 
+  test("follows the Solid land in when its atlas loads after the size came", async ({ page }) => {
+    // Hold the atlas back, as a slow connection would, so the land comes in
+    // after the tab has asked.
+    let release;
+    const held = new Promise((resolve) => {
+      release = resolve;
+    });
+    await page.route(/countries-50m/, async (route) => {
+      await held;
+      await route.continue();
+    });
+    const canvas = await openDesign(page, { renderMode: "solid" });
+    const dialog = await openGlbTab(page);
+    const size = dialog.getByRole("status");
+    await expect(size).toHaveText(/^About \d+ KB$/, { timeout: CANVAS_TIMEOUT });
+    const bare = await size.textContent();
+    release();
+    // The land's texture adds a few hundred KB, and the line follows it
+    // without a change to the design.
+    await expect(size).not.toHaveText(bare, { timeout: TEXTURE_TIMEOUT });
+    const estimate = await canvas.evaluate(async (node) => (await node.estimateGlb()).merged);
+    const shown = Number((await size.textContent()).match(/^About (\d+) KB$/)[1]) * 1000;
+    expect(Math.abs(shown - estimate) / estimate).toBeLessThan(0.05);
+  });
+
   // Each design's estimate against the files it saves, Merged and Instanced.
   // The geometry is worked out exactly and textures are encoded as the
   // exporter encodes them, so the estimates land within 1%. The bar is 15%.

@@ -158,6 +158,10 @@ export const GlobeBackground = ({
   // sustained low frame rate; only the main app passes it.
   lowPower = false,
   onLowPower = null,
+  // Called when a layer lands outside a commit, after a fetch or an image
+  // load: the Solid land, a custom shape's dots. App.jsx then has the
+  // Export dialog's 3D tab ask for the GLB's size again.
+  onLayerLoad = null,
   // Whether the design's colors are hex colors, which render as their hex,
   // or old colors, which render as they always have
   // (three/picked-color.js). Only the studio and the embed pass it.
@@ -175,6 +179,7 @@ export const GlobeBackground = ({
   const sizeVaryRef = useRef(sizeVary);
   const lowPowerRef = useRef(lowPower);
   const onLowPowerRef = useRef(onLowPower);
+  const onLayerLoadRef = useRef(onLayerLoad);
   const hexColorsRef = useRef(hexColors);
   // Dev-only perf metrics — written from the animate loop, polled by
   // <PerfMonitor>. Lives outside React state so per-frame updates don't
@@ -191,6 +196,7 @@ export const GlobeBackground = ({
   sizeVaryRef.current = sizeVary;
   lowPowerRef.current = lowPower;
   onLowPowerRef.current = onLowPower;
+  onLayerLoadRef.current = onLayerLoad;
   hexColorsRef.current = hexColors;
   const stateRef = useRef({
     active: false,
@@ -1745,7 +1751,10 @@ export const GlobeBackground = ({
     };
 
     if (shape === "Custom" && customShape?.dataUrl) {
-      createCustomShapeTexture(customShape.dataUrl).then(swap);
+      createCustomShapeTexture(customShape.dataUrl).then((customShapeTexture) => {
+        swap(customShapeTexture);
+        if (!cancelled) onLayerLoadRef.current?.();
+      });
     } else {
       swap(null);
     }
@@ -1851,6 +1860,7 @@ export const GlobeBackground = ({
       applyGlobeShellProgress(liveRefs, morphRef.current.progress, globeSettingsRef.current);
       // The textures arrive after a fetch, outside a commit.
       liveRefs.invalidate?.();
+      onLayerLoadRef.current?.();
     };
 
     // Kick off the rivers + cities fetches in parallel with the countries
