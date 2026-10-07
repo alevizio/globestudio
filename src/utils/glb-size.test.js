@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GLB_LARGE_BYTES, formatGlbSize, glbSizeNote } from "./glb-size.js";
+import { GLB_LARGE_MB, formatGlbSize, glbSizeNote } from "./glb-size.js";
 
 describe("formatGlbSize", () => {
   it("rounds to two significant figures, in KB under 1 MB and MB above", () => {
@@ -39,9 +39,16 @@ describe("glbSizeNote", () => {
     expect(glbSizeNote(aurora, "instanced")).toEqual({ size: "About 500 KB", instancedSize: null });
   });
 
-  it("draws the line at 20 MB, as macOS counts it", () => {
-    expect(GLB_LARGE_BYTES).toBe(20_000_000);
-    expect(glbSizeNote({ merged: 20_000_000, instanced: 400_000 }, "merged").instancedSize).toBeNull();
-    expect(glbSizeNote({ merged: 20_000_001, instanced: 400_000 }, "merged").instancedSize).toBe("0.4 MB");
+  it("draws the line over 20 MB as the size line shows it, as macOS counts it", () => {
+    expect(GLB_LARGE_MB).toBe(20);
+    // Particle Grid at Density 50, flat and globe: both read "About 20 MB",
+    // so neither suggests.
+    for (const merged of [19_821_572, 20_130_316, 20_499_999]) {
+      expect(glbSizeNote({ merged, instanced: 400_000 }, "merged")).toEqual({ size: "About 20 MB", instancedSize: null });
+    }
+    expect(glbSizeNote({ merged: 20_500_000, instanced: 400_000 }, "merged")).toEqual({
+      size: "About 21 MB",
+      instancedSize: "0.4 MB",
+    });
   });
 });
