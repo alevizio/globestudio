@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
+import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
 
 // The design as a GLB file: what the scene draws as geometry, in flat
 // colors. components/globe-background.jsx loads this module on the first
@@ -73,13 +74,15 @@ const flatGeometry = (source, material) => {
 // A layer (the clicked dots, or one character of an ASCII symbol) keeps its
 // own material as a primitive of its own. A layer without per-dot colors
 // gets white ones, which leave its material's color as it is.
+//
+// Particle Grid's shape comes unindexed: 1,512 vertices, one per triangle
+// corner, for 270 points. Indexed first, each dot it copies has 270
+// vertices for the same triangles.
 const mergeDots = (layers) => {
-  const shapes = layers.map(({ geometry, matrices }) => ({
-    position: geometry.getAttribute("position"),
-    uv: geometry.getAttribute("uv"),
-    index: geometry.index?.array ?? Array.from({ length: geometry.getAttribute("position").count }, (_, i) => i),
-    dots: matrices.length,
-  }));
+  const shapes = layers.map(({ geometry, matrices }) => {
+    const shape = geometry.index ? geometry : mergeVertices(geometry);
+    return { position: shape.getAttribute("position"), uv: shape.getAttribute("uv"), index: shape.index.array, dots: matrices.length };
+  });
   const total = shapes.reduce((sum, { position, dots }) => sum + dots * position.count, 0);
   const positions = new Float32Array(total * 3);
   const indices = new (total > 65535 ? Uint32Array : Uint16Array)(shapes.reduce((sum, { index, dots }) => sum + dots * index.length, 0));

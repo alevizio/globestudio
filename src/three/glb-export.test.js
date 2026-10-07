@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
 import validator from "gltf-validator";
 import { describe, expect, it } from "vitest";
 import { dotShapeOptions } from "../config/constants.js";
@@ -107,6 +108,18 @@ describe("exportGlb", () => {
     const circle = createGlobeDotGeometry("Circle").getAttribute("position").count;
     expect(dots.geometry.getAttribute("position").count).toBe(world.points.length * circle);
     expect(json.extensionsRequired).toBeUndefined();
+  });
+
+  it("indexes Particle Grid's shape before merging, so each dot copies its points once", async () => {
+    const { byName } = await parts(scene({ mapData: chile, shape: "Particle Grid" }));
+    const [dots] = byName("Dots");
+    const shape = createGlobeDotGeometry("Particle Grid");
+    expect(shape.index).toBeNull();
+    const corners = shape.getAttribute("position").count;
+    const points = mergeVertices(shape).getAttribute("position").count;
+    expect(points).toBeLessThan(corners / 5);
+    expect(dots.geometry.getAttribute("position").count).toBe(chile.points.length * points);
+    expect(dots.geometry.index.count).toBe(chile.points.length * corners);
   });
 
   it("merges clicked dots into the same mesh, each layer with its own material", async () => {
