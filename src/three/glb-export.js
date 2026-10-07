@@ -158,6 +158,18 @@ const glows = (object) => {
   return false;
 };
 
+// The parts of the globe group that go into a GLB: its visible meshes and
+// lines, without the shader parts, the depth-only ones, the moving ones or
+// the glow. Of the instanced layers, only the dots themselves wear the
+// twinkle hook. The others are the Bloom, CRT and Chromatic looks' halos.
+const eachPart = (globeGroup, visit) =>
+  globeGroup.traverseVisible((object) => {
+    const { material } = object;
+    if (!(object.isMesh || object.isLine) || material.isShaderMaterial || !material.colorWrite || moves(object) || glows(object)) return;
+    if (object.isInstancedMesh && !material.userData.twinkleWired) return;
+    visit(object);
+  });
+
 // globeGroup: the scene's globe group (components/globe-background.jsx).
 // instanced: dots as GPU instances rather than one merged mesh.
 // sizeVary: the design's Vary size.
@@ -166,17 +178,12 @@ export const buildGlbScene = (globeGroup, { instanced = false, sizeVary = false 
   scene.name = "Globestudio";
   const dotLayers = [];
   globeGroup.updateMatrixWorld(true);
-  globeGroup.traverseVisible((object) => {
-    const { material } = object;
-    if (!(object.isMesh || object.isLine) || material.isShaderMaterial || !material.colorWrite || moves(object) || glows(object)) return;
+  eachPart(globeGroup, (object) => {
     // Placed within the globe group, which holds the view's spin and tilt.
     const matrix = object.matrix.clone();
     for (let parent = object.parent; parent !== globeGroup; parent = parent.parent) matrix.premultiply(parent.matrix);
     let part;
     if (object.isInstancedMesh) {
-      // Only the dots themselves wear the twinkle hook. The other instanced
-      // layers are the Bloom, CRT and Chromatic looks' halos.
-      if (!material.userData.twinkleWired) return;
       const layer = dotLayer(object, sizeVary);
       if (!instanced) {
         for (const dot of layer.matrices) dot.premultiply(matrix);
@@ -186,7 +193,7 @@ export const buildGlbScene = (globeGroup, { instanced = false, sizeVary = false 
       part = instancedDots(layer);
       part.name = "Dots";
     } else {
-      const flat = flatMaterial(material);
+      const flat = flatMaterial(object.material);
       part = new (object.isLine ? THREE.Line : THREE.Mesh)(flatGeometry(object.geometry, flat), flat);
       part.name = object.name;
     }
@@ -199,6 +206,128 @@ export const buildGlbScene = (globeGroup, { instanced = false, sizeVary = false 
     scene.add(dots);
   }
   return scene;
+};
+
+// What a GLB of the design weighs, worked out from the parts buildGlbScene
+// takes, without building it: GLTFExporter writes each attribute and index
+// once, however many parts share it, in a buffer view of its own padded to
+// 4 bytes, with a vertex's stride rounded up to 4 bytes too.
+const padded = (bytes) => Math.ceil(bytes / 4) * 4;
+const vertexBytes = (attribute) => padded(attribute.count * padded(attribute.itemSize * attribute.array.BYTES_PER_ELEMENT));
+const indexBytes = (index) => padded(index.count * index.array.BYTES_PER_ELEMENT);
+
+// The JSON chunk, at what each entry takes on average in the files the app
+// writes: a node with its mesh; a primitive with its material; an accessor
+// with its min, max and buffer view; a texture with its image and sampler;
+// a dot layer's instancing extension.
+const JSON_BYTES = { file: 160, node: 110, primitive: 220, accessor: 230, texture: 110, instancing: 110 };
+
+// Each texture's PNG, kept per texture: the browser encodes it once, the
+// first time an estimate needs it. The file holds the shown colors' PNG
+// (shownTexture), which comes within a few percent of it. Where the
+// browser can't encode, a guess from the size.
+const pngSizes = new WeakMap();
+const pngBytes = (texture) => {
+  const { image } = texture;
+  const guess = Math.round(image.width * image.height * 0.1);
+  if (pngSizes.get(texture)?.version !== texture.version) {
+    const bytes = new Promise((resolve) => {
+      try {
+        image.toBlob((blob) => resolve(blob?.size ?? guess), "image/png");
+      } catch {
+        resolve(guess);
+      }
+    });
+    pngSizes.set(texture, { version: texture.version, bytes });
+  }
+  return pngSizes.get(texture).bytes;
+};
+
+// The JSON and BIN bytes of some parts. add counts an accessor once for
+// each attribute, however many parts share it. An attribute of null is one
+// a part makes for itself.
+const tally = () => {
+  const written = new Set();
+  const sum = { json: 0, bin: 0 };
+  const add = (attribute, bytes) => {
+    if (written.has(attribute)) return;
+    if (attribute) written.add(attribute);
+    sum.json += JSON_BYTES.accessor;
+    sum.bin += bytes;
+  };
+  return { sum, add };
+};
+
+// A part's shape as flatGeometry keeps it: its points, its texture
+// coordinates when it has a texture, its colors when it has its own (made
+// anew for each part), and its index.
+const addShape = (add, geometry, material) => {
+  const position = geometry.getAttribute("position");
+  add(position, vertexBytes(position));
+  if (material.map) add(geometry.getAttribute("uv"), vertexBytes(geometry.getAttribute("uv")));
+  if (material.vertexColors) add(null, vertexBytes(geometry.getAttribute("color")));
+  if (geometry.index) add(geometry.index, indexBytes(geometry.index));
+};
+
+// Merged (mergeDots): one mesh, with a primitive and an index accessor for
+// each layer, and each dot a copy of its layer's shape once indexed.
+const mergedDotBytes = (layers) => {
+  if (!layers.length) return { json: 0, bin: 0 };
+  const shapes = layers.map((mesh) => {
+    const geometry = flatGeometry(mesh.geometry, mesh.material);
+    const shape = geometry.index ? geometry : mergeVertices(geometry);
+    return { dots: mesh.count, vertices: shape.getAttribute("position").count, indices: shape.index.count };
+  });
+  const vertices = shapes.reduce((sum, { dots, vertices: count }) => sum + dots * count, 0);
+  const uv = layers.some((mesh) => mesh.material.map);
+  const colors = layers.some((mesh) => mesh.instanceColor);
+  const indexSize = vertices > 65535 ? 4 : 2;
+  return {
+    json: JSON_BYTES.node + layers.length * (JSON_BYTES.primitive + JSON_BYTES.accessor) + (1 + uv + colors) * JSON_BYTES.accessor,
+    bin: padded(vertices * 12) + (uv ? padded(vertices * 8) : 0) + (colors ? padded(vertices * 12) : 0)
+      + shapes.reduce((sum, { dots, indices }) => sum + padded(dots * indices * indexSize), 0),
+  };
+};
+
+// Instanced (instancedDots): each layer's shape as it is, then a
+// translation, rotation and scale for each dot, and a color when the dots
+// have their own.
+const instancedDotBytes = (layers) => {
+  const { sum, add } = tally();
+  for (const mesh of layers) {
+    addShape(add, mesh.geometry, mesh.material);
+    const colors = mesh.instanceColor ? 1 : 0;
+    sum.json += JSON_BYTES.node + JSON_BYTES.primitive + JSON_BYTES.instancing + (3 + colors) * JSON_BYTES.accessor;
+    sum.bin += padded(mesh.count * 12) * (2 + colors) + padded(mesh.count * 16);
+  }
+  return sum;
+};
+
+// globeGroup as for buildGlbScene. Resolves to the file's bytes saved each
+// way: { merged, instanced }. Nothing here walks the dots one by one, so it
+// takes about a millisecond on the densest design.
+export const estimateGlbBytes = async (globeGroup) => {
+  // Everything but the dots, the same either way.
+  const { sum, add } = tally();
+  sum.json += JSON_BYTES.file;
+  const layers = [];
+  const textures = [];
+  eachPart(globeGroup, (object) => {
+    const { geometry, material } = object;
+    if (material.map) textures.push(material.map);
+    if (object.isInstancedMesh) {
+      layers.push(object);
+      return;
+    }
+    sum.json += JSON_BYTES.node + JSON_BYTES.primitive;
+    addShape(add, geometry, material);
+  });
+  // flatMaterial gives each part a texture of its own.
+  sum.json += textures.length * JSON_BYTES.texture;
+  sum.bin += (await Promise.all(textures.map(pngBytes))).reduce((total, bytes) => total + padded(bytes), 0);
+  // A 12-byte header, then the JSON and BIN chunks, each after 8 bytes of its own.
+  const file = (dots) => 12 + 8 + padded(sum.json + dots.json) + 8 + sum.bin + dots.bin;
+  return { merged: file(mergedDotBytes(layers)), instanced: file(instancedDotBytes(layers)) };
 };
 
 // The GLB file's bytes.

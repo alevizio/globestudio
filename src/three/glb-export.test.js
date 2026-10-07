@@ -17,7 +17,7 @@ import {
   createGraticule,
   createOuterHaloMaterial,
 } from "./globe.js";
-import { exportGlb } from "./glb-export.js";
+import { estimateGlbBytes, exportGlb } from "./glb-export.js";
 
 const world = createCountryMapData([], 30);
 const chile = createCountryMapData(["CHL"], 40);
@@ -240,3 +240,42 @@ describe("exportGlb", () => {
     expect(gltf.scene.children.filter((child) => child.isMesh && !["Globe", "Dots"].includes(child.name))).toHaveLength(hubs);
   });
 });
+
+describe("estimateGlbBytes", () => {
+  // Designs without a texture, which jsdom can't draw:
+  // tests/e2e/glb-export.spec.js checks those in the app.
+  const designs = {
+    "the world on the globe, with its grid and network": () => scene({ network: true }),
+    "Italy on the flat map": () => scene({ mapData: createCountryMapData(["ITA"], 40), morph: 0 }),
+    "Aurora's dots, Particle Grid at Density 70, with the glow": () =>
+      scene({ mapData: createCountryMapData([], 70), shape: "Particle Grid", dotSize: 12, glow: true }),
+    "Particle Grid at Density 100": () => scene({ mapData: createCountryMapData([], 100), shape: "Particle Grid" }),
+    "clicked dots among gradient ones": () =>
+      scene({
+        selectedDots: new Set(world.points.slice(0, 40).map((point) => point.id)),
+        dotGradient: { from: "#ff0000", to: "#0000ff", angle: 90 },
+      }),
+    "ASCII's asterisk": () => scene({ shape: "ASCII" }),
+  };
+
+  it.each(Object.entries(designs))("comes within 15%% of the file for %s, saved either way", async (_, design) => {
+    const globeGroup = design();
+    const estimate = await estimateGlbBytes(globeGroup);
+    for (const instanced of [false, true]) {
+      const { byteLength } = await exportGlb(globeGroup, { instanced });
+      const guess = instanced ? estimate.instanced : estimate.merged;
+      expect(Math.abs(guess - byteLength) / byteLength, instanced ? "instanced" : "merged").toBeLessThan(0.15);
+    }
+  });
+
+  it("puts Particle Grid at Density 100 near 79 MB merged and under 1 MB instanced, without a long task", async () => {
+    const globeGroup = scene({ mapData: createCountryMapData([], 100), shape: "Particle Grid" });
+    const start = performance.now();
+    const { merged, instanced } = await estimateGlbBytes(globeGroup);
+    // It never walks the dots one by one, so a long task (50 ms) is far off.
+    expect(performance.now() - start).toBeLessThan(50);
+    expect(merged / 1e6).toBeCloseTo(79, 0);
+    expect(instanced).toBeLessThan(1e6);
+  });
+});
+
