@@ -5183,6 +5183,12 @@ body:has(.embed-plugin-pickers) .searchable-select-popover {
   margin-top: 0;
 }
 
+/* The 3D tab's size line, kept one caption line tall while the size is on
+   its way, so it lands without growing the dialog (export-modal.jsx). */
+.export-modal-size {
+  min-height: 1lh;
+}
+
 /* Mount-fade on tab content + the real vertical layout for the
    section stack. Keyed re-render per tab swap (see export-modal.jsx
    <div key={tab}>) means the animation fires on each tab change.

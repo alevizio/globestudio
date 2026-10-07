@@ -48,8 +48,8 @@ const GLB_DOTS_OPTIONS = [
   { id: "instanced", label: "Instanced" },
 ];
 
-// The 3D tab asks for the GLB's size this long after the design last
-// changed, so a burst of changes (S held down) asks once.
+// The 3D tab asks for the GLB's size as it shows, and then this long after
+// the design last changed, so a burst of changes (S held down) asks once.
 const GLB_ESTIMATE_DELAY_MS = 250;
 
 const FPS_OPTIONS = [24, 30, 60];
@@ -277,7 +277,9 @@ export const ExportModal = ({
   }, [open, figmaPlugin, initialAspect]);
   const [quality, setQuality] = useState("standard");
   const [glbDots, setGlbDots] = useState("merged");
+  // null while the size is on its way, false when the estimate failed.
   const [glbBytes, setGlbBytes] = useState(null);
+  const glbAsked = useRef(false);
   const glbSizeId = useId();
   const [fps, setFps] = useState(60);
   const [videoFormat, setVideoFormat] = useState("webm");
@@ -402,9 +404,13 @@ export const ExportModal = ({
     if (glbPanelShown) prefetchGlb?.();
   }, [glbPanelShown, prefetchGlb]);
   // Its size line follows the design while it shows. Hidden, it forgets the
-  // size, so it never shows a size of another design.
+  // size, so it never shows a size of another design. The first ask goes
+  // as the panel shows, so the size comes in with it and not a moment
+  // after, when a phone's centered dialog would grow and move the pills
+  // under a finger.
   useEffect(() => {
     if (!glbPanelShown || !estimateGlb) {
+      glbAsked.current = false;
       setGlbBytes(null);
       return undefined;
     }
@@ -412,8 +418,11 @@ export const ExportModal = ({
     const timer = window.setTimeout(() => {
       estimateGlb().then((bytes) => {
         if (current) setGlbBytes(bytes);
-      }, () => {});
-    }, GLB_ESTIMATE_DELAY_MS);
+      }, () => {
+        if (current) setGlbBytes(false);
+      });
+    }, glbAsked.current ? GLB_ESTIMATE_DELAY_MS : 0);
+    glbAsked.current = true;
     return () => {
       current = false;
       window.clearTimeout(timer);
@@ -911,11 +920,17 @@ export const ExportModal = ({
             )}
             {/* The file's size, beside the button that saves it. A screen
                 reader hears it with the button, and once more when it
-                changes: on a Dots pick, or a design change once settled. */}
-            {glbNote && (
-              <div id={glbSizeId} role="status" aria-atomic="true">
-                <p className="export-modal-caption">{glbNote.size}</p>
-                {glbNote.suggestion && <p className="export-modal-caption">{glbNote.suggestion}</p>}
+                changes: on a Dots pick, or a design change once settled.
+                Its line is kept from the first paint, so the size doesn't
+                grow the dialog when it comes in. */}
+            {estimateGlb && glbBytes !== false && (
+              <div id={glbSizeId} className="export-modal-caption export-modal-size" role="status" aria-atomic="true">
+                {glbNote && (
+                  <>
+                    <p className="export-modal-caption">{glbNote.size}</p>
+                    {glbNote.suggestion && <p className="export-modal-caption">{glbNote.suggestion}</p>}
+                  </>
+                )}
               </div>
             )}
             <button

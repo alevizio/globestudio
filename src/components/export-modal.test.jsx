@@ -447,7 +447,8 @@ describe("ExportModal", () => {
       fireEvent.click(screen.getByRole("tab", { name: "3D" }));
       // Beside the button that saves the file, and read with it.
       const footer = document.querySelector(".export-modal-footer");
-      const status = await within(footer).findByRole("status");
+      const status = within(footer).getByRole("status");
+      await waitFor(() => expect(status.children).toHaveLength(2));
       expect([...status.children].map((line) => line.textContent)).toEqual([
         "About 39 MB",
         "Large file. Instanced saves this design at about 0.5 MB.",
@@ -466,7 +467,7 @@ describe("ExportModal", () => {
     it("suggests nothing when Merged stays under 20 MB", async () => {
       renderModal({ exportGlb: vi.fn(), estimateGlb: estimating(world) });
       fireEvent.click(screen.getByRole("tab", { name: "3D" }));
-      expect((await screen.findByRole("status")).textContent).toBe("About 790 KB");
+      await waitFor(() => expect(screen.getByRole("status").textContent).toBe("About 790 KB"));
       expect(screen.queryByText(/Large file/)).toBeNull();
     });
 
@@ -474,7 +475,7 @@ describe("ExportModal", () => {
       const props = { exportGlb: vi.fn(), estimateGlb: estimating(world) };
       const { rerender } = renderModal(props);
       fireEvent.click(screen.getByRole("tab", { name: "3D" }));
-      expect((await screen.findByRole("status")).textContent).toBe("About 790 KB");
+      await waitFor(() => expect(screen.getByRole("status").textContent).toBe("About 790 KB"));
 
       // App.jsx hands over a new estimateGlb with each change to the design.
       const steps = [estimating(world), estimating(world), estimating(aurora)];
@@ -497,8 +498,28 @@ describe("ExportModal", () => {
 
       fireEvent.click(screen.getByRole("tab", { name: "Image" }));
       fireEvent.click(screen.getByRole("tab", { name: "3D" }));
-      expect(screen.queryByRole("status")).toBeNull();
-      expect((await screen.findByRole("status")).textContent).toContain("About 39 MB");
+      expect(screen.getByRole("status").textContent).toBe("");
+      await waitFor(() => expect(screen.getByRole("status").textContent).toContain("About 39 MB"));
+    });
+
+    it("asks as the panel shows, in a line kept for the size from the first paint", () => {
+      vi.useFakeTimers();
+      try {
+        const estimateGlb = estimating(world);
+        renderModal({ exportGlb: vi.fn(), estimateGlb });
+        fireEvent.click(screen.getByRole("tab", { name: "3D" }));
+        // On a phone the dialog is centered, so a size coming in later
+        // would grow it and move the Dots pills under a finger.
+        const status = within(document.querySelector(".export-modal-footer")).getByRole("status");
+        expect(status.className).toContain("export-modal-size");
+        expect(status.textContent).toBe("");
+        act(() => {
+          vi.advanceTimersByTime(0);
+        });
+        expect(estimateGlb).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it("shows no size when the estimate fails", async () => {
