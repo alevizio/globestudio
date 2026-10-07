@@ -6,7 +6,16 @@
     <atom:link href="https://globestudio.app/changelog.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 05 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 06 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>3D export</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#3d-export</guid>
+      <pubDate>Tue, 06 Oct 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Export lists its types down the side, and a new 3D tab saves a GLB for three.js, Blender and other 3D tools</li>
+</ul>]]></description>
+    </item>
     <item>
       <title>Terms and AI tools</title>
       <link>https://globestudio.app/changelog</link>

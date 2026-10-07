@@ -16,6 +16,13 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 
 const ENTRIES = [
   {
+    label: "3D export",
+    date: "6 October 2026",
+    items: [
+      "Export lists its types down the side, and a new 3D tab saves a GLB for three.js, Blender and other 3D tools",
+    ],
+  },
+  {
     label: "Terms and AI tools",
     date: "5 October 2026",
     items: [

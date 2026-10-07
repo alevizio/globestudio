@@ -56,6 +56,12 @@ on deploy.
   Settings does. With room for every tab, the Figma and Skill tabs now
   show on phones and narrow windows too. The list is a vertical tablist:
   the up and down arrows, Home and End move through it.
+- Every place that lists the export formats names GLB too: the site's
+  descriptions and structured data, the web app manifest, the compare,
+  brand and gallery pages, the Copy for AI prompt, the README, the roadmap,
+  the agent skill and the OpenAI plugin listing. The home share card reads
+  PNG / SVG / GLB / WebM / MP4 / GIF and is served as `?v=3`, so
+  unfurlers fetch it again.
 - Each MCP server tool has a short title, such as Find looks by style, and
   says it only reads: it changes nothing, deletes nothing and reaches
   nothing outside the server. Anthropic's and OpenAI's directories ask for
