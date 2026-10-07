@@ -186,7 +186,7 @@ export const Hero = () => (
 - To bring a design into Figma, the person pastes its share link (a studio, `/looks/<id>` or `/embed` link) into the Globestudio Figma plugin, where it loads ready to insert.
 - An agent can make links, embed addresses and code, and the JSON config. With the user's OK, it can screenshot the `/embed` address with a headless browser the project already has.
 - MP4 has no transparency, GIF transparency has hard edges, and SVG drops the shader effect. The SVG and Figma tabs name what a design loses in vectors and point to the image.
-- A GLB keeps the dots, the globe body, the grid, the arcs and the markers in flat colors, and leaves out the shader effect, the glow and animation. Its Merged dots open in any glTF viewer; Instanced makes a smaller file for three.js, Babylon.js and Blender.
+- A GLB keeps the dots, the globe body, the grid, the arcs and the markers in flat colors, and leaves out the shader effect, the glow and animation. Its Merged dots open in any glTF viewer; Instanced makes a smaller file for three.js, Babylon.js and Blender 4.0 or later.
 
 ## Reference files
 
