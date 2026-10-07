@@ -10,13 +10,13 @@ export const comparisons = {
     competitor: "cobe",
     title: "Globestudio vs cobe: dotted globe, no-code vs library",
     metaDescription:
-      "cobe is a tiny code-only WebGL globe library. Globestudio is a free no-code studio that exports PNG, SVG, WebM, MP4, GIF, JSON or an embed.",
+      "cobe is a tiny code-only WebGL globe library. Globestudio is a free no-code studio that exports PNG, SVG, GLB, WebM, MP4, GIF, JSON or an embed.",
     tagline: "A no-code studio with exports vs. a tiny code-only library.",
     summary:
-      "cobe is an excellent ~5 KB, zero-dependency WebGL globe you wire up in JavaScript; it powers the Vercel globe. Globestudio is a no-code generator where you design the look in the browser and export it (PNG/SVG/WebM/MP4/GIF, a JSON config or an embed), with a React component, iframe embed, a Figma plugin, WordPress via a Custom HTML embed, and an MCP server when you do want code. cobe renders a live canvas in your app; Globestudio also exports files.",
+      "cobe is an excellent ~5 KB, zero-dependency WebGL globe you wire up in JavaScript; it powers the Vercel globe. Globestudio is a no-code generator where you design the look in the browser and export it (PNG/SVG/GLB/WebM/MP4/GIF, a JSON config or an embed), with a React component, iframe embed, a Figma plugin, WordPress via a Custom HTML embed, and an MCP server when you do want code. cobe renders a live canvas in your app; Globestudio also exports files.",
     rows: [
       { dimension: "How you use it", globestudio: "No-code browser studio + optional components", them: "Write JavaScript / React" },
-      { dimension: "Output", globestudio: "PNG, SVG, WebM, MP4, GIF, JSON config, embed, live component", them: "A live canvas in your app" },
+      { dimension: "Output", globestudio: "PNG, SVG, GLB, WebM, MP4, GIF, JSON config, embed, live component", them: "A live canvas in your app" },
       { dimension: "Flat 2D maps", globestudio: "Yes: 5 flat projections for solid maps; dotted maps use Mercator", them: "Globe only" },
       { dimension: "Looks / shaders", globestudio: "Many preset looks + shader effects", them: "One aesthetic, JS-tuned" },
       { dimension: "Data binding", globestudio: "Markers by lat/lng or country code + arcs", them: "Markers/arcs via code" },
@@ -51,7 +51,7 @@ export const comparisons = {
       { dimension: "Price", globestudio: "Free (MIT, open source)", them: "Paid license + map-data services" },
       { dimension: "Style", globestudio: "Stylized dotted maps + 3D globes, shader looks", them: "Real cartographic basemaps, terrain, labels" },
       { dimension: "Animation control", globestudio: "Rotation, arcs, pulses (no timeline)", them: "Full AE keyframe timeline" },
-      { dimension: "Export", globestudio: "WebM/MP4/GIF, PNG/SVG, JSON, embed", them: "AE render (ProRes/alpha, broadcast)" },
+      { dimension: "Export", globestudio: "WebM/MP4/GIF, PNG/SVG, GLB, JSON, embed", them: "AE render (ProRes/alpha, broadcast)" },
       { dimension: "Speed to a loop", globestudio: "Seconds, in the browser", them: "An AE project" },
     ],
     whenThem:

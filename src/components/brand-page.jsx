@@ -172,8 +172,8 @@ export const BrandPage = () => {
           <li>"Designer-first dotted maps and animated 3D globes."</li>
           <li>"{lookPresets.length} shader looks. 5 flat projections for solid maps. One free web tool."</li>
           <li>
-            "Pick any country. Customize. Export as PNG, SVG, WebM, MP4, GIF,
-            JSON or an embed."
+            "Pick any country. Customize. Export as PNG, SVG, GLB, WebM, MP4,
+            GIF, JSON or an embed."
           </li>
           <li>"Open source, MIT licensed, runs entirely in your browser."</li>
         </ul>

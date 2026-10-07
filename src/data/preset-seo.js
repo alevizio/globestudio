@@ -21,7 +21,7 @@ export const presetSeo = {
   default: {
     targetKeyword: "dotted map generator",
     metaDescription:
-      "Dotted map and 3D globe generator with white dots on a dark background, slow rotation and no shader effect. Export PNG, SVG, WebM, MP4 or GIF.",
+      "Dotted map and 3D globe generator with white dots on a dark background, slow rotation and no shader effect. Export PNG, SVG, GLB, WebM, MP4 or GIF.",
     longDescription:
       "The Default look is the unstyled starting point: white dots arranged across the world map, rotating slowly on a dark background, with no shader effect, overlay or print texture. It reads as plain geographic data visualization, which makes it a safe choice for landing pages, headers and decks where the globe sits behind the headline. Change density, dot shape and color from here to make your own variation, or use it as is.",
     useCases: [
@@ -280,4 +280,4 @@ export const getPresetSeo = (presetId) => presetSeo[presetId] || null;
 export const pageHeading = (preset) =>
   preset
     ? `${preset.name} dotted map and 3D globe look`
-    : "Free dotted map and 3D globe generator with PNG, SVG, WebM, MP4, GIF and embed export";
+    : "Free dotted map and 3D globe generator with PNG, SVG, GLB, WebM, MP4, GIF and embed export";
