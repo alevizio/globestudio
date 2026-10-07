@@ -137,9 +137,10 @@ Each is at `https://globestudio.app/looks/<id>` (marketing page) or
 ## Exports
 
 From the in-app export dialog: PNG (high-res, rendered at its own scale, not
-the on-screen DPR), SVG, WebM and MP4 video, GIF, and a JSON config (the same
-payload as `?c=`). **Copy image** on the Image tab puts the same PNG on the
-clipboard instead of saving a file, where the browser can write images there.
+the on-screen DPR), SVG, a GLB 3D model, WebM and MP4 video, GIF, and a JSON
+config (the same payload as `?c=`). **Copy image** on the Image tab puts the
+same PNG on the clipboard instead of saving a file, where the browser can
+write images there.
 SVG and the Figma tab's **Copy as vectors** draw the flat map, even from
 the globe view, and keep the dots, their shapes and colors. A look's shader
 effect, solid land and a Space or Flow background come through only in PNG
@@ -149,7 +150,7 @@ the image.
 The 3D tab saves a GLB: a 3D model of the dots with their shapes,
 sizes and colors, the globe body, the grid, the network arcs and hub cities
 and the data markers, in flat unlit colors (`KHR_materials_unlit`), with
-the globe body see-through at its Surface opacity, in the
+the globe body see-through at its Sphere opacity, in the
 globe's own frame (Y up; the flat map lies in a plane facing +Z). A look's
 shader effect, post effects, the glow and animation stay out. **Merged**,
 the default, puts every dot in one mesh that any glTF viewer opens;
