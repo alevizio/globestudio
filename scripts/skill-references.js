@@ -574,7 +574,7 @@ ${table(["Attribute", "Default"], elementAttributes())}
 <globe-studio look="${EXAMPLE_LOOK}" config='${JSON.stringify(EXAMPLE_DESIGN)}' height="480" title="Dotted globe of Europe"></globe-studio>
 \`\`\`
 
-With no build step, use a plain iframe instead. The element only builds that iframe, so the page gets the same globe and loads no script from another site.
+With no build step, use a plain iframe instead. The element only builds that iframe, so the page gets the same globe.
 
 ## Plain iframe
 

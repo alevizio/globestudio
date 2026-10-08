@@ -76,7 +76,7 @@ Add `@globestudio/element` to the project, 0.1.1 or later for the same reason, t
 <globe-studio look="crt" config='{"v":3,"selection":"continent:Europe","dotColor":"#7dd3fc"}' height="480" title="Dotted globe of Europe"></globe-studio>
 ```
 
-With no build step, use a plain iframe instead. The element only builds that iframe, so the page gets the same globe and loads no script from another site.
+With no build step, use a plain iframe instead. The element only builds that iframe, so the page gets the same globe.
 
 ## Plain iframe
 
