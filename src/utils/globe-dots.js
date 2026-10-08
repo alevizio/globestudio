@@ -1,0 +1,178 @@
+import { normalizeLongitude } from "./math.js";
+import { latLngToImagePoint } from "./projection.js";
+
+// The flat map's dots (dotted-map) sit on an even grid in Mercator, which
+// is right for a flat map. On the sphere a Mercator step is cos(lat) as
+// long, east-west and north-south alike, so that grid wrapped onto the
+// globe crowds toward the poles: half the gap at 60°, a third at 71°, with
+// every dot the same size. The globe gets dots of its own instead, evenly
+// spaced on the sphere, and each one is paired with a flat dot where one is
+// close, so the morph between the views still moves the same dots.
+
+const DEG = Math.PI / 180;
+// dotted-map's "diagonal" grid: rows √3/2 image px apart, even rows shifted
+// half a column. The globe's rows keep the same hexagonal proportion.
+const ROW_STEP = Math.sqrt(3) / 2;
+
+// The arc, in degrees, between neighbouring globe dots that gives the globe
+// as many dots as the flat map. A flat dot at latitude φ covers cos²(φ) of
+// a flat grid cell's area on the sphere, so the land's area in globe cells
+// is the sum of cos²(φ), and the step is the flat map's column step scaled
+// by the root mean square of cos(φ). That keeps Density meaning the same
+// dot count in both views.
+export const globeDotStep = (points, image) => {
+  const lngStep = (image.region.lng.max - image.region.lng.min) / image.width;
+  const meanCos2 = points.reduce((sum, point) => sum + Math.cos(point.lat * DEG) ** 2, 0) / points.length;
+  return lngStep * Math.sqrt(meanCos2);
+};
+
+// Rows evenly spaced in latitude, each holding as many dots as its
+// circumference fits, alternate rows shifted half a step. Rows count from
+// the equator and dots from the region's middle meridian, so the pattern is
+// hexagonal there and the same arc apart everywhere.
+export const createGlobeLattice = (step, region) => {
+  const rowStep = step * ROW_STEP;
+  const middle = (region.lng.min + region.lng.max) / 2;
+  const lattice = [];
+  for (let row = Math.ceil(region.lat.min / rowStep); row * rowStep <= region.lat.max; row += 1) {
+    const lat = row * rowStep;
+    const count = Math.max(1, Math.round((360 * Math.cos(lat * DEG)) / step));
+    const lngStep = 360 / count;
+    const shift = Math.abs(row) % 2 ? 0.5 : 0;
+    const first = Math.ceil((region.lng.min - middle) / lngStep - shift);
+    // A region all the way round takes each dot of the row once.
+    const last = Math.min(first + count - 1, Math.floor((region.lng.max - middle) / lngStep - shift));
+    for (let column = first; column <= last; column += 1) {
+      lattice.push({ row, column, lat, lng: normalizeLongitude(middle + (column + shift) * lngStep) });
+    }
+  }
+  return lattice;
+};
+
+// Whether an image point is land, read off the flat map's own dots, so both
+// views draw the same coastlines. Each grid point is 1 (a dot) or 0, and
+// the point between them is land where the blend of its four neighbours
+// reaches a half: the coast runs midway between a dot and an empty point.
+export const createLandTest = (points, image) => {
+  const columns = Math.ceil(image.width) + 1;
+  const land = new Set(points.map((point) => Math.round(point.y / ROW_STEP) * columns + Math.floor(point.x)));
+  const at = (row, column) => (row >= 0 && column >= 0 && column < columns && land.has(row * columns + column) ? 1 : 0);
+  return ({ x, y }) => {
+    const rowAt = y / ROW_STEP;
+    const row = Math.floor(rowAt);
+    const up = rowAt - row;
+    const shift = row % 2 === 0 ? 0.5 : 0;
+    const nextShift = 0.5 - shift;
+    // Sheared so the next row's points line up with this row's columns.
+    const across = x - shift - (nextShift - shift) * up;
+    const column = Math.floor(across);
+    const side = across - column;
+    const value = (1 - side) * (1 - up) * at(row, column)
+      + side * (1 - up) * at(row, column + 1)
+      + (1 - side) * up * at(row + 1, column)
+      + side * up * at(row + 1, column + 1);
+    return value >= 0.5;
+  };
+};
+
+const unitVector = ({ lat, lng }) => {
+  const phi = lat * DEG;
+  const lambda = lng * DEG;
+  return [Math.cos(phi) * Math.cos(lambda), Math.cos(phi) * Math.sin(lambda), Math.sin(phi)];
+};
+
+// Dots on the unit sphere, bucketed so the ones within maxArc degrees of a
+// point come back without a walk over all of them.
+const createNearby = (maxArc) => {
+  const reach = 2 * Math.sin((maxArc * DEG) / 2);
+  const cellOf = (value) => Math.floor(value / reach) + 1024;
+  const keyOf = (x, y, z) => (x * 2048 + y) * 2048 + z;
+  const cells = new Map();
+  return {
+    add(vector, index) {
+      const key = keyOf(cellOf(vector[0]), cellOf(vector[1]), cellOf(vector[2]));
+      if (!cells.has(key)) cells.set(key, []);
+      cells.get(key).push({ vector, index });
+    },
+    // Each entry within reach, with its squared chord distance.
+    near([x, y, z], visit) {
+      const [cx, cy, cz] = [cellOf(x), cellOf(y), cellOf(z)];
+      for (let dx = -1; dx <= 1; dx += 1) {
+        for (let dy = -1; dy <= 1; dy += 1) {
+          for (let dz = -1; dz <= 1; dz += 1) {
+            for (const { vector, index } of cells.get(keyOf(cx + dx, cy + dy, cz + dz)) ?? []) {
+              const distance = (vector[0] - x) ** 2 + (vector[1] - y) ** 2 + (vector[2] - z) ** 2;
+              if (distance <= reach * reach) visit(index, distance);
+            }
+          }
+        }
+      }
+    },
+  };
+};
+
+// Pairs each flat dot with a distinct globe dot at most maxArc degrees
+// away, nearest pairs first. Returns, for each flat dot, its globe dot's
+// index or -1.
+export const pairDots = (flatDots, globeDots, maxArc) => {
+  const nearby = createNearby(maxArc);
+  globeDots.forEach((dot, index) => nearby.add(unitVector(dot), index));
+  const candidates = [];
+  flatDots.forEach((dot, flatIndex) => {
+    nearby.near(unitVector(dot), (globeIndex, distance) => candidates.push({ distance, flatIndex, globeIndex }));
+  });
+  candidates.sort((a, b) => a.distance - b.distance);
+  const pairs = new Int32Array(flatDots.length).fill(-1);
+  const taken = new Uint8Array(globeDots.length);
+  for (const { flatIndex, globeIndex } of candidates) {
+    if (pairs[flatIndex] >= 0 || taken[globeIndex]) continue;
+    pairs[flatIndex] = globeIndex;
+    taken[globeIndex] = 1;
+  }
+  return pairs;
+};
+
+// The dots the globe layer draws (three/globe.js). A flat dot paired with a
+// globe dot keeps its id and image point and takes the globe dot's
+// latitude and longitude: it shows in both views and moves a little in the
+// morph. An unpaired flat dot shows only on the flat map (view "flat"), an
+// unpaired globe dot only on the globe (view "globe"), at its own Mercator
+// image point. points: the flat map's dots, with lat and lng. The globe's
+// dots come first.
+//
+// A flat dot with no globe dot within a step stays on the globe where it
+// is, so land smaller than the globe's step (an island, a small country at
+// a low Density) never drops off the globe.
+export const createGlobeDots = (points, image) => {
+  if (!points.length || !image?.region) return points;
+  const step = globeDotStep(points, image);
+  const isLand = createLandTest(points, image);
+  const lattice = createGlobeLattice(step, image.region)
+    .map((dot) => ({ ...dot, ...latLngToImagePoint(dot.lat, dot.lng, image) }))
+    .filter(isLand);
+  const pairs = pairDots(points, lattice, step);
+  const onGlobe = createNearby(step);
+  lattice.forEach((dot, index) => onGlobe.add(unitVector(dot), index));
+  const paired = new Uint8Array(lattice.length);
+  const dots = points.map((point, index) => {
+    const globeIndex = pairs[index];
+    if (globeIndex >= 0) {
+      paired[globeIndex] = 1;
+      return { ...point, lat: lattice[globeIndex].lat, lng: lattice[globeIndex].lng };
+    }
+    const vector = unitVector(point);
+    let alone = true;
+    onGlobe.near(vector, () => {
+      alone = false;
+    });
+    if (!alone) return { ...point, view: "flat" };
+    onGlobe.add(vector, -1);
+    return point;
+  });
+  lattice.forEach(({ row, column, lat, lng, x, y }, index) => {
+    if (!paired[index]) dots.push({ id: `globe:${row}:${column}`, x, y, lat, lng, view: "globe" });
+  });
+  // The flat map's own dots go last, so the globe stops drawing before them
+  // (three/globe.js) instead of drawing them at no size.
+  return [...dots.filter((dot) => dot.view !== "flat"), ...dots.filter((dot) => dot.view === "flat")];
+};

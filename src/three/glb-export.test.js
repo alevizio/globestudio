@@ -10,6 +10,7 @@ import { createCountryMapData } from "../utils/dot-generation.js";
 import { createGlobeDotGeometry } from "./geometry.js";
 import { createGlobeNetwork, updateGlobeNetwork } from "./globe-network.js";
 import {
+  applyDotLayerMorph,
   applyGlobeShellProgress,
   buildGlobeDotLayer,
   createAtmosphereMaterial,
@@ -21,6 +22,9 @@ import { estimateGlbBytes, exportGlb } from "./glb-export.js";
 
 const world = createCountryMapData([], 30);
 const chile = createCountryMapData(["CHL"], 40);
+// The globe draws dots of its own (utils/globe-dots.js): those of
+// globePoints that aren't the flat map's alone.
+const globeDots = (mapData) => mapData.globePoints.filter((point) => point.view !== "flat");
 
 // The globe group the way components/globe-background.jsx assembles it,
 // at the end of a morph to the globe (1) or the flat map (0). glow: the
@@ -97,7 +101,7 @@ describe("exportGlb", () => {
     expect(view.getUint32(16, true)).toBe(0x4e4f534a); // "JSON"
     const [dots] = byName("Dots");
     expect(dots.isInstancedMesh).toBe(true);
-    expect(dots.count).toBe(world.points.length);
+    expect(dots.count).toBe(globeDots(world).length);
     expect(json.extensionsRequired).toEqual(["EXT_mesh_gpu_instancing"]);
   });
 
@@ -106,7 +110,7 @@ describe("exportGlb", () => {
     const [dots] = byName("Dots");
     expect(dots.isInstancedMesh).toBeFalsy();
     const circle = createGlobeDotGeometry("Circle").getAttribute("position").count;
-    expect(dots.geometry.getAttribute("position").count).toBe(world.points.length * circle);
+    expect(dots.geometry.getAttribute("position").count).toBe(globeDots(world).length * circle);
     expect(json.extensionsRequired).toBeUndefined();
   });
 
@@ -118,8 +122,8 @@ describe("exportGlb", () => {
     const corners = shape.getAttribute("position").count;
     const points = mergeVertices(shape).getAttribute("position").count;
     expect(points).toBeLessThan(corners / 5);
-    expect(dots.geometry.getAttribute("position").count).toBe(chile.points.length * points);
-    expect(dots.geometry.index.count).toBe(chile.points.length * corners);
+    expect(dots.geometry.getAttribute("position").count).toBe(globeDots(chile).length * points);
+    expect(dots.geometry.index.count).toBe(globeDots(chile).length * corners);
   });
 
   it("merges clicked dots into the same mesh, each layer with its own material", async () => {
@@ -131,7 +135,8 @@ describe("exportGlb", () => {
     const { primitives } = json.meshes[nodes[0].mesh];
     const circle = createGlobeDotGeometry("Circle").index.count;
     expect(primitives.map((primitive) => json.accessors[primitive.indices].count)).toEqual([
-      (world.points.length - 5) * circle,
+      // A clicked dot shows on the globe even when it is the flat map's alone.
+      globeDots(world).filter((point) => !selectedDots.has(point.id)).length * circle,
       5 * circle,
     ]);
     expect(primitives[0].material).not.toBe(primitives[1].material);
@@ -151,6 +156,28 @@ describe("exportGlb", () => {
     const [dots] = byName("Dots");
     expect(dots.position.length()).toBe(0);
     expect(dots.quaternion.equals(new THREE.Quaternion())).toBe(true);
+  });
+
+  it("saves each view's own dots, and a clicked dot in both views", async () => {
+    const flatOnly = world.globePoints.find((point) => point.view === "flat");
+    const globeOnly = world.globePoints.find((point) => point.view === "globe");
+    const selectedDots = new Set([flatOnly.id, globeOnly.id]);
+    for (const [morph, shown] of [[0, world.points.length], [1, globeDots(world).length]]) {
+      const { gltf } = await parts(scene({ selectedDots, morph }), { instanced: true });
+      const counts = gltf.scene.children.filter((child) => child.isInstancedMesh).map((dots) => dots.count).sort((a, b) => a - b);
+      // The view's own dots less the one clicked, then both clicked dots.
+      expect(counts, morph ? "globe" : "flat").toEqual([2, shown - 1]);
+    }
+  });
+
+  it("draws every dot mid-morph, and stops before the flat map's own dots on the globe", () => {
+    const layer = scene().children.at(-1);
+    const [dots] = layer.children.filter((child) => child.isInstancedMesh);
+    expect(dots.count).toBe(globeDots(world).length);
+    applyDotLayerMorph(layer, 0.5);
+    expect(dots.count).toBe(world.globePoints.length);
+    applyDotLayerMorph(layer, 1);
+    expect(dots.count).toBe(globeDots(world).length);
   });
 
   it("lays a flat map's dots on a plane facing +Z, with no globe body or grid", async () => {
@@ -190,7 +217,7 @@ describe("exportGlb", () => {
   it("gives gradient dots a color each, instanced or merged", async () => {
     const dotGradient = { from: "#ff0000", to: "#0000ff", angle: 90 };
     const instanced = (await parts(scene({ dotGradient }), { instanced: true })).byName("Dots")[0];
-    expect(instanced.instanceColor.count).toBe(world.points.length);
+    expect(instanced.instanceColor.count).toBe(globeDots(world).length);
     const merged = (await parts(scene({ dotGradient }))).byName("Dots")[0];
     expect(merged.geometry.getAttribute("color").count).toBe(merged.geometry.getAttribute("position").count);
     const reds = Array.from({ length: instanced.count }, (_, i) => instanced.getColorAt(i, new THREE.Color()).r);

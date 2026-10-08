@@ -335,14 +335,31 @@ export const createAtmosphereMaterial = () =>
     depthWrite: false,
   });
 
+// The globe's own dots where the map has them (utils/globe-dots.js): some
+// show only on the flat map or only on the globe (point.view). A clicked
+// dot shows in both views, so a click never vanishes in the morph.
 const buildGlobePoints = (mapData, selectedDots) =>
-  mapData.points
-    .map((point) => ({
-      ...point,
-      ...pointToGlobeCoordinate(point, mapData.image),
-      selected: selectedDots.has(point.id),
-    }))
+  (mapData.globePoints ?? mapData.points)
+    .map((point) => {
+      const selected = selectedDots.has(point.id);
+      return {
+        ...point,
+        ...pointToGlobeCoordinate(point, mapData.image),
+        selected,
+        view: selected ? undefined : point.view,
+      };
+    })
     .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+
+// How far a view's own dots have grown in: 0 on the flat map, 1 on the
+// globe. Over the same stretch of the morph as the sphere's cross-fade
+// (applyGlobeShellProgress).
+const VIEW_FADE = [0.15, 0.85];
+const viewScale = (view, globeShare) => {
+  if (view === "flat") return 1 - globeShare;
+  if (view === "globe") return globeShare;
+  return 1;
+};
 
 // Number of slices the morph re-bake is split across when chunked = true.
 // 3 frames at 60fps = ~50ms maximum staleness per dot, well below the eye's
@@ -397,7 +414,8 @@ const applyDotInstances = (
   const globePosition = SCRATCH_GLOBE_POSITION;
   const up = AXIS_UP;
   const depth = AXIS_DEPTH;
-  const size = SCRATCH_SIZE.set(scale, scale, scale);
+  const size = SCRATCH_SIZE;
+  const globeShare = smoothStep(VIEW_FADE[0], VIEW_FADE[1], morphProgress);
   // Spin each instance around its local up-axis (which the orientation logic
   // below aligns to the sphere normal). Lets users rotate every dot uniformly.
   const rotationRadians = (dotRotation * Math.PI) / 180;
@@ -455,9 +473,17 @@ const applyDotInstances = (
     // before the orientation quaternion rotates it into world space.
     quaternion.multiply(spinQuaternion);
 
+    // A dot of the other view only shrinks to nothing, so the instance
+    // count stays put. three/glb-export.js leaves such dots out.
+    size.setScalar(scale * viewScale(point.view, globeShare));
     matrix.compose(position, quaternion, size);
     mesh.setMatrixAt(i, matrix);
   }
+  const { both = totalPoints, flat = 0, globe = 0 } = mesh.userData.viewCounts ?? {};
+  mesh.userData.shownCount = both + (globeShare < 1 ? flat : 0) + (globeShare > 0 ? globe : 0);
+  // On the globe, stop drawing before the flat map's own dots, which come
+  // last (utils/globe-dots.js).
+  mesh.count = globeShare >= 1 ? (mesh.userData.globeDrawCount ?? totalPoints) : totalPoints;
 
   // Tell the renderer which range of the InstancedBufferAttribute is dirty.
   // Three.js r163+ supports an array of ranges on `updateRanges`; we replace
@@ -574,6 +600,16 @@ const createInstancedDotMesh = (points, image, geometry, material, scale, radius
   mesh.userData.scale = scale;
   mesh.userData.radiusOffset = radiusOffset;
   mesh.userData.dotRotation = dotRotation;
+  mesh.userData.viewCounts = points.reduce(
+    (counts, point) => {
+      counts[point.view ?? "both"] += 1;
+      return counts;
+    },
+    { both: 0, flat: 0, globe: 0 },
+  );
+  let globeDrawCount = points.length;
+  while (globeDrawCount > 0 && points[globeDrawCount - 1].view === "flat") globeDrawCount -= 1;
+  mesh.userData.globeDrawCount = globeDrawCount;
   applyDotInstances(mesh, points, image, scale, radiusOffset, morphProgress, dotRotation);
   return mesh;
 };
@@ -968,7 +1004,8 @@ export const buildGlobeDotLayer = ({
     group.scale.setScalar(1 + intensity * 0.018);
   }
 
-  group.userData.dotCount = points.length;
+  // The dots the globe shows.
+  group.userData.dotCount = points.filter((point) => point.view !== "flat").length;
   group.userData.morphProgress = morphProgress;
   return group;
 };

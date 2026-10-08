@@ -119,8 +119,13 @@ const mergeDots = (layers) => {
   return new THREE.Mesh(merged, materials.length > 1 ? materials : materials[0]);
 };
 
-// A dot mesh of three/globe.js: its shape, material, and each dot's matrix
-// and color.
+// The dots a mesh of three/globe.js shows. The flat map and the globe each
+// have dots of their own, and the other view's dots sit in the same mesh
+// scaled to nothing.
+const shownDots = (mesh) => mesh.userData.shownCount ?? mesh.count;
+
+// A dot mesh of three/globe.js: its shape, material, and each shown dot's
+// matrix and color.
 const dotLayer = (mesh, sizeVary) => {
   const material = flatMaterial(mesh.material);
   const geometry = flatGeometry(mesh.geometry, material);
@@ -130,6 +135,7 @@ const dotLayer = (mesh, sizeVary) => {
   for (let i = 0; i < mesh.count; i += 1) {
     const matrix = new THREE.Matrix4();
     mesh.getMatrixAt(i, matrix);
+    if (matrix.determinant() === 0) continue;
     // The vertex shader draws Vary size (wireTwinkleMaterial in globe.js),
     // so it goes into each dot's scale here.
     if (sizeVary) matrix.scale(new THREE.Vector3().setScalar(0.82 + 0.36 * phases.getX(i)));
@@ -188,6 +194,7 @@ export const buildGlbScene = (globeGroup, { instanced = false, sizeVary = false 
     let part;
     if (object.isInstancedMesh) {
       const layer = dotLayer(object, sizeVary);
+      if (!layer.matrices.length) return;
       if (!instanced) {
         for (const dot of layer.matrices) dot.premultiply(matrix);
         dotLayers.push(layer);
@@ -280,7 +287,7 @@ const mergedDotBytes = (layers) => {
   const shapes = layers.map((mesh) => {
     const geometry = flatGeometry(mesh.geometry, mesh.material);
     const shape = geometry.index ? geometry : mergeVertices(geometry);
-    return { dots: mesh.count, vertices: shape.getAttribute("position").count, indices: shape.index.count };
+    return { dots: shownDots(mesh), vertices: shape.getAttribute("position").count, indices: shape.index.count };
   });
   const vertices = shapes.reduce((sum, { dots, vertices: count }) => sum + dots * count, 0);
   const uv = layers.some((mesh) => mesh.material.map);
@@ -302,7 +309,7 @@ const instancedDotBytes = (layers) => {
     addShape(add, mesh.geometry, mesh.material);
     const colors = mesh.instanceColor ? 1 : 0;
     sum.json += JSON_BYTES.node + JSON_BYTES.primitive + JSON_BYTES.instancing + (3 + colors) * JSON_BYTES.accessor;
-    sum.bin += padded(mesh.count * 12) * (2 + colors) + padded(mesh.count * 16);
+    sum.bin += padded(shownDots(mesh) * 12) * (2 + colors) + padded(shownDots(mesh) * 16);
   }
   return sum;
 };
@@ -320,7 +327,7 @@ export const estimateGlbBytes = async (globeGroup) => {
     const { geometry, material } = object;
     if (material.map) textures.push(material.map);
     if (object.isInstancedMesh) {
-      layers.push(object);
+      if (shownDots(object)) layers.push(object);
       return;
     }
     sum.json += JSON_BYTES.node + JSON_BYTES.primitive;

@@ -1,6 +1,7 @@
 import DottedMapEngine from "dotted-map";
 import { geoAlbersUsa, geoContains, geoPath } from "d3-geo";
 import { MAP_HEIGHT, MAP_WIDTH, STATE_MAP_PADDING } from "../config/constants.js";
+import { createGlobeDots } from "./globe-dots.js";
 import { pointToGlobeCoordinate } from "./projection.js";
 
 export const makeFeatureCollection = (features) => ({
@@ -59,14 +60,18 @@ export const createCountryMapData = (countryCodes, density) => {
     ...(countryCodes.length ? { countries: countryCodes } : {}),
   });
   const image = map.image;
+  const points = map.getPoints().map((point, index) => ({
+    ...point,
+    ...pointToGlobeCoordinate(point, image),
+    id: `${point.x}:${point.y}:${index}`,
+  }));
 
   return {
     image,
-    points: map.getPoints().map((point, index) => ({
-      ...point,
-      ...pointToGlobeCoordinate(point, image),
-      id: `${point.x}:${point.y}:${index}`,
-    })),
+    points,
+    // The flat map's grid is even in Mercator, not on the sphere, so the
+    // globe draws dots of its own (utils/globe-dots.js).
+    globePoints: createGlobeDots(points, image),
   };
 };
 
