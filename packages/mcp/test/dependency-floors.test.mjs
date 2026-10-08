@@ -1,8 +1,9 @@
 // The first release of each package that fixes the security advisories
-// reported against this package's lockfile. All of them come in through
-// @modelcontextprotocol/sdk (hono, @hono/node-server, ajv's fast-uri,
-// express-rate-limit's ip-address, express's body-parser and qs). A lockfile
-// refresh or a revert that brings back an older copy fails here.
+// reported against this package's lockfile: @modelcontextprotocol/sdk itself,
+// and packages that come in through it (hono, @hono/node-server, ajv's
+// fast-uri, express-rate-limit's ip-address, express's body-parser, qs and
+// proxy-addr). A lockfile refresh or a revert that brings back an older copy
+// fails here.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -15,6 +16,8 @@ const FLOORS = {
   "ip-address": "10.7.1",
   qs: "6.16.0",
   "body-parser": "2.3.0",
+  "@modelcontextprotocol/sdk": "1.31.0",
+  "proxy-addr": "2.0.8",
 };
 
 const lock = JSON.parse(readFileSync(new URL("../package-lock.json", import.meta.url), "utf8"));

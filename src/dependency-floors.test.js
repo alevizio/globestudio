@@ -5,8 +5,9 @@ import { describe, expect, it } from "vitest";
 
 // The first release of each package that fixes the security advisories
 // reported against package-lock.json, one per major line in use (undici has
-// a 6.x copy under @vercel/blob and a 7.x copy under jsdom). A lockfile
-// refresh or a revert that brings back an older copy fails here.
+// a 6.x copy under @vercel/blob and a 7.x copy under jsdom). The MCP SDK
+// here is the one the hosted server at /mcp runs. A lockfile refresh or a
+// revert that brings back an older copy fails here.
 const FLOORS = {
   undici: ["6.28.1", "7.29.1"],
   vite: ["8.0.16"],
@@ -15,6 +16,8 @@ const FLOORS = {
   "@vitest/mocker": ["4.1.11"],
   fflate: ["0.7.5"],
   nanoid: ["3.3.18"],
+  "@modelcontextprotocol/sdk": ["1.31.0"],
+  "source-map-js": ["1.2.2"],
 };
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
