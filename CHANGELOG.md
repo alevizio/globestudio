@@ -85,25 +85,21 @@ on deploy.
   not the old embed picker. Nothing changes in how it works.
 - The agent skill tells the user what a command runs and waits for their
   OK before it installs a package or runs anything else, and it never
-  downloads and runs a remote script. degit is pinned to 3.10.0 in the
-  docs, the READMEs and `llms.txt`. It checks a render by reading the code
-  and the embed address. Its generated reference files no longer name a
-  maintainer command. It names the GLB export and what a GLB keeps and
-  leaves out.
-- The agent skill names no command for the agent to run and writes no
-  script tag. OpenAI's skill scan flagged 1.1.3 with "This skill contains
-  behavior that could create a security risk", and Anthropic's directory
-  held the Claude Code plugin with "Uses a credential from the user's
-  machine". The skill now links the React starter's docs section for the
-  user instead of giving its commands, says which package to add, writes
-  an iframe for a page with no build step or a site builder, and drops
-  the headless screenshot recipe. The export dialog's Share tab still
-  gives the jsDelivr tag with its integrity hash. Anthropic's check most
-  likely reads the verb "pass" as a password and `$schema` as an
-  environment variable, so the skill and the React package's prop docs
-  reword them, and a test fails if either comes back. The description no
-  longer asks to be used when the user never names Globestudio. The skill
-  and the Claude Code plugin are 1.1.4, and the OpenAI plugin is 1.2.3.
+  downloads and runs a remote script. It checks a render by reading the
+  code and the embed address. Its generated reference files no longer
+  name a maintainer command. It names the GLB export and what a GLB keeps
+  and leaves out. The docs, the READMEs and `llms.txt` pin degit to
+  3.10.0.
+- The agent skill writes an iframe for a page with no build step or a
+  site builder, links the React starter's docs section instead of giving
+  its commands, and names the package to add instead of an install
+  command. It no longer has a headless screenshot recipe or offers to
+  start a dev server. The export dialog's Share tab still gives the
+  jsDelivr tag with its integrity hash. Some wording in the skill and in
+  the React package's prop docs changed, and the skill's description no
+  longer asks to be used when the user never names Globestudio. The
+  skill and the Claude Code plugin are 1.1.4, and the OpenAI plugin is
+  1.2.3.
 - The export dialog's Web component embed code, and the pen Open in
   CodePen makes, load `@globestudio/element` 0.2.0 from jsDelivr with an
   integrity hash, so the browser runs only that file. They used to load
