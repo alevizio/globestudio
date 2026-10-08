@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "globestudio",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Make, edit and embed dotted world maps and animated 3D globes with Globestudio. Bundles the globestudio skill and the hosted Globestudio MCP server, which finds looks, builds and reads share links, and writes embed code. No account or API key.",
   "author": {
     "name": "Alejandro Vizio",
@@ -93,7 +93,7 @@
       },
       "publication": {
         "countries": [],
-        "release_notes": "First release in the ChatGPT and Codex plugin directory. Bundles the globestudio skill and the hosted Globestudio MCP server at https://globestudio.app/mcp, with six read-only tools: list_presets, find_presets, build_share_url, read_share_url, embed_snippet and preview_url."
+        "release_notes": "The bundled skill now links the React starter's docs instead of giving its commands, writes an iframe for a page with no build step, and drops the headless screenshot recipe."
       }
     }
   }

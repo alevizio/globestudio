@@ -4,7 +4,7 @@ description: "Creates, edits and embeds dotted world maps and animated 3D globes
 license: MIT
 metadata:
   author: alevizio
-  version: "1.1.3"
+  version: "1.1.4"
   mcp-server: globestudio
 ---
 
