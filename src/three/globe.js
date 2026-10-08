@@ -713,6 +713,14 @@ export const buildGlobeDotLayer = ({
   hexColors = false,
 }) => {
   const group = new THREE.Group();
+  // Draw the dots before the globe's see-through sphere at every angle, as
+  // they draw at the default tilt. Sorted only by distance, the layer's sort
+  // point (the middle of its dots, north of the globe's centre since most
+  // land is) crossed the sphere's centre when the globe tilted north-south.
+  // The sphere then drew first and its depth hid all of the far side's land
+  // in one frame. Flat shapes facing away are still culled by their
+  // FrontSide material; 3D and double-sided shapes show through the sphere.
+  group.renderOrder = -1;
   const points = buildGlobePoints(mapData, selectedDots);
   const normalPoints = points.filter((point) => !point.selected);
   const selectedPoints = points.filter((point) => point.selected);
@@ -907,7 +915,12 @@ export const buildGlobeDotLayer = ({
       morphProgress,
       dotRotation,
     );
-    if (glowMesh) group.add(glowMesh);
+    if (glowMesh) {
+      // Under the dots at every angle, as at the default tilt. By distance
+      // alone it flipped over them with the sphere and brightened them.
+      glowMesh.renderOrder = -1;
+      group.add(glowMesh);
+    }
   }
 
   if (effect === "chromatic") {
@@ -938,7 +951,11 @@ export const buildGlobeDotLayer = ({
         morphProgress,
         dotRotation,
       );
-      if (mesh) group.add(mesh);
+      if (mesh) {
+        // Under the dots at every angle, like the glow above.
+        mesh.renderOrder = -1;
+        group.add(mesh);
+      }
     });
   }
 

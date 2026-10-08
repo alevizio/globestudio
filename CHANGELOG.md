@@ -119,6 +119,10 @@ on deploy.
 - Data markers and arcs on the far side of the globe no longer show
   through it. They draw after the globe's sphere now, so its depth hides
   them the way it hides the far side's dots.
+- Tilting the globe north-south no longer hides the land on its far side
+  all at once on looks that show it through the globe, such as Metal,
+  Aurora, CRT and Pencil. The dots now draw before the globe's sphere at
+  every angle, as they already did at the starting tilt.
 
 ## [1.2.0] - 2026-10-05
 
