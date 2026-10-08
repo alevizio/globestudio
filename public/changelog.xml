@@ -6,7 +6,18 @@
     <atom:link href="https://globestudio.app/changelog.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 06 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 08 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Fixes and security updates</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#fixes-and-security-updates</guid>
+      <pubDate>Thu, 08 Oct 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>Tilting the globe no longer makes the land on its far side vanish in one step on see-through looks like Metal, Aurora, CRT and Pencil</li>
+  <li>The agent skill asks before it installs or runs anything, and for a page with no build step it writes a plain iframe</li>
+  <li>Security updates for the MCP server and the build tools, closing the open security alerts</li>
+</ul>]]></description>
+    </item>
     <item>
       <title>3D export</title>
       <link>https://globestudio.app/changelog</link>

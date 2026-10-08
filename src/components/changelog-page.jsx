@@ -16,6 +16,15 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 
 const ENTRIES = [
   {
+    label: "Fixes and security updates",
+    date: "8 October 2026",
+    items: [
+      "Tilting the globe no longer makes the land on its far side vanish in one step on see-through looks like Metal, Aurora, CRT and Pencil",
+      "The agent skill asks before it installs or runs anything, and for a page with no build step it writes a plain iframe",
+      "Security updates for the MCP server and the build tools, closing the open security alerts",
+    ],
+  },
+  {
     label: "3D export",
     date: "6 October 2026",
     items: [

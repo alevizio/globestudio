@@ -1,6 +1,6 @@
 {
   "name": "globestudio",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Dotted world maps and animated 3D globes from globestudio.app. Bundles the globestudio agent skill, which teaches Gemini CLI to add, edit and embed them, and the hosted Globestudio MCP server.",
   "mcpServers": {
     "globestudio": {

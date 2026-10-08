@@ -6,32 +6,27 @@ All notable changes to Globestudio are tracked here. Format follows
 
 ## [Unreleased]
 
-`@globestudio/mcp` 0.2.4 needs an npm publish and an MCP registry update
-for the tool titles and read-only marks, the `find_presets` fix and the
-shorter instructions. The hosted server at globestudio.app/mcp gets them
-on deploy.
+Nothing yet.
+
+## [1.3.0] - 2026-10-08
+
+The Export dialog saves the globe as a GLB 3D model in a new 3D tab, which
+shows the file's size before you save, and lists its tabs down the side.
+A terms of use page covers the site and its tools, the MCP server's tools
+say they only read, and the agent skill runs nothing without the user's
+OK. Fixes cover the far side of see-through looks as you tilt the globe,
+markers that showed through it and phrase searches in `find_presets`, and
+dependency updates close the open security alerts.
+
+`@globestudio/mcp` 0.2.4, with the tool titles and read-only marks, the
+`find_presets` fix and the shorter instructions, is on npm and the MCP
+registry, and the hosted server at globestudio.app/mcp runs the same
+code. `@globestudio/react` and `@globestudio/element` stay at 0.2.0, since
+only their READMEs and the React prop docs changed. The agent skill and
+its Claude Code plugin are 1.1.4, and the OpenAI plugin is 1.2.3.
 
 ### Added
 
-- A terms of use page at `/terms`, styled like `/privacy`. It covers the
-  site, embeds, the MCP server, the npm packages, the agent skill and the
-  plugins. The footer, the About dialog, the sitemap and the READMEs link
-  it, and questions go to GitHub issues.
-- The Claude Code plugin moves to `plugins/globestudio`, the layout
-  Anthropic's plugin directory reads: its own `plugin.json` with an icon
-  and links to the docs, support, privacy and terms, a `.mcp.json` for the
-  hosted MCP server, a README, a license and a copy of the skill. The
-  install commands stay the same. `npm run plugin:sync` copies
-  `skills/globestudio` into it, `npm run skill:references` runs it too,
-  and a test fails when the two differ. The plugin and the skill are
-  1.1.1.
-- The source of the Globestudio plugin for OpenAI's directory (ChatGPT
-  and Codex), in `openai-plugin/`: the manifest with its listing and
-  review test cases, and the MCP config. `scripts/build-openai-plugin.sh`
-  packs it with `skills/globestudio`, the license and the icons into the
-  upload ZIP, version 1.2.1. `vercel.json` serves
-  `/.well-known/openai-apps-challenge` as uncached plain text, ready for
-  OpenAI's domain check.
 - GLB export, for three.js and other 3D tools, in the Export dialog's new
   3D tab. The file holds what the scene draws as geometry: the dots with
   their positions, sizes, shapes and colors, the globe body, see-through
@@ -45,6 +40,24 @@ on deploy.
   size, and suggests Instanced when Merged would pass 20 MB. three.js's
   GLTFExporter loads in a chunk of its own when the 3D tab opens. The
   privacy page lists GLB among the formats `export_completed` sends.
+- A terms of use page at `/terms`, styled like `/privacy`. It covers the
+  site, embeds, the MCP server, the npm packages, the agent skill and the
+  plugins. The footer, the About dialog, the sitemap and the READMEs link
+  it, and questions go to GitHub issues.
+- The Claude Code plugin moves to `plugins/globestudio`, the layout
+  Anthropic's plugin directory reads: its own `plugin.json` with an icon
+  and links to the docs, support, privacy and terms, a `.mcp.json` for the
+  hosted MCP server, a README, a license and a copy of the skill. The
+  install commands stay the same. `npm run plugin:sync` copies
+  `skills/globestudio` into it, `npm run skill:references` runs it too,
+  and a test fails when the two differ.
+- The source of the Globestudio plugin for OpenAI's directory (ChatGPT
+  and Codex), in `openai-plugin/`: the manifest with its listing and
+  review test cases, and the MCP config. `scripts/build-openai-plugin.sh`
+  packs it with `skills/globestudio`, the license and the icons into the
+  upload ZIP. `vercel.json` serves OpenAI's domain verification token at
+  `/.well-known/openai-apps-challenge` as uncached plain text, for
+  OpenAI's domain check.
 
 ### Changed
 
@@ -65,6 +78,25 @@ on deploy.
   The per-look share cards keep the old list until they are recaptured.
   Bad TV's and Sonar's descriptions keep theirs too, since a GLB leaves
   out the shader effect they describe.
+- The agent skill tells the user what a command runs and waits for their
+  OK before it installs a package or runs anything else, and it never
+  downloads and runs a remote script. It writes an iframe for a page with
+  no build step or a site builder, links the React starter's docs section
+  instead of giving its commands, and names the package to add instead of
+  an install command. It checks a render by reading the code and the
+  embed address: it no longer has a headless screenshot recipe or offers
+  to start a dev server. It names the GLB export and what a GLB keeps and
+  leaves out, and its generated reference files no longer name a
+  maintainer command. Some wording in the skill and in the React
+  package's prop docs changed, and the skill's description no longer asks
+  to be used when the user never names Globestudio. The export dialog's
+  Share tab still gives the jsDelivr tag with its integrity hash. The
+  docs, the READMEs and `llms.txt` pin degit to 3.10.0.
+- The export dialog's Web component embed code, and the pen Open in
+  CodePen makes, load `@globestudio/element` 0.2.0 from jsDelivr with an
+  integrity hash, so the browser runs only that file. They used to load
+  the latest version from esm.sh with no check. A test fails when the
+  element changes and the tag does not.
 - Each MCP server tool has a short title, such as Find looks by style, and
   says it only reads: it changes nothing, deletes nothing and reaches
   nothing outside the server. Anthropic's and OpenAI's directories ask for
@@ -83,31 +115,22 @@ on deploy.
 - A new Figma plugin version: the address it loads drops the old teaser
   parameter, and its network access note says it loads the full studio,
   not the old embed picker. Nothing changes in how it works.
-- The agent skill tells the user what a command runs and waits for their
-  OK before it installs a package or runs anything else, and it never
-  downloads and runs a remote script. It checks a render by reading the
-  code and the embed address. Its generated reference files no longer
-  name a maintainer command. It names the GLB export and what a GLB keeps
-  and leaves out. The docs, the READMEs and `llms.txt` pin degit to
-  3.10.0.
-- The agent skill writes an iframe for a page with no build step or a
-  site builder, links the React starter's docs section instead of giving
-  its commands, and names the package to add instead of an install
-  command. It no longer has a headless screenshot recipe or offers to
-  start a dev server. The export dialog's Share tab still gives the
-  jsDelivr tag with its integrity hash. Some wording in the skill and in
-  the React package's prop docs changed, and the skill's description no
-  longer asks to be used when the user never names Globestudio. The
-  skill and the Claude Code plugin are 1.1.4, and the OpenAI plugin is
-  1.2.3.
-- The export dialog's Web component embed code, and the pen Open in
-  CodePen makes, load `@globestudio/element` 0.2.0 from jsDelivr with an
-  integrity hash, so the browser runs only that file. They used to load
-  the latest version from esm.sh with no check. A test fails when the
-  element changes and the tag does not.
+- CI stops a Playwright browser install after 10 minutes. The install
+  takes about a minute, and one that hung on 7 October held a browser test
+  job for six hours with no test run; now a hang fails fast and can be
+  run again.
 
 ### Fixed
 
+- Tilting the globe north-south no longer hides the land on its far side
+  all at once on looks that show it through the globe, such as Metal,
+  Aurora, CRT and Pencil. The dots now draw before the globe's sphere at
+  every angle, as they already did at the starting tilt. The glow of CRT
+  and Bloom and the color split of Vapor no longer brighten the land in
+  one step at that angle either, and the flat map draws as it did.
+- Data markers and arcs on the far side of the globe no longer show
+  through it. They draw after the globe's sphere now, so its depth hides
+  them the way it hides the far side's dots.
 - The MCP server's `find_presets` finds looks for a phrase of two or more
   words, such as "retro print" or "a synthwave vibe". It returned nothing
   for any phrase, though its description asks for a word or a short
@@ -116,13 +139,19 @@ on deploy.
 - A link to a section of a site page, such as `/docs#agent-skill` or
   `/privacy#ai-tools`, opens at that section. It used to open at the top
   of the page.
-- Data markers and arcs on the far side of the globe no longer show
-  through it. They draw after the globe's sphere now, so its depth hides
-  them the way it hides the far side's dots.
-- Tilting the globe north-south no longer hides the land on its far side
-  all at once on looks that show it through the globe, such as Metal,
-  Aurora, CRT and Pencil. The dots now draw before the globe's sphere at
-  every angle, as they already did at the starting tilt.
+
+### Security
+
+- Dependency updates close the four open Dependabot alerts. The MCP SDK
+  (`@modelcontextprotocol/sdk`) goes to 1.31.0 in both lockfiles. Its
+  advisory is about the SDK's OAuth client sending credentials to an
+  authorization server the MCP server picks, and Globestudio never used
+  that client: the MCP server uses only the SDK's server side. proxy-addr
+  goes to 2.0.8 in the MCP server's lockfile, and source-map-js to 1.2.2
+  under the site's build and test tools, none of which ships in the
+  studio's code. The hosted MCP server picks up the SDK on deploy, and a
+  fresh install of `@globestudio/mcp` from npm already resolved the SDK
+  and proxy-addr to fixed releases.
 
 ## [1.2.0] - 2026-10-05
 
@@ -715,7 +744,8 @@ inferred, since earlier work didn't carry version tags.
 Releases are tagged on GitHub starting with `v1.0.0`. New work goes under
 Unreleased until the next tag.
 
-[Unreleased]: https://github.com/alevizio/globestudio/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/alevizio/globestudio/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/alevizio/globestudio/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/alevizio/globestudio/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/alevizio/globestudio/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/alevizio/globestudio/releases/tag/v1.0.0
