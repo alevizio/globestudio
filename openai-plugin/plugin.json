@@ -93,7 +93,7 @@
       },
       "publication": {
         "countries": [],
-        "release_notes": "The bundled skill now links the React starter's docs instead of giving its commands, writes an iframe for a page with no build step, and drops the headless screenshot recipe."
+        "release_notes": "First release in the ChatGPT and Codex plugin directory. Bundles the globestudio skill and the hosted Globestudio MCP server at https://globestudio.app/mcp, with six read-only tools: list_presets, find_presets, build_share_url, read_share_url, embed_snippet and preview_url."
       }
     }
   }
