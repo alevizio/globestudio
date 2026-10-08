@@ -578,6 +578,18 @@ const createInstancedDotMesh = (points, image, geometry, material, scale, radius
   return mesh;
 };
 
+// The glow (CRT, Bloom, borderless) and colour-split (Vapor) layers add light
+// to the dots. On the globe they draw under the dots at every tilt, as at the
+// default tilt: by distance alone they flipped over the dots with the sphere
+// and brightened the land in one frame. On the flat map they draw over the
+// dots, as they always have there.
+const setAddedLightOrder = (group, morphProgress) => {
+  const renderOrder = morphProgress >= 0.5 ? -1 : 1;
+  group.children.forEach((child) => {
+    if (child.material?.blending === THREE.AdditiveBlending) child.renderOrder = renderOrder;
+  });
+};
+
 // When `chunked` is true, only 1/MORPH_CHUNK_COUNT of the dots are re-baked
 // this frame — the group remembers which chunk to rotate to next via
 // userData.morphChunk. Visual lag per dot is at most (CHUNK_COUNT - 1) frames
@@ -607,6 +619,7 @@ export const applyDotLayerMorph = (group, morphProgress, chunked = false) => {
       chunked ? { index: chunkIndex, count: chunkCount } : null,
     );
   });
+  setAddedLightOrder(group, morphProgress);
   group.userData.morphProgress = morphProgress;
 };
 
@@ -915,12 +928,7 @@ export const buildGlobeDotLayer = ({
       morphProgress,
       dotRotation,
     );
-    if (glowMesh) {
-      // Under the dots at every angle, as at the default tilt. By distance
-      // alone it flipped over them with the sphere and brightened them.
-      glowMesh.renderOrder = -1;
-      group.add(glowMesh);
-    }
+    if (glowMesh) group.add(glowMesh);
   }
 
   if (effect === "chromatic") {
@@ -951,13 +959,10 @@ export const buildGlobeDotLayer = ({
         morphProgress,
         dotRotation,
       );
-      if (mesh) {
-        // Under the dots at every angle, like the glow above.
-        mesh.renderOrder = -1;
-        group.add(mesh);
-      }
+      if (mesh) group.add(mesh);
     });
   }
+  setAddedLightOrder(group, morphProgress);
 
   if (effect === "threshold") {
     group.scale.setScalar(1 + intensity * 0.018);

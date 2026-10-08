@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_GLOBE_SETTINGS, GLOBE_CAMERA_DISTANCE, GLOBE_RADIUS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { createCountryMapData } from "../utils/dot-generation.js";
-import { buildGlobeDotLayer, createAtmosphereMaterial, createOuterHaloMaterial } from "./globe.js";
+import { applyDotLayerMorph, buildGlobeDotLayer, createAtmosphereMaterial, createOuterHaloMaterial } from "./globe.js";
 
 const world = createCountryMapData([], 30);
 
@@ -118,6 +118,28 @@ describe("buildGlobeDotLayer draw order", () => {
       if (lastGlow > firstLand) over.push(`tilt ${tilt} spin ${spin}`);
     });
     expect(over).toEqual([]);
+  });
+
+  // On the flat map those layers draw over the dots, as they always have
+  // there (CRT's white phosphor, Vapor's white and cyan), and the order
+  // follows the morph between the two views.
+  it.each([
+    ["CRT glow", { shape: "ASCII", asciiSymbol: "█", shaderSettings: { ...DEFAULT_SHADER_SETTINGS, effect: "crt" } }],
+    ["colour split", { shape: "Diamond", shaderSettings: { ...DEFAULT_SHADER_SETTINGS, effect: "chromatic" } }],
+  ])("draws the %s layers over the dots on the flat map", (name, dots) => {
+    const lightOverDots = ({ scene, camera, dotLayer }) => {
+      const order = transparentDrawOrder(scene, camera);
+      const glow = dotLayer.children.filter((mesh) => mesh.material.blending === THREE.AdditiveBlending);
+      const land = dotLayer.children.filter((mesh) => mesh.material.blending !== THREE.AdditiveBlending);
+      return Math.min(...glow.map((mesh) => order.indexOf(mesh))) > Math.max(...land.map((mesh) => order.indexOf(mesh)));
+    };
+    expect(lightOverDots(globeScene({ ...dots, morphProgress: 0 }))).toBe(true);
+    const morphed = globeScene(dots);
+    expect(lightOverDots(morphed)).toBe(false);
+    applyDotLayerMorph(morphed.dotLayer, 0);
+    expect(lightOverDots(morphed)).toBe(true);
+    applyDotLayerMorph(morphed.dotLayer, 1);
+    expect(lightOverDots(morphed)).toBe(false);
   });
 
   it("keeps flat shapes facing outward, so the looks that hide the far side still cull it", () => {
