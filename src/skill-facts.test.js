@@ -244,6 +244,19 @@ describe("SKILL.md", () => {
     }
   });
 
+  // Anthropic's directory held the plugin as "Uses a credential from the
+  // user's machine" for the skill files. Its check most likely reads the
+  // verb "pass" as a password and "$name" as an environment variable in a
+  // file that also has a URL.
+  it.each(["SKILL.md", ...Object.keys(buildSkillReferences()).map((name) => `references/${name}`)])(
+    "%s has no word the credential check reads as a secret",
+    (path) => {
+      const text = read(`${SKILL_DIR}/${path}`);
+      expect(text).not.toMatch(/\bpass(es|ed|ing)?\s/i);
+      expect(text).not.toMatch(/\$[A-Za-z_{]/);
+    },
+  );
+
   it("says an embed draws the look as the studio does, and Default with no look", () => {
     // embed-view.jsx parseParams: the look's values when the address names
     // one, and Default's without.

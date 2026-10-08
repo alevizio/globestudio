@@ -528,7 +528,7 @@ Every embed is an iframe of ${code(`${SITE}/embed`)}: the packages and the scrip
 - Plain iframe
 - Script loader: embed.js
 - /embed query parameters
-- Passing a design
+- Design configs
 - Light pages, transparency and size
 - Check it renders
 
@@ -548,7 +548,7 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 
 ## React: @globestudio/react
 
-${code("npm install @globestudio/react")}, ${PACKAGES_FLOOR} or later: 0.1.0 dropped ${code("look")} whenever ${code("config")} was set, so a config of changes embedded over Default. ${code("<Globe>")} renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component pass only serializable props; ${code("onLoad")} or a ref needs a client component.
+${code("npm install @globestudio/react")}, ${PACKAGES_FLOOR} or later: 0.1.0 dropped ${code("look")} whenever ${code("config")} was set, so a config of changes embedded over Default. ${code("<Globe>")} renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component use only serializable props; ${code("onLoad")} or a ref needs a client component.
 
 With no project yet, offer the starter, a Vite and React app that already renders a ${code("<Globe>")}, and let the user choose how to get it. ${code(STARTER_DEGIT)} copies it, then ${code("npm install")} and ${code("npm run dev")} start it; run these only once the user agrees. ${STARTER_STACKBLITZ} opens it in StackBlitz with nothing to install.
 
@@ -607,10 +607,10 @@ ${table(["Attribute", "Sets", "Default"], loaderAttributes())}
 
 ${table(["Parameter", "Takes", "Default", "Notes"], [
   ...embedParams(),
-  [code("c"), "a config, URL encoded", "", "Layered last, over the look and the parameters above. See Passing a design."],
+  [code("c"), "a config, URL encoded", "", "Layered last, over the look and the parameters above. See Design configs."],
 ])}
 
-## Passing a design
+## Design configs
 
 - ${code("config")} (the packages) and ${code("c")} (the address) take the design's JSON. Give the packages the JSON string, ${code("JSON.stringify(design)")}; they encode it. In an address, encode it once with ${code("encodeURIComponent")}.
 - With a look, the config changes only the keys it names and the look keeps the rest, its density, dot size, background and transparency included. ${PAINTED_PAGE} Alone, the config goes over Default.

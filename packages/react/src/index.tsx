@@ -53,7 +53,7 @@ export interface GlobeProps {
    */
   look?: LookId;
   /**
-   * Width in CSS units. Numbers become pixels; pass strings for `%`,
+   * Width in CSS units. Numbers become pixels; use strings for `%`,
    * `vw`, etc. Defaults to `"100%"` so the iframe fills its container.
    */
   width?: number | string;
@@ -66,8 +66,8 @@ export interface GlobeProps {
    * not URL encoded: the component encodes it for the embed address. The
    * app's Share tab writes one; from the MCP server's `build_share_url`,
    * stringify the `config` it returns. It is layered over `look` when you
-   * pass both, so a config that holds only changes keeps the rest of that
-   * look, and over Default when you pass it alone.
+   * set both, so a config that holds only changes keeps the rest of that
+   * look, and over Default when you set it alone.
    */
   config?: string;
   /**

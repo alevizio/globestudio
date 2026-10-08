@@ -621,7 +621,7 @@ test("a package reads the returned config the way the app reads the returned lin
 });
 
 test("settings kept from a link with old colors keep them on a new look", async () => {
-  // SKILL.md: to switch looks, start from the new look and pass the settings
+  // SKILL.md: to switch looks, start from the new look and add the settings
   // to keep. Those colors are the link's old colors, not new ones.
   const { url } = APP_LINKS.studio.find((link) => link.from === "/looks/vapor");
   const before = appConfigOf(url);

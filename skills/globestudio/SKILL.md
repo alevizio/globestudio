@@ -127,22 +127,22 @@ The tools are on a server whose name contains `globestudio`. In Claude Code they
 - For a link the user pastes, call `read_share_url` first, then `build_share_url` with `share_url` set to that link and only the settings to change. Building from scratch loses what the link had.
 - For a new design, call `build_share_url` with `look` and the changes: `selection`, `dotColor`, `background`, `density`, `shape`, and any other key under `config`. `dotColor` renders as its hex; colors under `config` do only with `"v": 3` in it, as in a link, and `read_share_url` returns it for a link that has it.
 - Read `ignored` in every result. Each key listed was dropped: fix it from [references/config.md](references/config.md), or tell the user.
-- For a design with changes, put the returned `embed_url` in an iframe, or give a package the result's `look` and `JSON.stringify` of its `config`. Don't pass the `c` of `embed_url` to a package: that address carries the region, colors and density as their own parameters, so its `c` can lack them. `embed_snippet` only embeds a look as it ships. `preview_url` gives a look's thumbnail and live embed.
-- `build_share_url` refuses a `look` together with a link the studio wrote, since that link holds every setting. To switch looks, start from the new look and pass the settings to keep.
+- For a design with changes, put the returned `embed_url` in an iframe, or give a package the result's `look` and `JSON.stringify` of its `config`. Don't give a package the `c` of `embed_url`: that address carries the region, colors and density as their own parameters, so its `c` can lack them. `embed_snippet` only embeds a look as it ships. `preview_url` gives a look's thumbnail and live embed.
+- `build_share_url` refuses a `look` together with a link the studio wrote, since that link holds every setting. To switch looks, start from the new look and add the settings to keep.
 
-To connect the hosted server, which needs no account or key, give the user the command for their app: `claude mcp add --transport http globestudio https://globestudio.app/mcp` in Claude Code, `codex mcp add globestudio --url https://globestudio.app/mcp` in Codex, or https://globestudio.app/mcp as a custom connector in the Claude app. Suggest it when the user will keep making designs; it isn't needed for one link. Skip it when the tools are already listed, as they are with the Globestudio plugin, or the user gets the same tools twice.
+To connect the hosted server, which needs no account or sign-in, give the user the command for their app: `claude mcp add --transport http globestudio https://globestudio.app/mcp` in Claude Code, `codex mcp add globestudio --url https://globestudio.app/mcp` in Codex, or https://globestudio.app/mcp as a custom connector in the Claude app. Suggest it when the user will keep making designs; it isn't needed for one link. Skip it when the tools are already listed, as they are with the Globestudio plugin, or the user gets the same tools twice.
 
 ## In a code project
 
 1. Inspect first: the framework, any globe or map code already there, where the globe goes, whether the page is light or dark, and whether it renders on the server.
 2. Pick the embed. Details, props and attributes are in [references/embedding.md](references/embedding.md).
-   - React, Next.js, Remix, or Astro with React: `npm install @globestudio/react` and `<Globe>`. It renders a plain iframe, so it works in a server component; pass `onLoad` or a ref only from a client component.
+   - React, Next.js, Remix, or Astro with React: `npm install @globestudio/react` and `<Globe>`. It renders a plain iframe, so it works in a server component; set `onLoad` or a ref only from a client component.
    - No project yet, and the user wants React: offer the starter, a Vite app that already renders a `<Globe>`, and let the user choose how to get it. `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe` copies it, then `npm install` and `npm run dev` start it. https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react opens it with nothing to install.
    - Vue, Svelte, Solid, Angular, Astro or HTML with a bundler: `npm install @globestudio/element`, `import "@globestudio/element"` in client code, then `<globe-studio>`. The element only draws in the browser, so under server rendering load it on the client.
    - No build step: `<script type="module" src="https://cdn.jsdelivr.net/npm/@globestudio/element@0.2.0/index.js" integrity="sha384-aHQOT3XnyObS+Dk0lMsAKS3J7YeIz8VRlHconYo2YYtEy7UqCytVre6dLWPYxKqM" crossorigin="anonymous"></script>`. It pins a version, and its integrity hash lets the browser run only that version's file, so keep the tag whole.
    - Both packages need 0.1.1 or later: 0.1.0 drops `look` whenever `config` is set, so the globe shows Default. When a `<Globe>` or `<globe-studio>` ignores its look, check the version in `package.json` first.
    - Webflow, Framer, WordPress, Notion or another CMS: an iframe of the `/embed` address, or embed.js where scripts are allowed.
-3. Keep the design in a named constant or a JSON file, not a long inline string, and pass `JSON.stringify` of it as `config`. With a `look`, the config only holds the changes.
+3. Keep the design in a named constant or a JSON file, not a long inline string, and set `config` to `JSON.stringify` of it. With a `look`, the config only holds the changes.
 4. Set `title` to say what the globe shows, for screen readers. Keep `loading="lazy"` for a globe below the fold.
 5. Give the container an explicit height. An iframe doesn't size itself, and the packages default to 480 px.
 6. On a light page, give the design a transparent background with dots that show on the page (Wireframe is see-through as it ships), or a light `background` and a dark `dotColor` on a look that keeps it. Then set `theme="light"` on `<Globe>` or `<globe-studio>`, or `theme=light` on an `/embed` address. It suits the glow and grid to a light page and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. Halftone, Toon and Threshold paint a dark page of their own, where graphite ink is lost, so set it on them only with a transparent or light background.
@@ -162,7 +162,7 @@ export const Hero = () => (
 
 - Hand back a studio link, `https://globestudio.app/looks/<id>?c=...`, with one sentence on what it shows. Offer embed code if the user has a site.
 - You can't render or export an image from chat. Never say you made one. Exports happen in the studio: open the link and press D for the export dialog.
-- Prefer the studio link to a config file. A file carries no look, so it must hold the whole design: on import, the nested settings it leaves out get the app defaults. Write it with `"$schema": "https://globestudio.app/schema/config.json"`; the user imports it in the export dialog's Share tab.
+- Prefer the studio link to a config file. A file carries no look, so it must hold the whole design: on import, the nested settings it leaves out get the app defaults. Name its schema, https://globestudio.app/schema/config.json, as the files the studio saves do; the user imports it in the export dialog's Share tab.
 
 ## Examples
 

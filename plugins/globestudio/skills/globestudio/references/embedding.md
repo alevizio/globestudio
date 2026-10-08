@@ -12,7 +12,7 @@ Every embed is an iframe of `https://globestudio.app/embed`: the packages and th
 - Plain iframe
 - Script loader: embed.js
 - /embed query parameters
-- Passing a design
+- Design configs
 - Light pages, transparency and size
 - Check it renders
 
@@ -29,16 +29,16 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 
 ## React: @globestudio/react
 
-`npm install @globestudio/react`, 0.1.1 or later: 0.1.0 dropped `look` whenever `config` was set, so a config of changes embedded over Default. `<Globe>` renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component pass only serializable props; `onLoad` or a ref needs a client component.
+`npm install @globestudio/react`, 0.1.1 or later: 0.1.0 dropped `look` whenever `config` was set, so a config of changes embedded over Default. `<Globe>` renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component use only serializable props; `onLoad` or a ref needs a client component.
 
 With no project yet, offer the starter, a Vite and React app that already renders a `<Globe>`, and let the user choose how to get it. `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe` copies it, then `npm install` and `npm run dev` start it; run these only once the user agrees. https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react opens it in StackBlitz with nothing to install.
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
 | `look` | `LookId` | `"halftone"` | Look preset id. `LookId` autocompletes every value Globestudio ships. |
-| `width` | `number \| string` | `"100%"` | Width in CSS units. Numbers become pixels; pass strings for `%`, `vw`, etc. |
+| `width` | `number \| string` | `"100%"` | Width in CSS units. Numbers become pixels; use strings for `%`, `vw`, etc. |
 | `height` | `number \| string` | `480` | Height in CSS units. |
-| `config` | `string` |  | The design's share config as a JSON string, `JSON.stringify(design)`, not URL encoded: the component encodes it for the embed address. The app's Share tab writes one; from the MCP server's `build_share_url`, stringify the `config` it returns. It is layered over `look` when you pass both, so a config that holds only changes keeps the rest of that look, and over Default when you pass it alone. |
+| `config` | `string` |  | The design's share config as a JSON string, `JSON.stringify(design)`, not URL encoded: the component encodes it for the embed address. The app's Share tab writes one; from the MCP server's `build_share_url`, stringify the `config` it returns. It is layered over `look` when you set both, so a config that holds only changes keeps the rest of that look, and over Default when you set it alone. |
 | `theme` | `"light" \| "dark"` | `"dark"` | The embed's palette. `"light"` switches the glow and grid to a palette for light pages and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. Halftone, Toon and Threshold paint a dark page of their own, where that ink is lost, so make them see-through in `config` too. Any other value keeps the dark one. |
 | `title` | `string` | `"Globestudio dotted globe"` | Accessible title for the embedded iframe. Required for AT/SR. |
 | `className` | `string` |  | Forwarded `className` for the iframe. |
@@ -148,9 +148,9 @@ For pages that allow a script tag but not an npm install. It turns every element
 | `transparent` | `1` or `0` | the look's; `0` with no look | `1` makes the page see-through, to sit on the host page. A look's own transparency (Wireframe) needs no parameter; `0` turns it off. |
 | `theme` | `light` |  | Switches the glow and grid to a palette for light pages, and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. |
 | `plugin` | `figma` |  | The old Figma plugin's picker shell. Not for embeds. |
-| `c` | a config, URL encoded |  | Layered last, over the look and the parameters above. See Passing a design. |
+| `c` | a config, URL encoded |  | Layered last, over the look and the parameters above. See Design configs. |
 
-## Passing a design
+## Design configs
 
 - `config` (the packages) and `c` (the address) take the design's JSON. Give the packages the JSON string, `JSON.stringify(design)`; they encode it. In an address, encode it once with `encodeURIComponent`.
 - With a look, the config changes only the keys it names and the look keeps the rest, its density, dot size, background and transparency included. A `background` color in the address or the config keeps the page solid on a transparent look (Wireframe). Alone, the config goes over Default.
