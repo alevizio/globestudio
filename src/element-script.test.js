@@ -27,8 +27,6 @@ const FILES = [
   "src/utils/embed-snippets.js",
   "packages/web-component/README.md",
   "public/llms.txt",
-  "skills/globestudio/SKILL.md",
-  "skills/globestudio/references/embedding.md",
 ];
 
 // The hash of each version npm has published. A published file never

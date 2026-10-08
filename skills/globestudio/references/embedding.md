@@ -22,16 +22,16 @@ Every embed is an iframe of `https://globestudio.app/embed`: the packages and th
 |---|---|
 | React, Next.js, Remix, or Astro with React | @globestudio/react |
 | Vue, Svelte, Solid, Angular, Astro, or HTML with a bundler | @globestudio/element |
-| HTML with no build step | the element from jsDelivr |
-| Webflow, Framer, WordPress, Notion, Squarespace | a plain iframe, or embed.js where scripts are allowed |
+| HTML with no build step | a plain iframe |
+| Webflow, Framer, WordPress, Notion, Squarespace | a plain iframe |
 
 In the studio, the export dialog's Share tab writes the iframe, React and web component code for the design on screen.
 
 ## React: @globestudio/react
 
-`npm install @globestudio/react`, 0.1.1 or later: 0.1.0 dropped `look` whenever `config` was set, so a config of changes embedded over Default. `<Globe>` renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component use only serializable props; `onLoad` or a ref needs a client component.
+Add `@globestudio/react` to the project, 0.1.1 or later: 0.1.0 dropped `look` whenever `config` was set, so a config of changes embedded over Default. `<Globe>` renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component use only serializable props; `onLoad` or a ref needs a client component.
 
-With no project yet, offer the starter, a Vite and React app that already renders a `<Globe>`, and let the user choose how to get it. `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe` copies it, then `npm install` and `npm run dev` start it; run these only once the user agrees. https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react opens it in StackBlitz with nothing to install.
+With no project yet, offer the starter, a Vite and React app that already renders a `<Globe>`. Give the user https://globestudio.app/docs#react-component, which has the command that copies it and a StackBlitz link that opens it with nothing to install.
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
@@ -59,7 +59,7 @@ export const Hero = () => (
 
 ## Web component: @globestudio/element
 
-`npm install @globestudio/element`, 0.1.1 or later for the same reason, then `import "@globestudio/element"`, which registers `<globe-studio>`. The import is safe on a server, but the element only draws in the browser, so under server rendering (Nuxt, SvelteKit, Astro) load it in client code. `defineGlobeStudio(tag)` registers it under another tag name.
+Add `@globestudio/element` to the project, 0.1.1 or later for the same reason, then `import "@globestudio/element"`, which registers `<globe-studio>`. The import is safe on a server, but the element only draws in the browser, so under server rendering (Nuxt, SvelteKit, Astro) load it in client code. `defineGlobeStudio(tag)` registers it under another tag name.
 
 | Attribute | Default |
 |---|---|
@@ -72,12 +72,11 @@ export const Hero = () => (
 | `title` | `Globestudio dotted globe` |
 | `loading` | `lazy` |
 
-With no build step, load the element from jsDelivr with this tag. It pins a version, and its integrity hash lets the browser run only that version's file, so keep the tag whole:
-
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@globestudio/element@0.2.0/index.js" integrity="sha384-aHQOT3XnyObS+Dk0lMsAKS3J7YeIz8VRlHconYo2YYtEy7UqCytVre6dLWPYxKqM" crossorigin="anonymous"></script>
 <globe-studio look="crt" config='{"v":3,"selection":"continent:Europe","dotColor":"#7dd3fc"}' height="480" title="Dotted globe of Europe"></globe-studio>
 ```
+
+With no build step, use a plain iframe instead. The element only builds that iframe, so the page gets the same globe and loads no script from another site.
 
 ## Plain iframe
 
@@ -96,11 +95,10 @@ That address is what the packages build for `look="crt"` and the config above.
 
 ## Script loader: embed.js
 
-For pages that allow a script tag but not an npm install. It turns every element with `data-globestudio` into an iframe, also ones added later. The iframe fills the element; an element with no height of its own gets `data-height` pixels and follows the embed's resize messages.
+A page may already load embed.js, the script loader the docs give at https://globestudio.app/docs#script-tag-loader. It turns every element with `data-globestudio` into an iframe, also ones added later. The iframe fills the element; an element with no height of its own gets `data-height` pixels and follows the embed's resize messages. On such a page a globe is an element with these attributes; on a new page, write a plain iframe.
 
 ```html
 <div data-globestudio data-look="halftone" style="height: 480px"></div>
-<script async src="https://globestudio.app/embed.js"></script>
 ```
 
 | Attribute | Sets | Default |
@@ -170,20 +168,4 @@ For pages that allow a script tag but not an npm install. It turns every element
 
 ## Check it renders
 
-Rendering needs WebGL 2. Check by reading first: the code, and the `/embed` address it builds, which the user can open in a browser to see the globe. Running the project's dev server, or a screenshot of the embed address when the project already has Playwright, is an option for the user to choose, so ask before you run either. Don't install a browser for this, and if no one saw it render, say so. Headless Chromium has no GPU, so give it software GL, as Globestudio's own browser tests do:
-
-```js
-import { chromium } from "playwright";
-
-const browser = await chromium.launch({
-  args: ["--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--use-angle=swiftshader"],
-});
-const page = await browser.newPage({ viewport: { width: 1200, height: 800 } });
-await page.goto("https://globestudio.app/embed?look=crt&c=%7B%22v%22%3A3%2C%22selection%22%3A%22continent%3AEurope%22%2C%22dotColor%22%3A%22%237dd3fc%22%7D&static=1");
-await page.locator("canvas").first().waitFor();
-await page.waitForTimeout(3000);
-await page.screenshot({ path: "globe.png" });
-await browser.close();
-```
-
-`static=1` holds the globe still so the frame is stable. A blank frame usually means no WebGL 2. Thumbnails of each look, with no changes, are at `https://globestudio.app/looks/<id>.png`.
+Rendering needs WebGL 2. Check by reading: the code, and the `/embed` address it builds, which the user can open in a browser to see the globe. If no one saw it render, say so. A blank globe usually means the browser has no WebGL 2. Thumbnails of each look, with no changes, are at `https://globestudio.app/looks/<id>.png`.

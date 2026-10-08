@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { PACKAGES_FLOOR, lookDotColor } from "../scripts/skill-references.js";
 import { lookPresets } from "./data/look-presets.js";
-import { DEGIT_VERSION, STARTER_DEGIT, STARTER_PATH, STARTER_STACKBLITZ } from "./data/starter-react.js";
+import { DEGIT_VERSION, STARTER_DEGIT, STARTER_DOCS, STARTER_PATH, STARTER_STACKBLITZ } from "./data/starter-react.js";
 import { parseShareConfig } from "./utils/share-config.js";
 
 // The React starter in examples/starter-react is copied out of the repo by
@@ -105,8 +105,6 @@ describe("examples/starter-react", () => {
     "plugins/globestudio/README.md",
     "public/llms.txt",
     "public/llms-full.txt",
-    "skills/globestudio/SKILL.md",
-    "skills/globestudio/references/embedding.md",
     `${STARTER_PATH}/README.md`,
   ])("%s gives degit only at its pinned version", (path) => {
     expect(DEGIT_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
@@ -114,6 +112,16 @@ describe("examples/starter-react", () => {
     const runs = [...text.matchAll(/npx (degit\S*)/g)].map(([, command]) => command);
     expect(runs.length).toBeGreaterThan(0);
     for (const command of runs) expect(command).toBe(`degit@${DEGIT_VERSION}`);
+  });
+
+  // The agent skill links this section rather than giving the commands.
+  it("has its docs section, the one the skill links, give degit and StackBlitz", () => {
+    const docs = readFileSync(resolve(repoRoot, "src/components/docs-page.jsx"), "utf8");
+    const id = new URL(STARTER_DOCS).hash.slice(1);
+    const section = docs.slice(docs.indexOf(`id="${id}"`), docs.indexOf("<SectionHeading", docs.indexOf(`id="${id}"`)));
+    expect(STARTER_DOCS).toBe("https://globestudio.app/docs#react-component");
+    expect(section).toContain("STARTER_DEGIT");
+    expect(section).toContain("STARTER_STACKBLITZ");
   });
 
   it("links only to full addresses, since degit copies the README out of the repo", () => {

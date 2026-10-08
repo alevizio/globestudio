@@ -1,6 +1,6 @@
 ---
 name: globestudio
-description: "Creates, edits and embeds dotted world maps and animated 3D globes with Globestudio (globestudio.app), a free open source studio with 21 looks. Use when the user wants a dotted map, a dotted or 3D globe, a spinning earth or a stylized world map for a website hero, background, slide, social post or video; when they paste a globestudio.app link or a ?c= config; or when code uses @globestudio/react, @globestudio/element, the globe-studio web component or globestudio.app/embed. Also use it to highlight a country, continent or region, plot points and arcs, match brand colors, or prepare PNG, SVG, GLB, MP4, WebM or GIF exports, even if the user never names Globestudio. Not for interactive tiled maps, routing, geocoding or GIS analysis (Mapbox, MapLibre, deck.gl), or for ordinary charts."
+description: "Creates, edits and embeds dotted world maps and animated 3D globes with Globestudio (globestudio.app), a free open source studio with 21 looks. Use when the user wants a dotted map, a dotted or 3D globe, a spinning earth or a stylized world map for a website hero, background, slide, social post or video; when they paste a globestudio.app link or a ?c= config; or when code uses @globestudio/react, @globestudio/element, the globe-studio web component or globestudio.app/embed. Also use it to highlight a country, continent or region, plot points and arcs, match brand colors, or prepare PNG, SVG, GLB, MP4, WebM or GIF exports. Not for interactive tiled maps, routing, geocoding or GIS analysis (Mapbox, MapLibre, deck.gl), or for ordinary charts."
 license: MIT
 metadata:
   author: alevizio
@@ -30,7 +30,7 @@ If the project already draws globes or maps with cobe, globe.gl, D3, Mapbox or a
 
 ## Workflow
 
-Before you install a package, copy the starter, start a dev server or a browser, or run any other command, tell the user what it runs and why, and wait for their OK. Never run a command the user didn't agree to, and never download and run a remote script.
+Before you install a package or run any other command, tell the user what it runs and why, and wait for their OK. Never run a command the user didn't agree to, and never download and run a remote script.
 
 1. Pick a look from the table below. Only a look whose Dot color is kept shows `dotColor` as set. Default is plain white dots that take any color; start there when the brief is about brand colors more than a style. For more on each look, read [references/looks.md](references/looks.md).
 2. Set the region with `selection`, even when it is `world`: `country:JPN`, `continent:Europe` or `subregion:Western Europe`.
@@ -136,17 +136,17 @@ To connect the hosted server, which needs no account or sign-in, give the user t
 
 1. Inspect first: the framework, any globe or map code already there, where the globe goes, whether the page is light or dark, and whether it renders on the server.
 2. Pick the embed. Details, props and attributes are in [references/embedding.md](references/embedding.md).
-   - React, Next.js, Remix, or Astro with React: `npm install @globestudio/react` and `<Globe>`. It renders a plain iframe, so it works in a server component; set `onLoad` or a ref only from a client component.
-   - No project yet, and the user wants React: offer the starter, a Vite app that already renders a `<Globe>`, and let the user choose how to get it. `npx degit@3.10.0 alevizio/globestudio/examples/starter-react my-globe` copies it, then `npm install` and `npm run dev` start it. https://stackblitz.com/github/alevizio/globestudio/tree/main/examples/starter-react opens it with nothing to install.
-   - Vue, Svelte, Solid, Angular, Astro or HTML with a bundler: `npm install @globestudio/element`, `import "@globestudio/element"` in client code, then `<globe-studio>`. The element only draws in the browser, so under server rendering load it on the client.
-   - No build step: `<script type="module" src="https://cdn.jsdelivr.net/npm/@globestudio/element@0.2.0/index.js" integrity="sha384-aHQOT3XnyObS+Dk0lMsAKS3J7YeIz8VRlHconYo2YYtEy7UqCytVre6dLWPYxKqM" crossorigin="anonymous"></script>`. It pins a version, and its integrity hash lets the browser run only that version's file, so keep the tag whole.
+   - React, Next.js, Remix, or Astro with React: add `@globestudio/react` to the project and render `<Globe>`. It renders a plain iframe, so it works in a server component; set `onLoad` or a ref only from a client component.
+   - No project yet, and the user wants React: offer the starter, a Vite app that already renders a `<Globe>`. Give the user https://globestudio.app/docs#react-component, which has the command that copies it and a StackBlitz link that opens it with nothing to install.
+   - Vue, Svelte, Solid, Angular, Astro or HTML with a bundler: add `@globestudio/element` to the project, `import "@globestudio/element"` in client code, then `<globe-studio>`. The element only draws in the browser, so under server rendering load it on the client.
+   - No build step: an iframe of the `/embed` address. The element only builds that iframe, so the page gets the same globe and loads no script from another site.
    - Both packages need 0.1.1 or later: 0.1.0 drops `look` whenever `config` is set, so the globe shows Default. When a `<Globe>` or `<globe-studio>` ignores its look, check the version in `package.json` first.
-   - Webflow, Framer, WordPress, Notion or another CMS: an iframe of the `/embed` address, or embed.js where scripts are allowed.
+   - Webflow, Framer, WordPress, Notion or another CMS: an iframe of the `/embed` address. A page that already loads embed.js takes the `data-` attributes in [references/embedding.md](references/embedding.md).
 3. Keep the design in a named constant or a JSON file, not a long inline string, and set `config` to `JSON.stringify` of it. With a `look`, the config only holds the changes.
 4. Set `title` to say what the globe shows, for screen readers. Keep `loading="lazy"` for a globe below the fold.
 5. Give the container an explicit height. An iframe doesn't size itself, and the packages default to 480 px.
 6. On a light page, give the design a transparent background with dots that show on the page (Wireframe is see-through as it ships), or a light `background` and a dark `dotColor` on a look that keeps it. Then set `theme="light"` on `<Globe>` or `<globe-studio>`, or `theme=light` on an `/embed` address. It suits the glow and grid to a light page and turns the white ink of Halftone, Wireframe, Toon and Threshold graphite. Halftone, Toon and Threshold paint a dark page of their own, where graphite ink is lost, so set it on them only with a transparent or light background.
-7. Check it by reading: the code, and the `/embed` address it builds, which the user can open in a browser to see the globe. Run the dev server, or a headless screenshot when the project already has Playwright (recipe in [references/embedding.md](references/embedding.md)), only if the user agrees. Don't install a browser just for this. If no one saw it render, say so rather than claim it works.
+7. Check it by reading: the code, and the `/embed` address it builds, which the user can open in a browser to see the globe. If no one saw it render, say so rather than claim it works.
 
 ```jsx
 import { Globe } from "@globestudio/react";
@@ -184,7 +184,7 @@ export const Hero = () => (
 
 - In the export dialog (press D), a person can export PNG at 1x to 4x in several aspect ratios or copy it as an image, record WebM, MP4 or GIF, export SVG, save a GLB 3D model for three.js, Blender or another 3D tool, copy the design for Figma, and get the share link, embed code, a CodePen and the JSON config.
 - To bring a design into Figma, the person pastes its share link (a studio, `/looks/<id>` or `/embed` link) into the Globestudio Figma plugin, where it loads ready to insert.
-- An agent can make links, embed addresses and code, and the JSON config. With the user's OK, it can screenshot the `/embed` address with a headless browser the project already has.
+- An agent can make links, embed addresses and code, and the JSON config.
 - MP4 has no transparency, GIF transparency has hard edges, and SVG drops the shader effect. The SVG and Figma tabs name what a design loses in vectors and point to the image.
 - A GLB keeps the dots, the globe body, the grid, the arcs and the markers in flat colors, and leaves out the shader effect, the glow and animation. Its Merged dots open in any glTF viewer; Instanced makes a smaller file for three.js, Babylon.js and Blender 4.0 or later.
 
@@ -192,4 +192,4 @@ export const Hero = () => (
 
 - Read [references/looks.md](references/looks.md) when choosing a look by feel or use, or when you need a look's own settings.
 - Read [references/config.md](references/config.md) before writing a key not shown above, a subregion, a US state code or a value near a range's edge.
-- Read [references/embedding.md](references/embedding.md) when writing embed code: package props, element and embed.js attributes, every `/embed` parameter, light pages and the screenshot recipe.
+- Read [references/embedding.md](references/embedding.md) when writing embed code: package props, element and embed.js attributes, every `/embed` parameter and light pages.

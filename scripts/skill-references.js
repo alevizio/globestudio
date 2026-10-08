@@ -30,9 +30,9 @@ import { continentOptions, subregionOptions } from "../src/data/geography.js";
 import { lookPresets } from "../src/data/look-presets.js";
 import { presetSeo } from "../src/data/preset-seo.js";
 import { presetTags } from "../src/data/preset-tags.js";
-import { STARTER_DEGIT, STARTER_STACKBLITZ } from "../src/data/starter-react.js";
+import { STARTER_DOCS } from "../src/data/starter-react.js";
 import { US_STATE_FIPS } from "../src/data/us-state-codes.js";
-import { ELEMENT_SCRIPT, EMBED_URL_MAX } from "../src/utils/embed-snippets.js";
+import { EMBED_URL_MAX } from "../src/utils/embed-snippets.js";
 import { vectorDrops, vectorNote } from "../src/utils/vector-note.js";
 import { GlobeStudioElement, buildEmbedUrl } from "../packages/web-component/index.js";
 
@@ -539,8 +539,8 @@ ${table(
   [
     ["React, Next.js, Remix, or Astro with React", "@globestudio/react"],
     ["Vue, Svelte, Solid, Angular, Astro, or HTML with a bundler", "@globestudio/element"],
-    ["HTML with no build step", "the element from jsDelivr"],
-    ["Webflow, Framer, WordPress, Notion, Squarespace", "a plain iframe, or embed.js where scripts are allowed"],
+    ["HTML with no build step", "a plain iframe"],
+    ["Webflow, Framer, WordPress, Notion, Squarespace", "a plain iframe"],
   ],
 )}
 
@@ -548,9 +548,9 @@ In the studio, the export dialog's Share tab writes the iframe, React and web co
 
 ## React: @globestudio/react
 
-${code("npm install @globestudio/react")}, ${PACKAGES_FLOOR} or later: 0.1.0 dropped ${code("look")} whenever ${code("config")} was set, so a config of changes embedded over Default. ${code("<Globe>")} renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component use only serializable props; ${code("onLoad")} or a ref needs a client component.
+Add ${code("@globestudio/react")} to the project, ${PACKAGES_FLOOR} or later: 0.1.0 dropped ${code("look")} whenever ${code("config")} was set, so a config of changes embedded over Default. ${code("<Globe>")} renders a plain iframe and keeps no state, so it renders on the server as is. In a Next.js server component use only serializable props; ${code("onLoad")} or a ref needs a client component.
 
-With no project yet, offer the starter, a Vite and React app that already renders a ${code("<Globe>")}, and let the user choose how to get it. ${code(STARTER_DEGIT)} copies it, then ${code("npm install")} and ${code("npm run dev")} start it; run these only once the user agrees. ${STARTER_STACKBLITZ} opens it in StackBlitz with nothing to install.
+With no project yet, offer the starter, a Vite and React app that already renders a ${code("<Globe>")}. Give the user ${STARTER_DOCS}, which has the command that copies it and a StackBlitz link that opens it with nothing to install.
 
 ${table(["Prop", "Type", "Default", "Notes"], reactProps())}
 
@@ -566,16 +566,15 @@ export const Hero = () => (
 
 ## Web component: @globestudio/element
 
-${code("npm install @globestudio/element")}, ${PACKAGES_FLOOR} or later for the same reason, then ${code('import "@globestudio/element"')}, which registers ${code("<globe-studio>")}. The import is safe on a server, but the element only draws in the browser, so under server rendering (Nuxt, SvelteKit, Astro) load it in client code. ${code("defineGlobeStudio(tag)")} registers it under another tag name.
+Add ${code("@globestudio/element")} to the project, ${PACKAGES_FLOOR} or later for the same reason, then ${code('import "@globestudio/element"')}, which registers ${code("<globe-studio>")}. The import is safe on a server, but the element only draws in the browser, so under server rendering (Nuxt, SvelteKit, Astro) load it in client code. ${code("defineGlobeStudio(tag)")} registers it under another tag name.
 
 ${table(["Attribute", "Default"], elementAttributes())}
 
-With no build step, load the element from jsDelivr with this tag. It pins a version, and its integrity hash lets the browser run only that version's file, so keep the tag whole:
-
 \`\`\`html
-${ELEMENT_SCRIPT}
 <globe-studio look="${EXAMPLE_LOOK}" config='${JSON.stringify(EXAMPLE_DESIGN)}' height="480" title="Dotted globe of Europe"></globe-studio>
 \`\`\`
+
+With no build step, use a plain iframe instead. The element only builds that iframe, so the page gets the same globe and loads no script from another site.
 
 ## Plain iframe
 
@@ -594,11 +593,10 @@ That address is what the packages build for ${code(`look="${EXAMPLE_LOOK}"`)} an
 
 ## Script loader: embed.js
 
-For pages that allow a script tag but not an npm install. It turns every element with ${code("data-globestudio")} into an iframe, also ones added later. The iframe fills the element; an element with no height of its own gets ${code("data-height")} pixels and follows the embed's resize messages.
+A page may already load embed.js, the script loader the docs give at ${SITE}/docs#script-tag-loader. It turns every element with ${code("data-globestudio")} into an iframe, also ones added later. The iframe fills the element; an element with no height of its own gets ${code("data-height")} pixels and follows the embed's resize messages. On such a page a globe is an element with these attributes; on a new page, write a plain iframe.
 
 \`\`\`html
 <div data-globestudio data-look="halftone" style="height: 480px"></div>
-<script async src="${SITE}/embed.js"></script>
 \`\`\`
 
 ${table(["Attribute", "Sets", "Default"], loaderAttributes())}
@@ -630,23 +628,7 @@ ${table(["Parameter", "Takes", "Default", "Notes"], [
 
 ## Check it renders
 
-Rendering needs WebGL 2. Check by reading first: the code, and the ${code("/embed")} address it builds, which the user can open in a browser to see the globe. Running the project's dev server, or a screenshot of the embed address when the project already has Playwright, is an option for the user to choose, so ask before you run either. Don't install a browser for this, and if no one saw it render, say so. Headless Chromium has no GPU, so give it software GL, as Globestudio's own browser tests do:
-
-\`\`\`js
-import { chromium } from "playwright";
-
-const browser = await chromium.launch({
-  args: ["--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--use-angle=swiftshader"],
-});
-const page = await browser.newPage({ viewport: { width: 1200, height: 800 } });
-await page.goto("${exampleUrl}&static=1");
-await page.locator("canvas").first().waitFor();
-await page.waitForTimeout(3000);
-await page.screenshot({ path: "globe.png" });
-await browser.close();
-\`\`\`
-
-${code("static=1")} holds the globe still so the frame is stable. A blank frame usually means no WebGL 2. Thumbnails of each look, with no changes, are at ${code(`${SITE}/looks/<id>.png`)}.
+Rendering needs WebGL 2. Check by reading: the code, and the ${code("/embed")} address it builds, which the user can open in a browser to see the globe. If no one saw it render, say so. A blank globe usually means the browser has no WebGL 2. Thumbnails of each look, with no changes, are at ${code(`${SITE}/looks/<id>.png`)}.
 `;
 };
 
