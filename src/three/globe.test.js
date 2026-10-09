@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_GLOBE_SETTINGS, GLOBE_CAMERA_DISTANCE, GLOBE_RADIUS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { createCountryMapData } from "../utils/dot-generation.js";
+import { latLngToVector3 } from "./coordinates.js";
 import { applyDotLayerMorph, buildGlobeDotLayer, createAtmosphereMaterial, createOuterHaloMaterial } from "./globe.js";
 
 const world = createCountryMapData([], 30);
@@ -146,6 +147,40 @@ describe("buildGlobeDotLayer draw order", () => {
     for (const shape of ["Circle", "Square", "Triangle", "Star", "Diamond", "Ring"]) {
       const { dotLayer } = globeScene({ shape });
       for (const mesh of dotLayer.children) expect(mesh.material.side).toBe(THREE.FrontSide);
+    }
+  });
+});
+
+describe("buildGlobeDotLayer dot grid", () => {
+  const layer = (shape) =>
+    buildGlobeDotLayer({
+      mapData: world,
+      selectedDots: new Set(),
+      dotColor: "#ffffff",
+      dotSize: 10,
+      shape,
+      shaderSettings: DEFAULT_SHADER_SETTINGS,
+      globeSettings: DEFAULT_GLOBE_SETTINGS,
+    }).children[0];
+
+  it("keeps the flat map's grid for squares, dot for dot", () => {
+    const mesh = layer("Square");
+    expect(mesh.userData.pointIds).toEqual(world.points.map((point) => point.id));
+    expect(mesh.count).toBe(world.points.length);
+    const matrix = new THREE.Matrix4();
+    const position = new THREE.Vector3();
+    const off = [];
+    world.points.forEach((point, index) => {
+      mesh.getMatrixAt(index, matrix);
+      position.setFromMatrixPosition(matrix).normalize();
+      if (position.distanceTo(latLngToVector3(point.lat, point.lng, 1)) > 1e-6) off.push(point.id);
+    });
+    expect(off).toEqual([]);
+  });
+
+  it("spaces every other shape's dots evenly on the sphere", () => {
+    for (const shape of ["Circle", "Triangle", "Star"]) {
+      expect(layer(shape).userData.pointIds, shape).toEqual(world.globePoints.map((point) => point.id));
     }
   });
 });

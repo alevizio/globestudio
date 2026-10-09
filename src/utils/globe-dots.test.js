@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { lookPresets } from "../data/look-presets.js";
 import { createCountryMapData } from "./dot-generation.js";
-import { createGlobeDots, createGlobeLattice, createLandTest, globeDotStep, pairDots } from "./globe-dots.js";
+import {
+  createGlobeDots,
+  createGlobeLattice,
+  createLandTest,
+  globeDotStep,
+  globeKeepsMapGrid,
+  pairDots,
+} from "./globe-dots.js";
 
 const DEG = Math.PI / 180;
 const unit = ({ lat, lng }) => [
@@ -132,5 +140,19 @@ describe("pairDots", () => {
   it("leaves the map as it is without a region to place globe dots in", () => {
     const points = [{ id: "a", x: 1, y: 1, lat: 0, lng: 0 }];
     expect(createGlobeDots(points, { width: 10, height: 5 })).toBe(points);
+  });
+});
+
+describe("globeKeepsMapGrid", () => {
+  it("keeps the flat map's grid on the globe for the square looks and no others", () => {
+    const kept = lookPresets.filter((look) => globeKeepsMapGrid(look.settings.shape)).map((look) => look.name);
+    expect(kept.sort()).toEqual(["Atkinson", "Bad TV", "Bayer", "Corrupt", "Glitch", "Pixel", "Threshold"]);
+  });
+
+  it("goes by the shape, so a look turned to squares keeps the grid too", () => {
+    expect(globeKeepsMapGrid("Square")).toBe(true);
+    for (const shape of ["Circle", "Triangle", "Star", "Diamond", "Ring", "Voxel", "ASCII", "Custom", undefined]) {
+      expect(globeKeepsMapGrid(shape), String(shape)).toBe(false);
+    }
   });
 });

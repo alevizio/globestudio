@@ -10,6 +10,13 @@ import { latLngToImagePoint } from "./projection.js";
 // close, so the morph between the views still moves the same dots.
 
 const DEG = Math.PI / 180;
+
+// Squares tile the flat map's grid, and the square looks (Pixel, Bayer,
+// Atkinson, Glitch, Bad TV, Corrupt, Threshold) are drawn on it: on the
+// globe its columns run along the meridians and its rows along the
+// parallels, so those looks keep it there too. Every other shape gets the
+// globe's evenly spaced dots.
+export const globeKeepsMapGrid = (shape) => shape === "Square";
 // dotted-map's "diagonal" grid: rows √3/2 image px apart, even rows shifted
 // half a column. The globe's rows keep the same hexagonal proportion.
 const ROW_STEP = Math.sqrt(3) / 2;

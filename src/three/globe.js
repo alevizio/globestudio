@@ -6,6 +6,7 @@ import {
   GLOBE_DEFAULT_GLOW,
   GLOBE_RADIUS,
 } from "../config/globe-settings.js";
+import { globeKeepsMapGrid } from "../utils/globe-dots.js";
 import { clampNumber, hashString, normalizeLongitude, remapTByMidpoint, smoothStep } from "../utils/math.js";
 import { pointToGlobeCoordinate } from "../utils/projection.js";
 import { latLngToVector3, pointToFlatVector3 } from "./coordinates.js";
@@ -337,9 +338,10 @@ export const createAtmosphereMaterial = () =>
 
 // The globe's own dots where the map has them (utils/globe-dots.js): some
 // show only on the flat map or only on the globe (point.view). A clicked
-// dot shows in both views, so a click never vanishes in the morph.
-const buildGlobePoints = (mapData, selectedDots) =>
-  (mapData.globePoints ?? mapData.points)
+// dot shows in both views, so a click never vanishes in the morph. Squares
+// keep the flat map's grid (globeKeepsMapGrid).
+const buildGlobePoints = (mapData, selectedDots, shape) =>
+  ((globeKeepsMapGrid(shape) ? null : mapData.globePoints) ?? mapData.points)
     .map((point) => {
       const selected = selectedDots.has(point.id);
       return {
@@ -770,7 +772,7 @@ export const buildGlobeDotLayer = ({
   // in one frame. Flat shapes facing away are still culled by their
   // FrontSide material; 3D and double-sided shapes show through the sphere.
   group.renderOrder = -1;
-  const points = buildGlobePoints(mapData, selectedDots);
+  const points = buildGlobePoints(mapData, selectedDots, shape);
   const normalPoints = points.filter((point) => !point.selected);
   const selectedPoints = points.filter((point) => point.selected);
   const effect = shaderSettings.effect || "none";
