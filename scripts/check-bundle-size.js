@@ -63,8 +63,10 @@ const BUDGETS = [
   // and each layer reads the design's color space (hex colors). 122 kB raw
   // since a GLB export holds spinning dots at the design's Rotation and the
   // 3D panel fetches the exporter ahead (Oct 2026). 41.5 kB gzip since the
-  // canvas weighs that GLB for the 3D panel's size line (Oct 2026).
-  { prefix: "globe-background-", ext: ".js",  raw: 122_000,  gzip:  41_500, lazy: true },
+  // canvas weighs that GLB for the 3D panel's size line (Oct 2026). 124 kB
+  // raw and 42 kB gzip since the grid and the arcs draw their far half
+  // before the globe's sphere and their near half after it (Oct 2026).
+  { prefix: "globe-background-", ext: ".js",  raw: 124_000,  gzip:  42_000, lazy: true },
   { prefix: "three-",            ext: ".js",  raw: 620_000,  gzip: 160_000, lazy: true },
   { prefix: "geo-",              ext: ".js",  raw:  35_000,  gzip:  12_000, lazy: true },
   { prefix: "states-10m-",       ext: ".js",  raw: 130_000,  gzip:  45_000, lazy: true },
