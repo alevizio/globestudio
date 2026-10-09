@@ -13,6 +13,7 @@ import {
   litOnFlatMap,
   pairDots,
   toggleDot,
+  viewDotCount,
 } from "./globe-dots.js";
 
 const DEG = Math.PI / 180;
@@ -176,6 +177,19 @@ describe("the globe's dots for an area", () => {
         expect(rows.length).toBeLessThan(10 * points.length);
       }
     }
+  });
+});
+
+describe("viewDotCount", () => {
+  it("counts the dots the view draws: the globe's own, or the flat map's", () => {
+    const chile = createCountryMapData(["CHL"], 65);
+    const globe = globeDots(chile).length;
+    expect(globe).not.toBe(chile.points.length);
+    expect(viewDotCount(chile, "globe", "Circle")).toBe(globe);
+    expect(viewDotCount(chile, "flat", "Circle")).toBe(chile.points.length);
+    // Squares keep the flat map's grid on the globe.
+    expect(viewDotCount(chile, "globe", "Square")).toBe(chile.points.length);
+    expect(viewDotCount({ points: [{ id: "a" }] }, "globe", "Circle")).toBe(1);
   });
 });
 

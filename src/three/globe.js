@@ -1061,8 +1061,11 @@ export const buildGlobeDotLayer = ({
     group.scale.setScalar(1 + intensity * 0.018);
   }
 
-  // The dots the globe shows.
-  group.userData.dotCount = points.filter((point) => point.view !== "flat").length;
+  // The dots each view shows (the dev perf HUD).
+  group.userData.dotCounts = {
+    flat: points.filter((point) => point.view !== "globe").length,
+    globe: points.filter((point) => point.view !== "flat").length,
+  };
   // What a click on a dot toggles (toggleDot, utils/globe-dots.js): squares
   // light the flat map's dots in both views.
   group.userData.mapData = mapData;

@@ -404,6 +404,19 @@ describe("buildGlobeDotLayer dot grid", () => {
     expect(litIn("Square", 1)).toEqual(flatMap);
   });
 
+  it("counts the dots each view shows", () => {
+    const group = buildGlobeDotLayer({
+      mapData: world,
+      selectedDots: new Set([world.globePoints.find((dot) => dot.view === "globe").id]),
+      dotColor: "#ffffff",
+      dotSize: 10,
+      shape: "Circle",
+      shaderSettings: DEFAULT_SHADER_SETTINGS,
+      globeSettings: DEFAULT_GLOBE_SETTINGS,
+    });
+    expect(group.userData.dotCounts).toEqual({ flat: world.points.length, globe: world.globePoints.filter((dot) => dot.view !== "flat").length });
+  });
+
   it("leaves the globe's own dots unmade for squares", () => {
     const mapData = {
       image: world.image,

@@ -32,6 +32,7 @@ import {
   createStateMapData,
   makeFeatureCollection,
 } from "./utils/dot-generation.js";
+import { viewDotCount } from "./utils/globe-dots.js";
 import { createDottedSvg } from "./utils/svg-markup.js";
 import { vectorDrops } from "./utils/vector-note.js";
 import { centerOfPoints } from "./utils/face-points.js";
@@ -722,7 +723,12 @@ const App = () => {
     return createCountryMapData(selected.countryCodes, density);
   }, [density, selected, stateShape]);
 
-  const dotCount = dotsVisible ? mapData.points.length : 0;
+  // The dots the view draws: the globe has dots of its own (utils/globe-dots.js).
+  const viewDots = useMemo(
+    () => viewDotCount(mapData, renderMode === "dots" ? viewMode : "flat", shape),
+    [mapData, renderMode, shape, viewMode],
+  );
+  const dotCount = dotsVisible ? viewDots : 0;
 
   // Picking a country, continent or state turns the globe to face it, the
   // same whether it came from the panel, a share link or an agent. A link
@@ -1882,7 +1888,7 @@ const App = () => {
         lookId={appliedLookId}
         lookName={lookPresets.find((p) => p.id === appliedLookId)?.name}
         density={density}
-        dotCount={mapData?.points?.length ?? 0}
+        dotCount={viewDots}
         effect={shaderSettings.effect}
         flatProjection={flatProjection}
         riversVisible={riversVisible}

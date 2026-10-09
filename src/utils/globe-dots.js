@@ -186,6 +186,13 @@ export const pairDots = (flatDots, globeDots, maxArc) => {
   return pairs;
 };
 
+// How many dots a view draws: the globe's own where it has them, else the
+// flat map's.
+export const viewDotCount = (mapData, view, shape) =>
+  view === "globe" && !globeKeepsMapGrid(shape) && mapData.globePoints
+    ? mapData.globePoints.filter((dot) => dot.view !== "flat").length
+    : mapData.points.length;
+
 // The id of a dot the globe draws and the flat map doesn't.
 export const GLOBE_DOT_ID = "globe:";
 
