@@ -59,10 +59,10 @@ export const cutAtHorizon = (material, half) => {
   return material;
 };
 
-// `line` draws its near half; a copy of it, added as its child, draws the
-// far half. The copy shares the line's geometry and follows its color and
-// opacity (and a ShaderMaterial's uniforms) as they change. A GLB export
-// leaves the copy out (three/glb-export.js).
+// `line` (or a ring's mesh) draws its near half; a copy of it, added as its
+// child, draws the far half. The copy shares the line's geometry and follows
+// its color and opacity (and a ShaderMaterial's uniforms) as they change. A
+// GLB export leaves the copy out (three/glb-export.js).
 export const splitAtHorizon = (line) => {
   const { material } = line;
   const farMaterial = material.clone();
@@ -71,7 +71,8 @@ export const splitAtHorizon = (line) => {
   if (material.uniforms) farMaterial.uniforms = material.uniforms;
   cutAtHorizon(farMaterial, "far");
   cutAtHorizon(material, "near");
-  const far = new (line.isLineSegments ? THREE.LineSegments : THREE.Line)(line.geometry, farMaterial);
+  const Part = line.isMesh ? THREE.Mesh : line.isLineSegments ? THREE.LineSegments : THREE.Line;
+  const far = new Part(line.geometry, farMaterial);
   far.userData.farHalf = true;
   far.renderOrder = HORIZON_ORDER.far;
   far.onBeforeRender = () => {

@@ -10,6 +10,7 @@ import { createGlobeDotGeometry } from "./geometry.js";
 import {
   applyDotLayerMorph,
   buildGlobeDotLayer,
+  createBorderlessNetwork,
   createAtmosphereMaterial,
   createGraticule,
   createOuterHaloMaterial,
@@ -195,14 +196,18 @@ describe("grid and network draw order", () => {
     network.userData.arcs = 100;
     network.userData.pulses = 100;
     updateGlobeNetwork(network, 1);
-    parts.globeGroup.add(graticule, network);
-    return { ...parts, graticule, network };
+    // The Glow toggle's routes and rings, turned as its motion turns them.
+    const glow = createBorderlessNetwork();
+    glow.visible = true;
+    glow.rotation.z = 0.018;
+    parts.globeGroup.add(graticule, network, glow);
+    return { ...parts, graticule, network, glow };
   };
   const halves = (root) => {
     const near = [];
     const far = [];
     root.traverse((object) => {
-      if (!object.isLine) return;
+      if (!object.isLine && !object.isMesh) return;
       if (object.userData.farHalf) far.push(object);
       else if (object.material.userData.horizon === "near") near.push(object);
     });
@@ -228,11 +233,29 @@ describe("grid and network draw order", () => {
     }
   });
 
+  it("cuts the Glow toggle's routes and rings in two", () => {
+    const { glow } = withGridAndNetwork();
+    const { near, far } = halves(glow);
+    const routes = glow.children.filter((child) => child.isLine);
+    const rings = glow.children.filter((child) => child.isMesh && !child.userData.routePoints);
+    expect(routes).toHaveLength(6);
+    expect(rings).toHaveLength(3);
+    expect(near.sort((a, b) => a.id - b.id)).toEqual([...routes, ...rings].sort((a, b) => a.id - b.id));
+    expect(far).toHaveLength(9);
+    for (const part of near) {
+      const [copy] = part.children;
+      expect(copy.userData.farHalf).toBe(true);
+      expect(copy.isMesh).toBe(part.isMesh);
+      expect(copy.geometry).toBe(part.geometry);
+    }
+  });
+
   it("draws the far halves before the see-through sphere and the near halves after it, at every tilt and spin", () => {
-    const { scene, camera, globeGroup, sphereParts, graticule, network } = withGridAndNetwork();
+    const { scene, camera, globeGroup, sphereParts, graticule, network, glow } = withGridAndNetwork();
     const [body] = sphereParts;
-    const near = [...halves(graticule).near, ...halves(network).near];
-    const far = [...halves(graticule).far, ...halves(network).far];
+    const near = [...halves(graticule).near, ...halves(network).near, ...halves(glow).near];
+    const far = [...halves(graticule).far, ...halves(network).far, ...halves(glow).far];
+    expect(far.length).toBeGreaterThan(halves(graticule).far.length + halves(network).far.length);
     const wrong = [];
     for (let tilt = -68; tilt <= 68; tilt += 2) {
       for (let spin = 0; spin < 360; spin += 30) {

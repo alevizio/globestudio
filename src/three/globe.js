@@ -11,7 +11,7 @@ import { clampNumber, degToRad, hashString, normalizeLongitude, remapTByMidpoint
 import { pointToGlobeCoordinate } from "../utils/projection.js";
 import { latLngToVector3, pointToFlatVector3 } from "./coordinates.js";
 import { createAsciiCanvasTexture, createGlobeDotGeometry, disposeThreeObject } from "./geometry.js";
-import { cutAtHorizon, HORIZON_ORDER } from "./horizon.js";
+import { cutAtHorizon, HORIZON_ORDER, splitAtHorizon } from "./horizon.js";
 import { sceneColor } from "./picked-color.js";
 
 const getGridSettingsSignature = (settings = DEFAULT_GLOBE_SETTINGS, hexColors = false) => {
@@ -219,7 +219,11 @@ export const createBorderlessNetwork = () => {
     });
     const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), lineMaterial);
     line.userData.baseOpacity = route.opacity;
-    group.add(line);
+    // Each route and ring draws its far half before the globe's sphere and
+    // its near half after it (three/horizon.js), as the grid and the
+    // network's arcs do, so the body dims the back of each the same way at
+    // every tilt and spin.
+    group.add(splitAtHorizon(line));
 
     const pulseMaterial = new THREE.MeshBasicMaterial({
       color,
@@ -251,7 +255,7 @@ export const createBorderlessNetwork = () => {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.set(...ring.rotation);
     mesh.userData.baseOpacity = ring.opacity;
-    group.add(mesh);
+    group.add(splitAtHorizon(mesh));
   });
 
   return group;
