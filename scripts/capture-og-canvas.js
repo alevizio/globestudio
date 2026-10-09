@@ -222,9 +222,13 @@ const main = async () => {
     // Hide dev-only UI that would land in the screenshot — perf HUD
     // (top-right FPS/calls/geo/dots), the keyboard-shortcut toast,
     // and the onboarding hint pill.
+    // Wireframe is see-through, and its embed keeps that transparency, so
+    // its white ink would land on the headless page's white. Paint the page
+    // the looks' default background (#0a0a0a) so it reads as the others do.
     await page.addStyleTag({
       content: `
         .perf-monitor, .keyboard-hint, .onboarding-hint { display: none !important; }
+        html, body { background: #0a0a0a !important; }
       `,
     });
     // Three.js takes a few render frames to warm up shaders + post

@@ -76,9 +76,13 @@ const main = async () => {
     await page.goto(url, { waitUntil: "networkidle", timeout: 45000 });
     await page.waitForSelector("canvas", { timeout: 20000 });
     // Hide dev/UX HUDs that would land in the screenshot.
+    // Wireframe is see-through, and its embed keeps that transparency, so
+    // its white ink would land on the headless page's white. Paint the page
+    // the looks' default background (#0a0a0a) so it reads as the others do.
     await page.addStyleTag({
       content: `
         .perf-monitor, .keyboard-hint, .onboarding-hint { display: none !important; }
+        html, body { background: #0a0a0a !important; }
       `,
     });
     // Three.js needs render frames + map data + shader warmup.
