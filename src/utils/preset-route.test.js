@@ -11,16 +11,16 @@ const meta = (selector) => document.head.querySelector(selector).getAttribute("c
 describe("updatePresetRoute share card", () => {
   beforeEach(() => {
     document.head.innerHTML = `
-      <meta property="og:image" content="https://globestudio.app/og/default.png?v=3" />
+      <meta property="og:image" content="https://globestudio.app/og/default.png?v=4" />
       <meta property="og:image:alt" content="${PRODUCT_CARD_ALT}" />
-      <meta name="twitter:image" content="https://globestudio.app/og/default.png?v=3" />
+      <meta name="twitter:image" content="https://globestudio.app/og/default.png?v=4" />
       <meta name="twitter:image:alt" content="${PRODUCT_CARD_ALT}" />
     `;
   });
 
   it("points at the look's cache-busted card and describes it", () => {
     updatePresetRoute(lookPresets.find((preset) => preset.id === "halftone"));
-    const card = "https://globestudio.app/og/halftone.png?v=3";
+    const card = "https://globestudio.app/og/halftone.png?v=4";
     const alt = "A dotted globe in the Globestudio Halftone look, captioned: Newspaper print, browser-rendered.";
     expect(meta('meta[property="og:image"]')).toBe(card);
     expect(meta('meta[name="twitter:image"]')).toBe(card);
@@ -31,7 +31,7 @@ describe("updatePresetRoute share card", () => {
   it("keeps the product card alt on /looks/default", () => {
     updatePresetRoute(lookPresets.find((preset) => preset.id === "halftone"));
     updatePresetRoute(lookPresets.find((preset) => preset.id === "default"));
-    expect(meta('meta[property="og:image"]')).toBe("https://globestudio.app/og/default.png?v=3");
+    expect(meta('meta[property="og:image"]')).toBe("https://globestudio.app/og/default.png?v=4");
     expect(meta('meta[property="og:image:alt"]')).toBe(PRODUCT_CARD_ALT);
     expect(meta('meta[name="twitter:image:alt"]')).toBe(PRODUCT_CARD_ALT);
   });
