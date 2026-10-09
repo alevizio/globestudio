@@ -6,7 +6,20 @@
     <atom:link href="https://globestudio.app/changelog.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped work in Globestudio: new presets, polish, infrastructure, and first-visit experience.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 08 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 10 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Evenly spaced globe</title>
+      <link>https://globestudio.app/changelog</link>
+      <guid isPermaLink="false">https://globestudio.app/changelog#evenly-spaced-globe</guid>
+      <pubDate>Sat, 10 Oct 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<ul>
+  <li>The globe spaces its dots evenly over the sphere, so they no longer crowd together toward the poles. The flat map keeps its Mercator grid, and square looks like Pixel keep that grid on the globe</li>
+  <li>Triangles, stars and letters point the same way on the globe as on the flat map, instead of turning with longitude</li>
+  <li>CRT and Pencil draw their letters solid on the globe, so the land shows at any Sphere opacity</li>
+  <li>On see-through looks the far half of the grid and the arcs shows through the globe at every tilt, instead of popping in and out as it passes level</li>
+  <li>Look thumbnails and share cards show the new globe, and Wireframe&apos;s are no longer blank</li>
+</ul>]]></description>
+    </item>
     <item>
       <title>Fixes and security updates</title>
       <link>https://globestudio.app/changelog</link>

@@ -8,6 +8,105 @@ All notable changes to Globestudio are tracked here. Format follows
 
 Nothing yet.
 
+## [1.4.0] - 2026-10-10
+
+The globe spaces its dots evenly over the sphere, so they no longer crowd
+together toward the poles, and every dot's shape points the way it does on
+the flat map. Square looks keep the flat map's grid on the globe. CRT and
+Pencil draw their letters solid, and on see-through looks the far half of
+the grid and the network's arcs shows through the globe at every tilt
+instead of popping in and out as it passes level. The look thumbnails and
+share cards are recaptured on the new globe.
+
+No npm package moves. `@globestudio/react` and `@globestudio/element` stay
+at 0.2.0 and `@globestudio/mcp` at 0.2.4, since none of their code
+changed, and embeds, share links and the studio inside the Figma plugin
+draw the new globe once the site deploys. The agent skill and its Claude
+Code plugin stay at 1.1.4 and the OpenAI plugin at 1.2.3.
+
+### Changed
+
+- The globe spaces its dots evenly over the sphere. It used to wrap the
+  flat map's Mercator grid onto the sphere as it was, and a Mercator step
+  is shorter on the sphere the further it lies from the equator, so the
+  gaps between dots closed toward the poles (half as wide at 60 degrees,
+  a third at 71) while every dot kept one size. The globe now has dots of
+  its own: rows the same distance apart from the equator to the poles,
+  each holding as many dots as its length round the globe fits, kept
+  where the flat map's dots say there is land, so both views draw the
+  same coastlines. Density still gives about the same number of dots (the
+  world at 40 has 1,365 on the flat map and 1,389 on the globe), so dots
+  near the equator now sit closer together than in 1.3.0 and those toward
+  the poles further apart. A flat dot with no globe dot close by still
+  draws on the globe, so small islands such as Iceland at Density 10
+  stay. Each globe dot is paired with a flat dot close by, so the morph
+  still moves the same dots, and a dot only one view draws shrinks out or
+  grows in over it. The flat map is unchanged, with the same dots, Vary
+  size and twinkle as 1.3.0, and so are the SVG export and US state maps.
+  The globe makes its dots only when it draws them, so the flat map costs
+  what it did. Nothing in the config changes: share links, embeds and
+  saved designs open as before and show the new globe.
+- Clicks and counts follow each view. A click lights the dot it hits and
+  the nearest dot in the other view, so a dot clicked on the globe also
+  shows on the flat map and in the SVG and Figma exports, and a click on a
+  lit dot in either view turns it off. The panel's dot count and the
+  canvas description for screen readers count the dots of the view on
+  screen (Chile at Density 65 has 221 on the flat map and 203 on the
+  globe), and a GLB holds the dots of the view it was saved from.
+- Designs in Square dots keep the flat map's grid on the globe, with the
+  same dots as 1.3.0. That covers the square looks Pixel, Bayer, Atkinson,
+  Glitch, Bad TV, Corrupt and Threshold, which read as pixels only while
+  their columns run along the meridians and their rows along the
+  parallels. Switching any design to Square gives it the grid too.
+- Every dot's shape points the same way on the globe as on the flat map,
+  with its up toward north and its right toward east. The globe used to
+  turn each dot onto the sphere along its meridian, so shapes turned one
+  degree for every degree of longitude: triangles pointed up over South
+  America and down or sideways over Africa, stars and letters leaned, and
+  squares stood on a corner 45 degrees of longitude either side of 90W.
+  Shapes keep their turn through the morph, Rotation still turns them
+  from there, and at the poles they follow their own meridian over the
+  top. Round shapes look the same, squares now sit square to their grid,
+  and a GLB takes the new turn.
+- CRT and Pencil draw their letters solid on the globe, as does any design
+  in ASCII glyphs or an uploaded shape. Since the far side fix in 1.3.0
+  the see-through globe drew over the near side's letters, dimming the
+  land by its Sphere opacity and hiding it entirely at 100. The land now
+  shows at any Sphere opacity, and the far side's letters still show
+  through the globe, dimmed by it, as Metal's boxes do. The flat map, the
+  SVG export and the GLB export are unchanged.
+- On see-through looks the far half of the grid's lines and the network's
+  arcs always shows through the globe, dimmed by its Sphere opacity, and
+  the near half draws over it, at every tilt and spin. Each line used to
+  sort against the globe by its middle, and a parallel's middle sits on
+  the globe's axis, so tilting past level made the far half of every
+  northern parallel vanish in one step and its near half brighten, while
+  the southern ones did the opposite. Arcs flipped the same way as the
+  spin carried them round, and at Sphere opacity 100 the near half of
+  some parallels was hidden. At the opening tilt this shows as the near
+  half of the northern parallels no longer dimmed by the globe, and the
+  far half of the southern ones showing through it. Wireframe keeps its
+  back cage, now whole at every tilt. The grid draws one more batch of
+  lines and each arc one more small line, and a GLB holds each line once,
+  as before.
+- The 21 look thumbnails, the gallery's images and the 20 per-look share
+  cards are recaptured on the new globe, and the cards now list GLB among
+  the formats. That ends 1.3.0's note that the per-look cards keep the old
+  list until they are recaptured. The cards are served as `?v=4`, so link
+  previews fetch the new ones. The home card, its animated version and
+  the GitHub social preview draw their own globe and stay as they were.
+
+### Fixed
+
+- With Glow on, the globe's decorative arcs and rings no longer pop in or
+  out as it tilts past level or spins. They split at the globe's horizon
+  like the grid and the network's arcs: the far half draws through the
+  globe and the near half over it.
+- Wireframe's look thumbnail and share card show the globe. Its
+  see-through background let the capture page show through as white, so
+  both came out white on white, all but blank. The capture scripts now
+  paint the looks' dark default background first.
+
 ## [1.3.0] - 2026-10-08
 
 The Export dialog saves the globe as a GLB 3D model in a new 3D tab, which
@@ -744,7 +843,8 @@ inferred, since earlier work didn't carry version tags.
 Releases are tagged on GitHub starting with `v1.0.0`. New work goes under
 Unreleased until the next tag.
 
-[Unreleased]: https://github.com/alevizio/globestudio/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/alevizio/globestudio/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/alevizio/globestudio/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/alevizio/globestudio/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/alevizio/globestudio/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/alevizio/globestudio/compare/v1.0.0...v1.1.0

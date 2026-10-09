@@ -16,6 +16,17 @@ import { SectionHeading } from "./ui/section-heading.jsx";
 
 const ENTRIES = [
   {
+    label: "Evenly spaced globe",
+    date: "10 October 2026",
+    items: [
+      "The globe spaces its dots evenly over the sphere, so they no longer crowd together toward the poles. The flat map keeps its Mercator grid, and square looks like Pixel keep that grid on the globe",
+      "Triangles, stars and letters point the same way on the globe as on the flat map, instead of turning with longitude",
+      "CRT and Pencil draw their letters solid on the globe, so the land shows at any Sphere opacity",
+      "On see-through looks the far half of the grid and the arcs shows through the globe at every tilt, instead of popping in and out as it passes level",
+      "Look thumbnails and share cards show the new globe, and Wireframe's are no longer blank",
+    ],
+  },
+  {
     label: "Fixes and security updates",
     date: "8 October 2026",
     items: [
