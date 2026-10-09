@@ -370,4 +370,17 @@ describe("buildGlobeDotLayer dot grid", () => {
       expect(layer(shape).userData.pointIds, shape).toEqual(world.globePoints.map((point) => point.id));
     }
   });
+
+  it("gives the flat map's dots the twinkle and Vary size they have on the flat map's grid", () => {
+    const phases = (mesh) => {
+      const values = mesh.geometry.getAttribute("aPhase");
+      return new Map(mesh.userData.pointIds.map((id, index) => [id, values.getX(index)]));
+    };
+    // Squares draw the flat map's dots alone, as every shape did before the
+    // globe had dots of its own.
+    const grid = phases(layer("Square"));
+    const circle = phases(layer("Circle"));
+    const changed = world.points.filter((point) => circle.get(point.id) !== grid.get(point.id));
+    expect(changed).toEqual([]);
+  });
 });

@@ -165,20 +165,22 @@ export const createGlobeDots = (points, image) => {
   const onGlobe = createNearby(step * ALONE_REACH);
   lattice.forEach((dot, index) => onGlobe.add(unitVector(dot), index));
   const paired = new Uint8Array(lattice.length);
-  const dots = points.map((point, index) => {
-    const globeIndex = pairs[index];
+  // Each flat dot keeps its place in the flat map's order (flatIndex), which
+  // seeds its twinkle and Vary size (three/globe.js).
+  const dots = points.map((point, flatIndex) => {
+    const globeIndex = pairs[flatIndex];
     if (globeIndex >= 0) {
       paired[globeIndex] = 1;
-      return { ...point, lat: lattice[globeIndex].lat, lng: lattice[globeIndex].lng };
+      return { ...point, flatIndex, lat: lattice[globeIndex].lat, lng: lattice[globeIndex].lng };
     }
     const vector = unitVector(point);
     let alone = true;
     onGlobe.near(vector, () => {
       alone = false;
     });
-    if (!alone) return { ...point, view: "flat" };
+    if (!alone) return { ...point, flatIndex, view: "flat" };
     onGlobe.add(vector, -1);
-    return point;
+    return { ...point, flatIndex };
   });
   lattice.forEach(({ row, column, lat, lng, x, y }, index) => {
     if (!paired[index]) dots.push({ id: `globe:${row}:${column}`, x, y, lat, lng, view: "globe" });

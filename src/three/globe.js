@@ -616,21 +616,29 @@ const wireTwinkleMaterial = (material, cacheKey) => {
   return material;
 };
 
-const attachPhaseAttribute = (geometry, instanceCount, seed = 0) => {
-  if (geometry.getAttribute("aPhase")?.count === instanceCount) return;
-  const phases = new Float32Array(instanceCount);
+// Each dot's twinkle phase and Vary size jitter. The flat map's dots take
+// the first values of the sequence in the flat map's order (flatIndex,
+// utils/globe-dots.js) and the globe's own dots the values after them, so
+// the flat map keeps the sizes it had before the globe had dots of its own.
+const attachPhaseAttribute = (geometry, points, scale) => {
+  if (geometry.getAttribute("aPhase")?.count === points.length) return;
+  const indices = points.map((_, index) => index);
+  const flat = indices.filter((index) => points[index].view !== "globe");
+  const globe = indices.filter((index) => points[index].view === "globe");
+  flat.sort((a, b) => (points[a].flatIndex ?? a) - (points[b].flatIndex ?? b));
+  const phases = new Float32Array(points.length);
   // Stable per-mesh random so the twinkle pattern is reproducible across re-renders.
-  let s = seed * 9301 + 49297;
-  for (let i = 0; i < instanceCount; i++) {
+  let s = (flat.length + Math.round(scale * 1000)) * 9301 + 49297;
+  [...flat, ...globe].forEach((index) => {
     s = (s * 9301 + 49297) % 233280;
-    phases[i] = s / 233280;
-  }
+    phases[index] = s / 233280;
+  });
   geometry.setAttribute("aPhase", new THREE.InstancedBufferAttribute(phases, 1));
 };
 
 const createInstancedDotMesh = (points, image, geometry, material, scale, radiusOffset, morphProgress, dotRotation = 0) => {
   if (!points.length) return null;
-  attachPhaseAttribute(geometry, points.length, points.length + Math.round(scale * 1000));
+  attachPhaseAttribute(geometry, points, scale);
   const mesh = new THREE.InstancedMesh(geometry, material, points.length);
   mesh.frustumCulled = false;
   mesh.userData.pointIds = points.map((point) => point.id);
