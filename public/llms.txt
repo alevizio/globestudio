@@ -2,7 +2,8 @@
 
 > Open-source dotted maps and animated 3D globes for designers,
 > animators, and creative developers. 21 looks, 5 flat projections
-> for solid maps (dotted maps use Mercator), custom GeoJSON, embed anywhere.
+> for solid maps (dotted maps use Mercator on the flat map and even
+> spacing on the globe), custom GeoJSON, embed anywhere.
 > React + Three.js. Targets WCAG 2.2 AA. MIT.
 
 Globestudio renders interactive dotted-style world maps and 3D globes

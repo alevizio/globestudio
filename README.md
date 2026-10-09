@@ -32,7 +32,10 @@ The studio runs in your browser, and the code is MIT licensed.
 ## Features
 
 - Maps of the world, a continent, a subregion, a country, or a US state.
-- Flat map or 3D globe, drawn from the same dots, with a morph between the two.
+- Flat map or 3D globe, with a morph between the two. The flat map sets its
+  dots on a Mercator grid. The globe spaces its own evenly over the sphere,
+  so the gaps between dots stay the same from the equator to the poles;
+  designs in Square dots, such as Pixel, keep the flat map's grid there.
 - 12 dot shapes (Circle, Hexagon, Triangle, Pentagon, Square, Diamond, Star,
   Plus, Ring, Voxel, Particle Grid, ASCII glyphs), or upload your own SVG,
   PNG, JPEG or WebP.
@@ -49,7 +52,8 @@ The studio runs in your browser, and the code is MIT licensed.
   eight cities to start from.
 - Solid maps: filled land and stroked borders, river and city overlays,
   pasted GeoJSON lines and points, and 5 flat projections (Mercator, Equal
-  Earth, Natural Earth, Winkel Tripel, Robinson). Dotted maps use Mercator.
+  Earth, Natural Earth, Winkel Tripel, Robinson). Dotted maps use Mercator on
+  the flat map, and the globe spaces its dots evenly.
 - Animations: rotation, twinkle, size jitter, and network arcs. They stop
   under `prefers-reduced-motion`.
 - Exports: PNG at 1x to 4x (the WebGL scene is re-rendered at that size); SVG
@@ -323,7 +327,7 @@ These tools overlap with Globestudio in places:
 | **3D globe out of box** | ✅ | ✅ | ✅ | ❌ | ❌ |
 | **Dotted maps** | ✅ 12 shapes | partial | ❌ | ❌ | ❌ |
 | **Shader looks** | ✅ 20, plus Default | ❌ | custom WebGL only | ❌ | ❌ |
-| **Multiple projections** | 5 flat (solid maps; dotted maps use Mercator) | sphere only | many | Web Mercator only | n/a |
+| **Multiple projections** | 5 flat (solid maps; dotted maps use Mercator on the flat map and even spacing on the globe) | sphere only | many | Web Mercator only | n/a |
 | **No-code GUI** | ✅ | ❌ library | ✅ | ✅ | ✅ |
 | **PNG / SVG / video export** | ✅ PNG, SVG, GLB, WebM, MP4, GIF | manual | print / PDF | ✅ | PNG / SVG |
 | **Embed iframe** | ✅ `/embed` | DIY | ✅ | ✅ | DIY |
@@ -346,7 +350,7 @@ treating maps as a visual style.
 - [React 19](https://react.dev) and [Vite](https://vite.dev) for the app shell
 - [Three.js](https://threejs.org) for the WebGL globe, instanced dot rendering, shader effects, and network arcs
 - [dotted-map](https://github.com/NTag/dotted-map) for the source dot field
-- [d3-geo](https://d3js.org/d3-geo), [d3-geo-projection](https://github.com/d3/d3-geo-projection) and [topojson-client](https://github.com/topojson/topojson-client) for topology decoding and the 5 flat projections of solid maps (Mercator, Equal Earth, Natural Earth, Winkel Tripel, Robinson; dotted maps use Mercator)
+- [d3-geo](https://d3js.org/d3-geo), [d3-geo-projection](https://github.com/d3/d3-geo-projection) and [topojson-client](https://github.com/topojson/topojson-client) for topology decoding and the 5 flat projections of solid maps (Mercator, Equal Earth, Natural Earth, Winkel Tripel, Robinson; dotted maps use Mercator on the flat map)
 - [world-countries](https://github.com/mledoze/countries), [world-atlas](https://github.com/topojson/world-atlas) and [us-atlas](https://github.com/topojson/us-atlas) for source geography
 - [@resvg/resvg-js](https://github.com/yisibl/resvg-js) to render the Open Graph share cards from SVG to PNG (`npm run og:generate`)
 - [Pixelarticons](https://pixelarticons.com) by Gerrit Halfmann for the in-app icons: 24×24 pixel-grid icons filled with `currentColor`, so they follow the theme

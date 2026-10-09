@@ -79,7 +79,7 @@ describe.each(["public/llms.txt", "public/llms-full.txt"])("%s", (path) => {
     // "looks", not "shader looks": Default has no shader effect.
     expect(text).toContain(`${lookPresets.length} looks`);
     expect(text).not.toMatch(/shader looks/);
-    expect(text).toContain("5 flat projections for solid maps (dotted maps use Mercator)");
+    expect(text).toContain("5 flat projections for solid maps (dotted maps use Mercator on the flat map and even spacing on the globe)");
     expect(text).not.toMatch(/5 projections/);
   });
 

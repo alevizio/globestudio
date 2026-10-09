@@ -11,7 +11,7 @@ describe("AboutOverlay", () => {
     // "looks", not "shader looks": Default has no shader effect.
     expect(blurb).toContain(`with ${lookPresets.length} looks`);
     expect(blurb).not.toMatch(/shader looks/);
-    expect(blurb).toContain("5 flat projections; dotted maps use Mercator");
+    expect(blurb).toContain("5 flat projections; dotted maps use Mercator on the flat map and space their dots evenly on the globe");
   });
 
   it("links the site's pages from the studio, Gallery first", () => {

@@ -26,7 +26,8 @@ The version on `main` already does all of this.
 - Solid mode: filled land and stroked borders for the world, a region, a
   country or a US state, rivers and cities overlays, pasted GeoJSON lines
   and points, and 5 flat projections (Mercator, Equal Earth, Natural
-  Earth, Winkel Tripel, Robinson). Dotted maps use Mercator
+  Earth, Winkel Tripel, Robinson). Dotted maps use Mercator on the flat
+  map and space their dots evenly on the globe
 - Your own data: paste `lat,lng,value` or `country,value` lines and plot
   them as markers sized by value, optionally joined by arcs. Try an
   example fills in eight cities to start from

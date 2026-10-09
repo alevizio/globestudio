@@ -55,7 +55,8 @@ export const AboutOverlay = ({ open, onClose }) => {
               Dotted maps and animated 3D globes with {lookPresets.length}{" "}
               looks. You can paste your own GeoJSON and embed the result on
               any site. Solid maps come in 5 flat projections; dotted maps
-              use Mercator.
+              use Mercator on the flat map and space their dots evenly on
+              the globe.
             </p>
             <p className="about-section-text">
               Built with React and Three.js. Open source under the MIT license.
