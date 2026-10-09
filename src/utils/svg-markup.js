@@ -371,11 +371,11 @@ export const createDottedSvg = ({
   const width = Math.round((aspect > 1 ? 1000 * scale : 1000 * aspect * scale) * 1000) / 1000;
   const height = Math.round((aspect > 1 ? (1000 / aspect) * scale : 1000 * scale) * 1000) / 1000;
   const backgroundColor = transparent ? "transparent" : background;
-  // When sizeVary is on, jitter each dot's radius by ±18% using a stable
-  // per-index seed so the SVG mirrors what the WebGL canvas shows.
   // A dot clicked on the globe where the flat map has none lights the flat
   // map's nearest dot (utils/globe-dots.js), as on the canvas.
   const lit = litOnFlatMap(mapData, selectedDots);
+  // When sizeVary is on, jitter each dot's radius by ±18% using a stable
+  // per-index seed so the SVG mirrors what the WebGL canvas shows.
   const dots = dotsVisible
     ? mapData.points
         .map((point, index) => {
