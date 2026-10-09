@@ -66,7 +66,10 @@ const BUDGETS = [
   // canvas weighs that GLB for the 3D panel's size line (Oct 2026). 124 kB
   // raw and 42 kB gzip since the grid and the arcs draw their far half
   // before the globe's sphere and their near half after it (Oct 2026).
-  { prefix: "globe-background-", ext: ".js",  raw: 124_000,  gzip:  42_000, lazy: true },
+  // 124.5 kB raw and 42.5 kB gzip since the globe and the flat map each
+  // light a click at a dot of their own and the Glow's routes and rings
+  // split at the horizon too (Oct 2026).
+  { prefix: "globe-background-", ext: ".js",  raw: 124_500,  gzip:  42_500, lazy: true },
   { prefix: "three-",            ext: ".js",  raw: 620_000,  gzip: 160_000, lazy: true },
   { prefix: "geo-",              ext: ".js",  raw:  35_000,  gzip:  12_000, lazy: true },
   { prefix: "states-10m-",       ext: ".js",  raw: 130_000,  gzip:  45_000, lazy: true },
