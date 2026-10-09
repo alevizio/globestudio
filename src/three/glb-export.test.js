@@ -258,12 +258,16 @@ describe("exportGlb", () => {
     expect(byName("Dots")).toHaveLength(1);
     expect(json.materials.every((material) => material.extensions?.KHR_materials_unlit)).toBe(true);
     // The grid, plus the network's arcs and hub cities; not its rings, heads
-    // or trails.
+    // or trails. Each line goes in whole, once: the copies that draw the far
+    // half of the grid and of each arc on the canvas stay out.
     const network = globeGroup.children.find((child) => child.userData.routeGroup);
     const arcs = network.userData.routeGroup.children.filter((route) => route.visible).length;
     const hubs = network.userData.cityGroup.children.filter((city) => city.visible).length;
-    const graticuleLines = globeGroup.children.find((child) => child.userData.gridSignature).children.length;
+    const grid = globeGroup.children.find((child) => child.userData.gridSignature).children;
+    const graticuleLines = grid.filter((line) => !line.userData.farHalf).length;
+    expect(grid.length).toBe(graticuleLines + 1);
     expect(gltf.scene.children.filter((child) => child.isLine)).toHaveLength(graticuleLines + arcs);
+    expect(gltf.scene.children.filter((child) => child.isLineSegments)).toEqual([]);
     expect(gltf.scene.children.filter((child) => child.isMesh && !["Globe", "Dots"].includes(child.name))).toHaveLength(hubs);
   });
 });

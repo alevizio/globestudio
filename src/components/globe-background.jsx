@@ -668,11 +668,14 @@ export const GlobeBackground = ({
     // Unlit base sphere so there's no directional-light terminator visible
     // through gaps in the dot field. Stripe-style flat shading on the ocean.
     // depthWrite defaults to true. With it on, the sphere properly z-occludes
-    // back-hemisphere grid lines and network arcs at any non-zero
-    // opacity → clean front-hemisphere view as the user rotates. The dot
-    // layer draws before it at every angle (three/globe.js
+    // what draws after it on the back hemisphere (the data markers) at any
+    // non-zero opacity → clean front-hemisphere view as the user rotates. The
+    // dot layer draws before it at every angle (three/globe.js
     // buildGlobeDotLayer): flat dots facing away are back-face culled, and
-    // 3D or double-sided ones show through the sphere. The
+    // 3D or double-sided ones show through the sphere. The grid lines and
+    // network arcs draw their far half before it and their near half after
+    // it (three/horizon.js), so the body dims their back half at every
+    // angle. The
     // alternative (depthWrite: false) lets back content show through but
     // produces a visual mess: transparent objects sort by bounding-sphere
     // center distance and the graticule lines + InstancedMesh dot layer

@@ -11,9 +11,11 @@ import {
   applyDotLayerMorph,
   buildGlobeDotLayer,
   createAtmosphereMaterial,
+  createGraticule,
   createOuterHaloMaterial,
   northUpQuaternion,
 } from "./globe.js";
+import { createGlobeNetwork, updateGlobeNetwork } from "./globe-network.js";
 
 const world = createCountryMapData([], 30);
 
@@ -61,7 +63,7 @@ const transparentDrawOrder = (scene, camera) => {
   const project = (object, groupOrder) => {
     if (!object.visible) return;
     const order = object.isGroup ? object.renderOrder : groupOrder;
-    if (object.isMesh && object.material.transparent) {
+    if ((object.isMesh || object.isLine) && object.material.transparent) {
       if (object.isInstancedMesh && object.boundingSphere === null) object.computeBoundingSphere();
       if (!object.isInstancedMesh && object.geometry.boundingSphere === null) object.geometry.computeBoundingSphere();
       const { center } = object.isInstancedMesh ? object.boundingSphere : object.geometry.boundingSphere;
@@ -176,6 +178,72 @@ describe("buildGlobeDotLayer draw order", () => {
       expect(material.transparent).toBe(true);
       expect(material.side).toBe(THREE.DoubleSide);
     }
+  });
+});
+
+describe("grid and network draw order", () => {
+  // The grid and the network's arcs wrap round the globe. Each line draws
+  // its near half after the see-through sphere and a copy draws its far
+  // half before it (three/horizon.js). Sorted by distance, a parallel's
+  // sort point is on the globe's axis, so tilting past level moved every
+  // northern parallel from before the sphere to after it in one step.
+  const withGridAndNetwork = () => {
+    const parts = globeScene();
+    const graticule = createGraticule({ ...DEFAULT_GLOBE_SETTINGS, gridSize: 15 });
+    const network = createGlobeNetwork();
+    network.userData.opacity = 1;
+    network.userData.arcs = 100;
+    network.userData.pulses = 100;
+    updateGlobeNetwork(network, 1);
+    parts.globeGroup.add(graticule, network);
+    return { ...parts, graticule, network };
+  };
+  const halves = (root) => {
+    const near = [];
+    const far = [];
+    root.traverse((object) => {
+      if (!object.isLine) return;
+      if (object.userData.farHalf) far.push(object);
+      else if (object.material.userData.horizon === "near") near.push(object);
+    });
+    return { near, far };
+  };
+
+  it("cuts every grid line and every arc's line and trail in two", () => {
+    const { graticule, network } = withGridAndNetwork();
+    const grid = halves(graticule);
+    // Every line draws its near half; the far halves of all of them draw as
+    // one set of segments.
+    expect(grid.near).toHaveLength(graticule.children.length - 1);
+    expect(grid.far).toHaveLength(1);
+    const arcs = halves(network);
+    const routes = network.userData.routeGroup.children;
+    expect(arcs.near).toHaveLength(routes.length * 2);
+    expect(arcs.far).toHaveLength(routes.length * 2);
+    for (const near of arcs.near) {
+      expect(["line", "trail"]).toContain(near.userData.role);
+      const [far] = near.children;
+      expect(far.userData.farHalf).toBe(true);
+      expect(far.geometry).toBe(near.geometry);
+    }
+  });
+
+  it("draws the far halves before the see-through sphere and the near halves after it, at every tilt and spin", () => {
+    const { scene, camera, globeGroup, sphereParts, graticule, network } = withGridAndNetwork();
+    const [body] = sphereParts;
+    const near = [...halves(graticule).near, ...halves(network).near];
+    const far = [...halves(graticule).far, ...halves(network).far];
+    const wrong = [];
+    for (let tilt = -68; tilt <= 68; tilt += 2) {
+      for (let spin = 0; spin < 360; spin += 30) {
+        globeGroup.rotation.set(THREE.MathUtils.degToRad(tilt), THREE.MathUtils.degToRad(spin), 0);
+        const order = transparentDrawOrder(scene, camera);
+        const sphere = order.indexOf(body);
+        if (Math.max(...far.map((line) => order.indexOf(line))) > sphere) wrong.push(`far, tilt ${tilt} spin ${spin}`);
+        if (Math.min(...near.map((line) => order.indexOf(line))) < sphere) wrong.push(`near, tilt ${tilt} spin ${spin}`);
+      }
+    }
+    expect(wrong).toEqual([]);
   });
 });
 

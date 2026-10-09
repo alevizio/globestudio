@@ -11,6 +11,7 @@ import { clampNumber, degToRad, hashString, normalizeLongitude, remapTByMidpoint
 import { pointToGlobeCoordinate } from "../utils/projection.js";
 import { latLngToVector3, pointToFlatVector3 } from "./coordinates.js";
 import { createAsciiCanvasTexture, createGlobeDotGeometry, disposeThreeObject } from "./geometry.js";
+import { cutAtHorizon, HORIZON_ORDER } from "./horizon.js";
 import { sceneColor } from "./picked-color.js";
 
 const getGridSettingsSignature = (settings = DEFAULT_GLOBE_SETTINGS, hexColors = false) => {
@@ -130,7 +131,38 @@ export const createGraticule = (settings = DEFAULT_GLOBE_SETTINGS, hexColors = f
     group.add(buildLine(points));
   }
 
+  // Each line draws its near half after the globe's sphere, and the far
+  // half of every line draws before it in one go (three/horizon.js), so the
+  // see-through body dims the back of the grid the same way at every tilt.
+  const farMaterial = cutAtHorizon(material.clone(), "far");
+  cutAtHorizon(material, "near");
+  group.children.forEach((line) => {
+    line.renderOrder = HORIZON_ORDER.near;
+  });
+  const farHalf = new THREE.LineSegments(lineStripsToSegments(group.children), farMaterial);
+  farHalf.userData.farHalf = true;
+  farHalf.renderOrder = HORIZON_ORDER.far;
+  group.add(farHalf);
+
   return group;
+};
+
+// The strips of `lines` as one set of segments, each vertex attribute
+// (position, and color with a gradient) carried along.
+const lineStripsToSegments = (lines) => {
+  const geometry = new THREE.BufferGeometry();
+  Object.keys(lines[0].geometry.attributes).forEach((name) => {
+    const { itemSize } = lines[0].geometry.getAttribute(name);
+    const values = [];
+    lines.forEach((line) => {
+      const { array } = line.geometry.getAttribute(name);
+      for (let i = 0; i + 1 < array.length / itemSize; i += 1) {
+        values.push(...array.subarray(i * itemSize, (i + 2) * itemSize));
+      }
+    });
+    geometry.setAttribute(name, new THREE.Float32BufferAttribute(values, itemSize));
+  });
+  return geometry;
 };
 
 // refs.hexColors is the design's color space, kept by GlobeBackground.
@@ -147,14 +179,13 @@ export const syncGraticule = (refs, settings) => {
   // during continuous drag) would render one frame at 0.13 before
   // applyGlobeShellProgress on the next frame corrects it — visible as
   // a flash, especially noticeable when dragging gridSize through its
-  // range. All lines share a single material so writing once is enough.
-  const sharedMaterial = nextGraticule.children[0]?.material;
-  if (sharedMaterial) {
-    const gridStrength = settings.grid === false
-      ? 0
-      : clampNumber(settings.gridStrength ?? DEFAULT_GLOBE_SETTINGS.gridStrength, 0, 100) / 100;
-    sharedMaterial.opacity = gridStrength;
-  }
+  // range. The lines share one material and their far half has another.
+  const gridStrength = settings.grid === false
+    ? 0
+    : clampNumber(settings.gridStrength ?? DEFAULT_GLOBE_SETTINGS.gridStrength, 0, 100) / 100;
+  nextGraticule.children.forEach((line) => {
+    line.material.opacity = gridStrength;
+  });
   if (refs.graticule) {
     refs.globeGroup.remove(refs.graticule);
     disposeThreeObject(refs.graticule);

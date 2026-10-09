@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { sceneColor } from "./picked-color.js";
 import { GLOBE_RADIUS } from "../config/globe-settings.js";
 import { latLngToVector3 } from "./coordinates.js";
+import { splitAtHorizon } from "./horizon.js";
 
 // Major hub cities anchored to lat/lng. Picked for global coverage and
 // recognizable silhouettes. Each carries a color that biases the pulse tone.
@@ -181,7 +182,10 @@ const createRoute = (route, cityMap, index) => {
   const line = new THREE.Line(lineGeometry, lineMaterial);
   line.userData.role = "line";
   line.userData.baseOpacity = 0.32;
-  group.add(line);
+  // The arc and its trail draw their far half before the globe's sphere and
+  // their near half after it (three/horizon.js), so the see-through body
+  // dims the back of every arc the same way at every tilt and spin.
+  group.add(splitAtHorizon(line));
 
   // Animated trail — a sliding window of vertices visible at full brightness.
   const trailGeometry = new THREE.BufferGeometry();
@@ -219,7 +223,7 @@ const createRoute = (route, cityMap, index) => {
   const trail = new THREE.Line(trailGeometry, trailMaterial);
   trail.userData.role = "trail";
   trail.userData.trailLength = trailLength;
-  group.add(trail);
+  group.add(splitAtHorizon(trail));
 
   // Traveling head pulse — a bright glowing sphere riding the curve.
   const headMaterial = new THREE.MeshBasicMaterial({

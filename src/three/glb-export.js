@@ -171,10 +171,13 @@ const glows = (object) => {
 // lines, without the shader parts, the depth-only ones, the moving ones or
 // the glow. Of the instanced layers, only the dots themselves wear the
 // twinkle hook. The others are the Bloom, CRT and Chromatic looks' halos.
+// The grid's lines and the arcs go in whole, so the copies that draw their
+// far half on the canvas stay out (three/horizon.js).
 const eachPart = (globeGroup, visit) =>
   globeGroup.traverseVisible((object) => {
     const { material } = object;
     if (!(object.isMesh || object.isLine) || material.isShaderMaterial || !material.colorWrite || moves(object) || glows(object)) return;
+    if (object.userData.farHalf) return;
     if (object.isInstancedMesh && !material.userData.twinkleWired) return;
     visit(object);
   });
