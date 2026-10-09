@@ -66,12 +66,17 @@ export const createCountryMapData = (countryCodes, density) => {
     id: `${point.x}:${point.y}:${index}`,
   }));
 
+  let globePoints;
   return {
     image,
     points,
     // The flat map's grid is even in Mercator, not on the sphere, so the
-    // globe draws dots of its own (utils/globe-dots.js).
-    globePoints: createGlobeDots(points, image),
+    // globe draws dots of its own (utils/globe-dots.js), made the first time
+    // the globe asks for them: the flat map and the square looks never do.
+    get globePoints() {
+      globePoints ??= createGlobeDots(points, image);
+      return globePoints;
+    },
   };
 };
 

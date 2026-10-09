@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { lookPresets } from "../data/look-presets.js";
 import { createCountryMapData } from "./dot-generation.js";
+import { latLngToImagePoint } from "./projection.js";
 import {
   createGlobeDots,
   createGlobeLattice,
+  createLandSpans,
   createLandTest,
   globeDotStep,
   globeKeepsMapGrid,
@@ -149,6 +151,31 @@ describe("globe dots", () => {
     expect(world.points.every(isLand)).toBe(true);
     // The middle of the Pacific, south of Hawaii.
     expect(isLand({ x: ((-150 + 168) / 336) * world.image.width, y: world.image.height * 0.55 })).toBe(false);
+  });
+});
+
+describe("the globe's dots for an area", () => {
+  it("are made once, the first time the globe asks for them", () => {
+    const mapData = createCountryMapData(["BRA"], 30);
+    expect(Object.getOwnPropertyDescriptor(mapData, "globePoints").get).toBeTypeOf("function");
+    expect(mapData.globePoints).toBe(mapData.globePoints);
+  });
+
+  it("keep to the land's rows, so an area across the antimeridian costs its dots and not its box", () => {
+    for (const codes of [[], ["FJI"], ["RUS"], ["NZL"]]) {
+      const { points, image } = createCountryMapData(codes, 40);
+      const step = globeDotStep(points, image);
+      const isLand = createLandTest(points, image);
+      const land = (lattice) => lattice.filter((dot) => isLand(latLngToImagePoint(dot.lat, dot.lng, image)));
+      const box = createGlobeLattice(step, image.region);
+      const rows = createGlobeLattice(step, image.region, createLandSpans(points, image));
+      expect(land(rows), codes.join() || "world").toEqual(land(box));
+      if (codes[0] === "FJI") {
+        // Fiji's box runs all the way round the world.
+        expect(box.length).toBeGreaterThan(100 * points.length);
+        expect(rows.length).toBeLessThan(10 * points.length);
+      }
+    }
   });
 });
 

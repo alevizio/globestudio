@@ -36,8 +36,10 @@ export const globeDotStep = (points, image) => {
 // Rows evenly spaced in latitude, each holding as many dots as its
 // circumference fits, alternate rows shifted half a step. Rows count from
 // the equator and dots from the region's middle meridian, so the pattern is
-// hexagonal there and the same arc apart everywhere.
-export const createGlobeLattice = (step, region) => {
+// hexagonal there and the same arc apart everywhere. spans(lat), when
+// given, keeps a row to those stretches of longitude, [from, to] in
+// order, in the region's own degrees.
+export const createGlobeLattice = (step, region, spans = () => [[region.lng.min, region.lng.max]]) => {
   const rowStep = step * ROW_STEP;
   const middle = (region.lng.min + region.lng.max) / 2;
   const lattice = [];
@@ -46,11 +48,17 @@ export const createGlobeLattice = (step, region) => {
     const count = Math.max(1, Math.round((360 * Math.cos(lat * DEG)) / step));
     const lngStep = 360 / count;
     const shift = Math.abs(row) % 2 ? 0.5 : 0;
-    const first = Math.ceil((region.lng.min - middle) / lngStep - shift);
+    const columnAt = (lng) => (lng - middle) / lngStep - shift;
+    const first = Math.ceil(columnAt(region.lng.min));
     // A region all the way round takes each dot of the row once.
-    const last = Math.min(first + count - 1, Math.floor((region.lng.max - middle) / lngStep - shift));
-    for (let column = first; column <= last; column += 1) {
-      lattice.push({ row, column, lat, lng: normalizeLongitude(middle + (column + shift) * lngStep) });
+    const last = Math.min(first + count - 1, Math.floor(columnAt(region.lng.max)));
+    let next = first;
+    for (const [from, to] of spans(lat)) {
+      const end = Math.min(last, Math.floor(columnAt(to)));
+      for (let column = Math.max(next, Math.ceil(columnAt(from))); column <= end; column += 1) {
+        lattice.push({ row, column, lat, lng: normalizeLongitude(middle + (column + shift) * lngStep) });
+      }
+      next = Math.max(next, end + 1);
     }
   }
   return lattice;
@@ -79,6 +87,32 @@ export const createLandTest = (points, image) => {
       + (1 - side) * up * at(row + 1, column)
       + side * up * at(row + 1, column + 1);
     return value >= 0.5;
+  };
+};
+
+// The stretches of a globe row where createLandTest can find land: within
+// two columns of a flat dot in the image rows it blends. A lattice over a
+// region's whole box costs as much as the box, which for an area that
+// spans the antimeridian (Fiji) is all the way round the world.
+export const createLandSpans = (points, image) => {
+  const rows = new Map();
+  points.forEach((point) => {
+    const row = Math.round(point.y / ROW_STEP);
+    if (!rows.has(row)) rows.set(row, []);
+    rows.get(row).push(point.x);
+  });
+  const { lng } = image.region;
+  const toLng = (x) => lng.min + (x / image.width) * (lng.max - lng.min);
+  return (lat) => {
+    const row = Math.floor(latLngToImagePoint(lat, lng.min, image).y / ROW_STEP);
+    const xs = [...(rows.get(row) ?? []), ...(rows.get(row + 1) ?? [])].sort((a, b) => a - b);
+    const spans = [];
+    for (const x of xs) {
+      const last = spans.at(-1);
+      if (last && toLng(x - 2) <= last[1]) last[1] = toLng(x + 2);
+      else spans.push([toLng(x - 2), toLng(x + 2)]);
+    }
+    return spans;
   };
 };
 
@@ -175,7 +209,7 @@ export const createGlobeDots = (points, image) => {
   if (!points.length || !image?.region) return points;
   const step = globeDotStep(points, image);
   const isLand = createLandTest(points, image);
-  const lattice = createGlobeLattice(step, image.region)
+  const lattice = createGlobeLattice(step, image.region, createLandSpans(points, image))
     .map((dot) => ({ ...dot, ...latLngToImagePoint(dot.lat, dot.lng, image) }))
     .filter(isLand);
   const pairs = pairDots(points, lattice, step);

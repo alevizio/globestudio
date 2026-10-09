@@ -219,11 +219,13 @@ export const EmbedView = () => {
     const state = stateId && usStates.find((item) => item._id === stateId);
     return state ? makeFeatureCollection([state]) : null;
   }, [stateId, usStates]);
+  // A state's dots follow the shape and a country's don't (App.jsx).
+  const stateShape = stateCollection ? settings.shape : null;
   const mapData = useMemo(
     () => (stateCollection
-      ? createStateMapData(stateCollection, settings.density, settings.shape)
+      ? createStateMapData(stateCollection, settings.density, stateShape)
       : createCountryMapData(ids, settings.density)),
-    [ids, settings.density, settings.shape, stateCollection],
+    [ids, settings.density, stateShape, stateCollection],
   );
   const prefersReducedMotion = usePrefersReducedMotion();
   // A design saved with its animations off holds still, as in the studio.

@@ -711,13 +711,16 @@ const App = () => {
     };
   }, [selection, stateSelection, usStates]);
 
+  // A state's dots follow the shape and a country's don't, so a new shape
+  // keeps a country's dots and the globe's own (utils/globe-dots.js).
+  const stateShape = selected.mode === "state" ? shape : null;
   const mapData = useMemo(() => {
     if (selected.mode === "state") {
-      return createStateMapData(selected.collection, density, shape);
+      return createStateMapData(selected.collection, density, stateShape);
     }
 
     return createCountryMapData(selected.countryCodes, density);
-  }, [density, selected, shape]);
+  }, [density, selected, stateShape]);
 
   const dotCount = dotsVisible ? mapData.points.length : 0;
 

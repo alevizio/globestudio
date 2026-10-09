@@ -404,6 +404,27 @@ describe("buildGlobeDotLayer dot grid", () => {
     expect(litIn("Square", 1)).toEqual(flatMap);
   });
 
+  it("leaves the globe's own dots unmade for squares", () => {
+    const mapData = {
+      image: world.image,
+      points: world.points,
+      get globePoints() {
+        throw new Error("made the globe's dots");
+      },
+    };
+    const build = () =>
+      buildGlobeDotLayer({
+        mapData,
+        selectedDots: new Set([world.points[0].id]),
+        dotColor: "#ffffff",
+        dotSize: 10,
+        shape: "Square",
+        shaderSettings: DEFAULT_SHADER_SETTINGS,
+        globeSettings: DEFAULT_GLOBE_SETTINGS,
+      });
+    expect(build).not.toThrow();
+  });
+
   it("gives the flat map's dots the twinkle and Vary size they have on the flat map's grid", () => {
     const phases = (mesh) => {
       const values = mesh.geometry.getAttribute("aPhase");
