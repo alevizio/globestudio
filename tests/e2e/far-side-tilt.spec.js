@@ -12,6 +12,9 @@ const BLOCK = 16;
 const DROP = 12;
 
 test.use({ viewport: { width: 1280, height: 800 } });
+// A lighter Metal keeps this inside CI's time limit under software WebGL:
+// it ships at Density 70, thousands of boxes.
+const METAL = `/looks/metal?c=${encodeURIComponent(JSON.stringify({ v: 2, density: 30 }))}&app=1`;
 
 // Reduced motion holds auto-spin and twinkle still, so the frames change
 // only with the drag.
@@ -48,14 +51,14 @@ const blockMeans = (page) =>
 const blocksDarkened = (before, after) => after.filter((mean, i) => before[i] - mean > DROP).length;
 
 test("tilting a see-through look north-south keeps the far side's land", async ({ page }) => {
-  test.setTimeout(process.env.CI ? 240_000 : 180_000);
-  await page.goto("/looks/metal?app=1");
+  test.setTimeout(process.env.CI ? 360_000 : 180_000);
+  await page.goto(METAL);
   const canvas = page.locator(".globe-background canvas");
   await expect(canvas).toBeVisible({ timeout: CANVAS_TIMEOUT });
   // Land drawn: some blocks are well above the dark background.
   await expect
     .poll(async () => (await blockMeans(page))?.filter((mean) => mean > 60).length ?? 0, { timeout: CANVAS_TIMEOUT })
-    .toBeGreaterThan(100);
+    .toBeGreaterThan(40);
 
   // The globe opens tilted 8 degrees with its north pole away. Each 2 px
   // drag tilts it about half a degree; 24 of them carry it about 12 degrees,
@@ -83,6 +86,6 @@ test("tilting a see-through look north-south keeps the far side's land", async (
 
   const darkened = frames.slice(1).map((frame, i) => blocksDarkened(frames[i], frame));
   // No step lost a patch of land. A half-degree turn darkens a few blocks
-  // at most; the old drop darkened over a hundred at once.
-  expect(Math.max(...darkened)).toBeLessThan(25);
+  // at most; the old drop darkened dozens at once.
+  expect(Math.max(...darkened)).toBeLessThan(12);
 });
