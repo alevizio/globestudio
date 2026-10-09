@@ -43,16 +43,17 @@ test("exports the design as a GLB from the 3D tab", async ({ page }) => {
     return { json, dots: json.nodes.find((node) => node.name === "Dots") };
   };
 
-  // The whole world at Density 40 is 1,365 dots of 20 vertices each.
+  // The whole world at Density 40 is 1,389 dots on the globe (1,365 on the
+  // flat map, utils/globe-dots.js) of 20 vertices each.
   const merged = await save();
   const mesh = merged.json.meshes[merged.dots.mesh];
-  expect(merged.json.accessors[mesh.primitives[0].attributes.POSITION].count).toBe(1365 * 20);
+  expect(merged.json.accessors[mesh.primitives[0].attributes.POSITION].count).toBe(1389 * 20);
   expect(merged.json.extensionsRequired).toBeUndefined();
 
   await dialog.getByRole("button", { name: "Instanced" }).click();
   const instanced = await save();
   const instances = instanced.json.accessors[instanced.dots.extensions.EXT_mesh_gpu_instancing.attributes.TRANSLATION];
-  expect(instances.count).toBe(1365);
+  expect(instances.count).toBe(1389);
   expect(instanced.json.extensionsRequired).toEqual(["EXT_mesh_gpu_instancing"]);
 });
 

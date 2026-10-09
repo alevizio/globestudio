@@ -122,6 +122,25 @@ describe("globe dots", () => {
     for (const dot of paired) expect(arc(dot, byId.get(dot.id))).toBeLessThanOrEqual(step + 1e-9);
   });
 
+  it("keep land on the globe that a globe dot on the next coast doesn't cover", () => {
+    // At Density 10 Iceland is one flat dot, and the nearest globe dot of
+    // the lattice is in the North Sea, three quarters of a step away.
+    const sparse = createCountryMapData([], 10);
+    const sparseStep = globeDotStep(sparse.points, sparse.image);
+    const shown = globeDots(sparse);
+    const iceland = sparse.points.find((point) => point.lat > 63 && point.lat < 67 && point.lng > -25 && point.lng < -13);
+    expect(iceland).toBeDefined();
+    expect(Math.min(...shown.map((dot) => arc(dot, iceland)))).toBeLessThan(sparseStep / 2);
+    // Every flat dot, the top row at 71°N included, has a globe dot within
+    // about half a step.
+    for (const mapData of [sparse, world]) {
+      const mapStep = globeDotStep(mapData.points, mapData.image);
+      const globe = globeDots(mapData);
+      const far = mapData.points.filter((point) => globe.every((dot) => arc(dot, point) > 0.6 * mapStep));
+      expect(far.length, `${mapData.points.length} dots`).toBeLessThanOrEqual(2);
+    }
+  });
+
   it("draw the flat map's coastlines: each flat dot's own point is land, open sea is not", () => {
     const isLand = createLandTest(world.points, world.image);
     expect(world.points.every(isLand)).toBe(true);

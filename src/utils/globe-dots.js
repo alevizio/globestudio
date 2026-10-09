@@ -147,9 +147,13 @@ export const pairDots = (flatDots, globeDots, maxArc) => {
 // image point. points: the flat map's dots, with lat and lng. The globe's
 // dots come first.
 //
-// A flat dot with no globe dot within a step stays on the globe where it
-// is, so land smaller than the globe's step (an island, a small country at
-// a low Density) never drops off the globe.
+// A flat dot with no globe dot within ALONE_REACH of a step stays on the
+// globe where it is, so land smaller than the globe's step (an island, a
+// small country at a low Density, the flat map's top row) never drops off
+// the globe. A whole step would count a globe dot on the next coast, or in
+// the sea beside it, as covering it.
+const ALONE_REACH = 0.6;
+
 export const createGlobeDots = (points, image) => {
   if (!points.length || !image?.region) return points;
   const step = globeDotStep(points, image);
@@ -158,7 +162,7 @@ export const createGlobeDots = (points, image) => {
     .map((dot) => ({ ...dot, ...latLngToImagePoint(dot.lat, dot.lng, image) }))
     .filter(isLand);
   const pairs = pairDots(points, lattice, step);
-  const onGlobe = createNearby(step);
+  const onGlobe = createNearby(step * ALONE_REACH);
   lattice.forEach((dot, index) => onGlobe.add(unitVector(dot), index));
   const paired = new Uint8Array(lattice.length);
   const dots = points.map((point, index) => {

@@ -299,13 +299,13 @@ describe("estimateGlbBytes", () => {
     }
   });
 
-  it("puts Particle Grid at Density 100 near 79 MB merged and under 1 MB instanced, without a long task", async () => {
+  it("puts Particle Grid at Density 100 near 80 MB merged and under 1 MB instanced, without a long task", async () => {
     const globeGroup = scene({ mapData: createCountryMapData([], 100), shape: "Particle Grid" });
     const start = performance.now();
     const { merged, instanced } = await estimateGlbBytes(globeGroup);
     // It never walks the dots one by one, so a long task (50 ms) is far off.
     expect(performance.now() - start).toBeLessThan(50);
-    expect(merged / 1e6).toBeCloseTo(79, 0);
+    expect(merged / 1e6).toBeCloseTo(80, 0);
     expect(instanced).toBeLessThan(1e6);
   });
 });
