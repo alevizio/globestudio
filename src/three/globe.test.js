@@ -4,8 +4,16 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_GLOBE_SETTINGS, GLOBE_CAMERA_DISTANCE, GLOBE_RADIUS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { createCountryMapData } from "../utils/dot-generation.js";
+import { latLngToImagePoint } from "../utils/projection.js";
 import { latLngToVector3 } from "./coordinates.js";
-import { applyDotLayerMorph, buildGlobeDotLayer, createAtmosphereMaterial, createOuterHaloMaterial } from "./globe.js";
+import { createGlobeDotGeometry } from "./geometry.js";
+import {
+  applyDotLayerMorph,
+  buildGlobeDotLayer,
+  createAtmosphereMaterial,
+  createOuterHaloMaterial,
+  northUpQuaternion,
+} from "./globe.js";
 
 const world = createCountryMapData([], 30);
 
@@ -147,6 +155,97 @@ describe("buildGlobeDotLayer draw order", () => {
     for (const shape of ["Circle", "Square", "Triangle", "Star", "Diamond", "Ring"]) {
       const { dotLayer } = globeScene({ shape });
       for (const mesh of dotLayer.children) expect(mesh.material.side).toBe(THREE.FrontSide);
+    }
+  });
+});
+
+describe("buildGlobeDotLayer dot turn", () => {
+  const layer = (dots) =>
+    buildGlobeDotLayer({
+      mapData: world,
+      selectedDots: new Set(),
+      dotColor: "#ffffff",
+      dotSize: 10,
+      shape: "Triangle",
+      shaderSettings: DEFAULT_SHADER_SETTINGS,
+      globeSettings: DEFAULT_GLOBE_SETTINGS,
+      ...dots,
+    }).children[0];
+  // Instance matrices are 32-bit floats.
+  const DEGREES = 1e-3;
+  const poseOf = (mesh, index) => {
+    const matrix = new THREE.Matrix4();
+    mesh.getMatrixAt(index, matrix);
+    const position = new THREE.Vector3();
+    const quaternion = new THREE.Quaternion();
+    matrix.decompose(position, quaternion, new THREE.Vector3());
+    return { position, quaternion };
+  };
+  // The triangle's tip: its vertex furthest along local +X.
+  const triangle = createGlobeDotGeometry("Triangle").getAttribute("position");
+  const tip = new THREE.Vector3();
+  for (let i = 0; i < triangle.count; i += 1) {
+    if (triangle.getX(i) > tip.x) tip.fromBufferAttribute(triangle, i);
+  }
+  // Degrees clockwise from north. On the flat map north is up the screen
+  // (+Y) and east is right (+X); on the globe they are read off the
+  // sphere's own latitude and longitude lines.
+  const flatBearing = (vector) => THREE.MathUtils.radToDeg(Math.atan2(vector.x, vector.y));
+  const globeBearing = (vector, { lat, lng }) => {
+    const step = 1e-4;
+    const north = latLngToVector3(lat + step, lng, 1).sub(latLngToVector3(lat - step, lng, 1)).normalize();
+    const east = latLngToVector3(lat, lng + step, 1).sub(latLngToVector3(lat, lng - step, 1)).normalize();
+    return THREE.MathUtils.radToDeg(Math.atan2(vector.dot(east), vector.dot(north)));
+  };
+  const places = [];
+  for (const lat of [-80, -45, 0, 30, 70, 89]) {
+    for (const lng of [-170, -90, -30, 0, 20, 80, 150]) places.push({ lat, lng });
+  }
+  const placesMap = {
+    image: world.image,
+    points: places.map(({ lat, lng }, index) => ({ id: `p${index}`, lat, lng, ...latLngToImagePoint(lat, lng, world.image) })),
+  };
+
+  // The globe turned each shape by the shortest arc from +Y to the
+  // sphere's normal, a degree per degree of longitude, so a triangle
+  // pointed up over the Americas and sideways over Africa.
+  it.each([0, 25])("points a triangle's tip where the flat map points it at every latitude and longitude (Rotation %i)", (dotRotation) => {
+    const flat = layer({ mapData: placesMap, dotRotation, morphProgress: 0 });
+    const globe = layer({ mapData: placesMap, dotRotation });
+    const wrong = [];
+    places.forEach((place, index) => {
+      const flatTip = flatBearing(tip.clone().applyQuaternion(poseOf(flat, index).quaternion));
+      const { position, quaternion } = poseOf(globe, index);
+      const globeTip = globeBearing(tip.clone().applyQuaternion(quaternion), place);
+      const outward = new THREE.Vector3(0, 1, 0).applyQuaternion(quaternion).dot(position.normalize());
+      if (Math.abs(globeTip - flatTip) > DEGREES || Math.abs(outward - 1) > 1e-6) {
+        wrong.push(`${place.lat},${place.lng}: tip ${globeTip.toFixed(2)} vs ${flatTip.toFixed(2)}, outward ${outward}`);
+      }
+    });
+    expect(wrong).toEqual([]);
+    // The tip of the flat map's triangle points east, less the Rotation.
+    expect(Math.abs(flatBearing(tip.clone().applyQuaternion(poseOf(flat, 0).quaternion)) - (90 - dotRotation))).toBeLessThan(DEGREES);
+  });
+
+  it("points every dot the world shows on the globe the same way", () => {
+    const mesh = layer();
+    // The flat map's own dots are scaled to nothing on the globe.
+    const bearings = mesh.userData.points
+      .map((point, index) => (point.view === "flat" ? null : globeBearing(tip.clone().applyQuaternion(poseOf(mesh, index).quaternion), point)))
+      .filter((bearing) => bearing !== null);
+    expect(bearings.length).toBeGreaterThan(500);
+    expect(Math.abs(Math.min(...bearings) - 90)).toBeLessThan(DEGREES);
+    expect(Math.abs(Math.max(...bearings) - 90)).toBeLessThan(DEGREES);
+  });
+
+  it("keeps a dot's turn defined at the poles, along its meridian over the top", () => {
+    for (const [pole, near] of [[90, 89.9999], [-90, -89.9999]]) {
+      for (const lng of [-150, 0, 45, 180]) {
+        const atPole = northUpQuaternion(pole, lng);
+        expect([atPole.x, atPole.y, atPole.z, atPole.w].every(Number.isFinite)).toBe(true);
+        expect(atPole.angleTo(northUpQuaternion(near, lng))).toBeLessThan(1e-5);
+        expect(new THREE.Vector3(0, 1, 0).applyQuaternion(atPole).y).toBeCloseTo(Math.sign(pole), 9);
+      }
     }
   });
 });

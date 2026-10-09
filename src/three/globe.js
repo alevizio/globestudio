@@ -7,7 +7,7 @@ import {
   GLOBE_RADIUS,
 } from "../config/globe-settings.js";
 import { globeKeepsMapGrid } from "../utils/globe-dots.js";
-import { clampNumber, hashString, normalizeLongitude, remapTByMidpoint, smoothStep } from "../utils/math.js";
+import { clampNumber, degToRad, hashString, normalizeLongitude, remapTByMidpoint, smoothStep } from "../utils/math.js";
 import { pointToGlobeCoordinate } from "../utils/projection.js";
 import { latLngToVector3, pointToFlatVector3 } from "./coordinates.js";
 import { createAsciiCanvasTexture, createGlobeDotGeometry, disposeThreeObject } from "./geometry.js";
@@ -380,17 +380,37 @@ const SCRATCH_MATRIX = new THREE.Matrix4();
 const SCRATCH_QUATERNION = new THREE.Quaternion();
 const SCRATCH_SPIN_QUATERNION = new THREE.Quaternion();
 const SCRATCH_CYLINDER_QUATERNION = new THREE.Quaternion();
-const SCRATCH_FLAT_QUATERNION = new THREE.Quaternion();
 const SCRATCH_GLOBE_QUATERNION = new THREE.Quaternion();
+const SCRATCH_TILT_QUATERNION = new THREE.Quaternion();
 const SCRATCH_CYLINDER_POSITION = new THREE.Vector3();
-const SCRATCH_CYLINDER_NORMAL = new THREE.Vector3();
-const SCRATCH_NORMAL = new THREE.Vector3();
 const SCRATCH_POSITION = new THREE.Vector3();
 const SCRATCH_FLAT_POSITION = new THREE.Vector3();
 const SCRATCH_GLOBE_POSITION = new THREE.Vector3();
 const SCRATCH_SIZE = new THREE.Vector3();
 const AXIS_UP = new THREE.Vector3(0, 1, 0);
 const AXIS_DEPTH = new THREE.Vector3(0, 0, 1);
+const AXIS_RIGHT = new THREE.Vector3(1, 0, 0);
+
+// A dot on the flat map: its shape lies flat facing local +Y, with the
+// shape's up along local -Z (three/geometry.js), turned to face the camera
+// with that up toward the top of the map, north.
+const FLAT_QUATERNION = new THREE.Quaternion().setFromUnitVectors(AXIS_UP, AXIS_DEPTH);
+
+// Turns a dot from its flat map pose to face out of the sphere at lat, lng
+// with its up toward north and its right toward east, so a shape keeps on
+// the globe the turn it has on the flat map. The flat pose is the globe's
+// at latitude 0, longitude -90 (facing +Z): tilt it north by the latitude,
+// then turn it round the axis by the longitude. At a pole, north is where
+// the dot's own meridian runs over the top, so the turn stays defined
+// there. With latitude 0 it is the pose on the morph's cylinder. The
+// shortest turn from +Y to the sphere's normal (setFromUnitVectors), which
+// the globe used before, turned every shape a degree per degree of
+// longitude.
+export const northUpQuaternion = (lat, lng, target = new THREE.Quaternion()) =>
+  target
+    .setFromAxisAngle(AXIS_UP, degToRad(lng + 90))
+    .multiply(SCRATCH_TILT_QUATERNION.setFromAxisAngle(AXIS_RIGHT, degToRad(-lat)))
+    .multiply(FLAT_QUATERNION);
 
 const applyDotInstances = (
   mesh,
@@ -406,16 +426,12 @@ const applyDotInstances = (
   const quaternion = SCRATCH_QUATERNION;
   const spinQuaternion = SCRATCH_SPIN_QUATERNION;
   const cylinderQuaternion = SCRATCH_CYLINDER_QUATERNION;
-  const flatQuaternion = SCRATCH_FLAT_QUATERNION;
   const globeQuaternion = SCRATCH_GLOBE_QUATERNION;
   const cylinderPosition = SCRATCH_CYLINDER_POSITION;
-  const cylinderNormal = SCRATCH_CYLINDER_NORMAL;
-  const normal = SCRATCH_NORMAL;
   const position = SCRATCH_POSITION;
   const flatPosition = SCRATCH_FLAT_POSITION;
   const globePosition = SCRATCH_GLOBE_POSITION;
   const up = AXIS_UP;
-  const depth = AXIS_DEPTH;
   const size = SCRATCH_SIZE;
   const globeShare = smoothStep(VIEW_FADE[0], VIEW_FADE[1], morphProgress);
   // Spin each instance around its local up-axis (which the orientation logic
@@ -440,17 +456,6 @@ const applyDotInstances = (
     const point = points[i];
     flatPosition.copy(pointToFlatVector3(point, image, radiusOffset));
     globePosition.copy(latLngToVector3(point.lat, point.lng, GLOBE_RADIUS + radiusOffset));
-    normal.copy(globePosition).normalize();
-
-    // Normalised horizontal direction — drives the per-dot orientation in
-    // the cylinder phase so each dot keeps rotating toward its eventual
-    // sphere normal as it wraps.
-    cylinderNormal.set(normal.x, 0, normal.z);
-    if (cylinderNormal.lengthSq() < 0.000001) {
-      cylinderNormal.copy(depth);
-    } else {
-      cylinderNormal.normalize();
-    }
 
     // Cylinder POSITION uses the dot's actual sphere x/z (not the
     // normalised cylinder direction scaled to full radius). Equatorial
@@ -467,10 +472,11 @@ const applyDotInstances = (
     cylinderPosition.y = THREE.MathUtils.lerp(flatPosition.y, globePosition.y, sphereProgress * 0.72);
     position.copy(flatPosition).lerp(cylinderPosition, wrapProgress).lerp(globePosition, sphereProgress);
 
-    globeQuaternion.setFromUnitVectors(up, normal);
-    flatQuaternion.setFromUnitVectors(up, depth);
-    cylinderQuaternion.setFromUnitVectors(up, cylinderNormal);
-    quaternion.copy(flatQuaternion).slerp(cylinderQuaternion, wrapProgress).slerp(globeQuaternion, sphereProgress);
+    // North up on the cylinder and on the sphere, as on the flat map, so a
+    // shape keeps its turn through the morph.
+    northUpQuaternion(0, point.lng, cylinderQuaternion);
+    northUpQuaternion(point.lat, point.lng, globeQuaternion);
+    quaternion.copy(FLAT_QUATERNION).slerp(cylinderQuaternion, wrapProgress).slerp(globeQuaternion, sphereProgress);
     // Apply the uniform rotation in the geometry's local frame (around up-axis)
     // before the orientation quaternion rotates it into world space.
     quaternion.multiply(spinQuaternion);
