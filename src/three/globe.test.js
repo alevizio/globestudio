@@ -157,6 +157,26 @@ describe("buildGlobeDotLayer draw order", () => {
       for (const mesh of dotLayer.children) expect(mesh.material.side).toBe(THREE.FrontSide);
     }
   });
+
+  // CRT's and Pencil's glyphs: drawn before the sphere, they write depth so
+  // the sphere leaves the near side's glyphs undimmed and they still show at
+  // Surface 100. The alpha test keeps a glyph's empty corners from hiding
+  // what is behind them, and the far side's glyphs still show through.
+  it.each([
+    ["ASCII", { asciiSymbol: "x" }],
+    ["ASCII", { asciiSymbol: "█x" }],
+    ["Custom", { customShapeTexture: new THREE.Texture() }],
+  ])("draws %s glyphs solid: they write depth, cut at their alpha test, both sides", (shape, dots) => {
+    const { dotLayer } = globeScene({ shape, ...dots });
+    const glyphs = dotLayer.children.filter((mesh) => mesh.material.customProgramCacheKey() === "twinkle:ascii");
+    expect(glyphs.length).toBeGreaterThan(0);
+    for (const { material } of glyphs) {
+      expect(material.depthWrite).toBe(true);
+      expect(material.alphaTest).toBeGreaterThan(0);
+      expect(material.transparent).toBe(true);
+      expect(material.side).toBe(THREE.DoubleSide);
+    }
+  });
 });
 
 describe("buildGlobeDotLayer dot turn", () => {

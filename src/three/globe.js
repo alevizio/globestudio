@@ -797,6 +797,12 @@ export const buildGlobeDotLayer = ({
   const accentColor = new THREE.Color(CLICK_HIGHLIGHT);
   const emissiveBoost = isBorderless ? 0.7 + intensity * 0.7 : effect === "none" ? 0.22 : 0.5 + intensity * 0.85;
 
+  // ASCII glyphs and custom shapes write depth like the other dots, so the
+  // globe's see-through sphere, drawn after them, leaves the near side's
+  // glyphs as they are instead of dimming them, and they still show at
+  // Surface 100. The alpha test cuts the empty part of each glyph's square
+  // away, so it neither hides nor blocks what is behind. Double-sided, the
+  // far side's glyphs still show through the body, dimmed by it.
   const makeAsciiMaterial = (texture, materialColor) =>
     wireTwinkleMaterial(
       new THREE.MeshBasicMaterial({
@@ -805,7 +811,6 @@ export const buildGlobeDotLayer = ({
         transparent: true,
         alphaTest: 0.18,
         side: THREE.DoubleSide,
-        depthWrite: false,
       }),
       "ascii",
     );
