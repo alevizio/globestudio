@@ -22,6 +22,7 @@ import {
   createBorderlessNetwork,
   createGraticule,
   createOuterHaloMaterial,
+  shownDotCount,
   twinkleUniforms,
   updateBorderlessNetworkMotion,
 } from "../three/globe.js";
@@ -1358,8 +1359,7 @@ export const GlobeBackground = ({
         const info = renderer.info;
         m.calls = info?.render?.calls ?? 0;
         m.geometries = info?.memory?.geometries ?? 0;
-        const dotCounts = threeRef.current.dotLayer?.userData?.dotCounts;
-        m.dots = dotCounts ? dotCounts[morph.progress >= 0.5 ? "globe" : "flat"] : 0;
+        m.dots = shownDotCount(threeRef.current.dotLayer, morph.progress);
       }
 
       // Adaptive DPR — track sustained FPS in a 60-frame window. When the

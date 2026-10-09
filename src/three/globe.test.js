@@ -15,6 +15,7 @@ import {
   createGraticule,
   createOuterHaloMaterial,
   northUpQuaternion,
+  shownDotCount,
 } from "./globe.js";
 import { createGlobeNetwork, updateGlobeNetwork } from "./globe-network.js";
 
@@ -427,17 +428,19 @@ describe("buildGlobeDotLayer dot grid", () => {
     expect(litIn("Square", 1)).toEqual(flatMap);
   });
 
-  it("counts the dots each view shows", () => {
+  it("counts the dots each view shows, without the glow's", () => {
     const group = buildGlobeDotLayer({
       mapData: world,
       selectedDots: new Set([world.globePoints.find((dot) => dot.view === "globe").id]),
       dotColor: "#ffffff",
       dotSize: 10,
       shape: "Circle",
-      shaderSettings: DEFAULT_SHADER_SETTINGS,
+      shaderSettings: { ...DEFAULT_SHADER_SETTINGS, effect: "bloom" },
       globeSettings: DEFAULT_GLOBE_SETTINGS,
     });
-    expect(group.userData.dotCounts).toEqual({ flat: world.points.length, globe: world.globePoints.filter((dot) => dot.view !== "flat").length });
+    expect(group.children.filter((child) => child.isInstancedMesh).length).toBeGreaterThan(2);
+    expect(shownDotCount(group, 0)).toBe(world.points.length);
+    expect(shownDotCount(group, 1)).toBe(world.globePoints.filter((dot) => dot.view !== "flat").length);
   });
 
   it("leaves the globe's own dots unmade for squares", () => {

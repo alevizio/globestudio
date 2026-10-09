@@ -378,17 +378,15 @@ export const createAtmosphereMaterial = () =>
 // view lights goes in once per view.
 const buildGlobePoints = (mapData, selectedDots, shape) => {
   const ownDots = globeKeepsMapGrid(shape) ? null : mapData.globePoints;
-  const lit = ownDots ? litDots(mapData, selectedDots) : { flat: litOnFlatMap(mapData, selectedDots) };
+  const { flat, globe = flat } = ownDots ? litDots(mapData, selectedDots) : { flat: litOnFlatMap(mapData, selectedDots) };
   return (ownDots ?? mapData.points)
     .flatMap((dot) => {
       const point = { ...dot, ...pointToGlobeCoordinate(dot, mapData.image) };
-      if (!ownDots) return [{ ...point, selected: lit.flat.has(dot.id) }];
-      const onFlat = dot.view !== "globe" && lit.flat.has(dot.id);
-      const onGlobe = dot.view !== "flat" && lit.globe.has(dot.id);
-      if (!dot.view && onFlat !== onGlobe) {
-        return [{ ...point, view: "flat", selected: onFlat }, { ...point, view: "globe", selected: onGlobe }];
-      }
-      return [{ ...point, selected: onFlat || onGlobe }];
+      const onFlat = dot.view !== "globe" && flat.has(dot.id);
+      const onGlobe = dot.view !== "flat" && globe.has(dot.id);
+      return !dot.view && onFlat !== onGlobe
+        ? [{ ...point, view: "flat", selected: onFlat }, { ...point, view: "globe", selected: onGlobe }]
+        : [{ ...point, selected: onFlat || onGlobe }];
     })
     .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
 };
@@ -631,14 +629,12 @@ const wireTwinkleMaterial = (material, cacheKey) => {
 // the flat map keeps the sizes it had before the globe had dots of its own.
 const attachPhaseAttribute = (geometry, points, scale) => {
   if (geometry.getAttribute("aPhase")?.count === points.length) return;
-  const indices = points.map((_, index) => index);
-  const flat = indices.filter((index) => points[index].view !== "globe");
-  const globe = indices.filter((index) => points[index].view === "globe");
-  flat.sort((a, b) => (points[a].flatIndex ?? a) - (points[b].flatIndex ?? b));
+  const rank = (index) => (points[index].view === "globe" ? 1e9 + index : points[index].flatIndex ?? index);
+  const order = points.map((_, index) => index).sort((a, b) => rank(a) - rank(b));
   const phases = new Float32Array(points.length);
   // Stable per-mesh random so the twinkle pattern is reproducible across re-renders.
-  let s = (flat.length + Math.round(scale * 1000)) * 9301 + 49297;
-  [...flat, ...globe].forEach((index) => {
+  let s = (points.filter((point) => point.view !== "globe").length + Math.round(scale * 1000)) * 9301 + 49297;
+  order.forEach((index) => {
     s = (s * 9301 + 49297) % 233280;
     phases[index] = s / 233280;
   });
@@ -1065,17 +1061,23 @@ export const buildGlobeDotLayer = ({
     group.scale.setScalar(1 + intensity * 0.018);
   }
 
-  // The dots each view shows (the dev perf HUD).
-  group.userData.dotCounts = {
-    flat: points.filter((point) => point.view !== "globe").length,
-    globe: points.filter((point) => point.view !== "flat").length,
-  };
   // What a click on a dot toggles (toggleDot, utils/globe-dots.js): squares
   // light the flat map's dots in both views.
   group.userData.mapData = mapData;
-  group.userData.mapGrid = globeKeepsMapGrid(shape) || !mapData.globePoints;
+  group.userData.mapGrid = globeKeepsMapGrid(shape);
   group.userData.morphProgress = morphProgress;
   return group;
+};
+
+// The dots a dot layer shows in the view the morph is in, for the dev perf
+// HUD: each view has dots of its own (point.view). The glow and colour
+// split layers don't count.
+export const shownDotCount = (layer, morphProgress) => {
+  const view = morphProgress >= 0.5 ? "globe" : "flat";
+  return (layer?.children ?? []).reduce((sum, mesh) => {
+    const counts = mesh.material?.userData?.twinkleWired && mesh.userData.viewCounts;
+    return counts ? sum + counts.both + counts[view] : sum;
+  }, 0);
 };
 
 export const applyGlobeShellProgress = (refs, morphProgress, globeSettings = DEFAULT_GLOBE_SETTINGS) => {
