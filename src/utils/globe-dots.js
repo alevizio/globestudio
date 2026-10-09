@@ -88,18 +88,19 @@ const unitVector = ({ lat, lng }) => {
   return [Math.cos(phi) * Math.cos(lambda), Math.cos(phi) * Math.sin(lambda), Math.sin(phi)];
 };
 
-// Dots on the unit sphere, bucketed so the ones within maxArc degrees of a
-// point come back without a walk over all of them.
+// Dots on the unit sphere, each with a key (an index or an id), bucketed so
+// the ones within maxArc degrees of a point come back without a walk over
+// all of them.
 const createNearby = (maxArc) => {
   const reach = 2 * Math.sin((maxArc * DEG) / 2);
   const cellOf = (value) => Math.floor(value / reach) + 1024;
   const keyOf = (x, y, z) => (x * 2048 + y) * 2048 + z;
   const cells = new Map();
   return {
-    add(vector, index) {
-      const key = keyOf(cellOf(vector[0]), cellOf(vector[1]), cellOf(vector[2]));
-      if (!cells.has(key)) cells.set(key, []);
-      cells.get(key).push({ vector, index });
+    add(vector, key) {
+      const cell = keyOf(cellOf(vector[0]), cellOf(vector[1]), cellOf(vector[2]));
+      if (!cells.has(cell)) cells.set(cell, []);
+      cells.get(cell).push({ vector, key });
     },
     // Each entry within reach, with its squared chord distance.
     near([x, y, z], visit) {
@@ -107,13 +108,25 @@ const createNearby = (maxArc) => {
       for (let dx = -1; dx <= 1; dx += 1) {
         for (let dy = -1; dy <= 1; dy += 1) {
           for (let dz = -1; dz <= 1; dz += 1) {
-            for (const { vector, index } of cells.get(keyOf(cx + dx, cy + dy, cz + dz)) ?? []) {
+            for (const { vector, key } of cells.get(keyOf(cx + dx, cy + dy, cz + dz)) ?? []) {
               const distance = (vector[0] - x) ** 2 + (vector[1] - y) ** 2 + (vector[2] - z) ** 2;
-              if (distance <= reach * reach) visit(index, distance);
+              if (distance <= reach * reach) visit(key, distance);
             }
           }
         }
       }
+    },
+    // The key of the nearest entry within reach, or undefined.
+    nearest(vector) {
+      let best = Infinity;
+      let found;
+      this.near(vector, (key, distance) => {
+        if (distance < best) {
+          best = distance;
+          found = key;
+        }
+      });
+      return found;
     },
   };
 };
@@ -139,13 +152,17 @@ export const pairDots = (flatDots, globeDots, maxArc) => {
   return pairs;
 };
 
+// The id of a dot the globe draws and the flat map doesn't.
+export const GLOBE_DOT_ID = "globe:";
+
 // The dots the globe layer draws (three/globe.js). A flat dot paired with a
 // globe dot keeps its id and image point and takes the globe dot's
 // latitude and longitude: it shows in both views and moves a little in the
 // morph. An unpaired flat dot shows only on the flat map (view "flat"), an
 // unpaired globe dot only on the globe (view "globe"), at its own Mercator
-// image point. points: the flat map's dots, with lat and lng. The globe's
-// dots come first.
+// image point. Each of those has a twin, the id of the other view's
+// nearest dot, which a click on it lights in that view (litDots). points:
+// the flat map's dots, with lat and lng. The globe's dots come first.
 //
 // A flat dot with no globe dot within ALONE_REACH of a step stays on the
 // globe where it is, so land smaller than the globe's step (an island, a
@@ -162,30 +179,79 @@ export const createGlobeDots = (points, image) => {
     .map((dot) => ({ ...dot, ...latLngToImagePoint(dot.lat, dot.lng, image) }))
     .filter(isLand);
   const pairs = pairDots(points, lattice, step);
-  const onGlobe = createNearby(step * ALONE_REACH);
-  lattice.forEach((dot, index) => onGlobe.add(unitVector(dot), index));
+  // A lattice dot goes by its flat dot's id when it has one.
+  const latticeIds = lattice.map(({ row, column }) => `${GLOBE_DOT_ID}${row}:${column}`);
   const paired = new Uint8Array(lattice.length);
+  pairs.forEach((globeIndex, flatIndex) => {
+    if (globeIndex < 0) return;
+    latticeIds[globeIndex] = points[flatIndex].id;
+    paired[globeIndex] = 1;
+  });
+  const onGlobe = createNearby(step * ALONE_REACH);
+  lattice.forEach((dot, index) => onGlobe.add(unitVector(dot), latticeIds[index]));
   // Each flat dot keeps its place in the flat map's order (flatIndex), which
   // seeds its twinkle and Vary size (three/globe.js).
   const dots = points.map((point, flatIndex) => {
     const globeIndex = pairs[flatIndex];
-    if (globeIndex >= 0) {
-      paired[globeIndex] = 1;
-      return { ...point, flatIndex, lat: lattice[globeIndex].lat, lng: lattice[globeIndex].lng };
-    }
+    if (globeIndex >= 0) return { ...point, flatIndex, lat: lattice[globeIndex].lat, lng: lattice[globeIndex].lng };
     const vector = unitVector(point);
-    let alone = true;
-    onGlobe.near(vector, () => {
-      alone = false;
-    });
-    if (!alone) return { ...point, flatIndex, view: "flat" };
-    onGlobe.add(vector, -1);
+    const twin = onGlobe.nearest(vector);
+    if (twin !== undefined) return { ...point, flatIndex, view: "flat", twin };
+    onGlobe.add(vector, point.id);
     return { ...point, flatIndex };
   });
-  lattice.forEach(({ row, column, lat, lng, x, y }, index) => {
-    if (!paired[index]) dots.push({ id: `globe:${row}:${column}`, x, y, lat, lng, view: "globe" });
+  // A globe dot passes the land test only within a cell of a flat dot, and
+  // a cell spans at most a column and a row of the flat map.
+  const onFlatMap = createNearby(1.5 * ((image.region.lng.max - image.region.lng.min) / image.width));
+  points.forEach((point) => onFlatMap.add(unitVector(point), point.id));
+  lattice.forEach(({ lat, lng, x, y }, index) => {
+    if (paired[index]) return;
+    const twin = onFlatMap.nearest(unitVector({ lat, lng }));
+    dots.push({ id: latticeIds[index], x, y, lat, lng, view: "globe", ...(twin === undefined ? {} : { twin }) });
   });
   // The flat map's own dots go last, so the globe stops drawing before them
   // (three/globe.js) instead of drawing them at no size.
   return [...dots.filter((dot) => dot.view !== "flat"), ...dots.filter((dot) => dot.view === "flat")];
+};
+
+// The dots a selection lights in each view, as ids: { flat, globe }. A
+// click stores the id of the dot it hit, a flat map dot's (a dot both views
+// draw keeps it) or a globe dot's own. A dot that one view draws alone
+// lights its twin in the other view, so a click shows in both, and the flat
+// map and its exports light only the flat map's own dots.
+export const litDots = (mapData, selectedDots) => {
+  const flat = new Set();
+  const globe = new Set();
+  if (!selectedDots?.size) return { flat, globe };
+  for (const dot of mapData.globePoints ?? mapData.points) {
+    if (!selectedDots.has(dot.id)) continue;
+    if (dot.view !== "globe") flat.add(dot.id);
+    if (dot.view !== "flat") globe.add(dot.id);
+    if (dot.twin !== undefined) (dot.view === "flat" ? globe : flat).add(dot.twin);
+  }
+  return { flat, globe };
+};
+
+const holdsGlobeDot = (selectedDots) => [...(selectedDots ?? [])].some((id) => id.startsWith(GLOBE_DOT_ID));
+
+// The flat map's lit dots. Without a globe dot among them, the ones
+// selected, so the flat map never builds the globe's dots for it.
+export const litOnFlatMap = (mapData, selectedDots) =>
+  holdsGlobeDot(selectedDots) ? litDots(mapData, selectedDots).flat : selectedDots ?? new Set();
+
+// The selection after a click on the dot `id` in `view`, "flat" or "globe"
+// (left out for a dot both views draw and light alike). A lit dot goes
+// dark, with every selected id that lit it; a dark dot lights up.
+export const toggleDot = (mapData, selectedDots, id, view) => {
+  const lighting = selectedDots.has(id) ? [id] : [];
+  if (view !== "flat" || holdsGlobeDot(selectedDots)) {
+    for (const dot of mapData.globePoints ?? []) {
+      // A flat map dot lights its twin on the globe, a globe dot on the flat map.
+      if (dot.twin === id && dot.view !== view && selectedDots.has(dot.id)) lighting.push(dot.id);
+    }
+  }
+  const next = new Set(selectedDots);
+  if (lighting.length) lighting.forEach((lit) => next.delete(lit));
+  else next.add(id);
+  return next;
 };

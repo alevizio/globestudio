@@ -7,7 +7,10 @@ import {
   createLandTest,
   globeDotStep,
   globeKeepsMapGrid,
+  litDots,
+  litOnFlatMap,
   pairDots,
+  toggleDot,
 } from "./globe-dots.js";
 
 const DEG = Math.PI / 180;
@@ -146,6 +149,76 @@ describe("globe dots", () => {
     expect(world.points.every(isLand)).toBe(true);
     // The middle of the Pacific, south of Hawaii.
     expect(isLand({ x: ((-150 + 168) / 336) * world.image.width, y: world.image.height * 0.55 })).toBe(false);
+  });
+});
+
+describe("a click", () => {
+  const flatIds = new Set(world.points.map((point) => point.id));
+  const globeIds = new Set(globeDots(world).map((dot) => dot.id));
+  const globeOnly = world.globePoints.filter((dot) => dot.view === "globe");
+  const flatOnly = world.globePoints.filter((dot) => dot.view === "flat");
+  const both = world.globePoints.find((dot) => !dot.view);
+  const step = globeDotStep(world.points, world.image);
+
+  it("has a twin for every dot one view draws alone: the other view's nearest dot", () => {
+    expect(globeOnly.length).toBeGreaterThan(100);
+    expect(flatOnly.length).toBeGreaterThan(100);
+    const byId = new Map(world.globePoints.map((dot) => [dot.id, dot]));
+    for (const dot of globeOnly) {
+      expect(flatIds.has(dot.twin), dot.id).toBe(true);
+      expect(arc(dot, world.points.find((point) => point.id === dot.twin))).toBeLessThan(1.5 * step);
+    }
+    for (const dot of flatOnly) {
+      expect(globeIds.has(dot.twin), dot.id).toBe(true);
+      expect(arc(dot, byId.get(dot.twin))).toBeLessThan(step);
+    }
+  });
+
+  it("on a dot only the globe draws lights its twin on the flat map, and the flat map's exports with it", () => {
+    const dot = globeOnly[0];
+    const lit = litDots(world, new Set([dot.id]));
+    expect([...lit.globe]).toEqual([dot.id]);
+    expect([...lit.flat]).toEqual([dot.twin]);
+    expect([...litOnFlatMap(world, new Set([dot.id]))]).toEqual([dot.twin]);
+  });
+
+  it("on a dot only the flat map draws lights its twin on the globe", () => {
+    const dot = flatOnly[0];
+    const lit = litDots(world, new Set([dot.id]));
+    expect([...lit.flat]).toEqual([dot.id]);
+    expect([...lit.globe]).toEqual([dot.twin]);
+  });
+
+  it("on a lit dot turns it off in both views, whichever view it lit in", () => {
+    // A globe dot whose twin both views draw.
+    const dot = globeOnly.find((other) => world.globePoints.some((twin) => twin.id === other.twin && !twin.view));
+    const selected = toggleDot(world, new Set(), dot.id, "globe");
+    expect([...selected]).toEqual([dot.id]);
+    // Its twin is lit on the flat map by it, so a click there turns it off.
+    expect([...toggleDot(world, selected, dot.twin, "flat")]).toEqual([]);
+    expect([...toggleDot(world, selected, dot.id, "globe")]).toEqual([]);
+    // The twin is dark on the globe, so a click there lights it.
+    expect([...toggleDot(world, selected, dot.twin, "globe")].sort()).toEqual([dot.id, dot.twin].sort());
+    const flatDot = flatOnly[0];
+    const fromFlat = toggleDot(world, new Set(), flatDot.id, "flat");
+    expect([...toggleDot(world, fromFlat, flatDot.twin, "globe")]).toEqual([]);
+  });
+
+  it("on a dot both views draw toggles it in both", () => {
+    const selected = toggleDot(world, new Set(), both.id);
+    expect([...selected]).toEqual([both.id]);
+    const lit = litDots(world, selected);
+    expect([...lit.flat]).toEqual([both.id]);
+    expect([...lit.globe]).toEqual([both.id]);
+    expect([...toggleDot(world, selected, both.id, "flat")]).toEqual([]);
+    expect([...toggleDot(world, selected, both.id, "globe")]).toEqual([]);
+  });
+
+  it("leaves a map without globe dots to its own ids", () => {
+    const state = { points: [{ id: "a" }, { id: "b" }] };
+    expect([...litDots(state, new Set(["a"])).flat]).toEqual(["a"]);
+    expect([...toggleDot(state, new Set(["a"]), "a", "flat")]).toEqual([]);
+    expect([...litOnFlatMap(state, new Set(["b"]))]).toEqual(["b"]);
   });
 });
 

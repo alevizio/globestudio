@@ -11,6 +11,7 @@ import {
   GLOBE_ROUND_FIT_ASPECT,
 } from "../config/globe-settings.js";
 import { clampNumber, easeInOutQuart, smoothStep } from "../utils/math.js";
+import { toggleDot } from "../utils/globe-dots.js";
 import { createCustomShapeTexture, disposeThreeObject } from "../three/geometry.js";
 import {
   applyDotLayerMorph,
@@ -444,16 +445,13 @@ export const GlobeBackground = ({
     raycaster.setFromCamera(pointer, refs.camera);
     const hits = raycaster.intersectObjects(refs.dotLayer.children, true);
     const instanceId = hits[0]?.instanceId;
-    const pointMap = hits[0]?.object?.userData?.pointIds;
-    const dotId = Array.isArray(pointMap) ? pointMap[instanceId] : null;
-    if (!dotId) return;
+    const point = hits[0]?.object?.userData?.points?.[instanceId];
+    if (!point?.id) return;
 
-    refs.setSelectedDots?.((current) => {
-      const next = new Set(current);
-      if (next.has(dotId)) next.delete(dotId);
-      else next.add(dotId);
-      return next;
-    });
+    // A dot one view draws alone lights its twin in the other view, and a
+    // click on either turns both off (utils/globe-dots.js).
+    const { mapData: layerMapData, mapGrid } = refs.dotLayer.userData;
+    refs.setSelectedDots?.((current) => toggleDot(layerMapData, current, point.id, mapGrid ? "flat" : point.view));
   }, []);
 
   // Watch the sheet and the top bar for anything that can move the free

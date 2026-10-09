@@ -371,6 +371,39 @@ describe("buildGlobeDotLayer dot grid", () => {
     }
   });
 
+  it("lights a click in each view at that view's own dots, and squares on the flat map's grid", () => {
+    const globeDot = world.globePoints.find((dot) => dot.view === "globe");
+    const flatDot = world.globePoints.find((dot) => dot.view === "flat");
+    const flatIds = new Set(world.points.map((point) => point.id));
+    const globeIds = new Set(world.globePoints.filter((dot) => dot.view !== "flat").map((dot) => dot.id));
+    // The ids of the lit dots a view draws, by their instance's scale.
+    const litIn = (shape, morphProgress) => {
+      const group = buildGlobeDotLayer({
+        mapData: world,
+        selectedDots: new Set([globeDot.id, flatDot.id]),
+        dotColor: "#ffffff",
+        dotSize: 10,
+        shape,
+        shaderSettings: DEFAULT_SHADER_SETTINGS,
+        globeSettings: DEFAULT_GLOBE_SETTINGS,
+        morphProgress,
+      });
+      const lit = group.children[1];
+      const matrix = new THREE.Matrix4();
+      return lit.userData.points
+        .filter((_, index) => index < lit.count && (lit.getMatrixAt(index, matrix), matrix.determinant() !== 0))
+        .map((point) => point.id)
+        .sort();
+    };
+    const flatMap = litIn("Circle", 0);
+    expect(flatMap).toEqual([flatDot.id, globeDot.twin].sort());
+    expect(flatMap.every((id) => flatIds.has(id))).toBe(true);
+    const globe = litIn("Circle", 1);
+    expect(globe).toEqual([globeDot.id, flatDot.twin].sort());
+    expect(globe.every((id) => globeIds.has(id))).toBe(true);
+    expect(litIn("Square", 1)).toEqual(flatMap);
+  });
+
   it("gives the flat map's dots the twinkle and Vary size they have on the flat map's grid", () => {
     const phases = (mesh) => {
       const values = mesh.geometry.getAttribute("aPhase");

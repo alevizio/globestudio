@@ -6,7 +6,7 @@ import {
   GLOBE_DEFAULT_GLOW,
   GLOBE_RADIUS,
 } from "../config/globe-settings.js";
-import { globeKeepsMapGrid } from "../utils/globe-dots.js";
+import { globeKeepsMapGrid, litDots, litOnFlatMap } from "../utils/globe-dots.js";
 import { clampNumber, degToRad, hashString, normalizeLongitude, remapTByMidpoint, smoothStep } from "../utils/math.js";
 import { pointToGlobeCoordinate } from "../utils/projection.js";
 import { latLngToVector3, pointToFlatVector3 } from "./coordinates.js";
@@ -368,21 +368,26 @@ export const createAtmosphereMaterial = () =>
   });
 
 // The globe's own dots where the map has them (utils/globe-dots.js): some
-// show only on the flat map or only on the globe (point.view). A clicked
-// dot shows in both views, so a click never vanishes in the morph. Squares
-// keep the flat map's grid (globeKeepsMapGrid).
-const buildGlobePoints = (mapData, selectedDots, shape) =>
-  ((globeKeepsMapGrid(shape) ? null : mapData.globePoints) ?? mapData.points)
-    .map((point) => {
-      const selected = selectedDots.has(point.id);
-      return {
-        ...point,
-        ...pointToGlobeCoordinate(point, mapData.image),
-        selected,
-        view: selected ? undefined : point.view,
-      };
+// show only on the flat map or only on the globe (point.view). Squares keep
+// the flat map's grid (globeKeepsMapGrid) and light its dots alone. A click
+// lights a dot in each view (litDots); a dot both views draw that only one
+// view lights goes in once per view.
+const buildGlobePoints = (mapData, selectedDots, shape) => {
+  const ownDots = globeKeepsMapGrid(shape) ? null : mapData.globePoints;
+  const lit = ownDots ? litDots(mapData, selectedDots) : { flat: litOnFlatMap(mapData, selectedDots) };
+  return (ownDots ?? mapData.points)
+    .flatMap((dot) => {
+      const point = { ...dot, ...pointToGlobeCoordinate(dot, mapData.image) };
+      if (!ownDots) return [{ ...point, selected: lit.flat.has(dot.id) }];
+      const onFlat = dot.view !== "globe" && lit.flat.has(dot.id);
+      const onGlobe = dot.view !== "flat" && lit.globe.has(dot.id);
+      if (!dot.view && onFlat !== onGlobe) {
+        return [{ ...point, view: "flat", selected: onFlat }, { ...point, view: "globe", selected: onGlobe }];
+      }
+      return [{ ...point, selected: onFlat || onGlobe }];
     })
     .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+};
 
 // How far a view's own dots have grown in: 0 on the flat map, 1 on the
 // globe. Over the same stretch of the morph as the sphere's cross-fade
@@ -1058,6 +1063,10 @@ export const buildGlobeDotLayer = ({
 
   // The dots the globe shows.
   group.userData.dotCount = points.filter((point) => point.view !== "flat").length;
+  // What a click on a dot toggles (toggleDot, utils/globe-dots.js): squares
+  // light the flat map's dots in both views.
+  group.userData.mapData = mapData;
+  group.userData.mapGrid = globeKeepsMapGrid(shape) || !mapData.globePoints;
   group.userData.morphProgress = morphProgress;
   return group;
 };

@@ -54,6 +54,7 @@ import {
   formatPointList,
 } from "./svg-shapes.js";
 import { getDotRadius, getPointsBounds } from "./dot-generation.js";
+import { litOnFlatMap } from "./globe-dots.js";
 
 const createShaderEffectAssets = ({
   shaderSettings = DEFAULT_SHADER_SETTINGS,
@@ -372,6 +373,9 @@ export const createDottedSvg = ({
   const backgroundColor = transparent ? "transparent" : background;
   // When sizeVary is on, jitter each dot's radius by ±18% using a stable
   // per-index seed so the SVG mirrors what the WebGL canvas shows.
+  // A dot clicked on the globe where the flat map has none lights the flat
+  // map's nearest dot (utils/globe-dots.js), as on the canvas.
+  const lit = litOnFlatMap(mapData, selectedDots);
   const dots = dotsVisible
     ? mapData.points
         .map((point, index) => {
@@ -380,7 +384,7 @@ export const createDottedSvg = ({
             : radius;
           const fill = gradientSampler ? gradientSampler(point) : dotColor;
           const opacity = alphaSampler(point);
-          return createDotMarkup(point, r, shape, fill, selectedDots, asciiSymbol, customShape, opacity);
+          return createDotMarkup(point, r, shape, fill, lit, asciiSymbol, customShape, opacity);
         })
         .join("\n")
     : "";

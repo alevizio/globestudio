@@ -7,6 +7,7 @@ import { dotShapeOptions } from "../config/constants.js";
 import { DEFAULT_GLOBE_SETTINGS, GLOBE_RADIUS } from "../config/globe-settings.js";
 import { DEFAULT_SHADER_SETTINGS } from "../config/shader-effects.js";
 import { createCountryMapData } from "../utils/dot-generation.js";
+import { litDots } from "../utils/globe-dots.js";
 import { createGlobeDotGeometry } from "./geometry.js";
 import { createGlobeNetwork, updateGlobeNetwork } from "./globe-network.js";
 import {
@@ -134,10 +135,12 @@ describe("exportGlb", () => {
     expect(nodes).toHaveLength(1);
     const { primitives } = json.meshes[nodes[0].mesh];
     const circle = createGlobeDotGeometry("Circle").index.count;
+    // A clicked dot the flat map draws alone lights its twin on the globe.
+    const lit = litDots(world, selectedDots).globe;
+    expect(lit.size).toBeGreaterThan(1);
     expect(primitives.map((primitive) => json.accessors[primitive.indices].count)).toEqual([
-      // A clicked dot shows on the globe even when it is the flat map's alone.
-      globeDots(world).filter((point) => !selectedDots.has(point.id)).length * circle,
-      5 * circle,
+      (globeDots(world).length - lit.size) * circle,
+      lit.size * circle,
     ]);
     expect(primitives[0].material).not.toBe(primitives[1].material);
     // The clicked dots have no gradient colors of their own: theirs are
@@ -158,15 +161,18 @@ describe("exportGlb", () => {
     expect(dots.quaternion.equals(new THREE.Quaternion())).toBe(true);
   });
 
-  it("saves each view's own dots, and a clicked dot in both views", async () => {
+  it("saves each view's own dots, and each click lit in both views", async () => {
     const flatOnly = world.globePoints.find((point) => point.view === "flat");
     const globeOnly = world.globePoints.find((point) => point.view === "globe");
     const selectedDots = new Set([flatOnly.id, globeOnly.id]);
+    const lit = litDots(world, selectedDots);
     for (const [morph, shown] of [[0, world.points.length], [1, globeDots(world).length]]) {
       const { gltf } = await parts(scene({ selectedDots, morph }), { instanced: true });
       const counts = gltf.scene.children.filter((child) => child.isInstancedMesh).map((dots) => dots.count).sort((a, b) => a - b);
-      // The view's own dots less the one clicked, then both clicked dots.
-      expect(counts, morph ? "globe" : "flat").toEqual([2, shown - 1]);
+      // The view's own dots less the two lit, then the two lit: each click
+      // itself in the view that draws it, its twin in the other.
+      expect(lit[morph ? "globe" : "flat"].size).toBe(2);
+      expect(counts, morph ? "globe" : "flat").toEqual([2, shown - 2]);
     }
   });
 
