@@ -208,7 +208,7 @@ alternative article.
 - [x] **Per-look OG images** (1200×630): WebGL previews don't render in social/AI cards. (Static OG exists at `/og/{look}.png`; wire it per look.) Shipped: every `/looks/:id` uses its own card.
 - [x] `SoftwareApplication` + `isAccessibleForFree:true` + `offers:{price:0}`; `ImageObject` per look; `BreadcrumbList`. Shipped except `ImageObject` per look; `BreadcrumbList` is added client side.
 - [x] `/embed` `noindex` (thin; competes with canonical pages). Shipped as an `X-Robots-Tag` header in `vercel.json`.
-- [ ] Looks pages SSR/200 with real HTML + in sitemap with `lastmod`; param permutations canonicalize to the clean tool page.
+- [x] Looks pages SSR/200 with real HTML + in sitemap with `lastmod`; param permutations canonicalize to the clean tool page. Shipped: each `/looks/:id` is prerendered with its content, the sitemap dates every page, and a link with settings keeps the clean canonical.
 - [ ] CWV for the Three.js home: SSR the headline/CTA as LCP, mount WebGL *after* first paint; reserve canvas dimensions (CLS); chunk globe init (INP <200 ms).
 
 ## AEO / LLM visibility

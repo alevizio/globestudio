@@ -82,7 +82,7 @@ The version on `main` already does all of this.
 - `/docs`, `/changelog` with RSS, `/brand` press kit, `/privacy`, `/examples`
 - `/compare/cobe` and `/compare/geolayers`
 - Per-route prerendered `<head>` and page content, a 404 page, an
-  auto-generated sitemap, `llms.txt`
+  auto-generated sitemap with `lastmod` dates, `llms.txt`
 - Public JSON Schemas for configs and presets; every shipped preset is
   validated against its schema in CI
 - Per-chunk bundle budgets, Lighthouse CI, unit and e2e tests with axe
@@ -93,7 +93,6 @@ The version on `main` already does all of this.
 
 Fixes and polish that follow the 1.0.0 launch.
 
-- A sitemap with `lastmod`.
 - Faster first load on mobile: server-render the headline, generate dots
   off the main thread, and stop redrawing when nothing changes.
 - Keyboard polish: roving focus in the looks bar.
