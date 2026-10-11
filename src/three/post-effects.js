@@ -41,7 +41,15 @@ const VERTEX_SHADER = /* glsl */ `
   }
 `;
 
-const FRAGMENT_SHADER = /* glsl */ `
+// WCAG 2.3.1 allows no more than three flashes in any one second. Glitch
+// re-rolls its bands on a timer, once a frame before, so the timer runs from
+// once a second with no motion to three times at full motion, at any frame
+// rate. Bad TV's rows sway on smooth noise; at 3 noise steps per unit of
+// time they reached three flashes a second at 60 fps, and 2 leaves a margin.
+export const GLITCH_REROLLS_PER_SECOND = { min: 1, max: 3 };
+export const BADTV_SWAY_RATE = 2;
+
+export const FRAGMENT_SHADER = /* glsl */ `
   precision highp float;
 
   uniform sampler2D tDiffuse;
@@ -514,8 +522,7 @@ const FRAGMENT_SHADER = /* glsl */ `
   }
 
   vec4 glitchPass(vec2 uv) {
-    float t = uTime * mix(0.4, 8.0, uMotion);
-    float seed = floor(t * 14.0);
+    float seed = floor(uTime * mix(${GLITCH_REROLLS_PER_SECOND.min.toFixed(1)}, ${GLITCH_REROLLS_PER_SECOND.max.toFixed(1)}, uMotion));
     float bandCount = 28.0 + uIntensity * 80.0;
     float band = floor(uv.y * bandCount);
     float trigger = step(0.72 - uIntensity * 0.42, rand(vec2(seed, band)));
@@ -921,7 +928,7 @@ const FRAGMENT_SHADER = /* glsl */ `
 
     vec2 distorted = uv;
     distorted.y += 0.2 * strength * (noise1d(5.0 * uv.y + 2.0 * t + jump) - 0.5);
-    distorted.x += 0.1 * strength * (noise1d(100.0 * strength * distorted.y + 3.0 * t + jump) - 0.5);
+    distorted.x += 0.1 * strength * (noise1d(100.0 * strength * distorted.y + ${BADTV_SWAY_RATE.toFixed(1)} * t + jump) - 0.5);
 
     vec4 src = sampleTex(distorted);
     vec3 color = src.rgb;

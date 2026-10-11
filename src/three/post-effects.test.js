@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import * as THREE from "three";
-import { scalePixelUniforms, updatePostEffects } from "./post-effects.js";
+import {
+  BADTV_SWAY_RATE,
+  FRAGMENT_SHADER,
+  GLITCH_REROLLS_PER_SECOND,
+  scalePixelUniforms,
+  updatePostEffects,
+} from "./post-effects.js";
 
 // The uniforms updatePostEffects writes, without a WebGL composer behind them.
 const fakeHandle = () => ({
@@ -62,5 +68,25 @@ describe("scalePixelUniforms", () => {
     u.uCellSize.value = 14;
     scalePixelUniforms(u, 1);
     expect(u.uCellSize.value).toBe(14);
+  });
+});
+
+// WCAG 2.3.1: nothing may flash more than three times in any one second.
+describe("flash safety", () => {
+  const glitchBody = FRAGMENT_SHADER.slice(FRAGMENT_SHADER.indexOf("vec4 glitchPass"), FRAGMENT_SHADER.indexOf("vec4 edgePass"));
+
+  it("re-rolls Glitch's bands at most three times a second, at any motion", () => {
+    const { min, max } = GLITCH_REROLLS_PER_SECOND;
+    expect(max).toBeLessThanOrEqual(3);
+    expect(min).toBeGreaterThan(0);
+    expect(glitchBody).toContain(`float seed = floor(uTime * mix(${min.toFixed(1)}, ${max.toFixed(1)}, uMotion));`);
+    // The seed is the only clock: the bands, the colour split, the grain
+    // and the inversion blip all change only when it does.
+    expect(glitchBody.match(/uTime/g)).toHaveLength(1);
+  });
+
+  it("sways Bad TV's rows slower than the rate that reached three flashes a second", () => {
+    expect(BADTV_SWAY_RATE).toBeLessThan(3);
+    expect(FRAGMENT_SHADER).toContain(`${BADTV_SWAY_RATE.toFixed(1)} * t + jump`);
   });
 });
