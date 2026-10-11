@@ -49,6 +49,10 @@ describe("index.html site facts", () => {
     );
   });
 
+  it("gives the version package.json ships", () => {
+    expect(graphNode("SoftwareApplication").softwareVersion).toBe(JSON.parse(read("package.json")).version);
+  });
+
   it("keeps the meta description short enough for a search snippet", () => {
     expect(metaContent("name", "description").length).toBeLessThanOrEqual(155);
   });
