@@ -43,8 +43,9 @@ as they always have, so links made before keep their look. The plain
 Globestudio runs a hosted MCP server at **`https://globestudio.app/mcp`**
 (streamable HTTP, stateless, no install, no auth). Connect it by URL:
 
-- Claude app (claude.ai, Desktop): Customize, Connectors, then + and Add custom
-  connector. Paste the URL.
+- Claude app (claude.ai, Desktop): Open in Claude's connector directory
+  (<https://claude.ai/directory/connectors/globestudio>). Or open Customize,
+  Connectors, then + and Add custom connector. Paste the URL.
 - Claude Code: `claude mcp add --transport http globestudio https://globestudio.app/mcp`
 - Codex: `codex mcp add globestudio --url https://globestudio.app/mcp`
 - Cursor: `{ "mcpServers": { "globestudio": { "url": "https://globestudio.app/mcp" } } }`

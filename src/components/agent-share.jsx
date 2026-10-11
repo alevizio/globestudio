@@ -28,7 +28,10 @@ const CLIENTS = [
       { label: "Claude Code", code: `claude mcp add --transport http globestudio ${MCP_URL}` },
       {
         label: "Claude app",
-        note: "In the Claude app, open Customize, then Connectors. Press + and choose Add custom connector, then paste this URL.",
+        // Globestudio's listing in Claude's connector directory adds it in one
+        // click. The custom connector steps after it are the fallback.
+        link: { href: "https://claude.ai/directory/connectors/globestudio", label: "Open in Claude's connector directory" },
+        note: "Or, in the Claude app, open Customize, then Connectors. Press + and choose Add custom connector, then paste this URL.",
         code: MCP_URL,
         footnote: "On Team or Enterprise, an owner adds it in Organization settings.",
       },
@@ -191,6 +194,11 @@ export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) 
             client's id (mcp-claude), like the Share tab's embed code. */}
         {client.steps.map((step) => (
           <div key={step.label} className="agent-share-step">
+            {step.link && (
+              <a className="export-modal-cta is-secondary" href={step.link.href} target="_blank" rel="noopener">
+                <span>{step.link.label}</span>
+              </a>
+            )}
             {step.note && <p className="export-modal-caption">{step.note}</p>}
             <CodeBlock
               language={step.label}

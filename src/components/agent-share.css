@@ -20,8 +20,10 @@
   margin-top: 0;
 }
 
+/* A link CTA's label that wraps on a phone centres like a button's. */
 .agent-share a.export-modal-cta {
   text-decoration: none;
+  text-align: center;
 }
 
 /* The CTA and toggle buttons are clipped to pixel corners, which would cut

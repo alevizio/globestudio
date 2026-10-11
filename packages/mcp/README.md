@@ -12,7 +12,7 @@ Globestudio hosts this server at `https://globestudio.app/mcp` (streamable HTTP)
 claude mcp add --transport http globestudio https://globestudio.app/mcp
 ```
 
-**Claude (claude.ai and Claude Desktop):** open Customize, then Connectors, click **+**, then **Add custom connector**. Paste `https://globestudio.app/mcp` and click **Add**. Custom connectors work on Free (one connector), Pro, Max, Team and Enterprise plans; on Team and Enterprise an Owner adds it first.
+**Claude (claude.ai and Claude Desktop):** [Open in Claude's connector directory](https://claude.ai/directory/connectors/globestudio). Or open Customize, then Connectors, click **+**, then **Add custom connector**. Paste `https://globestudio.app/mcp` and click **Add**. Custom connectors work on Free (one connector), Pro, Max, Team and Enterprise plans; on Team and Enterprise an Owner adds it first.
 
 **Codex**
 

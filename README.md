@@ -226,7 +226,7 @@ server receives and keeps.
 
 | Client | Connect |
 |---|---|
-| Claude app (claude.ai, Desktop) | Customize, Connectors, then **+** and **Add custom connector**. Paste the URL. |
+| Claude app (claude.ai, Desktop) | [Open in Claude's connector directory](https://claude.ai/directory/connectors/globestudio). Or open Customize, Connectors, then **+** and **Add custom connector**. Paste the URL. |
 | Claude Code | `claude mcp add --transport http globestudio https://globestudio.app/mcp` |
 | Codex | `codex mcp add globestudio --url https://globestudio.app/mcp` |
 | Cursor | In `~/.cursor/mcp.json`: `{ "mcpServers": { "globestudio": { "url": "https://globestudio.app/mcp" } } }` |

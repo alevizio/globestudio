@@ -57,8 +57,19 @@ describe("IntegrationsPage", () => {
     expect(within(block).getByRole("status").textContent).toBe("Copied");
   });
 
-  it("keeps one npm link on the other cards that have one", () => {
+  it("links Claude's connector directory first on the MCP card, then npm", () => {
     render(<IntegrationsPage />);
-    expect(cardLinks(card("AI agents / MCP")).map((link) => link.textContent)).toEqual(["View on npm →"]);
+    const mcp = card("AI agents / MCP");
+    const links = cardLinks(mcp).map((link) => [link.textContent, link.getAttribute("href"), link.getAttribute("target")]);
+    expect(links).toEqual([
+      ["Open in Claude's connector directory →", "https://claude.ai/directory/connectors/globestudio", "_blank"],
+      ["View on npm →", "https://www.npmjs.com/package/@globestudio/mcp", "_blank"],
+    ]);
+    // The blurb gives the directory first and the custom connector as the fallback.
+    expect(
+      within(mcp).getByText(
+        /In the Claude app, open Globestudio in Claude's connector directory, or paste this URL under Customize, Connectors, Add custom connector\./,
+      ),
+    ).toBeTruthy();
   });
 });

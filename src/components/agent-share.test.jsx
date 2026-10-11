@@ -149,6 +149,28 @@ describe("AgentShare", () => {
     expect(panel.textContent).toContain("On Team or Enterprise, an owner adds it in Organization settings.");
   });
 
+  it("opens Claude's connector directory first for the Claude app, then keeps the custom connector steps", () => {
+    renderBlock();
+    const panel = screen.getByRole("tabpanel");
+    const directory = within(panel).getByRole("link", { name: "Open in Claude's connector directory" });
+    expect(directory.getAttribute("href")).toBe("https://claude.ai/directory/connectors/globestudio");
+    expect(directory.getAttribute("target")).toBe("_blank");
+    expect(directory.getAttribute("rel")).toContain("noopener");
+    // After the Claude Code command, before the fallback: the custom
+    // connector steps, the URL they paste and the Team or Enterprise note.
+    const follows = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    const [command, url] = panel.querySelectorAll("pre");
+    const fallback = within(panel).getByText(
+      "Or, in the Claude app, open Customize, then Connectors. Press + and choose Add custom connector, then paste this URL.",
+    );
+    const footnote = within(panel).getByText("On Team or Enterprise, an owner adds it in Organization settings.");
+    expect(follows(command, directory)).toBe(true);
+    expect(follows(directory, fallback)).toBe(true);
+    expect(follows(fallback, url)).toBe(true);
+    expect(follows(url, footnote)).toBe(true);
+    expect(url.textContent).toBe("https://globestudio.app/mcp");
+  });
+
   it("moves between clients with the arrow keys, taking focus along", () => {
     renderBlock();
     const claude = screen.getByRole("tab", { name: "Claude" });

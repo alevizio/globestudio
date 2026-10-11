@@ -1307,6 +1307,10 @@ test.describe("MCP tab", () => {
 
     await expect(dialog.getByRole("tab", { name: "Claude" })).toHaveAttribute("aria-selected", "true");
     await expect(panel).toContainText("claude mcp add --transport http globestudio https://globestudio.app/mcp");
+    await expect(panel.getByRole("link", { name: "Open in Claude's connector directory" })).toHaveAttribute(
+      "href",
+      "https://claude.ai/directory/connectors/globestudio",
+    );
     await expect(panel).toContainText("Add custom connector");
     await expect(panel).toContainText("On Team or Enterprise, an owner adds it in Organization settings.");
 
