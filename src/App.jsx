@@ -1203,7 +1203,7 @@ const App = () => {
       setVideoStatus("ready");
       // Fired only on success (the catch path skips it) — format is the
       // actual encoded format, not the requested one.
-      track("export_completed", { format, look: currentPresetId ?? "custom", durationMs });
+      track("export_completed", { format, look: currentPresetId ?? "custom" });
       window.setTimeout(() => setVideoStatus("idle"), 2200);
     } catch (error) {
       console.error("Video export failed", error);
@@ -1421,18 +1421,12 @@ const App = () => {
   // Called from every successful exportPng path (and only those), so it
   // doubles as the single choke point for the export_completed event —
   // one event per save, fired after the download, never on click.
-  const flashPngSaved = (scale) => {
+  const flashPngSaved = () => {
     setPngStatus("saved");
     setStatusMessage("PNG saved");
     // Only clears the flash: a retry that already failed keeps its message.
     window.setTimeout(() => setPngStatus((status) => (status === "saved" ? "idle" : status)), 1800);
-    track("export_completed", {
-      format: "png",
-      look: currentPresetId ?? "custom",
-      // The SVG-rasterize fallback has no scale concept — omit rather
-      // than fake a value.
-      ...(scale ? { scale } : {}),
-    });
+    track("export_completed", { format: "png", look: currentPresetId ?? "custom" });
   };
 
   // Every PNG path that ends without a file lands here (iOS returns no 2D
@@ -1538,7 +1532,7 @@ const App = () => {
             if (deliver) return deliver(finalBlob);
             if (isFigmaPlugin) await sendToFigma({ blob: finalBlob, density: scale });
             else downloadBlob(finalBlob, filename);
-            flashPngSaved(scale);
+            flashPngSaved();
             return;
           }
         } catch (error) {
@@ -1567,7 +1561,7 @@ const App = () => {
         if (deliver) return deliver(pngBlob);
         if (isFigmaPlugin) await sendToFigma({ blob: pngBlob, density: scale / shrink });
         else downloadBlob(pngBlob, filename);
-        flashPngSaved(scale / shrink);
+        flashPngSaved();
       } catch (error) {
         fail(error);
       } finally {

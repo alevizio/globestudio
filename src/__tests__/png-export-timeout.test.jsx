@@ -108,10 +108,7 @@ describe("PNG export after a failed hi-res capture", () => {
     expect(screen.getByRole("button", { name: "PNG saved" })).toBeTruthy();
     expect(screen.queryByText(/Export failed/)).toBeNull();
     expect(analytics.errors).toEqual([{ where: "export-png", msg: "captureAtScale toBlob timed out" }]);
-    expect(analytics.events).toContainEqual({
-      name: "export_completed",
-      properties: expect.objectContaining({ format: "png", scale: 1 }),
-    });
+    expect(analytics.events).toContainEqual({ name: "export_completed", properties: { format: "png", look: "custom" } });
   }, 20000);
 
   it("does the same when App's own wait for the capture runs out first", async () => {
@@ -124,9 +121,6 @@ describe("PNG export after a failed hi-res capture", () => {
     capture.error = new Error("Composer not ready");
     await exportPng();
     expect(encoded).toEqual([{ width: 1600, height: 1200 }]);
-    expect(analytics.events).toContainEqual({
-      name: "export_completed",
-      properties: expect.objectContaining({ format: "png", scale: 2 }),
-    });
+    expect(analytics.events).toContainEqual({ name: "export_completed", properties: { format: "png", look: "custom" } });
   }, 20000);
 });

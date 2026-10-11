@@ -65,9 +65,9 @@ export const Analytics = () => {
 // applyLook fires preset_applied, the App.jsx export handlers fire
 // export_completed (format + active look, no PII), the export modal's
 // Share and MCP tabs fire share_clicked on copy, and Open in CodePen fires
-// it once the pen is posted, since CodePen's answer can't be read. The
-// event names here must stay in sync with what /privacy discloses
-// (privacy-page.jsx).
+// it once the pen is posted, since CodePen's answer can't be read. Two
+// properties at most, the Pro plan's per-event limit. The event names here
+// must stay in sync with what /privacy discloses (privacy-page.jsx).
 export const track = (name, properties) => {
   if (isOptedOut()) return;
   // Lazy-load the track helper so importing it doesn't pull the
