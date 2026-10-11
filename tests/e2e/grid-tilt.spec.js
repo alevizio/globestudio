@@ -50,7 +50,10 @@ const blockMeans = (page) =>
   }, BLOCK);
 
 test("tilting the globe across level keeps the grid's far half", async ({ page }) => {
-  test.setTimeout(process.env.CI ? 180_000 : 90_000);
+  // GitHub's runners draw this in software about three times slower than the
+  // CI image on a laptop. It took 2.8 and 3.2 minutes there, so give it the
+  // budget far-side-tilt has.
+  test.setTimeout(process.env.CI ? 600_000 : 90_000);
   await page.goto(GRID);
   const canvas = page.locator(".globe-background canvas");
   await expect(canvas).toBeVisible({ timeout: CANVAS_TIMEOUT });
