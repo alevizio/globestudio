@@ -1,5 +1,6 @@
 import { useId, useRef, useState } from "react";
 import { CodeBlock } from "./ui/code-block.jsx";
+import { track } from "./analytics.jsx";
 
 // The export dialog's Skill tab: the commands that add the Globestudio agent
 // skill (skills/globestudio) to a coding agent. Lazy loaded by
@@ -85,8 +86,16 @@ export const AgentSkill = () => {
       </div>
       <div role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-tab-${option.id}`}>
         {/* Keyed, so a "Copied" from one option doesn't carry over to the
-            next. One-line commands wrap between arguments on a phone. */}
-        <CodeBlock key={option.id} language={option.language} wrap keyboardScroll>
+            next. One-line commands wrap between arguments on a phone. A
+            copy that worked counts as a share under skill- and the
+            option's id (skill-npx). */}
+        <CodeBlock
+          key={option.id}
+          language={option.language}
+          wrap
+          keyboardScroll
+          onCopy={() => track("share_clicked", { method: `skill-${option.id}` })}
+        >
           {option.code}
         </CodeBlock>
       </div>

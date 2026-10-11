@@ -12,6 +12,7 @@ const GH = "gh skill install alevizio/globestudio globestudio";
 
 afterEach(() => {
   delete navigator.clipboard;
+  vi.mocked(track).mockClear();
 });
 
 const shownCode = () => screen.getByRole("tabpanel").querySelector("pre").textContent;
@@ -75,14 +76,14 @@ describe("AgentSkill", () => {
     expect([label(), shownCode()]).toEqual(["GitHub CLI", GH]);
   });
 
-  it("copies the exact command, and counts nothing", async () => {
+  it("copies the exact command, and counts it as a share under the option's name", async () => {
     const writeText = vi.fn(() => Promise.resolve());
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
     render(<AgentSkill />);
-    for (const [name, command] of [
-      ["npx skills", NPX],
-      ["Claude Code", PLUGIN],
-      ["GitHub", GH],
+    for (const [name, command, method] of [
+      ["npx skills", NPX, "skill-npx"],
+      ["Claude Code", PLUGIN, "skill-claude"],
+      ["GitHub", GH, "skill-gh"],
     ]) {
       fireEvent.click(screen.getByRole("tab", { name }));
       const panel = screen.getByRole("tabpanel");
@@ -91,7 +92,21 @@ describe("AgentSkill", () => {
       });
       expect(writeText).toHaveBeenLastCalledWith(command);
       expect(within(panel).getByRole("status").textContent).toBe("Copied");
+      expect(track).toHaveBeenLastCalledWith("share_clicked", { method });
     }
+    expect(track).toHaveBeenCalledTimes(3);
+  });
+
+  it("counts nothing when the copy is refused", async () => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn(() => Promise.reject(new Error("denied"))) },
+    });
+    render(<AgentSkill />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Copy code to clipboard" }));
+    });
+    expect(screen.getByRole("button", { name: "Copy failed" })).toBeTruthy();
     expect(track).not.toHaveBeenCalled();
   });
 

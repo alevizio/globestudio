@@ -187,10 +187,17 @@ export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) 
             <span>Add to {client.label}</span>
           </a>
         )}
+        {/* A copy that worked counts as a share under mcp- and the
+            client's id (mcp-claude), like the Share tab's embed code. */}
         {client.steps.map((step) => (
           <div key={step.label} className="agent-share-step">
             {step.note && <p className="export-modal-caption">{step.note}</p>}
-            <CodeBlock language={step.label} wrap={!step.code.includes("\n")} keyboardScroll>
+            <CodeBlock
+              language={step.label}
+              wrap={!step.code.includes("\n")}
+              keyboardScroll
+              onCopy={() => track("share_clicked", { method: `mcp-${client.id}` })}
+            >
               {step.code}
             </CodeBlock>
             {step.footnote && <p className="export-modal-caption">{step.footnote}</p>}

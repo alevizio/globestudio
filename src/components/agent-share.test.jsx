@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { AgentShare } from "./agent-share.jsx";
 import { track } from "./analytics.jsx";
 
@@ -14,6 +14,7 @@ const stubClipboard = (writeText) => {
 afterEach(() => {
   delete navigator.clipboard;
   delete document.execCommand;
+  vi.mocked(track).mockClear();
 });
 
 // Copy for AI's status line is the last one; the code block above it has
@@ -174,5 +175,38 @@ describe("AgentShare", () => {
     expect(href.searchParams.get("name")).toBe("globestudio");
     expect(JSON.parse(atob(href.searchParams.get("config")))).toEqual({ url: "https://globestudio.app/mcp" });
     expect(screen.getByRole("tabpanel").textContent).toContain('"url": "https://globestudio.app/mcp"');
+  });
+
+  it("counts a copied client step as a share under the client's name", async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    stubClipboard(writeText);
+    renderBlock();
+    for (const [name, method] of [
+      ["Claude", "mcp-claude"],
+      ["Codex", "mcp-codex"],
+      ["Cursor", "mcp-cursor"],
+    ]) {
+      fireEvent.click(screen.getByRole("tab", { name }));
+      for (const button of within(screen.getByRole("tabpanel")).getAllByRole("button", { name: "Copy code to clipboard" })) {
+        await act(async () => {
+          fireEvent.click(button);
+        });
+        expect(track).toHaveBeenLastCalledWith("share_clicked", { method });
+      }
+    }
+    // Claude's command and app URL, Codex's command and Cursor's mcp.json.
+    expect(writeText).toHaveBeenCalledTimes(4);
+    expect(track).toHaveBeenCalledTimes(4);
+  });
+
+  it("counts nothing when a client step's copy is refused", async () => {
+    stubClipboard(vi.fn(() => Promise.reject(new Error("denied"))));
+    renderBlock();
+    const panel = screen.getByRole("tabpanel");
+    await act(async () => {
+      fireEvent.click(within(panel).getAllByRole("button", { name: "Copy code to clipboard" })[0]);
+    });
+    expect(within(panel).getByRole("button", { name: "Copy failed" })).toBeTruthy();
+    expect(track).not.toHaveBeenCalled();
   });
 });

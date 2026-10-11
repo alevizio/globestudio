@@ -14,7 +14,8 @@ const clampZoom = (value) =>
 // chords (cmd+r reload, etc.) pass through untouched.
 //
 // Setters are passed in directly (rather than wrapped callbacks) so App
-// doesn't need to mint a stable identity for every key action.
+// doesn't need to mint a stable identity for every key action. Export is
+// the exception: `openExport` opens the dialog and counts how it opened.
 // `viewModeRef.current` is read at fire-time so toggling is always
 // relative to the live view mode.
 export const useKeyboardShortcuts = ({
@@ -23,7 +24,7 @@ export const useKeyboardShortcuts = ({
   reset,
   applyLook,
   toggleView,
-  setExportModalOpen,
+  openExport,
   setShortcutsOpen,
   setPanelCollapsed,
   setMapZoom,
@@ -59,7 +60,7 @@ export const useKeyboardShortcuts = ({
         flashHint("S", "Shuffle");
       } else if (key === "d") {
         event.preventDefault();
-        setExportModalOpen(true);
+        openExport("shortcut");
         flashHint("D", "Export");
       } else if (key === "r") {
         event.preventDefault();
@@ -114,7 +115,7 @@ export const useKeyboardShortcuts = ({
     reset,
     applyLook,
     toggleView,
-    setExportModalOpen,
+    openExport,
     setShortcutsOpen,
     setPanelCollapsed,
     setMapZoom,

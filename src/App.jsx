@@ -1075,13 +1075,22 @@ const App = () => {
     setStatusMessage(nextMode === "globe" ? "Switched to globe view" : "Switched to flat view");
   }, [viewMode]);
 
+  // Every way into the export dialog: an Export button, the D key or the
+  // command palette. export_opened says which one; asking again while the
+  // dialog is open counts nothing.
+  const openExportModal = useCallback((from) => {
+    if (exportModalOpen) return;
+    setExportModalOpen(true);
+    track("export_opened", { from });
+  }, [exportModalOpen]);
+
   useKeyboardShortcuts({
     viewModeRef,
     shuffle: shuffleLook,
     reset: handleReset,
     applyLook,
     toggleView: changeViewMode,
-    setExportModalOpen,
+    openExport: openExportModal,
     setShortcutsOpen,
     setPanelCollapsed,
     setMapZoom,
@@ -1406,21 +1415,27 @@ const App = () => {
     setStatusMessage("");
   };
 
-  const copySvg = useCallback(async () => {
+  // Copy SVG on the SVG tab and Copy as vectors on the Figma tab. Each
+  // passes the format its copy is counted under, svg-copy or figma-copy,
+  // once the clipboard has the SVG.
+  const copySvg = useCallback(async (format) => {
     try {
       await copyTextToClipboard(exportSvgData.svg);
       setCopyStatus("copied");
       window.setTimeout(() => setCopyStatus("idle"), 1800);
+      track("export_completed", { format, look: currentPresetId ?? "custom" });
       return true;
     } catch {
       setCopyStatus("manual");
       return false;
     }
-  }, [exportSvgData.svg]);
+  }, [currentPresetId, exportSvgData.svg]);
 
-  // Called from every successful exportPng path (and only those), so it
-  // doubles as the single choke point for the export_completed event —
-  // one event per save, fired after the download, never on click.
+  // Called from every successful exportPng path but Copy image's (and only
+  // those), so it doubles as the single choke point for the saved PNG's
+  // export_completed event — one event per save, fired after the download,
+  // never on click. Copy image hands its PNG to deliver instead, and
+  // copyPng counts it.
   const flashPngSaved = () => {
     setPngStatus("saved");
     setStatusMessage("PNG saved");
@@ -1643,14 +1658,14 @@ const App = () => {
   );
 
   // Copy image: the PNG that Export PNG would save, put on the clipboard
-  // instead of in a file. Resolves once it is there and rejects if the
-  // render or the clipboard fails.
+  // instead of in a file. Resolves once it is there, counted as png-copy,
+  // and rejects if the render or the clipboard fails.
   const copyPng = (options = {}) =>
     copyImageToClipboard(
       new Promise((deliver, fail) => {
         exportPng({ ...options, deliver, fail }).catch(fail);
       }),
-    );
+    ).then(() => track("export_completed", { format: "png-copy", look: currentPresetId ?? "custom" }));
 
   // WebKit at DPR 3 (every recent iPhone) composites the WebGL canvas blank
   // while the six-layer drop-shadow halo below is on it: headless WebKit with
@@ -1754,7 +1769,7 @@ const App = () => {
       label: "Open export dialog",
       group: "Action",
       kbd: "D",
-      run: () => setExportModalOpen(true),
+      run: () => openExportModal("palette"),
     },
     {
       id: "shortcuts",
@@ -2006,7 +2021,7 @@ const App = () => {
           <button
             type="button"
             className="panel-icon-button panel-icon-button--primary top-bar-export"
-            onClick={() => setExportModalOpen(true)}
+            onClick={() => openExportModal("button")}
             aria-label={isFigmaPlugin ? "Insert into Figma" : "Open export dialog"}
           >
             <Download size={16} />
@@ -2147,7 +2162,7 @@ const App = () => {
                 <button
                   type="button"
                   className="panel-icon-button panel-icon-button--primary"
-                  onClick={() => setExportModalOpen(true)}
+                  onClick={() => openExportModal("button")}
                   aria-label="Open export dialog"
                   data-tooltip="Export (D)"
                 >

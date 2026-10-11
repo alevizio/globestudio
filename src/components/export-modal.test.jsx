@@ -336,6 +336,15 @@ describe("ExportModal", () => {
       expect(list().hidden).toBe(false);
     });
 
+    it("copies the SVG from its tab counted as svg-copy, apart from the Figma tab's copy", () => {
+      const copySvg = vi.fn();
+      renderModal({ copySvg });
+      fireEvent.click(screen.getByRole("tab", { name: "SVG" }));
+      fireEvent.click(screen.getByRole("button", { name: "Copy SVG to clipboard" }));
+      expect(copySvg).toHaveBeenCalledTimes(1);
+      expect(copySvg).toHaveBeenCalledWith("svg-copy");
+    });
+
     describe("on a phone", () => {
       it("opens on the list, then shows a type's panel with a way back that returns focus to it", () => {
         stubWindowWidth(375);
@@ -653,7 +662,7 @@ describe("ExportModal", () => {
       expect(link.className).toContain("is-secondary");
     });
 
-    it("copies vectors the way Copy SVG does, and confirms", () => {
+    it("copies vectors the way Copy SVG does, counted as figma-copy, and confirms", () => {
       const copySvg = vi.fn();
       const { rerender } = openFigmaTab({ copySvg });
       const button = screen.getByRole("button", { name: "Copy as vectors" });
@@ -661,6 +670,7 @@ describe("ExportModal", () => {
       expect(screen.getByRole("status").textContent).toBe("");
       fireEvent.click(button);
       expect(copySvg).toHaveBeenCalledTimes(1);
+      expect(copySvg).toHaveBeenCalledWith("figma-copy");
 
       const withStatus = (copyStatus) =>
         rerender(
@@ -993,7 +1003,7 @@ describe("ExportModal", () => {
       expect(screen.queryByRole("button", { name: /Copy for AI/ })).toBeNull();
     });
 
-    it("copies a command without counting it", async () => {
+    it("copies a command and counts it as a share under the option's name", async () => {
       const writeText = vi.fn(() => Promise.resolve());
       Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
       vi.mocked(track).mockClear();
@@ -1003,7 +1013,8 @@ describe("ExportModal", () => {
         fireEvent.click(screen.getByRole("button", { name: "Copy code to clipboard" }));
       });
       expect(writeText).toHaveBeenCalledWith("gh skill install alevizio/globestudio globestudio");
-      expect(track).not.toHaveBeenCalled();
+      expect(track).toHaveBeenCalledTimes(1);
+      expect(track).toHaveBeenCalledWith("share_clicked", { method: "skill-gh" });
     });
 
     it("leaves the dialog's arrow keys to the dialog's list and the options' to the options", async () => {

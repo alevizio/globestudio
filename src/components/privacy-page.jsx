@@ -85,8 +85,9 @@ export const PrivacyPage = () => {
         </p>
         <ul className="privacy-list">
           <li><Plus size={12} aria-hidden="true" /><span><code>preset_applied</code>: which preset was selected</span></li>
-          <li><Plus size={12} aria-hidden="true" /><span><code>export_completed</code>: the format you saved (PNG, SVG, GLB, WebM, MP4 or GIF) and the look</span></li>
-          <li><Plus size={12} aria-hidden="true" /><span><code>share_clicked</code>: which share button you used (Copy share link, an embed code, Open in CodePen or Copy for AI), never the link itself or the design</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span><code>export_opened</code>: how you opened the export dialog (a button, the D key or the command palette)</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span><code>export_completed</code>: the format you saved or copied (PNG, SVG, GLB, WebM, MP4, GIF or vectors for Figma) and the look</span></li>
+          <li><Plus size={12} aria-hidden="true" /><span><code>share_clicked</code>: which share button you used (Copy share link, an embed code, Open in CodePen, Copy for AI or a Copy button on the MCP or Skill tab), never the link itself or the design</span></li>
           <li><Plus size={12} aria-hidden="true" /><span><code>client_error</code>: which part of the app broke and a short error message, so we can fix it</span></li>
         </ul>
         <p>

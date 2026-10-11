@@ -234,6 +234,7 @@ export const ExportModal = ({
   glbStatus,
   exportSvg,
   svgStatus,
+  // Takes the format its copy is counted under (App.jsx).
   copySvg,
   copyStatus,
   exportVideo,
@@ -654,7 +655,7 @@ export const ExportModal = ({
               <button
                 type="button"
                 className={`export-modal-cta is-secondary ${copyStatus === "copied" ? "is-success" : ""}`}
-                onClick={copySvg}
+                onClick={() => copySvg?.("svg-copy")}
                 aria-describedby={svgNote ? vectorNoteId : undefined}
               >
                 {copyStatus === "copied" ? <Check size={17} /> : <Clipboard size={17} />}
@@ -689,7 +690,7 @@ export const ExportModal = ({
                 <button
                   type="button"
                   className={`export-modal-cta ${copyStatus === "copied" ? "is-success" : ""}`}
-                  onClick={copySvg}
+                  onClick={() => copySvg?.("figma-copy")}
                   aria-describedby={figmaNote ? vectorNoteId : undefined}
                 >
                   {copyStatus === "copied" ? <Check size={17} /> : <Clipboard size={17} />}

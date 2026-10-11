@@ -23,6 +23,7 @@ const disclosedEvents = new Set(
 
 describe("privacy page", () => {
   it("finds the app's analytics events", () => {
+    expect(firedEvents).toContain("export_opened");
     expect(firedEvents).toContain("export_completed");
     expect(firedEvents).toContain("client_error");
   });
