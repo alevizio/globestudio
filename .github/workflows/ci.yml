@@ -19,10 +19,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# The runners are pinned: ubuntu-latest moves to Ubuntu 26 from 19 Oct 2026,
+# and the Playwright in package-lock.json has no browser build for it yet.
 jobs:
   test-and-build:
     name: Tests + build + bundle budget
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,13 +62,14 @@ jobs:
   e2e:
     # The browser tests render the globe in software (no GPU on the runner),
     # so one machine took about an hour and heavy tests hit their timeouts.
-    # Three shards run side by side.
-    name: Browser tests (${{ matrix.shard }}/3)
-    runs-on: ubuntu-latest
+    # Six shards run side by side; with three, one took 41 minutes.
+    name: Browser tests (${{ matrix.shard }}/6)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -84,11 +88,12 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run browser tests
-        run: npx playwright test --shard=${{ matrix.shard }}/3
+        run: npx playwright test --shard=${{ matrix.shard }}/6
 
   packages:
     name: Packages (mcp, react, element)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -125,7 +130,8 @@ jobs:
 
   lighthouse:
     name: Lighthouse CI
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     needs: test-and-build
     steps:
       - name: Checkout
