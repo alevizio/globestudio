@@ -60,9 +60,9 @@ describe("sitemap dates", () => {
     new Date(`${day}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
   it("gives every page a real day that isn't in the future", () => {
-    // Today where the day starts first (UTC+14), so a page dated today
-    // passes in every time zone.
-    const today = new Date(Date.now() + 14 * 60 * 60 * 1000).toJSON().slice(0, 10);
+    // Today in UTC, the clock the Vercel build and the crawlers read. A day
+    // written in US time is never ahead of it.
+    const today = new Date().toJSON().slice(0, 10);
     for (const [path, day] of Object.entries(lastmod)) {
       expect(day, path).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       // A day that doesn't exist, like 2026-02-30, rolls over to another.
