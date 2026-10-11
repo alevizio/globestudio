@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { xml as changelogFeed } from "../scripts/generate-changelog-rss.js";
 import { sitemapEntries } from "../scripts/generate-sitemap.js";
 
 // Builds the launch site into a throwaway folder and reads what crawlers
@@ -111,5 +112,37 @@ describe("prerendered static bodies", () => {
     const html = read("/embed");
     expect(html).not.toContain("gs-static");
     expect(html).not.toContain("data-js");
+  });
+});
+
+describe("changelog feed", () => {
+  const items = [...changelogFeed.matchAll(/<item>[\s\S]*?<\/item>/g)].map(([item]) => ({
+    title: item.match(/<title>([^<]*)<\/title>/)[1],
+    link: item.match(/<link>([^<]*)<\/link>/)[1],
+    guid: item.match(/<guid[^>]*>([^<]*)<\/guid>/)[1],
+  }));
+
+  it("links every item to a section of the prerendered /changelog", () => {
+    const ids = [...staticBody(read("/changelog")).matchAll(/\bid="([^"]+)"/g)].map(([, id]) => id);
+    expect(items.length).toBeGreaterThan(0);
+    for (const { title, link } of items) {
+      const [page, fragment] = link.split("#");
+      expect(page, title).toBe(`${SITE}/changelog`);
+      expect(ids, title).toContain(fragment);
+    }
+    // A section each, not every item pointing at the same one.
+    expect(new Set(items.map(({ link }) => link)).size).toBe(items.length);
+  });
+
+  it("keeps each item's guid, so readers don't show old items as new", () => {
+    // As published before the links went to sections. These three differ
+    // from their section ids, which drop the comma, "&" and "+".
+    expect(items.map(({ guid }) => guid)).toEqual(
+      expect.arrayContaining([
+        `${SITE}/changelog#light-pages%2C-figma-links-and-fixes`,
+        `${SITE}/changelog#search-engines-%26-ai-assistants`,
+        `${SITE}/changelog#21-looks-%2B-motion-exports`,
+      ]),
+    );
   });
 });

@@ -16,7 +16,7 @@
 // const and the parse is regex-based to keep this fast.
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -54,11 +54,15 @@ const isoDate = (dateLabel) => {
 const items = entries
   .map((entry) => {
     const pubDate = isoDate(entry.date);
+    // The guid keeps the form it was first published with, so readers
+    // don't show old items as new. The link goes to the entry's section,
+    // by the id changelog-page.jsx gives its heading.
     const guid = `${SITE}/changelog#${encodeURIComponent(entry.label.toLowerCase().replace(/\s+/g, "-"))}`;
+    const slug = entry.label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const description = `<ul>\n${entry.items.map((line) => `  <li>${escape(line)}</li>`).join("\n")}\n</ul>`;
     return `    <item>
       <title>${escape(entry.label)}</title>
-      <link>${SITE}/changelog</link>
+      <link>${SITE}/changelog#${slug}</link>
       <guid isPermaLink="false">${escape(guid)}</guid>
       <pubDate>${pubDate}</pubDate>
       <description><![CDATA[${description}]]></description>
@@ -67,7 +71,9 @@ const items = entries
   .join("\n");
 const lastBuildDate = entries[0]?.date ? isoDate(entries[0].date) : new Date(0).toUTCString();
 
-const xml = `<?xml version="1.0" encoding="UTF-8"?>
+// Exported for src/prerender-build.test.js, which checks each item's link
+// against the prerendered /changelog.
+export const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Globestudio changelog</title>
@@ -81,9 +87,13 @@ ${items}
 </rss>
 `;
 
-const outPath = resolve(root, "public/changelog.xml");
-writeFileSync(outPath, xml);
-console.log(`✓ Generated changelog.xml (${entries.length} entries) → public/changelog.xml`);
+// Run only as a script (the prebuild step), so importing the feed doesn't
+// rewrite public/changelog.xml.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const outPath = resolve(root, "public/changelog.xml");
+  writeFileSync(outPath, xml);
+  console.log(`✓ Generated changelog.xml (${entries.length} entries) → public/changelog.xml`);
+}
 
 // Inline parser for the ENTRIES array in changelog-page.jsx. We do
 // this rather than running the JSX through a bundler because the
