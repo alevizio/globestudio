@@ -18,7 +18,7 @@ import { pageHeading } from "./data/preset-seo.js";
 import { presetTags } from "./data/preset-tags.js";
 import { useUsStatesLoader } from "./hooks/use-us-states-loader.js";
 import { useShareConfigImport } from "./hooks/use-share-config-import.js";
-import { useRouteLook } from "./hooks/use-route-look.js";
+import { lookFromPath, useRouteLook } from "./hooks/use-route-look.js";
 import { useSheetDrag } from "./hooks/use-sheet-drag.js";
 import { useTrackpadZoom } from "./hooks/use-trackpad-zoom.js";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts.js";
@@ -26,7 +26,13 @@ import { usePrefetchHeavyChunks } from "./hooks/use-prefetch-heavy-chunks.js";
 import { clampNumber } from "./utils/math.js";
 import { hexToRgb, invertHex } from "./utils/color.js";
 import { hexColorsToLegacy, legacyColorsToLinear, pickedGradientToLinear } from "./utils/color-space.js";
-import { buildShareUrl, hasHexColors, normalizeConfig } from "./utils/share-config.js";
+import {
+  buildShareUrl,
+  clearShareConfigFromUrl,
+  hasHexColors,
+  normalizeConfig,
+  parseShareConfig,
+} from "./utils/share-config.js";
 import {
   createCountryMapData,
   createStateMapData,
@@ -50,7 +56,13 @@ import {
   recordCanvasToMp4Blob,
   recordCanvasToVideoBlob,
 } from "./utils/export.js";
-import { clearPersistedState, usePersistedState } from "./hooks/use-persisted-state.js";
+import {
+  clearPersistedState,
+  holdPersistedState,
+  isPersistedStateHeld,
+  releasePersistedState,
+  usePersistedState,
+} from "./hooks/use-persisted-state.js";
 import { usePrefersReducedMotion } from "./hooks/use-prefers-reduced-motion.js";
 import { hasWebGL } from "./utils/webgl-support.js";
 import { formatSelectionStatus } from "./utils/a11y-status.js";
@@ -617,6 +629,15 @@ const App = () => {
     }
     return true;
   });
+  // Whether the page opened on a design link: a share link (?c=…) or a look's
+  // page. That design shows without being saved in this browser (see the
+  // hold after buildCurrentConfig), so "/" keeps opening on the design saved
+  // here, or on World, until the visitor edits it.
+  const [openedFromLink] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      Boolean(lookFromPath(window.location.pathname) || parseShareConfig(window.location.search)),
+  );
   // Whether the design has changed since the current look applied, for the
   // Copy for AI prompt ("Started from: <look>" vs "Look: <look>"). The
   // baseline is the config as the render that applied the look left it:
@@ -1295,6 +1316,37 @@ const App = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lookApplyCount]);
+
+  // A design opened from a link isn't saved until it's edited. The settings
+  // a link sets are held (hooks/use-persisted-state.js), the design as the
+  // link left it is the baseline, and the first change to it saves the whole
+  // design as it stands, link and all. The view isn't a saved setting, so
+  // switching between Flat and Globe is no edit. The link leaves the address
+  // at that edit too, so a reload before it opens the link again.
+  const [linkShown, setLinkShown] = useState(false);
+  const linkBaselineRef = useRef(null);
+  useEffect(() => {
+    if (!openedFromLink) return undefined;
+    const { version: _version, viewMode: _viewMode, ...design } = buildCurrentConfig();
+    const endHold = holdPersistedState([...Object.keys(design), "hexColors"]);
+    // Batched with the link's own updates, which the route and share config
+    // effects make in this same pass, so the baseline is the link's design.
+    setLinkShown(true);
+    return endHold;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!linkShown || !isPersistedStateHeld()) return;
+    const { viewMode: _viewMode, ...design } = buildCurrentConfig();
+    const shown = JSON.stringify(design);
+    if (linkBaselineRef.current === null) {
+      linkBaselineRef.current = shown;
+    } else if (shown !== linkBaselineRef.current) {
+      releasePersistedState();
+      clearShareConfigFromUrl();
+    }
+  }, [linkShown, buildCurrentConfig]);
+
   // Read at click time, like getShareUrl, so it always matches the canvas.
   const isLookEdited = useCallback(
     () => lookBaselineRef.current !== JSON.stringify(buildCurrentConfig()),

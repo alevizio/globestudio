@@ -413,8 +413,8 @@ export const parseShareConfig = (search, base) => {
   }
 };
 
-// After applying a share config, strip ?c=… from the URL so subsequent
-// edits don't accumulate a stale config in the history. Uses
+// At the first edit of a share link's design (App.jsx), strip ?c=… from
+// the URL so a reload doesn't put the link back over the edits. Uses
 // replaceState so the user's history isn't polluted with the
 // "decoded" step.
 export const clearShareConfigFromUrl = () => {

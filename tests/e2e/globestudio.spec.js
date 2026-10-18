@@ -120,14 +120,47 @@ test("preset routes apply the requested look", async ({ page }) => {
 
 test("a look link's own settings win over the look", async ({ page }) => {
   await page.goto(`/looks/halftone?c=${encodeURIComponent(JSON.stringify({ v: 2, density: 77 }))}`);
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("globestudio:density"))).toBe("77");
+  await expect(page.getByRole("slider", { name: "Density" }).first()).toHaveValue("77");
 });
 
 test("a look link that still ends in app=1, as the MCP server built them, opens its settings", async ({ page }) => {
   // app=1 was the pre-launch teaser bypass. The server no longer adds it,
   // and the links out there that carry it keep working.
   await page.goto(`/looks/halftone?c=${encodeURIComponent(JSON.stringify({ v: 2, density: 77 }))}&app=1`);
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("globestudio:density"))).toBe("77");
+  await expect(page.getByRole("slider", { name: "Density" }).first()).toHaveValue("77");
+});
+
+test.describe("a design opened from a link", () => {
+  const japan = `/?c=${encodeURIComponent(JSON.stringify({ v: 2, selection: "country:JPN" }))}`;
+  const region = (page) => page.getByRole("button", { name: /^Country or region/ });
+  const density = (page) => page.getByRole("slider", { name: "Density" }).first();
+
+  test("shows without being saved, and a reload opens it again", async ({ page }) => {
+    await page.goto(japan);
+    await expect(region(page)).toContainText("Japan");
+    await page.reload();
+    await expect(region(page)).toContainText("Japan");
+    await page.goto("/");
+    await expect(region(page)).toContainText("World");
+  });
+
+  test("is saved as it stands at its first edit", async ({ page }) => {
+    await page.goto(japan);
+    await expect(region(page)).toContainText("Japan");
+    await density(page).fill("60");
+    await expect(page).not.toHaveURL(/[?&]c=/);
+    await page.goto("/");
+    await expect(region(page)).toContainText("Japan");
+    await expect(density(page)).toHaveValue("60");
+  });
+
+  test("on a look's page isn't saved either", async ({ page }) => {
+    // Halftone authors density 50, and the studio starts at 40.
+    await page.goto("/looks/halftone");
+    await expect(density(page)).toHaveValue("50");
+    await page.goto("/");
+    await expect(density(page)).toHaveValue("40");
+  });
 });
 
 test("a look link with only some settings keeps the look's glow, grid and shader", async ({ page }) => {
@@ -138,6 +171,9 @@ test("a look link with only some settings keeps the look's glow, grid and shader
     shaderSettings: { intensity: 80 },
   };
   await page.goto(`/looks/topographic?c=${encodeURIComponent(JSON.stringify(config))}`);
+  // A link's design is saved at its first edit, as it stands. Density is
+  // neither glow, grid nor shader.
+  await page.getByRole("slider", { name: "Density" }).first().fill("41");
   const saved = (key) => page.evaluate((name) => JSON.parse(localStorage.getItem(`globestudio:${name}`)), key);
   await expect.poll(() => saved("globeSettings")).toMatchObject({ glow: false, grid: false, dataArcs: true });
   expect((await saved("globeSettings")).dataPoints).toHaveLength(2);
@@ -293,11 +329,15 @@ test("embed.js draws the design of a whole share link pasted into data-config", 
 test.describe("an embed of a look alone", () => {
   test.use({ viewport: { width: 900, height: 600 }, contextOptions: { reducedMotion: "reduce" } });
 
-  // The look as the studio holds it on /looks/<id>. A setting is saved once
-  // it changes, so one that stays at the studio's default isn't there.
-  const studioLook = async (page, id) => {
-    await page.goto(`/looks/${id}`);
+  // The look as the studio holds it once picked in the looks bar (a look's
+  // own page isn't saved). A setting is saved once it changes, so one that
+  // stays at the studio's default isn't there.
+  const studioLook = async (page, id, name) => {
+    await page.goto("/");
     await waitForCanvas(page);
+    // Straight to the element, as press() does: the panel repaints with the
+    // globe, which can stall Playwright's actionability checks.
+    await page.getByRole("list", { name: "Looks" }).getByRole("button", { name, exact: true }).evaluate((el) => el.click());
     const saved = (key) => page.evaluate((name) => JSON.parse(localStorage.getItem(`globestudio:${name}`)), key);
     await expect.poll(() => saved("dotSize"), { timeout: CANVAS_TIMEOUT }).not.toBeNull();
     return {
@@ -352,9 +392,9 @@ test.describe("an embed of a look alone", () => {
       return differing / (x.width * x.height);
     }, [a, b].map((shot) => `data:image/png;base64,${shot.toString("base64")}`));
 
-  for (const id of ["pixel", "wireframe"]) {
+  for (const [id, name] of [["pixel", "Pixel"], ["wireframe", "Wireframe"]]) {
     test(`draws ${id} with the studio's density, dot size and page`, async ({ page }) => {
-      const look = await studioLook(page, id);
+      const look = await studioLook(page, id, name);
       const own = await settledShot(page, `/embed?look=${id}&static=1`);
       if (look.transparent) {
         await expect(page.locator('.embed-view[data-transparent="true"]')).toHaveCount(1);

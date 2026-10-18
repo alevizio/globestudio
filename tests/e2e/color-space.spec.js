@@ -87,8 +87,12 @@ test.describe("colors", () => {
     await page.goto(link(2, { ...BIG_DOTS, dotColor: "#ff8000" }));
     await expect.poll(() => canvasPixelsNear(page, [255, 55, 0]), { timeout: CANVAS_TIMEOUT }).toBeGreaterThan(2000);
     expect(await canvasPixelsNear(page, [255, 128, 0])).toBe(0);
-    // The design keeps the color as it came.
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("globestudio:dotColor")))).toBe("#ff8000");
+    // The design keeps the color as it came. A link's design is saved at its
+    // first edit, so change something else first.
+    await page.getByRole("slider", { name: "Density" }).first().fill("13");
+    await expect
+      .poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("globestudio:dotColor"))))
+      .toBe("#ff8000");
   });
 
   test("a v3 link renders its colors as their hex", async ({ page }) => {

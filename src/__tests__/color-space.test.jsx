@@ -116,11 +116,19 @@ describe("the design's color space", () => {
   }, 20000);
 
   it("a link opens in its own color space", async () => {
+    // A link's design is saved at its first edit, as it stands. Turning the
+    // data markers on changes no color.
+    const saveLinkDesign = () => {
+      fireEvent.click(screen.getByRole("button", { name: "Data" }));
+      fireEvent.click(screen.getByRole("button", { name: "Show data markers" }));
+    };
     // A v2 link, as every link made before: old colors, as they are.
     save("hexColors", true);
     save("worldFill", "#1a1a20");
     const old = encodeURIComponent(JSON.stringify({ v: 2, dotColor: "#ff8000" }));
     await renderApp(`/?c=${old}`);
+    expect(stored("hexColors")).toBe(true);
+    saveLinkDesign();
     expect(stored("hexColors")).toBe(false);
     expect(stored("dotColor")).toBe("#ff8000");
     // What the link leaves out is turned into old colors that render the same.
@@ -131,6 +139,7 @@ describe("the design's color space", () => {
     window.localStorage.clear();
     const hex = encodeURIComponent(JSON.stringify({ v: 3, dotColor: "#ff8000" }));
     await renderApp(`/?c=${hex}`);
+    saveLinkDesign();
     expect(stored("hexColors")).toBe(true);
     expect(stored("dotColor")).toBe("#ff8000");
   }, 20000);

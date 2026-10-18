@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act, renderHook } from "@testing-library/react";
-import { clearPersistedState, usePersistedState } from "./use-persisted-state.js";
+import {
+  clearPersistedState,
+  holdPersistedState,
+  isPersistedStateHeld,
+  releasePersistedState,
+  usePersistedState,
+} from "./use-persisted-state.js";
 
 const PREFIX = "globestudio:";
 
@@ -66,5 +72,56 @@ describe("clearPersistedState", () => {
     expect(window.localStorage.getItem(`${PREFIX}density`)).toBeNull();
     expect(window.localStorage.getItem(`${PREFIX}shape`)).toBeNull();
     expect(window.localStorage.getItem("other-app")).toBe("untouched");
+  });
+});
+
+describe("holdPersistedState", () => {
+  afterEach(() => {
+    releasePersistedState();
+    window.localStorage.clear();
+  });
+
+  it("doesn't save the keys it holds, and saves the rest", () => {
+    const { result } = renderHook(() => ({
+      density: usePersistedState("density", 40),
+      theme: usePersistedState("uiTheme", "dark"),
+    }));
+    holdPersistedState(["density"]);
+    act(() => {
+      result.current.density[1](77);
+      result.current.theme[1]("light");
+    });
+    expect(result.current.density[0]).toBe(77);
+    expect(window.localStorage.getItem(`${PREFIX}density`)).toBeNull();
+    expect(window.localStorage.getItem(`${PREFIX}uiTheme`)).toBe(`"light"`);
+  });
+
+  it("saves each held key as it stands on release, and every change after", () => {
+    window.localStorage.setItem(`${PREFIX}shape`, `"Hexagon"`);
+    const { result } = renderHook(() => ({
+      density: usePersistedState("density", 40),
+      shape: usePersistedState("shape", "Circle"),
+    }));
+    holdPersistedState(["density", "shape"]);
+    act(() => result.current.density[1](77));
+    act(() => result.current.shape[1]("Square"));
+    expect(window.localStorage.getItem(`${PREFIX}shape`)).toBe(`"Hexagon"`);
+
+    act(() => releasePersistedState());
+    expect(isPersistedStateHeld()).toBe(false);
+    expect(window.localStorage.getItem(`${PREFIX}density`)).toBe("77");
+    expect(window.localStorage.getItem(`${PREFIX}shape`)).toBe(`"Square"`);
+    act(() => result.current.density[1](20));
+    expect(window.localStorage.getItem(`${PREFIX}density`)).toBe("20");
+  });
+
+  it("ends without saving what it held", () => {
+    window.localStorage.setItem(`${PREFIX}density`, "55");
+    const { result } = renderHook(() => usePersistedState("density", 40));
+    const endHold = holdPersistedState(["density"]);
+    act(() => result.current[1](77));
+    endHold();
+    expect(isPersistedStateHeld()).toBe(false);
+    expect(window.localStorage.getItem(`${PREFIX}density`)).toBe("55");
   });
 });
