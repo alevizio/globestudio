@@ -89,6 +89,7 @@ test.describe("colors", () => {
     expect(await canvasPixelsNear(page, [255, 128, 0])).toBe(0);
     // The design keeps the color as it came. A link's design is saved at its
     // first edit, so change something else first.
+    await press(page.getByRole("button", { name: "Surface", exact: true }));
     await page.getByRole("slider", { name: "Density" }).first().fill("13");
     await expect
       .poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("globestudio:dotColor"))))

@@ -37,6 +37,14 @@ const waitForCanvas = async (page) => {
   return canvas;
 };
 
+// The Density slider, in the Surface section, which starts closed. Clicked
+// straight on the element, as press() does: the panel repaints with the
+// globe, which can stall Playwright's actionability checks.
+const densitySlider = async (page) => {
+  await page.getByRole("button", { name: "Surface", exact: true }).evaluate((el) => el.click());
+  return page.getByRole("slider", { name: "Density" }).first();
+};
+
 // `include` narrows the audit to one CSS selector; the whole page without it.
 const expectNoSeriousAxeViolations = async (page, include) => {
   await page.addScriptTag({ content: axeSource.source });
@@ -120,20 +128,19 @@ test("preset routes apply the requested look", async ({ page }) => {
 
 test("a look link's own settings win over the look", async ({ page }) => {
   await page.goto(`/looks/halftone?c=${encodeURIComponent(JSON.stringify({ v: 2, density: 77 }))}`);
-  await expect(page.getByRole("slider", { name: "Density" }).first()).toHaveValue("77");
+  await expect(await densitySlider(page)).toHaveValue("77");
 });
 
 test("a look link that still ends in app=1, as the MCP server built them, opens its settings", async ({ page }) => {
   // app=1 was the pre-launch teaser bypass. The server no longer adds it,
   // and the links out there that carry it keep working.
   await page.goto(`/looks/halftone?c=${encodeURIComponent(JSON.stringify({ v: 2, density: 77 }))}&app=1`);
-  await expect(page.getByRole("slider", { name: "Density" }).first()).toHaveValue("77");
+  await expect(await densitySlider(page)).toHaveValue("77");
 });
 
 test.describe("a design opened from a link", () => {
   const japan = `/?c=${encodeURIComponent(JSON.stringify({ v: 2, selection: "country:JPN" }))}`;
   const region = (page) => page.getByRole("button", { name: /^Country or region/ });
-  const density = (page) => page.getByRole("slider", { name: "Density" }).first();
 
   test("shows without being saved, and a reload opens it again", async ({ page }) => {
     await page.goto(japan);
@@ -147,19 +154,19 @@ test.describe("a design opened from a link", () => {
   test("is saved as it stands at its first edit", async ({ page }) => {
     await page.goto(japan);
     await expect(region(page)).toContainText("Japan");
-    await density(page).fill("60");
+    await (await densitySlider(page)).fill("60");
     await expect(page).not.toHaveURL(/[?&]c=/);
     await page.goto("/");
     await expect(region(page)).toContainText("Japan");
-    await expect(density(page)).toHaveValue("60");
+    await expect(await densitySlider(page)).toHaveValue("60");
   });
 
   test("on a look's page isn't saved either", async ({ page }) => {
     // Halftone authors density 50, and the studio starts at 40.
     await page.goto("/looks/halftone");
-    await expect(density(page)).toHaveValue("50");
+    await expect(await densitySlider(page)).toHaveValue("50");
     await page.goto("/");
-    await expect(density(page)).toHaveValue("40");
+    await expect(await densitySlider(page)).toHaveValue("40");
   });
 });
 
@@ -173,7 +180,7 @@ test("a look link with only some settings keeps the look's glow, grid and shader
   await page.goto(`/looks/topographic?c=${encodeURIComponent(JSON.stringify(config))}`);
   // A link's design is saved at its first edit, as it stands. Density is
   // neither glow, grid nor shader.
-  await page.getByRole("slider", { name: "Density" }).first().fill("41");
+  await (await densitySlider(page)).fill("41");
   const saved = (key) => page.evaluate((name) => JSON.parse(localStorage.getItem(`globestudio:${name}`)), key);
   await expect.poll(() => saved("globeSettings")).toMatchObject({ glow: false, grid: false, dataArcs: true });
   expect((await saved("globeSettings")).dataPoints).toHaveLength(2);
