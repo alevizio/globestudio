@@ -82,7 +82,7 @@ Six tools. None of them call an external API, because the preset catalog ships i
 |---|---|
 | `list_presets` | Every shipped look: id, name, blurb, vibe tags, thumbnail URL, embed URL. |
 | `find_presets({ vibe })` | Find looks by a style word or a short phrase. `synthwave` → Vapor; `print` → Halftone / Risograph / Newsprint; `glow` → Aurora / Bloom; `retro print` → Halftone first. |
-| `build_share_url({ look?, share_url?, selection?, dotColor?, ..., config? })` | Build globe URLs: a studio share URL and an `/embed` URL. Start from a look, or pass a link as `share_url` and only the settings to change; everything else in the link is kept. |
+| `build_share_url({ look?, share_url?, selection?, dotColor?, ..., config? })` | Build globe URLs: a studio share URL and an `/embed` URL. Start from a look, or pass a link as `share_url` and only the settings to change; everything else in the link is kept. `config: { viewSwitch: true }` gives the embed a Globe and Map switch. |
 | `read_share_url({ url })` | Decode a Globestudio link (studio share link, `/looks/<id>` link or `/embed` URL) into its look and settings, so an assistant can change a link you paste. |
 | `embed_snippet({ look, framework })` | Paste-ready code: `iframe` HTML, `react` component, or `script-tag` loader. |
 | `preview_url({ look })` | The canonical live `/embed` URL and a PNG thumbnail URL for one preset. |

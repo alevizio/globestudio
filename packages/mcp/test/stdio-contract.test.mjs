@@ -535,6 +535,15 @@ test("a custom glow color survives both ways: MCP links in the app, app links in
   assert.deepEqual(asAppApplies(read.json.config), appConfigOf(link));
 });
 
+test("the embed's Globe and Map switch is kept: the embed link carries it to the app, and it reads back", async () => {
+  const { json } = await callTool("build_share_url", { look: "default", config: { viewSwitch: true } });
+  assert.equal(json.ignored, undefined);
+  assert.deepEqual(json.config, { viewSwitch: true });
+  assert.equal(parseShareConfig(new URL(json.embed_url).search, {})?.viewSwitch, true);
+  const read = await callTool("read_share_url", { url: json.embed_url });
+  assert.equal(read.json.config.viewSwitch, true);
+});
+
 test("the Transparent style and a hidden Data layer survive both ways, compared as the link carries them", async () => {
   // No app defaults merged in here: they would put data back to true.
   const config = { backgroundStyle: "transparent", globeSettings: { data: false, dataArcs: true } };

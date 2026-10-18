@@ -700,7 +700,7 @@ const TOOL_DEFS = [
         shape: { type: "string", enum: [...DOT_SHAPES] },
         config: {
           type: "object",
-          description: "Any other setting, using the keys read_share_url returns in config, e.g. {\"viewMode\": \"flat\"} or {\"globeSettings\": {\"autoSpin\": false}}. Nested settings merge key by key; keys Globestudio does not accept come back in ignored. With \"v\": 3, as read_share_url returns for a link that has it, its colors render as their hex; without it they render darker, as in links before v3.",
+          description: "Any other setting, using the keys read_share_url returns in config, e.g. {\"viewMode\": \"flat\"} or {\"globeSettings\": {\"autoSpin\": false}}. {\"viewSwitch\": true} gives the embed a Globe and Map switch in its corner, so visitors can turn the globe into the flat map and back. Nested settings merge key by key; keys Globestudio does not accept come back in ignored. With \"v\": 3, as read_share_url returns for a link that has it, its colors render as their hex; without it they render darker, as in links before v3.",
           additionalProperties: true,
         },
       },
@@ -764,7 +764,7 @@ export function createServer(): Server {
   const server = new Server(
     {
       name: "globestudio",
-      version: "0.2.4",
+      version: "0.2.5",
     },
     {
       capabilities: {

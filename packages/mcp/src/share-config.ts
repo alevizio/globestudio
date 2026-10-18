@@ -319,6 +319,8 @@ export const normalizeConfig = (config: unknown): ShareConfig => {
   apply(next, "tiltY", normalizeNumber(config.tiltY, -180, 180));
   apply(next, "animationsEnabled", normalizeBoolean(config.animationsEnabled));
   apply(next, "viewMode", normalizeEnum(config.viewMode, VIEW_MODES));
+  // Embeds only: a Globe and Map switch for visitors (the app's embed-view.jsx).
+  apply(next, "viewSwitch", normalizeBoolean(config.viewSwitch));
   apply(next, "flatProjection", normalizeProjection(config.flatProjection));
   apply(next, "riversVisible", normalizeBoolean(config.riversVisible));
   apply(next, "citiesVisible", normalizeBoolean(config.citiesVisible));
