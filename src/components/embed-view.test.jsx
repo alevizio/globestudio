@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { EmbedView } from "./embed-view.jsx";
 import { RootErrorBoundary } from "./root-error-boundary.jsx";
 import { links as legacyLinks } from "../utils/fixtures/legacy-share-links.json";
@@ -71,6 +71,48 @@ describe("EmbedView", () => {
     it("is still the address's without a share config", async () => {
       embed(null, "look=halftone&view=flat");
       expect(await view()).toBe("flat");
+    });
+  });
+
+  describe("the Globe and Map switch", () => {
+    const viewSwitch = () => screen.queryByRole("group", { name: "View" });
+    const pressed = (name) => screen.getByRole("button", { name }).getAttribute("aria-pressed");
+
+    it("shows for a config that asks for it, and turns the globe into the map and back", async () => {
+      embed({ viewSwitch: true });
+      expect(await view()).toBe("globe");
+      fireEvent.click(screen.getByRole("button", { name: "Map view" }));
+      expect(await view()).toBe("flat");
+      expect(pressed("Map view")).toBe("true");
+      fireEvent.click(screen.getByRole("button", { name: "Globe view" }));
+      expect(await view()).toBe("globe");
+      expect(pressed("Globe view")).toBe("true");
+    });
+
+    it("starts on the view the config or the address names", async () => {
+      embed({ viewSwitch: true, viewMode: "flat" }).unmount();
+      embed({ viewSwitch: true }, "&view=flat");
+      expect(await view()).toBe("flat");
+      expect(pressed("Map view")).toBe("true");
+    });
+
+    it("isn't there unless the config asks for it", async () => {
+      embed({ viewSwitch: false }).unmount();
+      embed({ density: 50 });
+      await view();
+      expect(viewSwitch()).toBeNull();
+    });
+
+    it("isn't there in a static embed, which holds still", async () => {
+      embed({ viewSwitch: true }, "&static=1");
+      await view();
+      expect(viewSwitch()).toBeNull();
+    });
+
+    it("takes the light palette with theme=light", async () => {
+      embed({ viewSwitch: true }, "&theme=light");
+      await view();
+      expect(viewSwitch().dataset.theme).toBe("light");
     });
   });
 

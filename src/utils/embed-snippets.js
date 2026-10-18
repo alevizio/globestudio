@@ -17,6 +17,10 @@ const readDesign = (config) => {
   }
 };
 
+// The config with the embed's Globe and Map switch on. Only embeds read the
+// key, so the Share tab adds it to the embed code and not to the share link.
+export const withViewSwitch = (config) => JSON.stringify({ ...readDesign(config), viewSwitch: true });
+
 // The site answers 414 for an address a little under 32,800 characters
 // long. The config travels in the address, and the file of a custom shape
 // can take it past that. This leaves some room.

@@ -99,6 +99,10 @@
 
     "animationsEnabled": { "type": "boolean", "description": "false holds the design still." },
     "viewMode": { "type": "string", "enum": ["globe", "flat"], "description": "3D globe or flat map." },
+    "viewSwitch": {
+      "type": "boolean",
+      "description": "Embeds only: true shows a Globe and Map switch in a corner, so visitors can turn the globe into the flat map and back. The studio has its own switch and ignores this."
+    },
     "flatProjection": {
       "type": "string",
       "enum": ["mercator", "equalEarth", "naturalEarth1", "winkel3", "robinson"],

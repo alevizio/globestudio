@@ -62,6 +62,7 @@ Every key the app keeps from a config, with what it takes. The schema at https:/
 | `tiltY` | -180 to 180 | `0` |  |
 | `animationsEnabled` | true or false |  | false holds the design still. |
 | `viewMode` | `globe`, `flat` |  | 3D globe or flat map. |
+| `viewSwitch` | true or false |  | Embeds only: true shows a Globe and Map switch in a corner, so visitors can turn the globe into the flat map and back. The studio has its own switch and ignores this. |
 | `flatProjection` | `mercator`, `equalEarth`, `naturalEarth1`, `winkel3`, `robinson` |  | Projection for the flat map view. It applies to solid maps (renderMode "solid"); dotted maps always use Mercator. |
 | `riversVisible` | true or false |  |  |
 | `citiesVisible` | true or false |  |  |

@@ -157,6 +157,11 @@ Halftone, Toon and Threshold paint a dark page of their own, where graphite
 ink is lost, so make them see-through in the config as well:
 `config='{"backgroundStyle":"transparent"}'`.
 
+To let visitors turn the globe into the flat map and back, add
+`"viewSwitch": true` to the config, as in `config='{"viewSwitch":true}'`.
+The embed then shows a Globe and Map switch in its top right corner. The
+Share tab's toggle of the same name adds it for you.
+
 The export dialog writes this code for the design on screen. Its Share tab
 has an Embed code section with three options, iframe, React and Web
 component, each with a Copy button. Open in CodePen, under the snippet,

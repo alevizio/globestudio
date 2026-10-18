@@ -2816,6 +2816,54 @@ body:has(.examples-page--showcase) .showcase-chip-nav {
   text-decoration: underline;
 }
 
+/* The Globe and Map switch of an embed whose config asks for one (see
+   src/components/embed-view-switch.jsx): two icon buttons on a small pill
+   in the top right corner, which reads over the globe and over a host page
+   behind a see-through embed. theme=light gives it the light tokens through
+   its own data-theme. */
+.embed-view-switch {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--muted);
+  backdrop-filter: blur(12px);
+}
+
+.embed-view-switch-button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: color 160ms var(--ease), background-color 160ms var(--ease);
+}
+
+.embed-view-switch-button:hover {
+  color: var(--text);
+}
+
+.embed-view-switch-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.embed-view-switch-button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
 /* Plugin-host shell — when the embed is loaded inside the Figma plugin
    (via ?plugin=figma), a bottom action bar stacks the pickers and a
    note above an Insert button.

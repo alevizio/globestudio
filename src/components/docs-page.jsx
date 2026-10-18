@@ -125,6 +125,12 @@ export const DocsPage = () => {
             <code>theme="light"</code>, the script-tag loader as{" "}
             <code>data-theme="light"</code>.
           </p>
+          <p>
+            To let visitors turn the globe into the flat map and back, put{" "}
+            <code>"viewSwitch": true</code> in the config. The embed shows a
+            Globe and Map switch in its top right corner, and the Share tab's
+            toggle of the same name adds it to the code it writes.
+          </p>
 
           <SectionHeading
             id="react-component"

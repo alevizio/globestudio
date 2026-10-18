@@ -6,6 +6,7 @@ import {
   buildWebComponentSnippet,
   ELEMENT_SCRIPT,
   fitsEmbedUrl,
+  withViewSwitch,
 } from "./embed-snippets.js";
 import { buildShareUrl, parseShareConfig } from "./share-config.js";
 import { buildEmbedUrl } from "../../packages/web-component/index.js";
@@ -30,6 +31,19 @@ const parse = (html) => new DOMParser().parseFromString(html, "text/html");
 describe("the design used by these tests", () => {
   it("survives its own share link, awkward characters included", () => {
     expect(DECODED).toMatchObject(DESIGN);
+  });
+});
+
+describe("withViewSwitch", () => {
+  it("turns the Globe and Map switch on in the config and keeps the rest", () => {
+    const config = withViewSwitch(JSON.stringify(DESIGN));
+    expect(JSON.parse(config)).toEqual({ ...DESIGN, viewSwitch: true });
+    // The embed reads it through the same parser as every link.
+    expect(parseShareConfig(`?c=${encodeURIComponent(config)}`)?.viewSwitch).toBe(true);
+  });
+
+  it("is a config of the switch alone when there is no share config", () => {
+    expect(withViewSwitch(null)).toBe('{"viewSwitch":true}');
   });
 });
 

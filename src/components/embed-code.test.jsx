@@ -7,6 +7,7 @@ import {
   buildIframeSnippet,
   buildReactSnippet,
   buildWebComponentSnippet,
+  withViewSwitch,
 } from "../utils/embed-snippets.js";
 
 vi.mock("./analytics.jsx", () => ({ track: vi.fn() }));
@@ -40,6 +41,22 @@ describe("EmbedCode", () => {
     fireEvent.click(screen.getByRole("tab", { name: "React" }));
     expect(shownCode()).toBe(buildReactSnippet({ config: CONFIG, width: 1200, height: 800 }));
     fireEvent.click(screen.getByRole("tab", { name: "Web component" }));
+    expect(shownCode()).toBe(buildWebComponentSnippet({ config: CONFIG, height: 800 }));
+  });
+
+  it("adds the embed's Globe and Map switch to every snippet when it's on", () => {
+    renderBlock();
+    const toggle = screen.getByRole("switch", { name: "Globe and Map switch" });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    const config = withViewSwitch(CONFIG);
+    expect(shownCode()).toBe(buildIframeSnippet({ config, width: 1200, height: 800 }));
+    fireEvent.click(screen.getByRole("tab", { name: "React" }));
+    expect(shownCode()).toBe(buildReactSnippet({ config, width: 1200, height: 800 }));
+    fireEvent.click(screen.getByRole("tab", { name: "Web component" }));
+    expect(shownCode()).toBe(buildWebComponentSnippet({ config, height: 800 }));
+    fireEvent.click(toggle);
     expect(shownCode()).toBe(buildWebComponentSnippet({ config: CONFIG, height: 800 }));
   });
 

@@ -1,5 +1,7 @@
 import { useId, useMemo, useRef, useState } from "react";
 import { CodeBlock } from "./ui/code-block.jsx";
+import { OptionRow } from "./ui/option-row.jsx";
+import { ToggleControl } from "./ui/toggle-control.jsx";
 import { track } from "./analytics.jsx";
 import {
   buildCodePenData,
@@ -7,11 +9,13 @@ import {
   buildReactSnippet,
   buildWebComponentSnippet,
   fitsEmbedUrl,
+  withViewSwitch,
 } from "../utils/embed-snippets.js";
 
 // The Share tab's embed code: the current design as an iframe, a React
-// component or a web component, in a CodeBlock with its Copy button, and a
-// button that opens the web component in a new pen on CodePen.
+// component or a web component, in a CodeBlock with its Copy button, a
+// toggle for the embed's Globe and Map switch, and a button that opens the
+// web component in a new pen on CodePen.
 // Each `id` is also the share_clicked method its copy is counted under.
 const KINDS = [
   { id: "iframe", label: "iframe", language: "html", build: buildIframeSnippet },
@@ -22,13 +26,14 @@ const KINDS = [
 export const EmbedCode = ({ getShareUrl, width, height }) => {
   const id = useId();
   const [kindId, setKindId] = useState(KINDS[0].id);
+  const [viewSwitch, setViewSwitch] = useState(false);
   const tabRefs = useRef(new Map());
   const activeIndex = KINDS.findIndex((kind) => kind.id === kindId);
   const kind = KINDS[activeIndex];
 
   // The share link's `?c=…` payload is the config every snippet embeds:
   // the JSON the packages' `config` takes, and what the embed route reads.
-  const config = useMemo(() => {
+  const shareConfig = useMemo(() => {
     try {
       if (typeof getShareUrl !== "function") return null;
       return new URL(getShareUrl(), window.location.origin).searchParams.get("c");
@@ -36,6 +41,8 @@ export const EmbedCode = ({ getShareUrl, width, height }) => {
       return null;
     }
   }, [getShareUrl]);
+  // With the Globe and Map switch on, it also says "viewSwitch": true.
+  const config = useMemo(() => (viewSwitch ? withViewSwitch(shareConfig) : shareConfig), [shareConfig, viewSwitch]);
 
   // Tabs pattern, like the MCP tab's clients: arrows and Home/End move
   // selection and focus together.
@@ -132,6 +139,10 @@ export const EmbedCode = ({ getShareUrl, width, height }) => {
           {kind.build({ config, width, height })}
         </CodeBlock>
       </div>
+      <OptionRow label="Globe and Map switch">
+        <ToggleControl label="Globe and Map switch" checked={viewSwitch} onChange={setViewSwitch} />
+      </OptionRow>
+      <p className="export-modal-caption">Lets visitors turn the globe into the flat map and back.</p>
       <button type="button" className="export-modal-cta is-secondary" onClick={openInCodePen}>
         <span>Open in CodePen</span>
       </button>

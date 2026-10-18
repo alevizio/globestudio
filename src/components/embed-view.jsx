@@ -19,6 +19,7 @@ import { parseShareConfig } from "../utils/share-config.js";
 import { legacyColorsToLinear, toLinearHex } from "../utils/color-space.js";
 import { clampNumber } from "../utils/math.js";
 import { restoreFigmaPicks, saveFigmaPicks } from "../utils/figma-picks.js";
+import { EmbedViewSwitch } from "./embed-view-switch.jsx";
 import { ErrorBoundary } from "./error-boundary.jsx";
 
 // Lazy-load the heavy WebGL component so the initial embed payload is small.
@@ -205,6 +206,13 @@ export const EmbedView = () => {
     () => buildSettings(raw, shareConfig),
     [raw, shareConfig],
   );
+  // The view a visitor picks on the Globe and Map switch, over the one the
+  // address or the config names. Only a config with "viewSwitch": true shows
+  // the switch, and never the Figma plugin shell, whose pickers pick the
+  // view, or a static embed, which holds still.
+  const [pickedView, setPickedView] = useState(null);
+  const view = pickedView ?? raw.view;
+  const showViewSwitch = settings.viewSwitch === true && params.plugin !== "figma" && !params.staticMode;
   // The share config's selection (if any) overrides the URL params' one.
   const effectiveSelection = shareConfig?.selection || raw.selection;
   const ids = useMemo(() => findAreaIds(effectiveSelection), [effectiveSelection]);
@@ -260,10 +268,10 @@ export const EmbedView = () => {
   // and when the view last changed, which starts a GLOBE_MORPH_DURATION
   // morph in GlobeBackground.
   const insertInputs = useRef(null);
-  const viewChange = useRef({ view: raw.view, at: -Infinity });
+  const viewChange = useRef({ view, at: -Infinity });
   useEffect(() => {
-    insertInputs.current = { look: raw.look, view: raw.view, mapData, settings };
-    if (viewChange.current.view !== raw.view) viewChange.current = { view: raw.view, at: performance.now() };
+    insertInputs.current = { look: raw.look, view, mapData, settings };
+    if (viewChange.current.view !== view) viewChange.current = { view, at: performance.now() };
   });
 
   // Figma plugin Insert: capture the live canvas at native resolution,
@@ -543,7 +551,7 @@ export const EmbedView = () => {
           selectionCollection={stateCollection}
           background={isSpaceBackground ? SPACE_BACKGROUND_BASE : isFlowBackground ? FLOW_BACKGROUND_BASE : settings.background}
           transparent={settings.transparent || isSpaceBackground || isFlowBackground}
-          morphMode={raw.view === "flat" ? "flat" : "globe"}
+          morphMode={view === "flat" ? "flat" : "globe"}
           morphTransition={null}
           interactive={false}
           tiltX={settings.tiltX}
@@ -564,6 +572,7 @@ export const EmbedView = () => {
         />
       </Suspense>
       </ErrorBoundary>
+      {showViewSwitch && <EmbedViewSwitch view={view} onChange={setPickedView} theme={params.theme} />}
       {params.plugin === "figma" && (
         <div className="embed-plugin-bar" data-plugin="figma">
           <Suspense fallback={null}>
