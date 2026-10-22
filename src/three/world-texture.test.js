@@ -174,10 +174,10 @@ describe("createWorldTexture overlays", () => {
 });
 
 describe("createWorldTexture flat framing", () => {
-  // Boxes dotted-map gives these picks, from small to the whole world, on both
+  // Boxes these picks are framed by, from small to the whole world, on both
   // sides of the equator and across the antimeridian.
   const boxes = {
-    "the world": { lat: { min: -56, max: 71 }, lng: { min: -168, max: 168 } },
+    "the world": { lat: { min: -56, max: 71 }, lng: { min: -180, max: 180 } },
     Luxembourg: { lat: { min: 49.442667, max: 50.128052 }, lng: { min: 5.674052, max: 6.242751 } },
     Brazil: { lat: { min: -33.768378, max: 5.244486 }, lng: { min: -73.987235, max: -34.729993 } },
     "New Zealand": { lat: { min: -46.641235, max: -34.450662 }, lng: { min: 166.509144, max: 178.517094 } },

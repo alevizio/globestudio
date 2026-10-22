@@ -107,7 +107,7 @@ const applyAlphaToHex = (hex, alpha) => {
 
 // Synthetic feature carrying just the lat/lng bounding box of the dotted-map
 // region. Fed to projection.fitExtent so the Mercator transform pins exactly
-// to dotted-map's framing (e.g. world: lat [-56, 71], lng [-168, 168]) instead
+// to dotted-map's framing (e.g. world: lat [-56, 71], lng [-180, 180]) instead
 // of defaulting to the geojson's full extent (which would include Antarctica
 // and chop the Arctic differently than dotted-map does).
 // Points along the box's edges, in the 100 steps dotted-map samples, not a

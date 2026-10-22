@@ -223,7 +223,7 @@ test("figma plugin Globe and Flat toggle changes the preview and only Flat sends
   const flatInsert = await insertAndRead(page);
   expect(flatInsert.bytes).toBeGreaterThan(0);
   expect(flatInsert.svg).toBe(true);
-  // The default World at density 40 (1,365 dots today) stays within the
+  // The default World at density 40 (1,399 dots today) stays within the
   // plugin's vector limit.
   expect(flatInsert.dots).toBeGreaterThan(0);
   expect(flatInsert.dots).toBeLessThanOrEqual(2500);

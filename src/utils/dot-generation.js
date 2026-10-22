@@ -53,11 +53,16 @@ const generateDots = ({ collection, density, shape }) => {
   return { dots, projection };
 };
 
+// dotted-map's own world stops at 168° east and west, which leaves out most
+// of New Zealand, Fiji, Tonga and Samoa. The world goes all the way round,
+// with dotted-map's latitudes.
+const WORLD_REGION = { lat: { min: -56, max: 71 }, lng: { min: -180, max: 180 } };
+
 export const createCountryMapData = (countryCodes, density) => {
   const map = new DottedMapEngine({
     height: density,
     grid: "diagonal",
-    ...(countryCodes.length ? { countries: countryCodes } : {}),
+    ...(countryCodes.length ? { countries: countryCodes } : { region: WORLD_REGION }),
   });
   const image = map.image;
   const points = map.getPoints().map((point, index) => ({

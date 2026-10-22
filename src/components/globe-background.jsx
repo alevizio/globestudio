@@ -1818,9 +1818,9 @@ export const GlobeBackground = ({
     let cancelled = false;
 
     // Mirror the dotted-map's exact framing for the flat plane. dotted-map
-    // uses Mercator clipped to a region (DEFAULT_WORLD_REGION = lat [-56,71],
-    // lng [-168,168] for the world; computeGeojsonBox(features) for any
-    // country/region selection — see node_modules/dotted-map/dist/index.mjs).
+    // uses Mercator clipped to a region (lat [-56,71], lng [-180,180] for the
+    // world, see WORLD_REGION in utils/dot-generation.js; computeGeojsonBox(features)
+    // for any country/region selection — see node_modules/dotted-map/dist/index.mjs).
     // Reading these straight from mapData.image guarantees the solid view
     // lines up pixel-for-pixel with the dot field.
     const mapImage = mapData?.image;

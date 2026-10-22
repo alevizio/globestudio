@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createCountryMapData,
   getDotRadius,
   getPointsBounds,
   getShapeBounds,
@@ -13,6 +14,16 @@ describe("makeFeatureCollection", () => {
       type: "FeatureCollection",
       features,
     });
+  });
+});
+
+describe("createCountryMapData", () => {
+  it("frames the world all the way round, so New Zealand is on it", () => {
+    const { image, points } = createCountryMapData([], 100);
+    expect(image.region.lng).toEqual({ min: -180, max: 180 });
+    // dotted-map's own world, which stops at 168° E, had one dot here.
+    const newZealand = points.filter(({ lat, lng }) => lat >= -47.5 && lat <= -34 && lng >= 166 && lng <= 179);
+    expect(newZealand.length).toBeGreaterThan(10);
   });
 });
 
