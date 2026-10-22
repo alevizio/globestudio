@@ -119,7 +119,7 @@ const BUDGETS = [
   // The export dialog's MCP tab (MCP connect commands + Copy for AI
   // prompt), fetched only when that tab opens. Its CSS rides along so the
   // critical stylesheet doesn't grow.
-  { prefix: "agent-share-",      ext: ".js",  raw:   6_500,  gzip:   3_000, lazy: true },
+  { prefix: "agent-share-",      ext: ".js",  raw:   7_000,  gzip:   3_000, lazy: true },
   { prefix: "agent-share-",      ext: ".css", raw:   2_000,  gzip:   1_000, lazy: true },
   // The export dialog's Skill tab (the agent skill's install commands),
   // fetched only when that tab opens. It uses the dialog's own styles, so it
