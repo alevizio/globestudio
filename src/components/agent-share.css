@@ -1,7 +1,7 @@
 /* The export dialog's MCP tab. Ships with the lazy agent-share chunk, not
    the critical stylesheet. It reuses the dialog's label, caption, CTA and
-   segmented toggle classes plus the docs CodeBlock, so only layout and the
-   three-client toggle live here. */
+   segmented toggle classes plus the docs CodeBlock, so only layout lives
+   here. */
 
 .agent-share {
   display: flex;
@@ -47,15 +47,28 @@
   margin-top: 12px;
 }
 
-/* Three clients instead of the toggle's usual two: 8px of padding plus two
-   4px gaps come out of the width before it splits in thirds. */
+/* One column per client: agent-share.jsx sets --segment-count, which the
+   toggle's columns and indicator read. */
 .agent-share-clients {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
 }
 
-.agent-share-clients .segmented-toggle-indicator {
-  width: calc((100% - 16px) / 3);
+/* Under 360px the four client names don't fit side by side: "ChatGPT" is
+   wider than a quarter of the toggle. There they sit two by two, and the
+   selected one takes the accent itself, since the sliding indicator only
+   moves along one row. */
+@media (max-width: 359px) {
+  .agent-share .agent-share-clients {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .agent-share .agent-share-clients .segmented-toggle-indicator {
+    display: none;
+  }
+
+  .agent-share .agent-share-clients .segmented-toggle-button.is-active {
+    background: var(--accent);
+  }
 }
 
 .agent-share-panel,

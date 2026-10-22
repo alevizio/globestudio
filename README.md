@@ -232,6 +232,7 @@ server receives and keeps.
 | Client | Connect |
 |---|---|
 | Claude app (claude.ai, Desktop) | [Open in Claude's connector directory](https://claude.ai/directory/connectors/globestudio). Or open Customize, Connectors, then **+** and **Add custom connector**. Paste the URL. |
+| ChatGPT | [Open in ChatGPT](https://chatgpt.com/plugins/plugin_asdk_app_6ac545c64d148191b3a72b4a5c5dd293) and press **Install plugin**. It brings the tools and the Globestudio skill. |
 | Claude Code | `claude mcp add --transport http globestudio https://globestudio.app/mcp` |
 | Codex | `codex mcp add globestudio --url https://globestudio.app/mcp` |
 | Cursor | In `~/.cursor/mcp.json`: `{ "mcpServers": { "globestudio": { "url": "https://globestudio.app/mcp" } } }` |

@@ -1361,6 +1361,10 @@ test.describe("MCP tab", () => {
     await expect(panel).toContainText("Add custom connector");
     await expect(panel).toContainText("On Team or Enterprise, an owner adds it in Organization settings.");
 
+    await dialog.getByRole("tab", { name: "ChatGPT" }).click();
+    await expect(panel.getByRole("link", { name: "Open in ChatGPT" })).toHaveAttribute("href", "https://chatgpt.com/plugins/plugin_asdk_app_6ac545c64d148191b3a72b4a5c5dd293");
+    await expect(panel).toContainText("Press Install plugin on its page");
+
     await dialog.getByRole("tab", { name: "Codex" }).click();
     await expect(panel).toContainText("codex mcp add globestudio --url https://globestudio.app/mcp");
 
@@ -1695,6 +1699,40 @@ test.describe("embed code on a 320px wide phone", () => {
   });
 });
 
+
+test.describe("the MCP tab on a 320px wide phone", () => {
+  test.use({ viewport: { width: 320, height: 568 }, isMobile: true, hasTouch: true });
+
+  test("its four clients sit two by two with every label whole", async ({ page }) => {
+    await page.goto(`/?c=${encodeURIComponent(JSON.stringify({ v: 1, globeSettings: { glow: false } }))}`);
+    await waitForCanvas(page);
+    await page.getByRole("button", { name: "Open export dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: /export/i });
+    await dialog.getByRole("tab", { name: "MCP" }).tap();
+    const clients = dialog.getByRole("tablist", { name: "Connect your agent" });
+    await clients.getByRole("tab", { name: "ChatGPT" }).tap();
+    await expect(clients.getByRole("tab", { name: "ChatGPT" })).toHaveAttribute("aria-selected", "true");
+    const labels = await clients.getByRole("tab").evaluateAll((tabs) =>
+      tabs.map((tab) => {
+        const range = document.createRange();
+        range.selectNodeContents(tab);
+        const text = range.getBoundingClientRect();
+        const box = tab.getBoundingClientRect();
+        return { label: tab.textContent, whole: text.left >= box.left && text.right <= box.right && tab.scrollWidth <= tab.clientWidth };
+      }),
+    );
+    expect(labels).toEqual([
+      { label: "Claude", whole: true },
+      { label: "ChatGPT", whole: true },
+      { label: "Codex", whole: true },
+      { label: "Cursor", whole: true },
+    ]);
+    // Two rows: Codex starts the second one.
+    const [claude, codex] = await Promise.all(["Claude", "Codex"].map((name) => clients.getByRole("tab", { name }).boundingBox()));
+    expect(codex.y).toBeGreaterThan(claude.y);
+    await expect(dialog.getByRole("link", { name: "Open in ChatGPT" })).toBeVisible();
+  });
+});
 test.describe("Figma tab", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 

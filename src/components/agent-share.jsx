@@ -13,12 +13,17 @@ import "./agent-share.css";
 // Every command and menu path below comes from the client's own docs:
 //   Claude Code  https://code.claude.com/docs/en/mcp
 //   Claude app   https://support.claude.com/en/articles/11175166
+//   ChatGPT      Globestudio's plugin page in ChatGPT, below
 //   Codex        https://developers.openai.com/codex/mcp
 //   Cursor       https://cursor.com/docs/mcp and https://cursor.com/docs/mcp/install-links
 // Cursor's install link carries the mcp.json server entry as base64 JSON.
 const CURSOR_INSTALL_URL = `cursor://anysphere.cursor-deeplink/mcp/install?name=globestudio&config=${btoa(
   JSON.stringify({ url: MCP_URL }),
 )}`;
+
+// Globestudio's published plugin in ChatGPT. Install plugin on that page adds
+// the hosted server's tools and the skill.
+const CHATGPT_PLUGIN_URL = "https://chatgpt.com/plugins/plugin_asdk_app_6ac545c64d148191b3a72b4a5c5dd293";
 
 const CLIENTS = [
   {
@@ -34,6 +39,17 @@ const CLIENTS = [
         note: "Or, in the Claude app, open Customize, then Connectors. Press + and choose Add custom connector, then paste this URL.",
         code: MCP_URL,
         footnote: "On Team or Enterprise, an owner adds it in Organization settings.",
+      },
+    ],
+  },
+  {
+    id: "chatgpt",
+    label: "ChatGPT",
+    steps: [
+      {
+        label: "ChatGPT",
+        link: { href: CHATGPT_PLUGIN_URL, label: "Open in ChatGPT" },
+        note: "Press Install plugin on its page, then ask ChatGPT for a globe or a map.",
       },
     ],
   },
@@ -151,7 +167,7 @@ export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) 
         className="segmented-toggle agent-share-clients"
         role="tablist"
         aria-labelledby={`${id}-title`}
-        style={{ "--active-index": activeIndex }}
+        style={{ "--active-index": activeIndex, "--segment-count": CLIENTS.length }}
         onKeyDown={onTabKeyDown}
       >
         <span className="segmented-toggle-indicator" aria-hidden="true" />
@@ -200,14 +216,16 @@ export const AgentShare = ({ getShareUrl, lookName, isLookEdited, regionName }) 
               </a>
             )}
             {step.note && <p className="export-modal-caption">{step.note}</p>}
-            <CodeBlock
-              language={step.label}
-              wrap={!step.code.includes("\n")}
-              keyboardScroll
-              onCopy={() => track("share_clicked", { method: `mcp-${client.id}` })}
-            >
-              {step.code}
-            </CodeBlock>
+            {step.code && (
+              <CodeBlock
+                language={step.label}
+                wrap={!step.code.includes("\n")}
+                keyboardScroll
+                onCopy={() => track("share_clicked", { method: `mcp-${client.id}` })}
+              >
+                {step.code}
+              </CodeBlock>
+            )}
             {step.footnote && <p className="export-modal-caption">{step.footnote}</p>}
           </div>
         ))}

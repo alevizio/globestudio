@@ -176,6 +176,10 @@ describe("AgentShare", () => {
     const claude = screen.getByRole("tab", { name: "Claude" });
     claude.focus();
     fireEvent.keyDown(claude, { key: "ArrowRight" });
+    const chatgpt = screen.getByRole("tab", { name: "ChatGPT" });
+    expect(chatgpt.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(chatgpt);
+    fireEvent.keyDown(chatgpt, { key: "ArrowRight" });
     const codex = screen.getByRole("tab", { name: "Codex" });
     expect(codex.getAttribute("aria-selected")).toBe("true");
     expect(document.activeElement).toBe(codex);
@@ -186,6 +190,19 @@ describe("AgentShare", () => {
     expect(document.activeElement).toBe(cursor);
     fireEvent.keyDown(cursor, { key: "ArrowRight" });
     expect(document.activeElement).toBe(claude);
+  });
+
+  it("lists ChatGPT second, and opens Globestudio's plugin there with nothing to copy", () => {
+    renderBlock();
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["Claude", "ChatGPT", "Codex", "Cursor"]);
+    fireEvent.click(screen.getByRole("tab", { name: "ChatGPT" }));
+    const panel = screen.getByRole("tabpanel");
+    const plugin = within(panel).getByRole("link", { name: "Open in ChatGPT" });
+    expect(plugin.getAttribute("href")).toBe("https://chatgpt.com/plugins/plugin_asdk_app_6ac545c64d148191b3a72b4a5c5dd293");
+    expect(plugin.getAttribute("target")).toBe("_blank");
+    expect(plugin.getAttribute("rel")).toContain("noopener");
+    expect(panel.textContent).toContain("Press Install plugin on its page, then ask ChatGPT for a globe or a map.");
+    expect(panel.querySelector("pre")).toBeNull();
   });
 
   it("gives Cursor an install link that carries the hosted server URL", () => {

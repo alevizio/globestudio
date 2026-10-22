@@ -14,6 +14,8 @@ claude mcp add --transport http globestudio https://globestudio.app/mcp
 
 **Claude (claude.ai and Claude Desktop):** [Open in Claude's connector directory](https://claude.ai/directory/connectors/globestudio). Or open Customize, then Connectors, click **+**, then **Add custom connector**. Paste `https://globestudio.app/mcp` and click **Add**. Custom connectors work on Free (one connector), Pro, Max, Team and Enterprise plans; on Team and Enterprise an Owner adds it first.
 
+**ChatGPT:** [Open in ChatGPT](https://chatgpt.com/plugins/plugin_asdk_app_6ac545c64d148191b3a72b4a5c5dd293) and press **Install plugin**. The plugin brings the tools and the Globestudio skill.
+
 **Codex**
 
 ```bash

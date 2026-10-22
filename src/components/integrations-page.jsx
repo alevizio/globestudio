@@ -175,7 +175,7 @@ const INTEGRATIONS = [
     bg: "#1e1e22",
     fg: "#ffffff",
     blurb:
-      "Globestudio runs a hosted Model Context Protocol server, so there is nothing to install. In the Claude app, open Globestudio in Claude's connector directory, or paste this URL under Customize, Connectors, Add custom connector. Claude Code, Codex and Cursor take the lines below. Then ask in chat: \"make me a clean dotted globe with cyan dots\" and your agent builds the share URL for you.",
+      "Globestudio runs a hosted Model Context Protocol server, so there is nothing to install. In the Claude app, open Globestudio in Claude's connector directory, or paste this URL under Customize, Connectors, Add custom connector. In ChatGPT, install the Globestudio plugin. Claude Code, Codex and Cursor take the lines below. Then ask in chat: \"make me a clean dotted globe with cyan dots\" and your agent builds the share URL for you.",
     snippet: `https://globestudio.app/mcp`,
     // One block per client, so each Copy button copies a single command.
     // They wrap between arguments on a phone instead of scrolling.
@@ -187,6 +187,7 @@ const INTEGRATIONS = [
     ],
     cta: [
       { href: "https://claude.ai/directory/connectors/globestudio", label: "Open in Claude's connector directory" },
+      { href: "https://chatgpt.com/plugins/plugin_asdk_app_6ac545c64d148191b3a72b4a5c5dd293", label: "Open in ChatGPT" },
       { href: "https://www.npmjs.com/package/@globestudio/mcp", label: "View on npm" },
     ],
   },

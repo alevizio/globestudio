@@ -57,18 +57,19 @@ describe("IntegrationsPage", () => {
     expect(within(block).getByRole("status").textContent).toBe("Copied");
   });
 
-  it("links Claude's connector directory first on the MCP card, then npm", () => {
+  it("links Claude's connector directory first on the MCP card, then ChatGPT, then npm", () => {
     render(<IntegrationsPage />);
     const mcp = card("AI agents / MCP");
     const links = cardLinks(mcp).map((link) => [link.textContent, link.getAttribute("href"), link.getAttribute("target")]);
     expect(links).toEqual([
       ["Open in Claude's connector directory →", "https://claude.ai/directory/connectors/globestudio", "_blank"],
+      ["Open in ChatGPT →", "https://chatgpt.com/plugins/plugin_asdk_app_6ac545c64d148191b3a72b4a5c5dd293", "_blank"],
       ["View on npm →", "https://www.npmjs.com/package/@globestudio/mcp", "_blank"],
     ]);
     // The blurb gives the directory first and the custom connector as the fallback.
     expect(
       within(mcp).getByText(
-        /In the Claude app, open Globestudio in Claude's connector directory, or paste this URL under Customize, Connectors, Add custom connector\./,
+        /In the Claude app, open Globestudio in Claude's connector directory, or paste this URL under Customize, Connectors, Add custom connector\. In ChatGPT, install the Globestudio plugin\./,
       ),
     ).toBeTruthy();
   });
