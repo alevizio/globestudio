@@ -220,6 +220,8 @@ Longer reads:
 
 ## Use it from AI tools (MCP)
 
+<a href="https://mcprush.com/globestudio/globestudio-mcp"><img width="380" height="200" src="https://mcprush.com/badge/globestudio-mcp/card.svg" alt="Globestudio MCP on mcprush: security grade A, low access, no sign-in" loading="lazy" /></a>
+
 Globestudio runs a hosted [Model Context Protocol](https://modelcontextprotocol.io)
 server at **`https://globestudio.app/mcp`** (streamable HTTP, nothing to
 install, no account). From Claude, Codex, Cursor or any other MCP client, an
