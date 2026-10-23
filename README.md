@@ -15,6 +15,12 @@ Pick a country or the whole world, choose a look, change the dots and colors, an
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-9adfff.svg)](CONTRIBUTING.md)
 [![skills.sh installs](https://skills.sh/b/alevizio/globestudio)](https://skills.sh/alevizio/globestudio/globestudio)
 
+[![@globestudio/react on npm](https://img.shields.io/npm/v/@globestudio/react?label=%40globestudio%2Freact&logo=npm)](https://www.npmjs.com/package/@globestudio/react)
+[![@globestudio/element on npm](https://img.shields.io/npm/v/@globestudio/element?label=%40globestudio%2Felement&logo=npm)](https://www.npmjs.com/package/@globestudio/element)
+[![@globestudio/mcp on npm](https://img.shields.io/npm/v/@globestudio/mcp?label=%40globestudio%2Fmcp&logo=npm)](https://www.npmjs.com/package/@globestudio/mcp)
+
+<a href="https://www.producthunt.com/products/globestudio?utm_source=badge-featured&utm_medium=badge&utm_source=badge-globestudio"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1264308&theme=light" alt="Globestudio, featured on Product Hunt" width="250" height="54" /></a>
+
 </div>
 
 ---
@@ -220,7 +226,16 @@ Longer reads:
 
 ## Use it from AI tools (MCP)
 
+[![Add to Claude](https://img.shields.io/badge/Claude-Add_connector-D97757?logo=claude&logoColor=white)](https://claude.ai/directory/connectors/globestudio)
+[![Install in ChatGPT](https://img.shields.io/badge/ChatGPT-Install_plugin-10A37F)](https://chatgpt.com/plugins/plugin_asdk_app_6ac545c64d148191b3a72b4a5c5dd293)
+[![Add to Cursor](https://img.shields.io/badge/Cursor-Add_server-000000?logo=cursor&logoColor=white)](https://cursor.com/install-mcp?name=globestudio&config=eyJ1cmwiOiJodHRwczovL2dsb2Jlc3R1ZGlvLmFwcC9tY3AifQ%3D%3D)
+[![Add to VS Code](https://img.shields.io/badge/VS_Code-Add_server-0098FF)](https://vscode.dev/redirect/mcp/install?name=globestudio&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fglobestudio.app%2Fmcp%22%7D)
+
 <a href="https://mcprush.com/globestudio/globestudio-mcp"><img width="380" height="200" src="https://mcprush.com/badge/globestudio-mcp/card.svg" alt="Globestudio MCP on mcprush: security grade A, low access, no sign-in" loading="lazy" /></a>
+<a href="https://glama.ai/mcp/servers/alevizio/globestudio"><img width="380" height="200" src="https://glama.ai/mcp/servers/alevizio/globestudio/badge" alt="Globestudio MCP server on Glama" loading="lazy" /></a>
+
+[![Official MCP Registry: io.github.alevizio/globestudio](https://img.shields.io/badge/MCP_Registry-io.github.alevizio%2Fglobestudio-555?logo=modelcontextprotocol)](https://registry.modelcontextprotocol.io/?q=io.github.alevizio/globestudio)
+[![Globestudio on LobeHub](https://lobehub.com/badge/mcp/alevizio-globestudio)](https://lobehub.com/mcp/alevizio-globestudio)
 
 Globestudio runs a hosted [Model Context Protocol](https://modelcontextprotocol.io)
 server at **`https://globestudio.app/mcp`** (streamable HTTP, nothing to
