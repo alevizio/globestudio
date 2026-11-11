@@ -234,7 +234,7 @@ const BuildShareUrlSchema = z.object({
   background: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().describe("Background hex color."),
   density: z.number().int().min(10).max(100).optional().describe("Dot density 10-100 (lower = sparser)."),
   shape: z.enum(DOT_SHAPES).optional().describe("Dot shape."),
-  config: z.record(z.unknown()).optional().describe("Any other setting, using the keys read_share_url returns in config. With \"v\": 3 its colors render as their hex, as in a link."),
+  config: z.record(z.string(), z.unknown()).optional().describe("Any other setting, using the keys read_share_url returns in config. With \"v\": 3 its colors render as their hex, as in a link."),
 });
 
 const ReadShareUrlSchema = z.object({
