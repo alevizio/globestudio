@@ -14,6 +14,7 @@ Pick a country or the whole world, choose a look, change the dots and colors, an
 [![License: MIT](https://img.shields.io/badge/License-MIT-f6f2ea.svg)](LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-9adfff.svg)](CONTRIBUTING.md)
 [![skills.sh installs](https://skills.sh/b/alevizio/globestudio)](https://skills.sh/alevizio/globestudio/globestudio)
+[![mcptry](https://mcptry.com/badge/io.github.alevizio/globestudio)](https://mcptry.com/servers/io.github.alevizio/globestudio)
 
 [![@globestudio/react on npm](https://img.shields.io/npm/v/@globestudio/react?label=%40globestudio%2Freact&logo=npm)](https://www.npmjs.com/package/@globestudio/react)
 [![@globestudio/element on npm](https://img.shields.io/npm/v/@globestudio/element?label=%40globestudio%2Felement&logo=npm)](https://www.npmjs.com/package/@globestudio/element)
