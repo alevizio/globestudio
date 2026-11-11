@@ -5,6 +5,18 @@
   "description": "Generate dotted-globe maps, share URLs, and embed snippets from chat.",
   "version": "0.2.5",
   "websiteUrl": "https://globestudio.app",
+  "icons": [
+    {
+      "src": "https://globestudio.app/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    },
+    {
+      "src": "https://globestudio.app/apple-touch-icon.png",
+      "mimeType": "image/png",
+      "sizes": ["180x180"]
+    }
+  ],
   "repository": {
     "url": "https://github.com/alevizio/globestudio",
     "source": "github",
