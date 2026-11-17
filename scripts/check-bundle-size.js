@@ -68,8 +68,10 @@ const BUDGETS = [
   // before the globe's sphere and their near half after it (Oct 2026).
   // 124.5 kB raw and 42.5 kB gzip since the globe and the flat map each
   // light a click at a dot of their own and the Glow's routes and rings
-  // split at the horizon too (Oct 2026).
-  { prefix: "globe-background-", ext: ".js",  raw: 124_500,  gzip:  42_500, lazy: true },
+  // split at the horizon too (Oct 2026). 125.5 kB raw and 43 kB gzip since
+  // a lost WebGL context builds the globe again on a new canvas instead of
+  // ending in the error card (Nov 2026).
+  { prefix: "globe-background-", ext: ".js",  raw: 125_500,  gzip:  43_000, lazy: true },
   { prefix: "three-",            ext: ".js",  raw: 620_000,  gzip: 160_000, lazy: true },
   { prefix: "geo-",              ext: ".js",  raw:  35_000,  gzip:  12_000, lazy: true },
   { prefix: "states-10m-",       ext: ".js",  raw: 130_000,  gzip:  45_000, lazy: true },
