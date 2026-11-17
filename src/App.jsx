@@ -2054,6 +2054,7 @@ const App = () => {
             reducedMotion={motionFrozen}
             lowPower={lowPowerActive}
             onLowPower={detectsLowPower ? reportLowPower : null}
+            lookId={currentPresetId}
             onLayerLoad={exportModalOpen ? countLayerLoad : null}
             canvasHandleRef={globeCanvasRef}
             panelCollapsed={panelCollapsed}

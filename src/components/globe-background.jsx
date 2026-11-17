@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import {
   DEFAULT_GLOBE_SETTINGS,
@@ -69,7 +69,7 @@ const getClientPoint = (event) => {
   return { x, y };
 };
 
-export const GlobeBackground = ({
+const GlobeCanvas = ({
   mapData,
   selectedDots,
   dotColor,
@@ -168,6 +168,10 @@ export const GlobeBackground = ({
   // or old colors, which render as they always have
   // (three/picked-color.js). Only the studio and the embed pass it.
   hexColors = false,
+  // What to do when the WebGL context is lost or restored, and when the
+  // first frame is on screen. GlobeBackground below passes it, one per
+  // canvas it mounts.
+  contextRecovery = null,
 }) => {
   const mountRef = useRef(null);
   const spaceSettingsRef = useRef(spaceSettings);
@@ -233,9 +237,8 @@ export const GlobeBackground = ({
   const uiThemeRef = useRef(uiTheme);
   const transformRef = useRef({ mapDepth, tiltX, tiltY });
   const [isDraggingGlobe, setIsDraggingGlobe] = useState(false);
-  // An updater that throws hands an error from an event or timer to the
-  // parent's error boundary (see the lost context handling below).
-  const [, showError] = useState();
+  const contextRecoveryRef = useRef(contextRecovery);
+  contextRecoveryRef.current = contextRecovery;
 
   // Phone framing state, read by the animate loop. The sheet's top is only
   // measured when something may have moved it (a class change, a resize, its
@@ -631,28 +634,21 @@ export const GlobeBackground = ({
     // WebGL context can be lost when the OS reclaims GPU resources (tab
     // backgrounded too long, GPU driver reset, mobile thermal throttle).
     // Three.js dispatches "webglcontextlost" — we cancel the animation loop
-    // to avoid burning CPU on a dead context. On restore, we re-trigger a
-    // full reload because rebuilding every material/geometry is more code
-    // than this is worth at our complexity.
-    //
-    // A context that is still lost 10s on isn't coming back by itself, so
-    // the parent's error card, with its Reload button, takes the blank
-    // canvas's place. A restore still reloads as below, before the card or
-    // after it (a GPU process restart on a slow machine can take a while).
-    let lostTimer = 0;
+    // to avoid burning CPU on a dead context. What happens next, a new
+    // canvas or the error card, is GlobeBackground's call (below): it is
+    // told about the loss, how long this canvas had been up, and about a
+    // restore, which can come after this canvas is gone.
+    const mountedAt = window.performance.now();
     const handleContextLost = (event) => {
       event.preventDefault();
       window.cancelAnimationFrame(frame);
       frame = 0;
       console.warn("WebGL context lost — pausing render loop");
-      trackClientError("webgl", "context lost");
-      lostTimer = window.setTimeout(() => showError(() => {
-        throw new Error("WebGL context lost");
-      }), 10000);
+      contextRecoveryRef.current?.lost(window.performance.now() - mountedAt);
     };
     const handleContextRestored = () => {
-      console.warn("WebGL context restored — reloading to rebuild GPU resources");
-      window.location.reload();
+      console.warn("WebGL context restored");
+      contextRecoveryRef.current?.restored();
     };
     renderer.domElement.addEventListener("webglcontextlost", handleContextLost, false);
     renderer.domElement.addEventListener("webglcontextrestored", handleContextRestored, false);
@@ -1336,6 +1332,7 @@ export const GlobeBackground = ({
         // instead of flashing the white app UI that mounts before the globe.
         if (!firstFramePainted) {
           firstFramePainted = true;
+          contextRecoveryRef.current?.painted();
           try {
             document.documentElement.setAttribute("data-globe-painted", "1");
             if (window.parent && window.parent !== window) {
@@ -1669,13 +1666,13 @@ export const GlobeBackground = ({
 
     return () => {
       window.cancelAnimationFrame(frame);
-      window.clearTimeout(lostTimer);
       if (releaseTimer) window.clearTimeout(releaseTimer);
       document.removeEventListener("visibilitychange", handleVisibility);
       renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
       // The restore listener stays: a context the browser restores after the
-      // lost context card took over still reloads the page. Only a lost
-      // context is ever restored, so an ordinary unmount never fires it.
+      // error card or the no WebGL still took over still reloads the page
+      // (see GlobeBackground). Only a lost context is ever restored, so an
+      // ordinary unmount never fires it.
       observer.disconnect();
       screenObserver.disconnect();
       if (canvasHandleRef) {
@@ -2145,5 +2142,150 @@ export const GlobeBackground = ({
     >
       {import.meta.env.DEV && perfHud ? <PerfMonitor metricsRef={perfMetricsRef} /> : null}
     </div>
+  );
+};
+
+// A lost WebGL context gets this long to come back by itself before the
+// globe is built again on a new canvas.
+const RESTORE_WAIT_MS = 5000;
+// New canvases a page gets after losses the browser didn't restore. The
+// next loss that isn't restored ends in the error card.
+const MAX_RECOVERIES = 1;
+// Every canvas built after a loss, restored ones included, so a context the
+// browser keeps losing and restoring ends in the card too.
+const MAX_REBUILDS = 3;
+// Set for the rest of the visit once a context is lost and not restored, so
+// a reload, the card's or the visitor's, starts in low power mode.
+const LOST_KEY = "gs_context_lost";
+
+const lostEarlier = () => {
+  try {
+    return window.sessionStorage.getItem(LOST_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
+const rememberLoss = () => {
+  try {
+    window.sessionStorage.setItem(LOST_KEY, "1");
+  } catch {
+    /* only a reload's low power start depends on it */
+  }
+};
+
+// How long the canvas had been up, in a few spans: a loss right after
+// loading points at the globe's own drawing, one much later at sleep, a
+// background tab or a driver update.
+export const lostAfterLabel = (ms) => {
+  if (ms < 10_000) return "in the first 10 s";
+  if (ms < 60_000) return "10 to 60 s in";
+  if (ms < 600_000) return "1 to 10 min in";
+  return "after 10 min";
+};
+
+// The lost context's client_error message. Nothing in it identifies the
+// device: when, whether the tab was in view, and the look.
+export const contextLostMessage = ({ again, elapsedMs, hidden, lookId }) =>
+  `context lost${again ? " again" : ""} ${lostAfterLabel(elapsedMs)}, tab ${hidden ? "hidden" : "in view"}${
+    lookId ? `, look ${lookId}` : ""
+  }`;
+
+// The globe, built again on a new canvas when its WebGL context is lost. A
+// restore (the browser's GPU process back after a reset) builds it again at
+// once; with none in RESTORE_WAIT_MS it is built once more in low power mode
+// (one device pixel), the lighter load giving it the best chance. Either way
+// the design and the page stay as they are, with no reload. A loss after
+// that ends in the parent's error card, and its Reload starts in low power.
+// A new canvas the browser won't give a context (Chrome stops WebGL on a site
+// after some GPU resets) throws noWebGL as on a first load, and the parent
+// shows its no WebGL still.
+//
+// lookId is the look on screen, for the lost context's client_error.
+export const GlobeBackground = ({ lookId = null, lowPower = false, ...props }) => {
+  const [generation, setGeneration] = useState(0);
+  const [recoveryLowPower, setRecoveryLowPower] = useState(lostEarlier);
+  // An updater that throws hands an error from a timer to the parent's
+  // error boundary.
+  const [, showError] = useState();
+  const lookIdRef = useRef(lookId);
+  lookIdRef.current = lookId;
+  const stateRef = useRef({ mounted: false, generation: 0, recoveries: 0, rebuilds: 0, rebuilt: false, timer: 0 });
+
+  useEffect(() => {
+    const state = stateRef.current;
+    state.mounted = true;
+    return () => {
+      state.mounted = false;
+      window.clearTimeout(state.timer);
+    };
+  }, []);
+
+  const contextRecovery = useMemo(() => {
+    const state = stateRef.current;
+    // A canvas an earlier loss replaced can still report a restore.
+    const isCurrent = () => state.mounted && state.generation === generation;
+    const rebuild = () => {
+      state.rebuilds += 1;
+      state.rebuilt = true;
+      state.generation = generation + 1;
+      setGeneration(generation + 1);
+    };
+    const giveUp = () => {
+      rememberLoss();
+      showError(() => {
+        throw new Error("WebGL context lost");
+      });
+    };
+    return {
+      lost: (elapsedMs) => {
+        if (!isCurrent()) return;
+        trackClientError(
+          "webgl",
+          contextLostMessage({ again: state.rebuilds > 0, elapsedMs, hidden: document.hidden, lookId: lookIdRef.current }),
+        );
+        window.clearTimeout(state.timer);
+        state.timer = window.setTimeout(() => {
+          if (!isCurrent()) return;
+          if (state.recoveries >= MAX_RECOVERIES || state.rebuilds >= MAX_REBUILDS) {
+            giveUp();
+            return;
+          }
+          state.recoveries += 1;
+          rememberLoss();
+          setRecoveryLowPower(true);
+          rebuild();
+        }, RESTORE_WAIT_MS);
+      },
+      restored: () => {
+        // The card or the no WebGL still took over: a reload brings the
+        // globe back now.
+        if (!state.mounted) {
+          window.location.reload();
+          return;
+        }
+        if (!isCurrent()) return;
+        window.clearTimeout(state.timer);
+        if (state.rebuilds >= MAX_REBUILDS) {
+          giveUp();
+          return;
+        }
+        rebuild();
+      },
+      painted: () => {
+        if (!isCurrent() || !state.rebuilt) return;
+        state.rebuilt = false;
+        trackClientError("webgl", "globe back after a lost context");
+      },
+    };
+  }, [generation]);
+
+  return (
+    <GlobeCanvas
+      key={generation}
+      {...props}
+      lowPower={lowPower || recoveryLowPower}
+      contextRecovery={contextRecovery}
+    />
   );
 };
