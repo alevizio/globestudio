@@ -31,6 +31,11 @@ export const NoWebGLFallback = () => (
         <summary>How to enable WebGL</summary>
         <ul>
           <li>
+            <strong>If the globe worked a moment ago:</strong> your graphics
+            card stopped answering, and the browser turned WebGL off for this
+            site. Quit and reopen the browser to turn it back on.
+          </li>
+          <li>
             <strong>Chrome / Edge:</strong> Settings → System → enable “Use
             hardware acceleration when available,” then restart the browser.
           </li>

@@ -122,6 +122,9 @@ describe("the studio", () => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
     await renderStudio();
     expect(screen.getByRole("heading", { name: STUDIO_FALLBACK })).toBeTruthy();
+    // After a lost context Chrome and Edge can turn WebGL off for the site;
+    // the first tip is the one that brings the globe back.
+    expect(screen.getAllByRole("listitem")[0].textContent).toMatch(/worked a moment ago.*Quit and reopen the browser/s);
     expect(document.body.classList.contains("is-no-webgl")).toBe(true);
     expect(analytics.errors).toEqual([]);
   }, 20000);
