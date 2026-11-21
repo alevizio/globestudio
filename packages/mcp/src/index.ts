@@ -12,17 +12,12 @@
  * Source: https://github.com/alevizio/globestudio/tree/main/packages/mcp
  */
 
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { createServer } from "./server.js";
 
-const main = async () => {
-  const server = createServer();
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  // Stay alive — the MCP SDK keeps the process up via stdin reads.
-};
-
-main().catch((error) => {
-  console.error("[globestudio-mcp] Fatal error:", error);
-  process.exit(1);
+// The opening message picks the protocol: a 2025 client's initialize, or a
+// 2026-07-28 client's first request with its version in _meta. One server
+// from the factory then serves the connection, kept alive by stdin reads.
+serveStdio(() => createServer(), {
+  onerror: (error) => console.error("[globestudio-mcp]", error),
 });

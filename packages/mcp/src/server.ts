@@ -16,11 +16,7 @@
  *   preview_url({ look })            → live /embed?look=<id> URL + thumbnail URL
  */
 
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
+import { Server, type Tool } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import {
   encodeShareConfig,
@@ -664,7 +660,7 @@ const readOnlyTool = (title: string) => ({
   annotations: { title, readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
 });
 
-const TOOL_DEFS = [
+const TOOL_DEFS: Tool[] = [
   {
     name: "list_presets",
     ...readOnlyTool("List looks"),
@@ -774,9 +770,9 @@ export function createServer(): Server {
     },
   );
 
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOL_DEFS }));
+  server.setRequestHandler("tools/list", async () => ({ tools: TOOL_DEFS }));
 
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler("tools/call", async (request) => {
     const { name, arguments: args } = request.params;
     try {
       let result: unknown;

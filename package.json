@@ -23,7 +23,7 @@
     "check": "npm run test && npm run build && npm run check:bundle"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.1",
+    "@modelcontextprotocol/server": "^2.4.0",
     "@paper-design/shaders-react": "^0.0.76",
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.4.0",

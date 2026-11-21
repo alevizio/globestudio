@@ -5,9 +5,10 @@ import { describe, expect, it } from "vitest";
 
 // The first release of each package that fixes the security advisories
 // reported against package-lock.json, one per major line in use (undici has
-// a 6.x copy under @vercel/blob and a 7.x copy under jsdom). The MCP SDK
-// here is the one the hosted server at /mcp runs. A lockfile refresh or a
-// revert that brings back an older copy fails here.
+// a 6.x copy under @vercel/blob and a 7.x copy under jsdom). The hosted
+// server at /mcp runs the v2 server SDK since Nov 2026; the v1 SDK's floor
+// stays for a revert or a dependency that brings it back. A lockfile refresh
+// or a revert that brings back an older copy fails here.
 const FLOORS = {
   undici: ["6.28.1", "7.29.1"],
   vite: ["8.0.16"],

@@ -3,15 +3,26 @@
  *
  * `handleMcpRequest` takes a Web Standard Request and returns a Response, so
  * any fetch-style host can serve it. The Vercel function api/mcp.ts exposes
- * it at https://globestudio.app/mcp. Every POST gets a fresh server and
- * transport (no sessions, nothing kept between requests) and a plain JSON
- * reply, which is all these tools need: they only build and read URLs.
+ * it at https://globestudio.app/mcp. Every POST gets a fresh server (no
+ * sessions, nothing kept between requests) and a plain JSON reply, which is
+ * all these tools need: they only build and read URLs.
+ *
+ * Two protocol eras share the endpoint. A 2026-07-28 client puts its version
+ * in each request's _meta and never sends initialize; the SDK's stateless
+ * handler answers it. A 2025 client (initialize first, protocol version in a
+ * header after that) gets the stateless streamable HTTP transport, as before.
+ * Without the first leg, 2026 clients got a 400 on their first request and
+ * had to retry the 2025 way (Claude, Copilot CLI and VS Code, Nov 2026).
  *
  * GET (a server-to-client event stream) and DELETE (ending a session) answer
  * 405, which the MCP spec allows for a server without sessions or streams.
  */
 
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import {
+  createMcpHandler,
+  isLegacyRequest,
+  WebStandardStreamableHTTPServerTransport,
+} from "@modelcontextprotocol/server";
 import { createServer } from "./server.js";
 
 /** Largest request body accepted. A share link with every setting is ~2.5 kB. */
@@ -30,11 +41,19 @@ export const MAX_BATCH_MESSAGES = 10;
 const RESPONSE_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization, Mcp-Protocol-Version, Mcp-Session-Id, Last-Event-ID",
+  "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization, Mcp-Protocol-Version, Mcp-Method, Mcp-Name, Mcp-Session-Id, Last-Event-ID",
   "Access-Control-Expose-Headers": "Mcp-Protocol-Version, Mcp-Session-Id",
   "Access-Control-Max-Age": "86400",
   "Cache-Control": "no-store",
 };
+
+// 2026-07-28 requests. Strict ("reject"): 2025 requests never reach it, the
+// handler below routes them first. The tools send nothing before their
+// result, so each reply is one JSON body.
+const modern = createMcpHandler(() => createServer(), {
+  legacy: "reject",
+  maxRequestBodySize: MAX_BODY_BYTES,
+});
 
 const withHeaders = (response: Response, extra: Record<string, string> = {}) => {
   const headers = new Headers(response.headers);
@@ -103,6 +122,14 @@ export const handleMcpRequest = async (request: Request): Promise<Response> => {
   }
   if (Array.isArray(parsedBody) && parsedBody.length > MAX_BATCH_MESSAGES) {
     return jsonRpcError(400, -32600, `A batch can hold up to ${MAX_BATCH_MESSAGES} messages.`);
+  }
+
+  if (!(await isLegacyRequest(request, parsedBody))) {
+    try {
+      return withHeaders(await modern.fetch(request, { parsedBody }));
+    } catch {
+      return jsonRpcError(500, -32603, "Internal error.");
+    }
   }
 
   const server = createServer();
